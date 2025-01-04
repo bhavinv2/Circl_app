@@ -41,36 +41,44 @@ struct Page1: View {
                             // Add action here
                         }) {
                             Text("Join Circl")
-                                .font(.system(size: 20, weight: .bold))
+                                .font(.system(size: 27, weight: .bold))
                                 .frame(maxWidth: .infinity)
-                                .padding()
+                                .padding(.vertical, 18)
                                 .padding(.horizontal, 15) // Reduce width by adding padding
                                 .background(Color(hexCode: "ffde59"))
                                 .foregroundColor(Color(hexCode: "004aad"))
                                 .cornerRadius(10)
                         }
-                        .padding(.horizontal, 30)
+                        .padding(.horizontal, 50) // Control button width
                         .offset(y: -60) // Offset the button upwards
                     }
                     
-                    // Email/Phone Number Field with Background
+                    // Email/Phone Number Field
                     RoundedRectangle(cornerRadius: 20)
-                        .fill(Color.white)
-                        .frame(width: UIScreen.main.bounds.width * 0.9, height: 50)
+                        .fill(Color(hexCode: "e2e2e2")) // Change background color
+                        .frame(width: UIScreen.main.bounds.width - 100, height: 50) // Match button width
                         .overlay(
                             TextField("Email/Phone Number", text: .constant(""))
                                 .padding(.horizontal)
-                                .foregroundColor(.black)
+                                .foregroundColor(Color(hexCode: "004aad")) // Explicit blue color
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 20)
+                                .stroke(Color.white, lineWidth: 3) // Add white border
                         )
                     
-                    // Password Field with Background
+                    // Password Field
                     RoundedRectangle(cornerRadius: 20)
-                        .fill(Color.white)
-                        .frame(width: UIScreen.main.bounds.width * 0.9, height: 50)
+                        .fill(Color(hexCode: "e2e2e2")) // Change background color
+                        .frame(width: UIScreen.main.bounds.width - 100, height: 50) // Match button width
                         .overlay(
                             SecureField("Password", text: .constant(""))
                                 .padding(.horizontal)
-                                .foregroundColor(.black)
+                                .foregroundColor(Color(hexCode: "004aad")) // Explicit blue color
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 20)
+                                .stroke(Color.white, lineWidth: 3) // Add white border
                         )
                 }
                 
