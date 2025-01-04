@@ -1,0 +1,75 @@
+import SwiftUI
+
+struct Page2: View {
+    var body: some View {
+        ZStack {
+            // Background Color
+            Color(hexCode: "004aad")
+                .edgesIgnoringSafeArea(.all)
+            
+            VStack(spacing: 20) {
+                Spacer()
+                
+                // Title
+                Text("Create Your Account")
+                    .font(.system(size: 32, weight: .bold))
+                    .foregroundColor(Color(hexCode: "ffde59"))
+                    .padding(.bottom, 10)
+                
+                // Separator
+                Rectangle()
+                    .frame(height: 2)
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 40)
+                
+                // Description Text
+                VStack(alignment: .leading, spacing: 15) {
+                    Text("So you want to be an entrepreneur.")
+                        .font(.system(size: 18))
+                        .foregroundColor(.white)
+                        .multilineTextAlignment(.center)
+                    
+                    Text("Is it because you want to pursue your passions? Buy your own time? Remove the problem of money? Or maybe is it because you're tired of the uncertainty of tomorrow – the increasing inflation and the competitive job market?")
+                        .font(.system(size: 18))
+                        .foregroundColor(.white)
+                        .multilineTextAlignment(.center)
+                    
+                    Text("Congratulations, you found us, and we found you.")
+                        .font(.system(size: 18))
+                        .foregroundColor(.white)
+                        .multilineTextAlignment(.center)
+                    
+                    Text("Let’s get to know each other.")
+                        .font(.system(size: 18))
+                        .foregroundColor(.white)
+                        .multilineTextAlignment(.center)
+                }
+                .padding(.horizontal, 40)
+                
+                Spacer()
+                
+                // Next Button
+                Button(action: {
+                    // Add navigation action here
+                }) {
+                    Text("Next")
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(Color(hexCode: "004aad"))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 15)
+                        .background(Color(hexCode: "ffde59"))
+                        .cornerRadius(10)
+                        .padding(.horizontal, 50)
+                }
+                
+                Spacer()
+            }
+        }
+    }
+}
+
+struct Page2View_Previews: PreviewProvider {
+    static var previews: some View {
+        Page2()
+    }
+}
