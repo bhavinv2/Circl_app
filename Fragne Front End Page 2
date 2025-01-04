@@ -7,6 +7,91 @@ struct Page2: View {
             Color(hexCode: "004aad")
                 .edgesIgnoringSafeArea(.all)
             
+            // Top Left Cloud
+            ZStack {
+                // Main Cloud
+                Circle()
+                    .fill(Color.white)
+                    .frame(width: 120, height: 120)
+                    .offset(x: -UIScreen.main.bounds.width / 2 + 60, y: -UIScreen.main.bounds.height / 2 + 60)
+                
+                Circle()
+                    .fill(Color.white)
+                    .frame(width: 100, height: 100)
+                    .offset(x: -UIScreen.main.bounds.width / 2 + 30, y: -UIScreen.main.bounds.height / 2 + 40)
+                
+                Circle()
+                    .fill(Color.white)
+                    .frame(width: 100, height: 100)
+                    .offset(x: -UIScreen.main.bounds.width / 2 + 110, y: -UIScreen.main.bounds.height / 2 + 30)
+                
+                Circle()
+                    .fill(Color.white)
+                    .frame(width: 100, height: 100)
+                    .offset(x: -UIScreen.main.bounds.width / 2 + 170, y: -UIScreen.main.bounds.height / 2 + 30)
+                
+                Circle()
+                    .fill(Color.white)
+                    .frame(width: 100, height: 100)
+                    .offset(x: -UIScreen.main.bounds.width / 2 + 210, y: -UIScreen.main.bounds.height / 2 + 60)
+                
+                Circle()
+                    .fill(Color.white)
+                    .frame(width: 80, height: 80)
+                    .offset(x: -UIScreen.main.bounds.width / 2 + 90, y: -UIScreen.main.bounds.height / 2 + 50)
+                
+                Circle()
+                    .fill(Color.white)
+                    .frame(width: 90, height: 90)
+                    .offset(x: -UIScreen.main.bounds.width / 2 + 50, y: -UIScreen.main.bounds.height / 2 + 30)
+                
+                // Additional Cloud
+                Circle()
+                    .fill(Color.white)
+                    .frame(width: 110, height: 110)
+                    .offset(x: -UIScreen.main.bounds.width / 2 + 150, y: -UIScreen.main.bounds.height / 2 + 80)
+            }
+            
+            // Bottom Right Cloud
+            ZStack {
+                // Main Cloud
+                Circle()
+                    .fill(Color.white)
+                    .frame(width: 120, height: 120)
+                    .offset(x: UIScreen.main.bounds.width / 2 - 60, y: UIScreen.main.bounds.height / 2 - 60)
+                
+                Circle()
+                    .fill(Color.white)
+                    .frame(width: 100, height: 100)
+                    .offset(x: UIScreen.main.bounds.width / 2 - 30, y: UIScreen.main.bounds.height / 2 - 40)
+                
+                Circle()
+                    .fill(Color.white)
+                    .frame(width: 80, height: 80)
+                    .offset(x: UIScreen.main.bounds.width / 2 - 90, y: UIScreen.main.bounds.height / 2 - 50)
+                
+                Circle()
+                    .fill(Color.white)
+                    .frame(width: 90, height: 90)
+                    .offset(x: UIScreen.main.bounds.width / 2 - 50, y: UIScreen.main.bounds.height / 2 - 30)
+                
+                Circle()
+                    .fill(Color.white)
+                    .frame(width: 90, height: 90)
+                    .offset(x: UIScreen.main.bounds.width / 2 - 30, y: UIScreen.main.bounds.height / 2 - 110)
+                
+                Circle()
+                    .fill(Color.white)
+                    .frame(width: 110, height: 110)
+                    .offset(x: UIScreen.main.bounds.width / 2 - 155, y: UIScreen.main.bounds.height / 2 - 30)
+                
+                // Additional Cloud
+                Circle()
+                    .fill(Color.white)
+                    .frame(width: 110, height: 110)
+                    .offset(x: UIScreen.main.bounds.width / 2 - 150, y: UIScreen.main.bounds.height / 2 - 80)
+            }
+            
             VStack(spacing: 20) {
                 Spacer()
                 
@@ -14,17 +99,17 @@ struct Page2: View {
                 Text("Create Your Account")
                     .font(.system(size: 32, weight: .bold))
                     .foregroundColor(Color(hexCode: "ffde59"))
-                    .padding(.top, -10) // Adjusted top padding (moved down 10px)
+                    .padding(.top, -10)
                 
                 // Separator
                 Rectangle()
                     .frame(height: 2)
                     .foregroundColor(.white)
                     .padding(.horizontal, 40)
-                    .padding(.top, 10) // Added padding to move down
+                    .padding(.top, 10)
                 
                 // Description Text (Separated into Paragraphs)
-                VStack(alignment: .center, spacing: 35) { // Aligned all text to the center
+                VStack(alignment: .center, spacing: 35) {
                     // Paragraph 1
                     Text("So you want to be an entrepreneur.")
                         .font(.system(size: 23, weight: .bold))
@@ -52,7 +137,7 @@ struct Page2: View {
                         .multilineTextAlignment(.center)
                 }
                 .padding(.horizontal, 40)
-                .padding(.top, 25) // Moved down by 10px (was 15px before)
+                .padding(.top, 35)
                 
                 Spacer()
                 
