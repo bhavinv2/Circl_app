@@ -14,37 +14,45 @@ struct Page2: View {
                 Text("Create Your Account")
                     .font(.system(size: 32, weight: .bold))
                     .foregroundColor(Color(hexCode: "ffde59"))
-                    .padding(.bottom, 10)
+                    .padding(.top, -10) // Adjusted top padding (moved down 10px)
                 
                 // Separator
                 Rectangle()
                     .frame(height: 2)
                     .foregroundColor(.white)
                     .padding(.horizontal, 40)
+                    .padding(.top, 10) // Added padding to move down
                 
-                // Description Text
-                VStack(alignment: .leading, spacing: 15) {
+                // Description Text (Separated into Paragraphs)
+                VStack(alignment: .center, spacing: 35) { // Aligned all text to the center
+                    // Paragraph 1
                     Text("So you want to be an entrepreneur.")
-                        .font(.system(size: 18))
+                        .font(.system(size: 23, weight: .bold))
                         .foregroundColor(.white)
                         .multilineTextAlignment(.center)
                     
-                    Text("Is it because you want to pursue your passions? Buy your own time? Remove the problem of money? Or maybe is it because you're tired of the uncertainty of tomorrow – the increasing inflation and the competitive job market?")
-                        .font(.system(size: 18))
+                    // Paragraph 2
+                    Text("""
+                    Is it because you want to pursue your passions? Buy your own time? Remove the problem of money? Or maybe is it because you're tired of the uncertainty of tomorrow – the increasing inflation and the competitive job market?
+                    """)
+                        .font(.system(size: 23, weight: .bold))
                         .foregroundColor(.white)
                         .multilineTextAlignment(.center)
                     
+                    // Paragraph 3
                     Text("Congratulations, you found us, and we found you.")
-                        .font(.system(size: 18))
+                        .font(.system(size: 23, weight: .bold))
                         .foregroundColor(.white)
                         .multilineTextAlignment(.center)
                     
-                    Text("Let’s get to know each other.")
-                        .font(.system(size: 18))
+                    // Paragraph 4
+                    Text("Let's get to know each other.")
+                        .font(.system(size: 23, weight: .bold))
                         .foregroundColor(.white)
                         .multilineTextAlignment(.center)
                 }
                 .padding(.horizontal, 40)
+                .padding(.top, 25) // Moved down by 10px (was 15px before)
                 
                 Spacer()
                 
@@ -59,6 +67,10 @@ struct Page2: View {
                         .padding(.vertical, 15)
                         .background(Color(hexCode: "ffde59"))
                         .cornerRadius(10)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10)
+                                .stroke(Color.white, lineWidth: 2) // White outline
+                        )
                         .padding(.horizontal, 50)
                 }
                 
