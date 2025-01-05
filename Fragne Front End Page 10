@@ -1,0 +1,103 @@
+import SwiftUI
+
+struct Page10: View {
+    var body: some View {
+        ZStack {
+            // Background Color
+            Color(hexCode: "004aad")
+                .edgesIgnoringSafeArea(.all)
+
+            VStack(spacing: 20) {
+                Spacer()
+
+                // Title
+                Text("Your Business Profile")
+                    .font(.system(size: 32, weight: .bold))
+                    .foregroundColor(Color(hexCode: "ffde59"))
+
+                // Separator
+                Rectangle()
+                    .frame(height: 2)
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 40)
+
+                // Subtitle
+                Text("Let Us Understand You")
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundColor(.white)
+                    .padding(.top, 4) // Move text down
+
+                // Instruction
+                Text("Please answer in your own words\nbe as detailed as possible")
+                    .font(.system(size: 18))
+                    .foregroundColor(.white)
+                    .multilineTextAlignment(.center)
+                    .padding(.top, -8) // Reduce spacing between subtitle and instruction
+
+                // Input Fields
+                VStack(spacing: 20) {
+                    FreeResponseField(placeholder: "What are your business' goals?")
+                        .frame(height: 200)
+                        .padding(.top, 8) // Move text down
+                    FreeResponseField(placeholder: "What has stopped/is stopping your company from growing?")
+                        .frame(height: 200)
+                        .padding(.top, 8) // Move text down
+                }
+                .padding(.horizontal, 50)
+                .padding(.top, 10)
+
+                Spacer()
+
+                // Next Button
+                Button(action: {
+                    // Add navigation action here
+                }) {
+                    Text("Next")
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(Color(hexCode: "004aad"))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 15)
+                        .background(Color(hexCode: "ffde59"))
+                        .cornerRadius(10)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10)
+                                .stroke(Color.white, lineWidth: 2) // White outline
+                        )
+                        .padding(.horizontal, 50)
+                        .padding(.bottom, 20)
+                }
+
+                Spacer()
+            }
+        }
+    }
+}
+
+struct FreeResponseField: View {
+    var placeholder: String
+
+    var body: some View {
+        TextEditor(text: .constant(""))
+            .padding(.horizontal, 12) // Reduce internal border
+            .padding(.vertical, 10)   // Reduce internal border
+            .background(Color(hexCode: "d9d9d9"))
+            .cornerRadius(10)
+            .overlay(
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(Color(hexCode: "004aad"), lineWidth: 2)
+            )
+            .frame(maxWidth: .infinity)
+            .overlay(
+                Text(placeholder)
+                    .foregroundColor(.gray)
+                    .padding(.leading, 19) // Move placeholder text further right
+                    .padding(.top, 12), alignment: .topLeading // Adjust placeholder position
+            )
+    }
+}
+
+struct Page10View_Previews: PreviewProvider {
+    static var previews: some View {
+        Page10()
+    }
+}
