@@ -1,0 +1,91 @@
+import SwiftUI
+
+struct Page9: View {
+    var body: some View {
+        ZStack {
+            // Background Color
+            Color(hexCode: "004aad")
+                .edgesIgnoringSafeArea(.all)
+
+            VStack(spacing: 20) {
+                Spacer()
+
+                // Title
+                Text("Your Business Profile")
+                    .font(.system(size: 32, weight: .bold))
+                    .foregroundColor(Color(hexCode: "ffde59"))
+
+                // Separator
+                Rectangle()
+                    .frame(height: 2)
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 40)
+
+                // Subtitle
+                Text("Basic Business Information")
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundColor(.white)
+                    .padding(.top, 7) // Move subtitle down by 7 pixels
+
+                // Input Fields
+                VStack(spacing: 15) {
+                    Group {
+                        InputField(placeholder: "Business Name")
+                        InputField(placeholder: "Business Type")
+                        InputField(placeholder: "Business Stage")
+                        InputField(placeholder: "Business Size")
+                        InputField(placeholder: "Location")
+                        InputField(placeholder: "Industry")
+                    }
+                }
+                .padding(.horizontal, 50)
+                .padding(.top, 7) // Move input fields down by 7 pixels
+
+                Spacer()
+
+                // Next Button
+                Button(action: {
+                    // Add navigation action here
+                }) {
+                    Text("Next")
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(Color(hexCode: "004aad"))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 15)
+                        .background(Color(hexCode: "ffde59"))
+                        .cornerRadius(10)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10)
+                                .stroke(Color.white, lineWidth: 2) // White outline
+                        )
+                        .padding(.horizontal, 50)
+                        .padding(.bottom, 20)
+                }
+
+                Spacer()
+            }
+        }
+    }
+}
+
+struct InputField: View {
+    var placeholder: String
+
+    var body: some View {
+        TextField(placeholder, text: .constant(""))
+            .padding()
+            .background(Color(hexCode: "d9d9d9"))
+            .cornerRadius(10)
+            .overlay(
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(Color(hexCode: "004aad"), lineWidth: 2)
+            )
+            .frame(maxWidth: .infinity)
+    }
+}
+
+struct Page9View_Previews: PreviewProvider {
+    static var previews: some View {
+        Page9()
+    }
+}
