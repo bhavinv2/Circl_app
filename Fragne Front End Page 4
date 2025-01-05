@@ -111,7 +111,7 @@ struct Page4: View {
                         .foregroundColor(.white)
                         .multilineTextAlignment(.center)
 
-                    Text("You can choose to show the information on your profile, but it will help start the conversation process.")
+                    Text("You can choose to show the information on your profile, it will help start the conversation process.")
                         .font(.system(size: 23, weight: .bold))
                         .foregroundColor(.white)
                         .multilineTextAlignment(.center)
