@@ -1,0 +1,80 @@
+import SwiftUI
+
+struct Page11: View {
+    var body: some View {
+        ZStack {
+            // Background Color
+            Color(hexCode: "004aad")
+                .edgesIgnoringSafeArea(.all)
+
+            VStack(spacing: 20) {
+                Spacer()
+
+                // Title
+                Text("Your Business Profile")
+                    .font(.system(size: 32, weight: .bold))
+                    .foregroundColor(Color(hexCode: "ffde59"))
+
+                // Separator
+                Rectangle()
+                    .frame(height: 2)
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 40)
+
+                // Subtitle
+                Text("Let Us Understand You")
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundColor(.white)
+                    .padding(.top, 4) // Move text down
+
+                // Instruction
+                Text("Please answer below in your own words\nBe as detailed as possible")
+                    .font(.system(size: 18))
+                    .foregroundColor(.white)
+                    .multilineTextAlignment(.center)
+                    .padding(.top, -8) // Reduce spacing between subtitle and instruction
+
+                // Input Fields
+                VStack(spacing: 20) {
+                    FreeResponseField(placeholder: "How do you define success?")
+                        .frame(height: 200)
+                        .padding(.top, 8) // Adjust spacing
+                    FreeResponseField(placeholder: "What makes your business unique? How do you communicate that to your customers?")
+                        .frame(height: 200)
+                        .padding(.top, 8) // Adjust spacing
+                }
+                .padding(.horizontal, 50)
+                .padding(.top, 10)
+
+                Spacer()
+
+                // Next Button
+                Button(action: {
+                    // Add navigation action here
+                }) {
+                    Text("Next")
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(Color(hexCode: "004aad"))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 15)
+                        .background(Color(hexCode: "ffde59"))
+                        .cornerRadius(10)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10)
+                                .stroke(Color.white, lineWidth: 2) // White outline
+                        )
+                        .padding(.horizontal, 50)
+                        .padding(.bottom, 20)
+                }
+
+                Spacer()
+            }
+        }
+    }
+}
+
+struct Page11View_Previews: PreviewProvider {
+    static var previews: some View {
+        Page11()
+    }
+}
