@@ -51,7 +51,7 @@ struct Page18: View {
                     }
                     .padding(.top, 20)
                 }
-                .frame(maxHeight: 300) // Limit the scrollable height
+                .frame(maxHeight: 450) // Limit the scrollable height
 
                 Spacer()
 
