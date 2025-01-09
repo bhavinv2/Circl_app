@@ -1,0 +1,11 @@
+@keyframes siteLoader {
+    100% {
+        transform: translateY(-100vh);
+    }
+}
+
+.loader-container {
+    margin-top: 0vh;
+    animation: siteLoader 1.5s forwards cubic-bezier(0.950, 0.050, 0.795, 0.035);
+    animation-delay: 5s;
+}
