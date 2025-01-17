@@ -1,0 +1,103 @@
+import SwiftUI
+
+struct ProfilePage: View {
+    var body: some View {
+        ZStack {
+            VStack(spacing: 0) {
+                // Section 1: Fixed Top Section
+                VStack {
+                    HStack {
+                        Text("Circl")
+                            .font(.system(size: 32, weight: .bold))
+                            .foregroundColor(Color.customHex("004aad"))
+                            .padding(.top, 25) // Move the logo 10 pixels down
+                        
+                        Spacer()
+                        
+                        Image(systemName: "pencil.and.outline") // Use SF Symbol for pencil icon
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 24, height: 24)
+                            .foregroundColor(Color.customHex("004aad"))
+                            .padding(.top, 25) // Move the pencil icon 10 pixels down
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 15)
+                    
+                    Spacer() // Adds additional space below the content
+                }
+                .frame(height: 105) // Increased height (75 + 100 pixels)
+                .background(Color.white) // Explicitly set Section 1 background to white
+                
+                // Section 2: Scrollable Middle Section
+                ScrollView {
+                    VStack(spacing: 20) {
+                        // Placeholder content for the profile details
+                        ForEach(1..<21) { index in
+                            Text("Profile Section \(index)")
+                                .font(.system(size: 20))
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.blue)
+                                .cornerRadius(10)
+                                .shadow(radius: 2)
+                        }
+                    }
+                    .padding()
+                }
+                .background(Color(UIColor.systemGray4))
+                
+                // Section 3: Fixed Bottom Section
+                HStack(spacing: 15) {
+                    CircleButton(iconName: "hand.raised.fill") // Handshake icon
+                    CircleButton(iconName: "briefcase.fill") // Briefcase icon
+                    CircleButton(iconName: "person.3.fill") // Community icon
+                    CircleButton(iconName: "person.2.circle.fill") // Connection icon
+                    CircleButton(iconName: "book.fill") // Book icon
+                }
+                .padding(.vertical, 10)
+                .background(Color.white) // Explicitly set Section 3 background to white
+            }
+        }
+        .edgesIgnoringSafeArea(.all)
+    }
+}
+
+struct CircleButton: View {
+    var iconName: String
+    
+    var body: some View {
+        Button(action: {
+            // Add action here
+        }) {
+            ZStack {
+                Circle()
+                    .fill(Color.customHex("004aad"))
+                    .frame(width: 60, height: 60)
+                Image(systemName: iconName)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 30, height: 30)
+                    .foregroundColor(.white)
+            }
+        }
+    }
+}
+
+// Extension to support custom hex colors
+extension Color {
+    static func customHex(_ hex: String) -> Color {
+        let hexValue = Int(hex.dropFirst(), radix: 16) ?? 0
+        let red = Double((hexValue >> 16) & 0xFF) / 255.0
+        let green = Double((hexValue >> 8) & 0xFF) / 255.0
+        let blue = Double(hexValue & 0xFF) / 255.0
+        return Color(red: red, green: green, blue: blue)
+    }
+}
+
+// Preview
+struct ProfilePage_Previews: PreviewProvider {
+    static var previews: some View {
+        ProfilePage()
+    }
+}
