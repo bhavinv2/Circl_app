@@ -101,38 +101,42 @@ struct ProfilePage: View {
                         // Profile Section 2: Detailed Information
                         ZStack {
                             RoundedRectangle(cornerRadius: 10)
-                                .fill(Color.white)
+                                .fill(Color.customHex("004aad"))
                                 .shadow(radius: 2)
                                 .frame(height: 400)
 
                             VStack(alignment: .leading, spacing: 15) {
+                                Text("About Fragne Delgado") // Header text with backend data
+                                    .font(.system(size: 22, weight: .bold))
+                                    .foregroundColor(.white)
+
                                 Text("Age: 30") // Placeholder for backend data
                                     .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(Color.black)
+                                    .foregroundColor(.white)
 
                                 Text("Education Level: Master's Degree") // Placeholder for backend data
                                     .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(Color.black)
+                                    .foregroundColor(.white)
 
                                 Text("Institution Attended: Harvard University") // Placeholder for backend data
                                     .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(Color.black)
+                                    .foregroundColor(.white)
 
                                 Text("Certifications/Licenses: Certified Project Manager") // Placeholder for backend data
                                     .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(Color.black)
+                                    .foregroundColor(.white)
 
                                 Text("Years of Experience: 10") // Placeholder for backend data
                                     .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(Color.black)
+                                    .foregroundColor(.white)
 
                                 Text("Location: New York, USA") // Placeholder for backend data
                                     .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(Color.black)
+                                    .foregroundColor(.white)
 
                                 Text("Achievements: Led a team of 50 to complete a $10M project under budget") // Placeholder for backend data
                                     .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(Color.black)
+                                    .foregroundColor(.white)
                             }
                             .padding()
                         }
