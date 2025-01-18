@@ -1,6 +1,9 @@
 import SwiftUI
 
 struct ProfilePage: View {
+    @State private var bioText: String = "" // State variable for the bio text
+    @State private var showError: Bool = false // State variable to show error when bio exceeds 200 characters
+
     var body: some View {
         ZStack {
             VStack(spacing: 0) {
@@ -11,9 +14,9 @@ struct ProfilePage: View {
                             .font(.system(size: 32, weight: .bold))
                             .foregroundColor(Color.customHex("004aad"))
                             .padding(.top, 25) // Move the logo 10 pixels down
-                        
+
                         Spacer()
-                        
+
                         Image(systemName: "pencil.and.outline") // Use SF Symbol for pencil icon
                             .resizable()
                             .aspectRatio(contentMode: .fit)
@@ -23,12 +26,12 @@ struct ProfilePage: View {
                     }
                     .padding(.horizontal, 20)
                     .padding(.top, 15)
-                    
+
                     Spacer() // Adds additional space below the content
                 }
                 .frame(height: 105) // Increased height (75 + 100 pixels)
                 .background(Color.white) // Explicitly set Section 1 background to white
-                
+
                 // Section 2: Scrollable Middle Section
                 ScrollView {
                     VStack(spacing: 20) {
@@ -98,7 +101,40 @@ struct ProfilePage: View {
                             }
                         }
 
-                        // Profile Section 2: Detailed Information
+                        // Profile Section 2: Bio Section
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(Color.customHex("004aad"))
+                                .shadow(radius: 2)
+                                .frame(height: 200)
+
+                            VStack(alignment: .leading, spacing: 15) {
+                                Text("Bio")
+                                    .font(.system(size: 22, weight: .bold))
+                                    .foregroundColor(.white)
+
+                                TextField("Entrepreneur with a Harvard Master's, certified project manager, passionate about innovation and driving business growth through strategic leadership.", text: $bioText)
+                                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                                    .padding(.horizontal)
+                                    .onChange(of: bioText) { newValue in
+                                        if newValue.count > 200 {
+                                            bioText = String(newValue.prefix(200))
+                                            showError = true
+                                        } else {
+                                            showError = false
+                                        }
+                                    }
+
+                                if showError {
+                                    Text("Bio cannot exceed 200 characters.")
+                                        .font(.system(size: 14))
+                                        .foregroundColor(.red)
+                                }
+                            }
+                            .padding()
+                        }
+
+                        // Profile Section 3: About (Name) Section
                         ZStack {
                             RoundedRectangle(cornerRadius: 10)
                                 .fill(Color.customHex("004aad"))
@@ -106,7 +142,7 @@ struct ProfilePage: View {
                                 .frame(height: 400)
 
                             VStack(alignment: .leading, spacing: 15) {
-                                Text("About Fragne Delgado") // Header text with backend data
+                                Text("About Fragne Delgado") // Placeholder for backend data
                                     .font(.system(size: 22, weight: .bold))
                                     .foregroundColor(.white)
 
@@ -141,7 +177,7 @@ struct ProfilePage: View {
                             .padding()
                         }
 
-                        ForEach(3..<21) { index in
+                        ForEach(4..<21) { index in
                             Text("Profile Section \(index)")
                                 .font(.system(size: 20))
                                 .frame(maxWidth: .infinity)
@@ -154,7 +190,7 @@ struct ProfilePage: View {
                     .padding()
                 }
                 .background(Color(UIColor.systemGray4))
-                
+
                 // Section 3: Fixed Bottom Section
                 HStack(spacing: 15) {
                     CircleButton(iconName: "hand.raised.fill") // Handshake icon
@@ -173,7 +209,7 @@ struct ProfilePage: View {
 
 struct CircleButton: View {
     var iconName: String
-    
+
     var body: some View {
         Button(action: {
             // Add action here
