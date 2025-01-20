@@ -4,14 +4,29 @@ struct PageForum: View {
     var body: some View {
         VStack(spacing: 0) {
             // Header Section
-            VStack(spacing: 10) {
+            VStack(spacing: 0) {
                 HStack {
-                    Text("Circl.")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text("Circl.")
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                        
+                        // Filter Button directly under "Circl."
+                        Button(action: {
+                            // Action for Filter
+                        }) {
+                            HStack {
+                                Image(systemName: "slider.horizontal.3")
+                                    .foregroundColor(.white)
+                                Text("Filter")
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                            }
+                        }
+                    }
                     Spacer()
-                    VStack {
+                    VStack(alignment: .trailing) {
                         Image(systemName: "person.circle.fill")
                             .resizable()
                             .frame(width: 50, height: 50)
@@ -23,21 +38,7 @@ struct PageForum: View {
                 }
                 .padding(.horizontal)
                 
-                HStack {
-                    Button(action: {
-                        // Action for Filter
-                    }) {
-                        HStack {
-                            Image(systemName: "slider.horizontal.3")
-                                .foregroundColor(.white)
-                            Text("Filter")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                        }
-                    }
-                    Spacer()
-                }
-                .padding(.horizontal)
+                Spacer(minLength: 10) // Adds 10 pixels of space before the header ends
             }
             .padding(.top, 15)
             .padding(.bottom, 10)
@@ -62,19 +63,41 @@ struct PageForum: View {
             .background(Color(UIColor.systemGray4))
             
             // Footer Section (Integrated from ProfilePage)
-                       HStack(spacing: 15) {
-                           CircleButton(iconName: "hand.raised.fill") // Handshake icon
-                           CircleButton(iconName: "briefcase.fill") // Briefcase icon
-                           CircleButton(iconName: "person.3.fill") // Community icon
-                           CircleButton(iconName: "person.2.circle.fill") // Connection icon
-                           CircleButton(iconName: "book.fill") // Book icon
-                       }
-                       .padding(.vertical, 10)
-                       .background(Color.white) // Explicitly set footer background to white
-                   }
-                   .edgesIgnoringSafeArea(.bottom)
-               }
-           }
+            HStack(spacing: 15) {
+                CustomCircleButton(iconName: "hand.raised.fill") // Handshake icon
+                CustomCircleButton(iconName: "briefcase.fill") // Briefcase icon
+                CustomCircleButton(iconName: "person.3.fill") // Community icon
+                CustomCircleButton(iconName: "person.2.circle.fill") // Connection icon
+                CustomCircleButton(iconName: "book.fill") // Book icon
+            }
+            .padding(.vertical, 10)
+            .background(Color.white) // Explicitly set footer background to white
+        }
+        .edgesIgnoringSafeArea(.bottom)
+    }
+}
+
+// Reusable CustomCircleButton View for Footer Icons
+struct CustomCircleButton: View {
+    let iconName: String
+
+    var body: some View {
+        Button(action: {
+            // Define the button action here
+        }) {
+            Circle()
+                .fill(Color.blue)
+                .frame(width: 50, height: 50)
+                .overlay(
+                    Image(systemName: iconName)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 25, height: 25)
+                        .foregroundColor(.white)
+                )
+        }
+    }
+}
 
 struct PageForum_Previews: PreviewProvider {
     static var previews: some View {
