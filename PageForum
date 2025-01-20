@@ -31,6 +31,7 @@ struct PageForum: View {
                             .resizable()
                             .frame(width: 50, height: 50)
                             .foregroundColor(.white)
+                            .offset(x: -30) // Move the profile picture 7 pixels to the left
                         Text("Hello, Fragne")
                             .foregroundColor(.white)
                             .font(.headline)
@@ -86,7 +87,7 @@ struct CustomCircleButton: View {
             // Define the button action here
         }) {
             Circle()
-                .fill(Color.blue)
+                .fill(Color.customHex("004aad"))
                 .frame(width: 50, height: 50)
                 .overlay(
                     Image(systemName: iconName)
