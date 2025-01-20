@@ -38,7 +38,7 @@ struct ProfilePage: View {
                             RoundedRectangle(cornerRadius: 10)
                                 .fill(Color.customHex("004aad"))
                                 .frame(height: 300)
-
+                            
                             VStack(spacing: 15) {
                                 Circle()
                                     .fill(Color.gray.opacity(0.3))
@@ -50,7 +50,7 @@ struct ProfilePage: View {
                                             .frame(width: 60, height: 60)
                                             .foregroundColor(.gray)
                                     )
-
+                                
                                 HStack(spacing: 40) {
                                     VStack {
                                         Text("Connections:")
@@ -60,7 +60,7 @@ struct ProfilePage: View {
                                             .font(.system(size: 16, weight: .bold))
                                             .foregroundColor(Color.white)
                                     }
-
+                                    
                                     VStack {
                                         Text("Circles:")
                                             .font(.system(size: 16, weight: .semibold))
@@ -69,7 +69,7 @@ struct ProfilePage: View {
                                             .font(.system(size: 16, weight: .bold))
                                             .foregroundColor(Color.white)
                                     }
-
+                                    
                                     VStack {
                                         Text("Circs:")
                                             .font(.system(size: 16, weight: .semibold))
@@ -79,12 +79,12 @@ struct ProfilePage: View {
                                             .foregroundColor(Color.white)
                                     }
                                 }
-
+                                
                                 VStack(spacing: 5) {
                                     Text("Fragne Delgado") // Placeholder for backend data
                                         .font(.system(size: 24, weight: .bold))
                                         .foregroundColor(.white)
-
+                                    
                                     Text("CEO - ")
                                         .font(.system(size: 18, weight: .semibold))
                                         .foregroundColor(.white)
@@ -92,7 +92,7 @@ struct ProfilePage: View {
                                         .font(.system(size: 18, weight: .semibold))
                                         .underline()
                                         .foregroundColor(.white)
-
+                                    
                                     Text("ENFJ - A") // Personality type placeholder
                                         .font(.system(size: 18, weight: .semibold))
                                         .foregroundColor(.white)
@@ -105,30 +105,30 @@ struct ProfilePage: View {
                                 .fill(Color.customHex("004aad"))
                                 .shadow(radius: 2)
                                 .frame(height: 200) // Adjust height as needed
-
+                            
                             VStack(spacing: 10) {
                                 // Secret Idea
                                 VStack(alignment: .leading, spacing: 5) {
                                     Text("Secret Idea")
                                         .font(.system(size: 22, weight: .bold))
                                         .foregroundColor(.white)
-
+                                    
                                     Text("Creating an app for entrepreneurs") // Placeholder for idea
                                         .font(.system(size: 16))
                                         .foregroundColor(.white)
                                         .multilineTextAlignment(.leading)
                                 }
                                 .padding(.bottom, 10) // Space between sections
-
+                                
                                 Divider()
                                     .background(Color.white)
-
+                                
                                 // Your Next Steps
                                 VStack(alignment: .leading, spacing: 5) {
                                     Text("Your Next Steps")
                                         .font(.system(size: 22, weight: .bold))
                                         .foregroundColor(.white)
-
+                                    
                                     Text("Entrepreneur AI coming soon") // Placeholder for next steps
                                         .font(.system(size: 16))
                                         .foregroundColor(.white)
@@ -137,20 +137,20 @@ struct ProfilePage: View {
                             }
                             .padding()
                         }
-
+                        
                         // Profile Section 2: Bio Section
                         ZStack {
                             RoundedRectangle(cornerRadius: 10)
                                 .fill(Color.customHex("004aad"))
                                 .shadow(radius: 2)
                                 .frame(height: 150)
-
+                            
                             VStack(alignment: .leading, spacing: 15) {
                                 Text("Bio")
                                     .font(.system(size: 22, weight: .bold))
                                     .foregroundColor(.white)
                                     .frame(maxWidth: .infinity, alignment: .leading)
-
+                                
                                 Text("Entrepreneur with a Harvard Master's, certified project manager, passionate about innovation and driving business growth through strategic leadership.")
                                     .font(.system(size: 16))
                                     .foregroundColor(.white)
@@ -159,70 +159,70 @@ struct ProfilePage: View {
                             }
                             .padding()
                         }
-
+                        
                         // Profile Section 3: About (Name) Section
                         ZStack {
                             RoundedRectangle(cornerRadius: 10)
                                 .fill(Color.customHex("004aad"))
                                 .shadow(radius: 2)
                                 .frame(height: 400)
-
+                            
                             VStack(alignment: .leading, spacing: 15) {
                                 Text("About Fragne Delgado") // Placeholder for backend data
                                     .font(.system(size: 22, weight: .bold))
                                     .foregroundColor(.white)
-
+                                
                                 Text("Age: 30") // Placeholder for backend data
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundColor(.white)
-
+                                
                                 Text("Education Level: Master's Degree") // Placeholder for backend data
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundColor(.white)
-
+                                
                                 Text("Institution Attended: Harvard University") // Placeholder for backend data
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundColor(.white)
-
+                                
                                 Text("Certifications/Licenses: Certified Project Manager") // Placeholder for backend data
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundColor(.white)
-
+                                
                                 Text("Years of Experience: 10") // Placeholder for backend data
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundColor(.white)
-
+                                
                                 Text("Location: New York, USA") // Placeholder for backend data
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundColor(.white)
-
+                                
                                 Text("Achievements: Led a team of 50 to complete a $10M project under budget") // Placeholder for backend data
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundColor(.white)
                             }
                             .padding()
                         }
-
+                        
                         // Profile Section 4: Technical Side
                         ZStack {
                             RoundedRectangle(cornerRadius: 10)
                                 .fill(Color.customHex("004aad"))
                                 .shadow(radius: 2)
                                 .frame(height: 400) // Adjust height as needed
-
+                            
                             VStack(alignment: .leading, spacing: 15) {
                                 Text("Technical Side") // Header
                                     .font(.system(size: 22, weight: .bold))
                                     .foregroundColor(.white)
-
+                                
                                 Text("Skills: Swift, UI/UX Design, Project Management") // Placeholder for backend data
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundColor(.white)
-
+                                
                                 Text("Projects/Work Completed: Developed an award-winning app; Implemented successful SEO strategies for multiple clients") // Placeholder for backend data
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundColor(.white)
-
+                                
                                 Text("Availability: Open to collaboration, Monday - Friday, 9 AM - 5 PM EST") // Placeholder for backend data
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundColor(.white)
@@ -235,19 +235,41 @@ struct ProfilePage: View {
                                 .fill(Color.customHex("004aad"))
                                 .shadow(radius: 2)
                                 .frame(height: 300) // Adjust height as needed
-
+                            
                             VStack(alignment: .leading, spacing: 15) {
                                 Text("Interests") // Header
                                     .font(.system(size: 22, weight: .bold))
                                     .foregroundColor(.white)
-
+                                
                                 Text("Clubs/Organizations: Member of Tau Kappa Epsilon, Volunteer at Habitat for Humanity") // Placeholder for backend data
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundColor(.white)
-
+                                
                                 Text("Hobbies/Passions: Reading, Cycling, Digital Art, Traveling") // Placeholder for backend data
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundColor(.white)
+                            }
+                            .padding()
+                            
+                        }
+                        // Profile Section 6: Entrepreneurial History
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(Color.customHex("004aad"))
+                                .shadow(radius: 2)
+                                .frame(height: 150) // Adjust height as needed
+
+                            VStack(alignment: .leading, spacing: 15) {
+                                Text("Entrepreneurial History")
+                                    .font(.system(size: 22, weight: .bold))
+                                    .foregroundColor(.white)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                                Text("Started first business at 18; co-founded a tech startup in college; currently CEO of Circl International.") // Placeholder text
+                                    .font(.system(size: 16))
+                                    .foregroundColor(.white)
+                                    .multilineTextAlignment(.leading)
+                                    .padding(.horizontal)
                             }
                             .padding()
                         }
