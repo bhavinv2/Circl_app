@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct ProfilePage: View {
-    @State private var bioText: String = "" // State variable for the bio text
     @State private var showError: Bool = false // State variable to show error when bio exceeds 200 characters
 
     var body: some View {
@@ -106,30 +105,19 @@ struct ProfilePage: View {
                             RoundedRectangle(cornerRadius: 10)
                                 .fill(Color.customHex("004aad"))
                                 .shadow(radius: 2)
-                                .frame(height: 200)
+                                .frame(height: 150)
 
                             VStack(alignment: .leading, spacing: 15) {
                                 Text("Bio")
                                     .font(.system(size: 22, weight: .bold))
                                     .foregroundColor(.white)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
 
-                                TextField("Entrepreneur with a Harvard Master's, certified project manager, passionate about innovation and driving business growth through strategic leadership.", text: $bioText)
-                                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                                Text("Entrepreneur with a Harvard Master's, certified project manager, passionate about innovation and driving business growth through strategic leadership.")
+                                    .font(.system(size: 16))
+                                    .foregroundColor(.white)
+                                    .multilineTextAlignment(.leading)
                                     .padding(.horizontal)
-                                    .onChange(of: bioText) { newValue in
-                                        if newValue.count > 200 {
-                                            bioText = String(newValue.prefix(200))
-                                            showError = true
-                                        } else {
-                                            showError = false
-                                        }
-                                    }
-
-                                if showError {
-                                    Text("Bio cannot exceed 200 characters.")
-                                        .font(.system(size: 14))
-                                        .foregroundColor(.red)
-                                }
                             }
                             .padding()
                         }
