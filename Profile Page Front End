@@ -55,28 +55,28 @@ struct ProfilePage: View {
                                     VStack {
                                         Text("Connections:")
                                             .font(.system(size: 16, weight: .semibold))
-                                            .foregroundColor(Color.customHex("FFD700"))
+                                            .foregroundColor(Color.customHex("#ffde59"))
                                         Text("123") // Placeholder for backend data
                                             .font(.system(size: 16, weight: .bold))
-                                            .foregroundColor(Color.customHex("004aad"))
+                                            .foregroundColor(Color.white)
                                     }
 
                                     VStack {
                                         Text("Circles:")
                                             .font(.system(size: 16, weight: .semibold))
-                                            .foregroundColor(Color.customHex("FFD700"))
+                                            .foregroundColor(Color.customHex("#ffde59"))
                                         Text("45") // Placeholder for backend data
                                             .font(.system(size: 16, weight: .bold))
-                                            .foregroundColor(Color.customHex("004aad"))
+                                            .foregroundColor(Color.white)
                                     }
 
                                     VStack {
                                         Text("Circs:")
                                             .font(.system(size: 16, weight: .semibold))
-                                            .foregroundColor(Color.customHex("FFD700"))
+                                            .foregroundColor(Color.customHex("#ffde59"))
                                         Text("980") // Placeholder for backend data
                                             .font(.system(size: 16, weight: .bold))
-                                            .foregroundColor(Color.customHex("004aad"))
+                                            .foregroundColor(Color.white)
                                     }
                                 }
 
