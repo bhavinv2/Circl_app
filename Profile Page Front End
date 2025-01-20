@@ -191,6 +191,28 @@ struct ProfilePage: View {
                             }
                             .padding()
                         }
+                        // Profile Section 5: Interests
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(Color.customHex("004aad"))
+                                .shadow(radius: 2)
+                                .frame(height: 300) // Adjust height as needed
+
+                            VStack(alignment: .leading, spacing: 15) {
+                                Text("Interests") // Header
+                                    .font(.system(size: 22, weight: .bold))
+                                    .foregroundColor(.white)
+
+                                Text("Clubs/Organizations: Member of Tau Kappa Epsilon, Volunteer at Habitat for Humanity") // Placeholder for backend data
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundColor(.white)
+
+                                Text("Hobbies/Passions: Reading, Cycling, Digital Art, Traveling") // Placeholder for backend data
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundColor(.white)
+                            }
+                            .padding()
+                        }
 
                         ForEach(4..<21) { index in
                             Text("Profile Section \(index)")
