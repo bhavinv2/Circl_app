@@ -1,7 +1,7 @@
 import SwiftUI
 
 // MARK: - Main View
-struct PageEMentorMatching: View {
+struct PageMentorMatching: View {
     var body: some View {
         VStack(spacing: 0) {
             // Header Section
@@ -32,7 +32,7 @@ struct PageEMentorMatching: View {
                             .resizable()
                             .frame(width: 50, height: 50)
                             .foregroundColor(.white)
-                            .offset(x: -7) // Move the profile picture 7 pixels to the left
+                            .offset(x: -28) // Move the profile picture 7 pixels to the left
                         Text("Hello, Fragne")
                             .foregroundColor(.white)
                             .font(.headline)
