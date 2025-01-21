@@ -1,0 +1,155 @@
+import SwiftUI
+
+// MARK: - Main View
+struct PageEMentorMatching: View {
+    var body: some View {
+        VStack(spacing: 0) {
+            // Header Section
+            VStack(spacing: 0) {
+                HStack {
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text("Circl.")
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                        
+                        // Filter Button directly under "Circl."
+                        Button(action: {
+                            // Action for Filter
+                        }) {
+                            HStack {
+                                Image(systemName: "slider.horizontal.3")
+                                    .foregroundColor(.white)
+                                Text("Filter")
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                            }
+                        }
+                    }
+                    Spacer()
+                    VStack(alignment: .trailing) {
+                        Image(systemName: "person.circle.fill")
+                            .resizable()
+                            .frame(width: 50, height: 50)
+                            .foregroundColor(.white)
+                            .offset(x: -7) // Move the profile picture 7 pixels to the left
+                        Text("Hello, Fragne")
+                            .foregroundColor(.white)
+                            .font(.headline)
+                    }
+                }
+                .padding(.horizontal)
+            }
+            .padding(.top, 15)
+            .padding(.bottom, 10)
+            .background(Color.fromHex3("004aad")) // Updated blue color
+            
+            // Fixed Selection Buttons Section
+            HStack(spacing: 10) {
+                Button(action: {
+                    // Entrepreneurs action
+                }) {
+                    Text("Entrepreneurs")
+                        .font(.system(size: 12)) // Reduced font size
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.gray) // Changed to gray
+                        .foregroundColor(.black)
+                        .cornerRadius(10)
+                }
+                
+                Button(action: {
+                    // Mentors action
+                }) {
+                    Text("Mentors")
+                        .font(.system(size: 12)) // Reduced font size
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.yellow) // Changed to yellow
+                        .foregroundColor(.black)
+                        .cornerRadius(10)
+                }
+                
+                Button(action: {
+                    // Skill Selling action
+                }) {
+                    Text("Skill Selling")
+                        .font(.system(size: 12)) // Reduced font size
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.gray)
+                        .foregroundColor(.black)
+                        .cornerRadius(10)
+                }
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 10)
+            
+            // Scrollable Section
+            ScrollView {
+                // Add scrollable content here
+                Text("Scrollable content goes here...")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color.gray.opacity(0.1))
+            }
+            
+            // Footer Section
+            HStack(spacing: 15) {
+                CustomCircleButton3(iconName: "hand.raised.fill")
+                CustomCircleButton3(iconName: "briefcase.fill")
+                CustomCircleButton3(iconName: "person.3.fill")
+                CustomCircleButton3(iconName: "person.2.wave.2.fill")
+                CustomCircleButton3(iconName: "book.fill")
+            }
+            .padding(.vertical, 10)
+            .background(Color.white)
+        }
+        .edgesIgnoringSafeArea(.bottom)
+    }
+}
+
+// MARK: - CustomCircleButton
+struct CustomCircleButton3: View {
+    let iconName: String
+
+    var body: some View {
+        Button(action: {
+            // Action for button
+        }) {
+            ZStack {
+                Circle()
+                    .fill(Color.fromHex3("004aad"))
+                    .frame(width: 60, height: 60)
+                Image(systemName: iconName)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 30, height: 30)
+                    .foregroundColor(.white)
+            }
+        }
+    }
+}
+
+// MARK: - Color Extension
+extension Color {
+    static func fromHex3(_ hex: String) -> Color {
+        var hexSanitized = hex.trimmingCharacters(in: .whitespacesAndNewlines)
+        hexSanitized = hexSanitized.replacingOccurrences(of: "#", with: "")
+
+        var rgb: UInt64 = 0
+        Scanner(string: hexSanitized).scanHexInt64(&rgb)
+
+        let red = Double((rgb >> 16) & 0xFF) / 255.0
+        let green = Double((rgb >> 8) & 0xFF) / 255.0
+        let blue = Double(rgb & 0xFF) / 255.0
+
+        return Color(red: red, green: green, blue: blue)
+    }
+}
+
+// MARK: - Preview
+struct PageMentorMatching_Previews: PreviewProvider {
+    static var previews: some View {
+        PageEMentorMatching()
+    }
+}
