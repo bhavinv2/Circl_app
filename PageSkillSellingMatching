@@ -1,7 +1,7 @@
 import SwiftUI
 
 // MARK: - Main View
-struct PageeSkillSellingMatching: View {
+struct PageSkillSellingMatching: View {
     var body: some View {
         VStack(spacing: 0) {
             // Header Section
@@ -42,7 +42,7 @@ struct PageeSkillSellingMatching: View {
             }
             .padding(.top, 15)
             .padding(.bottom, 10)
-            .background(Color.fromHex3("004aad")) // Updated blue color
+            .background(Color.fromHex4("004aad")) // Updated blue color
             
             // Fixed Selection Buttons Section
             HStack(spacing: 10) {
@@ -65,7 +65,7 @@ struct PageeSkillSellingMatching: View {
                         .font(.system(size: 12)) // Reduced font size
                         .padding()
                         .frame(maxWidth: .infinity)
-                        .background(Color.yellow) // Changed to yellow
+                        .background(Color.gray) // Changed to gray
                         .foregroundColor(.black)
                         .cornerRadius(10)
                 }
@@ -77,7 +77,7 @@ struct PageeSkillSellingMatching: View {
                         .font(.system(size: 12)) // Reduced font size
                         .padding()
                         .frame(maxWidth: .infinity)
-                        .background(Color.gray)
+                        .background(Color.yellow) // Changed to yellow
                         .foregroundColor(.black)
                         .cornerRadius(10)
                 }
@@ -95,11 +95,11 @@ struct PageeSkillSellingMatching: View {
             
             // Footer Section
             HStack(spacing: 15) {
-                CustomCircleButton3(iconName: "hand.raised.fill")
-                CustomCircleButton3(iconName: "briefcase.fill")
-                CustomCircleButton3(iconName: "person.3.fill")
-                CustomCircleButton3(iconName: "person.2.wave.2.fill")
-                CustomCircleButton3(iconName: "book.fill")
+                CustomCircleButton4(iconName: "hand.raised.fill")
+                CustomCircleButton4(iconName: "briefcase.fill")
+                CustomCircleButton4(iconName: "person.3.fill")
+                CustomCircleButton4(iconName: "person.2.wave.2.fill")
+                CustomCircleButton4(iconName: "book.fill")
             }
             .padding(.vertical, 10)
             .background(Color.white)
@@ -118,7 +118,7 @@ struct CustomCircleButton4: View {
         }) {
             ZStack {
                 Circle()
-                    .fill(Color.fromHex3("004aad"))
+                    .fill(Color.fromHex4("004aad"))
                     .frame(width: 60, height: 60)
                 Image(systemName: iconName)
                     .resizable()
@@ -150,6 +150,6 @@ extension Color {
 // MARK: - Preview
 struct PageSkillSellingMatching_Previews: PreviewProvider {
     static var previews: some View {
-        PageEMentorMatching()
+        PageSkillSellingMatching()
     }
 }
