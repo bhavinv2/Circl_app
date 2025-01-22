@@ -60,6 +60,12 @@ struct PageBusinessProfile: View {
                 aboutSection
                 companyDetailsSection // New section added here
                 valuesSection
+                solutionSection
+                businessModelSection
+                teamSection
+                financialsFundingSection
+                lookingForSection
+                contactUsSection
             }
             .padding()
             .background(Color(.systemGray4)) // Gray background for the scrollable section
@@ -186,6 +192,7 @@ private var valuesSection: some View {
             detailRow(title: "Company Culture", value: "Innovative, inclusive, and results-driven.")
         }
         .padding()
+        .frame(maxWidth: .infinity)
         .background(Color.white)
         .cornerRadius(10)
         .overlay(
@@ -195,6 +202,167 @@ private var valuesSection: some View {
     }
     .padding()
     .background(Color.white) // White background for the values section
+    .cornerRadius(10)
+}
+// MARK: - Solution Section
+private var solutionSection: some View {
+    VStack(alignment: .leading, spacing: 10) {
+        Text("Solution")
+            .font(.headline)
+            .fontWeight(.bold)
+            .foregroundColor(.black)
+        
+        VStack(alignment: .leading, spacing: 8) {
+            detailRow(title: "Product/Service", value: "Describe the product or service here.")
+            detailRow(title: "Unique Selling Proposition", value: "Highlight what makes this unique.")
+            detailRow(title: "Traction/Progress", value: "Summarize the milestones achieved.")
+        }
+        .padding()
+        .frame(maxWidth: .infinity)
+        .background(Color.white)
+        .cornerRadius(10)
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(Color.gray, lineWidth: 1)
+        )
+    }
+    .padding()
+    .background(Color.white)
+    .cornerRadius(10)
+}
+// MARK: - Business Model Section
+private var businessModelSection: some View {
+    VStack(alignment: .leading, spacing: 10) {
+        Text("Business Model")
+            .font(.headline)
+            .fontWeight(.bold)
+            .foregroundColor(.black)
+        
+        VStack(alignment: .leading, spacing: 8) {
+            detailRow(title: "Revenue Streams", value: "List the revenue streams.")
+            detailRow(title: "Pricing Strategy", value: "Outline the pricing approach.")
+            detailRow(title: "Sales/Revenue", value: "Summarize current sales/revenue.")
+        }
+        .padding()
+        .frame(maxWidth: .infinity)
+        .background(Color.white)
+        .cornerRadius(10)
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(Color.gray, lineWidth: 1)
+        )
+    }
+    .padding()
+    .background(Color.white)
+    .cornerRadius(10)
+}
+// MARK: - The Team Section
+private var teamSection: some View {
+    VStack(alignment: .leading, spacing: 10) {
+        Text("The Team")
+            .font(.headline)
+            .fontWeight(.bold)
+            .foregroundColor(.black)
+        
+        VStack(alignment: .leading, spacing: 8) {
+            detailRow(title: "CoFounders", value: "List of cofounders.")
+            detailRow(title: "Key Hires", value: "List of key hires.")
+            detailRow(title: "Advisors/Mentors", value: "List of advisors or mentors.")
+        }
+        .padding()
+        .frame(maxWidth: .infinity)
+        .background(Color.white)
+        .cornerRadius(10)
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(Color.gray, lineWidth: 1)
+        )
+    }
+    .padding()
+    .background(Color.white)
+    .cornerRadius(10)
+}
+// MARK: - Financials/Funding Section
+private var financialsFundingSection: some View {
+    VStack(alignment: .leading, spacing: 10) {
+        Text("Financials/Funding")
+            .font(.headline)
+            .fontWeight(.bold)
+            .foregroundColor(.black)
+        
+        VStack(alignment: .leading, spacing: 8) {
+            detailRow(title: "Funding Stage", value: "Specify the funding stage.")
+            detailRow(title: "Amount Raised", value: "Total amount raised.")
+            detailRow(title: "Use of Funds", value: "Describe how funds are utilized.")
+            detailRow(title: "Financial Projections", value: "Summarize projections.")
+        }
+        .padding()
+        .frame(maxWidth: .infinity)
+        .background(Color.white)
+        .cornerRadius(10)
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(Color.gray, lineWidth: 1)
+        )
+    }
+    .padding()
+    .background(Color.white)
+    .cornerRadius(10)
+}
+// MARK: - Looking For Section
+private var lookingForSection: some View {
+    VStack(alignment: .leading, spacing: 10) {
+        Text("Looking For")
+            .font(.headline)
+            .fontWeight(.bold)
+            .foregroundColor(.black)
+        
+        VStack(alignment: .leading, spacing: 8) {
+            detailRow(title: "Roles Needed", value: "List roles needed.")
+            detailRow(title: "Mentorship", value: "Specify areas where mentorship is needed.")
+            detailRow(title: "Investment", value: "Describe investment needs.")
+            detailRow(title: "Other", value: "Other needs or requirements.")
+        }
+        .padding()
+        .frame(maxWidth: .infinity)
+        .background(Color.white)
+        .cornerRadius(10)
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(Color.gray, lineWidth: 1)
+        )
+    }
+    .padding()
+    .background(Color.white)
+    .cornerRadius(10)
+}
+// MARK: - Contact Us Section
+private var contactUsSection: some View {
+    VStack(alignment: .leading, spacing: 10) {
+        Text("Contact Us")
+            .font(.headline)
+            .fontWeight(.bold)
+            .foregroundColor(.black)
+        
+        VStack(alignment: .leading, spacing: 8) {
+            Text("John Doe")
+                .foregroundColor(Color.fromHex("004aad"))
+                .underline()
+                .onTapGesture {
+                    // Navigate to John Doe's profile
+                }
+        }
+        .padding()
+        .frame(maxWidth: .infinity)
+        .background(Color.white)
+        .cornerRadius(10)
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(Color.gray, lineWidth: 1)
+        )
+    }
+    .padding()
+    .background(Color.white)
     .cornerRadius(10)
 }
 
