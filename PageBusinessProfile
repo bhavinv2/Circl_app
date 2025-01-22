@@ -137,7 +137,7 @@ struct PageBusinessProfile: View {
     }
 
     private var companyDetailsSection: some View {
-        VStack(alignment: .leading, spacing: 1) {
+        VStack(alignment: .leading, spacing: 10) {
             Text("Company Overview")
                 .font(.headline)
                 .fontWeight(.bold)
