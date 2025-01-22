@@ -58,6 +58,7 @@ struct PageBusinessProfile: View {
             VStack(spacing: 20) {
                 companyOverviewSection
                 aboutSection
+                companyDetailsSection // New section added here
             }
             .padding()
             .background(Color(.systemGray4)) // Gray background for the scrollable section
@@ -109,6 +110,49 @@ struct PageBusinessProfile: View {
         .padding()
         .background(Color.white) // White background for the about section
         .cornerRadius(10)
+    }
+
+    private var companyDetailsSection: some View {
+        VStack(alignment: .leading, spacing: 1) {
+            Text("Company Overview")
+                .font(.headline)
+                .fontWeight(.bold)
+                .foregroundColor(.black)
+            
+            VStack(alignment: .leading, spacing: 8) {
+                detailRow(title: "Industry", value: "Technology")
+                detailRow(title: "Type", value: "Startup")
+                detailRow(title: "Problem To Solve", value: "Improving connectivity for entrepreneurs")
+                detailRow(title: "Cofounders", value: "2")
+                detailRow(title: "Stage", value: "Seed")
+                detailRow(title: "Revenue", value: "Pre-revenue")
+                detailRow(title: "Location", value: "San Francisco, CA")
+                detailRow(title: "Looking for", value: "Investors, Mentors, Partners")
+            }
+            .padding()
+            .frame(maxWidth: .infinity)
+            .background(Color.white)
+            .cornerRadius(10)
+            .overlay(
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(Color.gray, lineWidth: 1)
+            )
+        }
+        .padding()
+        .background(Color.white) // White background for the company details section
+        .cornerRadius(10)
+    }
+
+    private func detailRow(title: String, value: String) -> some View {
+        HStack(alignment: .top, spacing: 0) {
+            Text("\(title): ")
+                .font(.body)
+                .fontWeight(.semibold)
+                .foregroundColor(.primary)
+            Text(value)
+                .font(.body)
+                .foregroundColor(.primary)
+        }
     }
 
     // MARK: - Footer Section
