@@ -68,26 +68,44 @@ struct PageBusinessProfile: View {
     private var companyOverviewSection: some View {
         VStack(spacing: 10) {
             VStack(spacing: 10) {
+                // Company logo area
                 Rectangle()
                     .fill(Color.gray.opacity(0.2))
                     .frame(height: 120)
                     .overlay(
-                        Text("Company Logo")
-                            .foregroundColor(.gray)
-                            .font(.headline)
+                        Image("companyLogo") // Replace with dynamic binding to the company logo
+                            .resizable()
+                            .scaledToFit()
+                            .padding()
+                            .foregroundColor(.gray) // Fallback gray color
                     )
                     .cornerRadius(10)
                 
-                Text("Company Name")
-                    .font(.title2)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.white)
+                // Company name with dynamic underline for link
+                if let companyWebsiteURL = companyWebsiteURL, hasWebsiteLink {
+                    Link("Company Name", destination: companyWebsiteURL)
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.white)
+                        .underline()
+                } else {
+                    Text("Company Name")
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.white)
+                }
             }
             .padding()
             .background(Color.fromHex("004aad")) // Blue background for the company overview
             .cornerRadius(10)
         }
     }
+
+    // MARK: - Variables
+    @State private var hasWebsiteLink: Bool = false // Dynamically determine if a website link exists
+    @State private var companyWebsiteURL: URL? = nil // Replace with actual URL data binding
+        }
+    
 
     private var aboutSection: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -167,7 +185,7 @@ struct PageBusinessProfile: View {
         .padding(.vertical, 10)
         .background(Color.white)
     }
-}
+
 
 // MARK: - Custom Circle Button
 struct CustomCircleButton5: View {
