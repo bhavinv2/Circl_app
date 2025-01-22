@@ -59,6 +59,7 @@ struct PageBusinessProfile: View {
                 companyOverviewSection
                 aboutSection
                 companyDetailsSection // New section added here
+                valuesSection
             }
             .padding()
             .background(Color(.systemGray4)) // Gray background for the scrollable section
@@ -106,7 +107,6 @@ struct PageBusinessProfile: View {
     @State private var companyWebsiteURL: URL? = nil // Replace with actual URL data binding
         }
     
-
     private var aboutSection: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("About")
@@ -159,8 +159,8 @@ struct PageBusinessProfile: View {
         .padding()
         .background(Color.white) // White background for the company details section
         .cornerRadius(10)
-    }
-
+    
+}
     private func detailRow(title: String, value: String) -> some View {
         HStack(alignment: .top, spacing: 0) {
             Text("\(title): ")
@@ -172,6 +172,31 @@ struct PageBusinessProfile: View {
                 .foregroundColor(.primary)
         }
     }
+// MARK: - Values Section
+private var valuesSection: some View {
+    VStack(alignment: .leading, spacing: 10) {
+        Text("Values")
+            .font(.headline)
+            .fontWeight(.bold)
+            .foregroundColor(.black)
+        
+        VStack(alignment: .leading, spacing: 8) {
+            detailRow(title: "Vision", value: "To revolutionize connectivity among entrepreneurs.")
+            detailRow(title: "Mission", value: "To empower entrepreneurs by fostering meaningful connections.")
+            detailRow(title: "Company Culture", value: "Innovative, inclusive, and results-driven.")
+        }
+        .padding()
+        .background(Color.white)
+        .cornerRadius(10)
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(Color.gray, lineWidth: 1)
+        )
+    }
+    .padding()
+    .background(Color.white) // White background for the values section
+    .cornerRadius(10)
+}
 
     // MARK: - Footer Section
     private var footerSection: some View {
