@@ -93,6 +93,14 @@ struct Page5: View {
                         .alert("Invalid Personality Type format. Use XXXX-Y.", isPresented: $showInvalidPersonalityAlert) {
                             Button("OK", role: .cancel) { }
                         }
+                    
+                    // Link to 16 Personalities Test
+                    Link("Take the 16 personalities test", destination: URL(string: "https://www.16personalities.com/?utm_source=google&utm_medium=cpc&utm_campaign=Test%20Complete%20-%20US%20-%20English&gad_source=1&gclid=EAIaIQobChMI2tXTu_SMiwMVZi3UAR2R-THWEAAYASAAEgKqb_D_BwE")!)
+                        .font(.system(size: 14, weight: .regular))
+                        .foregroundColor(Color(hexCode: "ffde59"))
+                        .underline(true, color: Color(hexCode: "ffde59")) // Add underline with color
+                        .padding(.top, 8) // Add some space between Personality Type and the link
+                    
                 }
                 .padding(.horizontal, 30)
                 .padding(.top, 10)
