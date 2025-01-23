@@ -52,21 +52,25 @@ struct Page5: View {
 
                 // Input Fields
                 VStack(spacing: 15) {
-                    // Birthday Field
+                    // Birthday Field with Automatic Slash Insertion
                     TextField("Birthday (MM/DD/YY)", text: $birthday)
-                        .onChange(of: birthday) { _ in validateAge() }
+                        .onChange(of: birthday) { _ in
+                            formatBirthday()
+                            validateAge()
+                        }
                         .textFieldStyle(RoundedTextFieldStyle())
                         .frame(maxWidth: 300)
                         .alert("You must be 18 years or older to sign up.", isPresented: $isUnderage) {
                             Button("OK", role: .cancel) { }
                         }
 
-                    // Education Level Dropdown
+                    // Education Level Dropdown (Matching Height and Width)
                     DropdownField(
                         placeholder: "Education Level",
                         options: educationOptions,
                         selectedOption: $educationLevel
                     )
+                    .frame(maxWidth: 300, maxHeight: 50)
 
                     // Text Fields
                     TextField("Institution Attended", text: $institutionAttended)
@@ -116,6 +120,20 @@ struct Page5: View {
                 Spacer()
             }
         }
+    }
+
+    // Format Birthday with Slashes
+    private func formatBirthday() {
+        // Remove any non-numeric characters and ensure a 6-character MMDDYY string
+        let filtered = birthday.filter { $0.isNumber }
+        let formatted = filtered.prefix(6).enumerated().map { (index, char) -> String in
+            if index == 2 || index == 4 {
+                return "/\(char)"
+            } else {
+                return String(char)
+            }
+        }.joined()
+        birthday = formatted
     }
 
     // Validate Birthday and Age
