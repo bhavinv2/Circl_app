@@ -22,25 +22,21 @@ struct Page5: View {
     
     var body: some View {
         ZStack {
-            // Background Color
             Color(hexCode: "004aad")
                 .edgesIgnoringSafeArea(.all)
             
             VStack(spacing: 20) {
                 Spacer()
                 
-                // Title
                 Text("Create Your Account")
                     .font(.system(size: 32, weight: .bold))
                     .foregroundColor(Color(hexCode: "ffde59"))
                 
-                // Separator
                 Rectangle()
                     .frame(height: 2)
                     .foregroundColor(.white)
                     .padding(.horizontal, 40)
                 
-                // Section Title
                 HStack {
                     Text("Personal Information")
                         .font(.system(size: 24, weight: .bold))
@@ -50,13 +46,12 @@ struct Page5: View {
                 .padding(.horizontal, 40)
                 .padding(.top, 20)
                 
-                // Input Fields
                 VStack(spacing: 15) {
                     // Birthday Field with Automatic Slash Insertion
                     TextField("Birthday (MM/DD/YY)", text: $birthday)
                         .onChange(of: birthday) { _ in
-                            formatBirthday()
-                            validateAge()
+                            formatBirthday()   // Format birthday with slashes
+                            validateBirthday() // Validate the MM and DD values to ensure they don't exceed 12 and 31
                         }
                         .textFieldStyle(RoundedTextFieldStyle())
                         .frame(maxWidth: 300)
@@ -64,7 +59,6 @@ struct Page5: View {
                             Button("OK", role: .cancel) { }
                         }
                     
-                    // Education Level Dropdown (Matching Height and Width)
                     DropdownField(
                         placeholder: "Education Level",
                         options: educationOptions,
@@ -72,7 +66,6 @@ struct Page5: View {
                     )
                     .frame(maxWidth: 300, maxHeight: 50)
                     
-                    // Text Fields
                     TextField("Institution Attended", text: $institutionAttended)
                         .textFieldStyle(RoundedTextFieldStyle())
                         .frame(maxWidth: 300)
@@ -85,7 +78,6 @@ struct Page5: View {
                         .textFieldStyle(RoundedTextFieldStyle())
                         .frame(maxWidth: 300)
                     
-                    // Personality Type Field (XXXX-Y format)
                     TextField("Personality Type (XXXX-Y)", text: $personalityType)
                         .autocapitalization(.allCharacters)
                         .onChange(of: personalityType) { _ in validatePersonalityType() }
@@ -95,12 +87,11 @@ struct Page5: View {
                             Button("OK", role: .cancel) { }
                         }
                     
-                    // Link to 16 Personalities Test
                     Link("Take the 16 personalities test", destination: URL(string: "https://www.16personalities.com/?utm_source=google&utm_medium=cpc&utm_campaign=Test%20Complete%20-%20US%20-%20English&gad_source=1&gclid=EAIaIQobChMI2tXTu_SMiwMVZi3UAR2R-THWEAAYASAAEgKqb_D_BwE")!)
                         .font(.system(size: 14, weight: .regular))
                         .foregroundColor(Color(hexCode: "ffde59"))
-                        .underline(true, color: Color(hexCode: "ffde59")) // Add underline with color
-                        .padding(.top, 8) // Add some space between Personality Type and the link
+                        .underline(true, color: Color(hexCode: "ffde59"))
+                        .padding(.top, 8)
                     
                 }
                 .padding(.horizontal, 30)
@@ -108,7 +99,6 @@ struct Page5: View {
                 
                 Spacer()
                 
-                // Next Button
                 Button(action: {
                     // Add navigation action here
                 }) {
@@ -131,68 +121,66 @@ struct Page5: View {
         }
     }
     
-    // Format Birthday with Slashes
     private func formatBirthday() {
-        // Remove any non-numeric characters and ensure a 6-character MMDDYY string
-        let filtered = birthday.filter { $0.isNumber }
-        let formatted = filtered.prefix(6).enumerated().map { (index, char) -> String in
-            if index == 2 || index == 4 {
-                return "/\(char)"
-            } else {
-                return String(char)
-            }
-        }.joined()
-        birthday = formatted
+            // Remove any non-numeric characters and ensure a 6-character MMDDYY string
+            let filtered = birthday.filter { $0.isNumber }
+            let formatted = filtered.prefix(6).enumerated().map { (index, char) -> String in
+                if index == 2 || index == 4 {
+                    return "/\(char)"
+                } else {
+                    return String(char)
+                }
+            }.joined()
+            birthday = formatted
     }
     
-    // Validate Birthday and Age
-    private func validateAge() {
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "MM/dd/yy"
+    private func validateBirthday() {
+        let filtered = birthday.filter { $0.isNumber }
+        let limitedInput = String(filtered.prefix(6))
         
-        if let birthDate = dateFormatter.date(from: birthday) {
-            let calendar = Calendar.current
-            let age = calendar.dateComponents([.year], from: birthDate, to: Date()).year ?? 0
-            isUnderage = age < 18
+        if limitedInput.count < 6 {
+            birthday = limitedInput
+            return
+        }
+        
+        let monthString = String(limitedInput.prefix(2))
+        let dayString = String(limitedInput.dropFirst(2).prefix(2))
+        
+        if let month = Int(monthString), month > 12 {
+            birthday = String(monthString)
+        } else if let day = Int(dayString), day > 31 {
+            birthday = String(limitedInput.prefix(4))
         } else {
-            isUnderage = false
+            birthday = limitedInput
         }
     }
     
-    // Validate Personality Type Format (GHVB-Y)
     private func validatePersonalityType() {
-        // Strip any spaces or invalid characters from the input (only upper case letters)
         let sanitizedInput = personalityType.filter { $0.isUppercase }
-
-        // Only validate once the input reaches exactly 5 characters (GHVB-Y format, including the dash)
+        
+        // Limit input to exactly 5 characters including the dash
         if sanitizedInput.count == 5 {
-            // Ensure the dash is present at the right position (index 4)
             if let dashIndex = personalityType.firstIndex(of: "-"),
                dashIndex == personalityType.index(personalityType.startIndex, offsetBy: 4) {
-                // Access the individual characters using String.Index
                 let g = sanitizedInput[sanitizedInput.index(sanitizedInput.startIndex, offsetBy: 0)]
                 let h = sanitizedInput[sanitizedInput.index(sanitizedInput.startIndex, offsetBy: 1)]
                 let v = sanitizedInput[sanitizedInput.index(sanitizedInput.startIndex, offsetBy: 2)]
                 let b = sanitizedInput[sanitizedInput.index(sanitizedInput.startIndex, offsetBy: 3)]
-                let y = sanitizedInput[sanitizedInput.index(sanitizedInput.startIndex, offsetBy: 4)] // skip the dash, index 4 is the dash
-
-                // Validate each character against the allowed values
+                let y = sanitizedInput[sanitizedInput.index(sanitizedInput.startIndex, offsetBy: 4)]
+                
                 let validG = ["E", "I"].contains(g)
                 let validH = ["S", "N"].contains(h)
                 let validV = ["T", "F"].contains(v)
                 let validB = ["J", "P"].contains(b)
                 let validY = ["A", "T"].contains(y)
-
-                // If any of the characters is invalid, show the alert
+                
                 if !(validG && validH && validV && validB && validY) {
                     showInvalidPersonalityAlert = true
                 }
             } else {
-                // If the dash is in the wrong place, show the invalid alert
                 showInvalidPersonalityAlert = true
             }
         } else {
-            // Don't show the alert unless the input is 5 characters long (including the dash)
             showInvalidPersonalityAlert = false
         }
     }
