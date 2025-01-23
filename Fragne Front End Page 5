@@ -9,7 +9,7 @@ struct Page5: View {
     @State private var yearsOfExperience: String = ""
     @State private var personalityType: String = ""
     @State private var showInvalidPersonalityAlert: Bool = false
-
+    
     let educationOptions = [
         "No Formal Education",
         "Some High School",
@@ -19,27 +19,27 @@ struct Page5: View {
         "Master’s Degree",
         "Doctorate / PhD"
     ]
-
+    
     var body: some View {
         ZStack {
             // Background Color
             Color(hexCode: "004aad")
                 .edgesIgnoringSafeArea(.all)
-
+            
             VStack(spacing: 20) {
                 Spacer()
-
+                
                 // Title
                 Text("Create Your Account")
                     .font(.system(size: 32, weight: .bold))
                     .foregroundColor(Color(hexCode: "ffde59"))
-
+                
                 // Separator
                 Rectangle()
                     .frame(height: 2)
                     .foregroundColor(.white)
                     .padding(.horizontal, 40)
-
+                
                 // Section Title
                 HStack {
                     Text("Personal Information")
@@ -49,7 +49,7 @@ struct Page5: View {
                 }
                 .padding(.horizontal, 40)
                 .padding(.top, 20)
-
+                
                 // Input Fields
                 VStack(spacing: 15) {
                     // Birthday Field with Automatic Slash Insertion
@@ -63,7 +63,7 @@ struct Page5: View {
                         .alert("You must be 18 years or older to sign up.", isPresented: $isUnderage) {
                             Button("OK", role: .cancel) { }
                         }
-
+                    
                     // Education Level Dropdown (Matching Height and Width)
                     DropdownField(
                         placeholder: "Education Level",
@@ -71,21 +71,21 @@ struct Page5: View {
                         selectedOption: $educationLevel
                     )
                     .frame(maxWidth: 300, maxHeight: 50)
-
+                    
                     // Text Fields
                     TextField("Institution Attended", text: $institutionAttended)
                         .textFieldStyle(RoundedTextFieldStyle())
                         .frame(maxWidth: 300)
-
+                    
                     TextField("Certifications/Licenses", text: $certifications)
                         .textFieldStyle(RoundedTextFieldStyle())
                         .frame(maxWidth: 300)
-
+                    
                     TextField("Years of Experience", text: $yearsOfExperience)
                         .textFieldStyle(RoundedTextFieldStyle())
                         .frame(maxWidth: 300)
-
-                    // Personality Type Field
+                    
+                    // Personality Type Field (XXXX-Y format)
                     TextField("Personality Type (XXXX-Y)", text: $personalityType)
                         .onChange(of: personalityType) { _ in validatePersonalityType() }
                         .textFieldStyle(RoundedTextFieldStyle())
@@ -96,9 +96,9 @@ struct Page5: View {
                 }
                 .padding(.horizontal, 30)
                 .padding(.top, 10)
-
+                
                 Spacer()
-
+                
                 // Next Button
                 Button(action: {
                     // Add navigation action here
@@ -116,12 +116,12 @@ struct Page5: View {
                         )
                         .padding(.horizontal, 50)
                 }
-
+                
                 Spacer()
             }
         }
     }
-
+    
     // Format Birthday with Slashes
     private func formatBirthday() {
         // Remove any non-numeric characters and ensure a 6-character MMDDYY string
@@ -135,12 +135,12 @@ struct Page5: View {
         }.joined()
         birthday = formatted
     }
-
+    
     // Validate Birthday and Age
     private func validateAge() {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "MM/dd/yy"
-
+        
         if let birthDate = dateFormatter.date(from: birthday) {
             let calendar = Calendar.current
             let age = calendar.dateComponents([.year], from: birthDate, to: Date()).year ?? 0
@@ -149,17 +149,47 @@ struct Page5: View {
             isUnderage = false
         }
     }
-
-    // Validate Personality Type Format
+    
+    // Validate Personality Type Format (GHVB-Y)
     private func validatePersonalityType() {
-        let regex = #"^[ESTJINFP]{4}-[AT]$"#
-        if !personalityType.matches(regex) && !personalityType.isEmpty {
-            showInvalidPersonalityAlert = true
+        // Strip any spaces or invalid characters from the input (only upper case letters)
+        let sanitizedInput = personalityType.filter { $0.isUppercase }
+
+        // Only validate once the input reaches exactly 5 characters (GHVB-Y format, including the dash)
+        if sanitizedInput.count == 5 {
+            // Ensure the dash is present at the right position (index 4)
+            if let dashIndex = personalityType.firstIndex(of: "-"),
+               dashIndex == personalityType.index(personalityType.startIndex, offsetBy: 4) {
+                // Access the individual characters using String.Index
+                let g = sanitizedInput[sanitizedInput.index(sanitizedInput.startIndex, offsetBy: 0)]
+                let h = sanitizedInput[sanitizedInput.index(sanitizedInput.startIndex, offsetBy: 1)]
+                let v = sanitizedInput[sanitizedInput.index(sanitizedInput.startIndex, offsetBy: 2)]
+                let b = sanitizedInput[sanitizedInput.index(sanitizedInput.startIndex, offsetBy: 3)]
+                let y = sanitizedInput[sanitizedInput.index(sanitizedInput.startIndex, offsetBy: 4)] // skip the dash, index 4 is the dash
+
+                // Validate each character against the allowed values
+                let validG = ["E", "I"].contains(g)
+                let validH = ["S", "N"].contains(h)
+                let validV = ["T", "F"].contains(v)
+                let validB = ["J", "P"].contains(b)
+                let validY = ["A", "T"].contains(y)
+
+                // If any of the characters is invalid, show the alert
+                if !(validG && validH && validV && validB && validY) {
+                    showInvalidPersonalityAlert = true
+                }
+            } else {
+                // If the dash is in the wrong place, show the invalid alert
+                showInvalidPersonalityAlert = true
+            }
+        } else {
+            // Don't show the alert unless the input is 5 characters long (including the dash)
+            showInvalidPersonalityAlert = false
         }
     }
 }
 
-// Custom Regex Extension
+// Custom Regex Extension (for matching format)
 extension String {
     func matches(_ regex: String) -> Bool {
         return self.range(of: regex, options: .regularExpression) != nil
