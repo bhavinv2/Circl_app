@@ -87,6 +87,7 @@ struct Page5: View {
                     
                     // Personality Type Field (XXXX-Y format)
                     TextField("Personality Type (XXXX-Y)", text: $personalityType)
+                        .autocapitalization(.allCharacters)
                         .onChange(of: personalityType) { _ in validatePersonalityType() }
                         .textFieldStyle(RoundedTextFieldStyle())
                         .frame(maxWidth: 300)
