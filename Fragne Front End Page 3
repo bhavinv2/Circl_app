@@ -1,6 +1,22 @@
 import SwiftUI
 
 struct Page3: View {
+    @State private var selectedUsageInterest: String? = nil
+
+    let usageInterestOptions = [
+        "Usage Interests",
+        "Start Your Business",
+        "Scale Your Business",
+        "Network with Entrepreneurs",
+        "Find CoFounder/s",
+        "Find Mentors",
+        "Find Investors",
+        "Be Part of the Community",
+        "Share Knowledge",
+        "Make Investments",
+        "Sell a Skill"
+    ]
+
     var body: some View {
         ZStack {
             // Background Color
@@ -8,173 +24,215 @@ struct Page3: View {
                 .edgesIgnoringSafeArea(.all)
             
             // Top Left Cloud
-            ZStack {
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 120, height: 120)
-                    .offset(x: -UIScreen.main.bounds.width / 2 + 60, y: -UIScreen.main.bounds.height / 2 + 60)
-                
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 100, height: 100)
-                    .offset(x: -UIScreen.main.bounds.width / 2 + 30, y: -UIScreen.main.bounds.height / 2 + 40)
-                
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 100, height: 100)
-                    .offset(x: -UIScreen.main.bounds.width / 2 + 110, y: -UIScreen.main.bounds.height / 2 + 30)
-                
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 100, height: 100)
-                    .offset(x: -UIScreen.main.bounds.width / 2 + 170, y: -UIScreen.main.bounds.height / 2 + 30)
-                
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 100, height: 100)
-                    .offset(x: -UIScreen.main.bounds.width / 2 + 210, y: -UIScreen.main.bounds.height / 2 + 60)
-                
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 80, height: 80)
-                    .offset(x: -UIScreen.main.bounds.width / 2 + 90, y: -UIScreen.main.bounds.height / 2 + 50)
-                
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 90, height: 90)
-                    .offset(x: -UIScreen.main.bounds.width / 2 + 50, y: -UIScreen.main.bounds.height / 2 + 30)
-                
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 110, height: 110)
-                    .offset(x: -UIScreen.main.bounds.width / 2 + 150, y: -UIScreen.main.bounds.height / 2 + 80)
-            }
-            
-            // Bottom Left Cloud
-            ZStack {
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 120, height: 120)
-                    .offset(x: -UIScreen.main.bounds.width / 2 + 30, y: UIScreen.main.bounds.height / 2 - 80)
-                
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 100, height: 100)
-                    .offset(x: -UIScreen.main.bounds.width / 2 + 30, y: UIScreen.main.bounds.height / 2 - 40)
-                
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 100, height: 100)
-                    .offset(x: -UIScreen.main.bounds.width / 2 + 170, y: UIScreen.main.bounds.height / 2 - 20)
-                
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 90, height: 90)
-                    .offset(x: -UIScreen.main.bounds.width / 2 + 80, y: UIScreen.main.bounds.height / 2 - 40)
-                
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 110, height: 110)
-                    .offset(x: -UIScreen.main.bounds.width / 2 + 150, y: UIScreen.main.bounds.height / 2 - 80)
-            }
-            
-            // Middle Right Cloud
-            ZStack {
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 120, height: 120)
-                    .offset(x: UIScreen.main.bounds.width / 2 - 60, y: 0)
-                
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 100, height: 100)
-                    .offset(x: UIScreen.main.bounds.width / 2 - 30, y: -20)
-                
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 80, height: 80)
-                    .offset(x: UIScreen.main.bounds.width / 2 - 10, y: 30)
-                
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 90, height: 90)
-                    .offset(x: UIScreen.main.bounds.width / 2 - 100, y: -40)
-                
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 110, height: 110)
-                    .offset(x: UIScreen.main.bounds.width / 2 - 125, y: 20)
-            }
-            
+                        ZStack {
+                            Circle()
+                                .fill(Color.white)
+                                .frame(width: 120, height: 120)
+                                .offset(x: -UIScreen.main.bounds.width / 2 + 60, y: -UIScreen.main.bounds.height / 2 + 60)
+                            
+                            Circle()
+                                .fill(Color.white)
+                                .frame(width: 100, height: 100)
+                                .offset(x: -UIScreen.main.bounds.width / 2 + 30, y: -UIScreen.main.bounds.height / 2 + 40)
+                            
+                            Circle()
+                                .fill(Color.white)
+                                .frame(width: 100, height: 100)
+                                .offset(x: -UIScreen.main.bounds.width / 2 + 110, y: -UIScreen.main.bounds.height / 2 + 30)
+                            
+                            Circle()
+                                .fill(Color.white)
+                                .frame(width: 100, height: 100)
+                                .offset(x: -UIScreen.main.bounds.width / 2 + 170, y: -UIScreen.main.bounds.height / 2 + 30)
+                            
+                            Circle()
+                                .fill(Color.white)
+                                .frame(width: 100, height: 100)
+                                .offset(x: -UIScreen.main.bounds.width / 2 + 210, y: -UIScreen.main.bounds.height / 2 + 60)
+                            
+                            Circle()
+                                .fill(Color.white)
+                                .frame(width: 80, height: 80)
+                                .offset(x: -UIScreen.main.bounds.width / 2 + 90, y: -UIScreen.main.bounds.height / 2 + 50)
+                            
+                            Circle()
+                                .fill(Color.white)
+                                .frame(width: 90, height: 90)
+                                .offset(x: -UIScreen.main.bounds.width / 2 + 50, y: -UIScreen.main.bounds.height / 2 + 30)
+                            
+                            Circle()
+                                .fill(Color.white)
+                                .frame(width: 110, height: 110)
+                                .offset(x: -UIScreen.main.bounds.width / 2 + 150, y: -UIScreen.main.bounds.height / 2 + 80)
+                        }
+                        
+                        // Bottom Left Cloud
+                        ZStack {
+                            Circle()
+                                .fill(Color.white)
+                                .frame(width: 120, height: 120)
+                                .offset(x: -UIScreen.main.bounds.width / 2 + 30, y: UIScreen.main.bounds.height / 2 - 80)
+                            
+                            Circle()
+                                .fill(Color.white)
+                                .frame(width: 100, height: 100)
+                                .offset(x: -UIScreen.main.bounds.width / 2 + 30, y: UIScreen.main.bounds.height / 2 - 40)
+                            
+                            Circle()
+                                .fill(Color.white)
+                                .frame(width: 100, height: 100)
+                                .offset(x: -UIScreen.main.bounds.width / 2 + 170, y: UIScreen.main.bounds.height / 2 - 20)
+                            
+                            Circle()
+                                .fill(Color.white)
+                                .frame(width: 90, height: 90)
+                                .offset(x: -UIScreen.main.bounds.width / 2 + 80, y: UIScreen.main.bounds.height / 2 - 40)
+                            
+                            Circle()
+                                .fill(Color.white)
+                                .frame(width: 110, height: 110)
+                                .offset(x: -UIScreen.main.bounds.width / 2 + 150, y: UIScreen.main.bounds.height / 2 - 80)
+                        }
+                        
+                        // Middle Right Cloud
+                        ZStack {
+                            Circle()
+                                .fill(Color.white)
+                                .frame(width: 120, height: 120)
+                                .offset(x: UIScreen.main.bounds.width / 2 - 60, y: 0)
+                            
+                            Circle()
+                                .fill(Color.white)
+                                .frame(width: 100, height: 100)
+                                .offset(x: UIScreen.main.bounds.width / 2 - 30, y: -20)
+                            
+                            Circle()
+                                .fill(Color.white)
+                                .frame(width: 80, height: 80)
+                                .offset(x: UIScreen.main.bounds.width / 2 - 10, y: 30)
+                            
+                            Circle()
+                                .fill(Color.white)
+                                .frame(width: 90, height: 90)
+                                .offset(x: UIScreen.main.bounds.width / 2 - 100, y: -40)
+                            
+                            Circle()
+                                .fill(Color.white)
+                                .frame(width: 110, height: 110)
+                                .offset(x: UIScreen.main.bounds.width / 2 - 125, y: 20)
+                        }
+
             VStack(spacing: 20) {
-                // Title
-                Text("Create Your Account")
-                    .font(.system(size: 32, weight: .bold))
-                    .foregroundColor(Color(hexCode: "ffde59"))
-                    .padding(.top, 40)
-                
-                // Separator
-                Rectangle()
-                    .frame(height: 2)
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 40)
-                
+                TitleSection()
                 Spacer()
-                
-                // Personal Information Section
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("Personal Information")
-                        .font(.system(size: 20, weight: .bold))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 40)
-                    
-                    VStack(spacing: 15) {
-                        StyledTextField(placeholder: "First Name")
-                        StyledTextField(placeholder: "Last Name")
-                        StyledTextField(placeholder: "Email")
-                        StyledTextField(placeholder: "Phone Number")
-                    }
-                    .padding(.horizontal, 40)
-                }
-                
+                PersonalInformationSection()
                 Spacer()
-                
-                // Experience Setup Section
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("Let Us Set Up Your Experience")
-                        .font(.system(size: 20, weight: .bold))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 40)
-                    
-                    VStack(spacing: 15) {
-                        DropdownField(placeholder: "Usage Interest")
-                        DropdownField(placeholder: "Industry Interest/s")
-                    }
-                    .padding(.horizontal, 40)
-                }
-                
+                ExperienceSetupSection(
+                    usageInterestOptions: usageInterestOptions,
+                    selectedUsageInterest: $selectedUsageInterest
+                )
                 Spacer()
-                
-                // Next Button
-                Button(action: {
-                    // Add navigation action here
-                }) {
-                    Text("Next")
-                        .font(.system(size: 24, weight: .bold))
-                        .foregroundColor(Color(hexCode: "004aad"))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 15)
-                        .background(Color(hexCode: "ffde59"))
-                        .cornerRadius(10)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10)
-                                .stroke(Color.white, lineWidth: 2) // White outline
-                        )
-                        .padding(.horizontal, 50)
-                }
-                
+                NextButton()
                 Spacer()
             }
+            .padding(.horizontal, 40)
+        }
+        .overlay(CloudsOverlay(), alignment: .topLeading)
+    }
+}
+
+// MARK: - Subviews
+struct TitleSection: View {
+    var body: some View {
+        VStack(spacing: 10) {
+            Text("Create Your Account")
+                .font(.system(size: 32, weight: .bold))
+                .foregroundColor(Color(hexCode: "ffde59"))
+                .padding(.top, 40)
+
+            Rectangle()
+                .frame(height: 2)
+                .foregroundColor(.white)
+        }
+    }
+}
+
+struct PersonalInformationSection: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Personal Information")
+                .font(.system(size: 20, weight: .bold))
+                .foregroundColor(.white)
+
+            VStack(spacing: 15) {
+                StyledTextField(placeholder: "First Name")
+                StyledTextField(placeholder: "Last Name")
+                StyledTextField(placeholder: "Email")
+                StyledTextField(placeholder: "Phone Number")
+            }
+        }
+    }
+}
+
+struct ExperienceSetupSection: View {
+    let usageInterestOptions: [String]
+    @Binding var selectedUsageInterest: String?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Let Us Set Up Your Experience")
+                .font(.system(size: 20, weight: .bold))
+                .foregroundColor(.white)
+
+            VStack(spacing: 15) {
+                DropdownField(
+                    placeholder: "Usage Interest",
+                    options: usageInterestOptions,
+                    selectedOption: $selectedUsageInterest
+                )
+                DropdownField(placeholder: "Industry Interest/s", options: [], selectedOption: .constant(nil))
+            }
+        }
+    }
+}
+
+struct NextButton: View {
+    var body: some View {
+        Button(action: {
+            // Add navigation action here
+        }) {
+            Text("Next")
+                .font(.system(size: 24, weight: .bold))
+                .foregroundColor(Color(hexCode: "004aad"))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 15)
+                .background(Color(hexCode: "ffde59"))
+                .cornerRadius(10)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(Color.white, lineWidth: 2)
+                )
+        }
+    }
+}
+
+struct CloudsOverlay: View {
+    var body: some View {
+        ZStack {
+            createCloud(
+                xOffsets: [-150, -120, -110, -90, -50, -40],
+                yOffsets: [-100, -80, -60, -40, -30, -20],
+                sizes: [120, 100, 90, 80, 70, 60]
+            )
+        }
+    }
+
+    private func createCloud(xOffsets: [CGFloat], yOffsets: [CGFloat], sizes: [CGFloat]) -> some View {
+        ForEach(0..<xOffsets.count, id: \.self) { index in
+            Circle()
+                .fill(Color.white)
+                .frame(width: sizes[index], height: sizes[index])
+                .offset(x: xOffsets[index], y: yOffsets[index])
         }
     }
 }
@@ -182,44 +240,57 @@ struct Page3: View {
 // Styled Text Field
 struct StyledTextField: View {
     var placeholder: String
-    
-    var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 10)
-                .fill(Color(.systemGray5)) // Default light gray text box
-                .frame(height: 50)
-            
-            TextField(placeholder, text: .constant(""))
-                .foregroundColor(Color(hexCode: "004aad")) // Blue font for text
-                .padding(.horizontal, 15)
-        }
-    }
-}
 
-// Dropdown Field
-struct DropdownField: View {
-    var placeholder: String
-    
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 10)
                 .fill(Color(.systemGray5))
                 .frame(height: 50)
-            
-            HStack {
-                Text(placeholder)
-                    .foregroundColor(Color(hexCode: "004aad")) // Blue font for dropdown placeholder
-                
-                Spacer()
-                
-                Image(systemName: "chevron.down")
-                    .foregroundColor(Color(hexCode: "004aad")) // Blue dropdown arrow
-            }
-            .padding(.horizontal, 15)
+
+            TextField(placeholder, text: .constant(""))
+                .foregroundColor(Color(hexCode: "004aad"))
+                .padding(.horizontal, 15)
         }
     }
 }
 
+// DropdownField Component
+struct DropdownField: View {
+    var placeholder: String
+    var options: [String]
+    @Binding var selectedOption: String?
+
+    var body: some View {
+        Menu {
+            ForEach(options, id: \.self) { option in
+                Button(option) {
+                    selectedOption = option
+                }
+            }
+        } label: {
+            ZStack {
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color(.systemGray5))
+                    .frame(height: 50)
+
+                HStack {
+                    Text(selectedOption ?? placeholder)
+                        .foregroundColor(
+                            selectedOption == nil ?
+                                Color(hexCode: "004aad").opacity(0.6) :
+                                Color(hexCode: "004aad")
+                        )
+                    Spacer()
+                    Image(systemName: "chevron.down")
+                        .foregroundColor(Color(hexCode: "004aad"))
+                }
+                .padding(.horizontal, 15)
+            }
+        }
+    }
+}
+
+// Preview
 struct Page3View_Previews: PreviewProvider {
     static var previews: some View {
         Page3()
