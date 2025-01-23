@@ -2,19 +2,43 @@ import SwiftUI
 
 struct Page3: View {
     @State private var selectedUsageInterest: String? = nil
+    @State private var selectedIndustryInterest: String? = nil
 
     let usageInterestOptions = [
-        "Usage Interests",
-        "Start Your Business",
-        "Scale Your Business",
-        "Network with Entrepreneurs",
-        "Find CoFounder/s",
-        "Find Mentors",
-        "Find Investors",
-        "Be Part of the Community",
-        "Share Knowledge",
+        "Sell a Skill",
         "Make Investments",
-        "Sell a Skill"
+        "Share Knowledge",
+        "Be Part of the Community",
+        "Find Investors",
+        "Find Mentors",
+        "Find Co-Founder/s",
+        "Network with Entrepreneurs",
+        "Scale Your Business",
+        "Start Your Business"
+    ]
+
+    let industryInterestOptions = [
+        "Not Mentioned",
+        "Non-Profit Organization",
+        "Public Administration",
+        "Arts, Design, and Recreation",
+        "Hospitality and Food Services",
+        "Entertainment and Media",
+        "Professional Services",
+        "Education",
+        "Health Care and Social Assistance",
+        "Real Estate",
+        "Finance and Insurance",
+        "Telecommunications",
+        "Information Technology",
+        "Transportation and Logistics",
+        "Wholesale",
+        "Retail",
+        "Utilities",
+        "Manufacturing",
+        "Construction",
+        "Mining and Extraction",
+        "Agriculture"
     ]
 
     var body: some View {
@@ -24,103 +48,103 @@ struct Page3: View {
                 .edgesIgnoringSafeArea(.all)
             
             // Top Left Cloud
-                        ZStack {
-                            Circle()
-                                .fill(Color.white)
-                                .frame(width: 120, height: 120)
-                                .offset(x: -UIScreen.main.bounds.width / 2 + 60, y: -UIScreen.main.bounds.height / 2 + 60)
-                            
-                            Circle()
-                                .fill(Color.white)
-                                .frame(width: 100, height: 100)
-                                .offset(x: -UIScreen.main.bounds.width / 2 + 30, y: -UIScreen.main.bounds.height / 2 + 40)
-                            
-                            Circle()
-                                .fill(Color.white)
-                                .frame(width: 100, height: 100)
-                                .offset(x: -UIScreen.main.bounds.width / 2 + 110, y: -UIScreen.main.bounds.height / 2 + 30)
-                            
-                            Circle()
-                                .fill(Color.white)
-                                .frame(width: 100, height: 100)
-                                .offset(x: -UIScreen.main.bounds.width / 2 + 170, y: -UIScreen.main.bounds.height / 2 + 30)
-                            
-                            Circle()
-                                .fill(Color.white)
-                                .frame(width: 100, height: 100)
-                                .offset(x: -UIScreen.main.bounds.width / 2 + 210, y: -UIScreen.main.bounds.height / 2 + 60)
-                            
-                            Circle()
-                                .fill(Color.white)
-                                .frame(width: 80, height: 80)
-                                .offset(x: -UIScreen.main.bounds.width / 2 + 90, y: -UIScreen.main.bounds.height / 2 + 50)
-                            
-                            Circle()
-                                .fill(Color.white)
-                                .frame(width: 90, height: 90)
-                                .offset(x: -UIScreen.main.bounds.width / 2 + 50, y: -UIScreen.main.bounds.height / 2 + 30)
-                            
-                            Circle()
-                                .fill(Color.white)
-                                .frame(width: 110, height: 110)
-                                .offset(x: -UIScreen.main.bounds.width / 2 + 150, y: -UIScreen.main.bounds.height / 2 + 80)
-                        }
-                        
-                        // Bottom Left Cloud
-                        ZStack {
-                            Circle()
-                                .fill(Color.white)
-                                .frame(width: 120, height: 120)
-                                .offset(x: -UIScreen.main.bounds.width / 2 + 30, y: UIScreen.main.bounds.height / 2 - 80)
-                            
-                            Circle()
-                                .fill(Color.white)
-                                .frame(width: 100, height: 100)
-                                .offset(x: -UIScreen.main.bounds.width / 2 + 30, y: UIScreen.main.bounds.height / 2 - 40)
-                            
-                            Circle()
-                                .fill(Color.white)
-                                .frame(width: 100, height: 100)
-                                .offset(x: -UIScreen.main.bounds.width / 2 + 170, y: UIScreen.main.bounds.height / 2 - 20)
-                            
-                            Circle()
-                                .fill(Color.white)
-                                .frame(width: 90, height: 90)
-                                .offset(x: -UIScreen.main.bounds.width / 2 + 80, y: UIScreen.main.bounds.height / 2 - 40)
-                            
-                            Circle()
-                                .fill(Color.white)
-                                .frame(width: 110, height: 110)
-                                .offset(x: -UIScreen.main.bounds.width / 2 + 150, y: UIScreen.main.bounds.height / 2 - 80)
-                        }
-                        
-                        // Middle Right Cloud
-                        ZStack {
-                            Circle()
-                                .fill(Color.white)
-                                .frame(width: 120, height: 120)
-                                .offset(x: UIScreen.main.bounds.width / 2 - 60, y: 0)
-                            
-                            Circle()
-                                .fill(Color.white)
-                                .frame(width: 100, height: 100)
-                                .offset(x: UIScreen.main.bounds.width / 2 - 30, y: -20)
-                            
-                            Circle()
-                                .fill(Color.white)
-                                .frame(width: 80, height: 80)
-                                .offset(x: UIScreen.main.bounds.width / 2 - 10, y: 30)
-                            
-                            Circle()
-                                .fill(Color.white)
-                                .frame(width: 90, height: 90)
-                                .offset(x: UIScreen.main.bounds.width / 2 - 100, y: -40)
-                            
-                            Circle()
-                                .fill(Color.white)
-                                .frame(width: 110, height: 110)
-                                .offset(x: UIScreen.main.bounds.width / 2 - 125, y: 20)
-                        }
+                                    ZStack {
+                                        Circle()
+                                            .fill(Color.white)
+                                            .frame(width: 120, height: 120)
+                                            .offset(x: -UIScreen.main.bounds.width / 2 + 60, y: -UIScreen.main.bounds.height / 2 + 60)
+                                        
+                                        Circle()
+                                            .fill(Color.white)
+                                            .frame(width: 100, height: 100)
+                                            .offset(x: -UIScreen.main.bounds.width / 2 + 30, y: -UIScreen.main.bounds.height / 2 + 40)
+                                        
+                                        Circle()
+                                            .fill(Color.white)
+                                            .frame(width: 100, height: 100)
+                                            .offset(x: -UIScreen.main.bounds.width / 2 + 110, y: -UIScreen.main.bounds.height / 2 + 30)
+                                        
+                                        Circle()
+                                            .fill(Color.white)
+                                            .frame(width: 100, height: 100)
+                                            .offset(x: -UIScreen.main.bounds.width / 2 + 170, y: -UIScreen.main.bounds.height / 2 + 30)
+                                        
+                                        Circle()
+                                            .fill(Color.white)
+                                            .frame(width: 100, height: 100)
+                                            .offset(x: -UIScreen.main.bounds.width / 2 + 210, y: -UIScreen.main.bounds.height / 2 + 60)
+                                        
+                                        Circle()
+                                            .fill(Color.white)
+                                            .frame(width: 80, height: 80)
+                                            .offset(x: -UIScreen.main.bounds.width / 2 + 90, y: -UIScreen.main.bounds.height / 2 + 50)
+                                        
+                                        Circle()
+                                            .fill(Color.white)
+                                            .frame(width: 90, height: 90)
+                                            .offset(x: -UIScreen.main.bounds.width / 2 + 50, y: -UIScreen.main.bounds.height / 2 + 30)
+                                        
+                                        Circle()
+                                            .fill(Color.white)
+                                            .frame(width: 110, height: 110)
+                                            .offset(x: -UIScreen.main.bounds.width / 2 + 150, y: -UIScreen.main.bounds.height / 2 + 80)
+                                    }
+                                    
+                                    // Bottom Left Cloud
+                                    ZStack {
+                                        Circle()
+                                            .fill(Color.white)
+                                            .frame(width: 120, height: 120)
+                                            .offset(x: -UIScreen.main.bounds.width / 2 + 30, y: UIScreen.main.bounds.height / 2 - 80)
+                                        
+                                        Circle()
+                                            .fill(Color.white)
+                                            .frame(width: 100, height: 100)
+                                            .offset(x: -UIScreen.main.bounds.width / 2 + 30, y: UIScreen.main.bounds.height / 2 - 40)
+                                        
+                                        Circle()
+                                            .fill(Color.white)
+                                            .frame(width: 100, height: 100)
+                                            .offset(x: -UIScreen.main.bounds.width / 2 + 170, y: UIScreen.main.bounds.height / 2 - 20)
+                                        
+                                        Circle()
+                                            .fill(Color.white)
+                                            .frame(width: 90, height: 90)
+                                            .offset(x: -UIScreen.main.bounds.width / 2 + 80, y: UIScreen.main.bounds.height / 2 - 40)
+                                        
+                                        Circle()
+                                            .fill(Color.white)
+                                            .frame(width: 110, height: 110)
+                                            .offset(x: -UIScreen.main.bounds.width / 2 + 150, y: UIScreen.main.bounds.height / 2 - 80)
+                                    }
+                                    
+                                    // Middle Right Cloud
+                                    ZStack {
+                                        Circle()
+                                            .fill(Color.white)
+                                            .frame(width: 120, height: 120)
+                                            .offset(x: UIScreen.main.bounds.width / 2 - 60, y: 0)
+                                        
+                                        Circle()
+                                            .fill(Color.white)
+                                            .frame(width: 100, height: 100)
+                                            .offset(x: UIScreen.main.bounds.width / 2 - 30, y: -20)
+                                        
+                                        Circle()
+                                            .fill(Color.white)
+                                            .frame(width: 80, height: 80)
+                                            .offset(x: UIScreen.main.bounds.width / 2 - 10, y: 30)
+                                        
+                                        Circle()
+                                            .fill(Color.white)
+                                            .frame(width: 90, height: 90)
+                                            .offset(x: UIScreen.main.bounds.width / 2 - 100, y: -40)
+                                        
+                                        Circle()
+                                            .fill(Color.white)
+                                            .frame(width: 110, height: 110)
+                                            .offset(x: UIScreen.main.bounds.width / 2 - 125, y: 20)
+                                    }
 
             VStack(spacing: 20) {
                 TitleSection()
@@ -129,7 +153,9 @@ struct Page3: View {
                 Spacer()
                 ExperienceSetupSection(
                     usageInterestOptions: usageInterestOptions,
-                    selectedUsageInterest: $selectedUsageInterest
+                    industryInterestOptions: industryInterestOptions,
+                    selectedUsageInterest: $selectedUsageInterest,
+                    selectedIndustryInterest: $selectedIndustryInterest
                 )
                 Spacer()
                 NextButton()
@@ -176,7 +202,9 @@ struct PersonalInformationSection: View {
 
 struct ExperienceSetupSection: View {
     let usageInterestOptions: [String]
+    let industryInterestOptions: [String]
     @Binding var selectedUsageInterest: String?
+    @Binding var selectedIndustryInterest: String?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -186,11 +214,15 @@ struct ExperienceSetupSection: View {
 
             VStack(spacing: 15) {
                 DropdownField(
-                    placeholder: "Usage Interest",
+                    placeholder: "Main Usage Interest",
                     options: usageInterestOptions,
                     selectedOption: $selectedUsageInterest
                 )
-                DropdownField(placeholder: "Industry Interest/s", options: [], selectedOption: .constant(nil))
+                DropdownField(
+                    placeholder: "Main Industry Interest",
+                    options: industryInterestOptions,
+                    selectedOption: $selectedIndustryInterest
+                )
             }
         }
     }
@@ -237,7 +269,6 @@ struct CloudsOverlay: View {
     }
 }
 
-// Styled Text Field
 struct StyledTextField: View {
     var placeholder: String
 
@@ -254,7 +285,6 @@ struct StyledTextField: View {
     }
 }
 
-// DropdownField Component
 struct DropdownField: View {
     var placeholder: String
     var options: [String]
@@ -290,7 +320,6 @@ struct DropdownField: View {
     }
 }
 
-// Preview
 struct Page3View_Previews: PreviewProvider {
     static var previews: some View {
         Page3()
