@@ -147,7 +147,7 @@ struct Page3: View {
                         .padding(.horizontal, 40)
                     
                     VStack(spacing: 15) {
-                        DropdownField(placeholder: "Interests")
+                        DropdownField(placeholder: "Usage Interest")
                         DropdownField(placeholder: "Industry Interest/s")
                     }
                     .padding(.horizontal, 40)
