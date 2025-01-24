@@ -26,63 +26,63 @@ struct Page9: View {
         "$1,000,001-10,000,000", "$100,001-1,000,000", "$0-100,000"
     ]
     
-    // The industry categories and their respective options
+    // The industry categories and their respective options (flipped order)
     let industries = [
-        ("Public Administration", [
-            "Government Services", "Public Policy and Regulation", "Public Safety", "Defense and National Security", "Urban Planning and Development"
-        ]),
-        ("Non-Profit Organization", [
-            "Charities and Foundations", "Social Advocacy and Political Organizations", "Religious Organizations", "Environmental Organizations", "Cultural and Arts Organizations", "International Development and Humanitarian Aid"
-        ]),
-        ("Transportation and Logistics", [
-            "Air Transportation", "Rail Transportation", "Maritime Shipping", "Truck Transportation", "Warehousing and Storage", "Logistics Support Services", "Courier and Delivery Services"
-        ]),
-        ("Telecommunications", [
-            "Wireless Telecommunications", "Cable and Satellite TV Providers", "Internet Service Providers", "Satellite Communications", "Telecom Equipment Manufacturing", "Mobile Virtual Network Operators (MVNOs)"
-        ]),
-        ("Information Technology", [
-            "Software Development", "IT Services", "Hardware Manufacturing", "Cybersecurity Services", "Data Centers and Hosting Services", "Artificial Intelligence and Machine Learning", "Blockchain and Cryptocurrencies"
-        ]),
-        ("Finance and Insurance", [
-            "Banking Services", "Insurance", "Investment Services", "Fintech", "Credit Agencies and Rating Services"
-        ]),
-        ("Entertainment and Media", [
-            "Film Production and Distribution", "Music Production and Distribution", "Television and Radio Broadcasting", "Video Game Development and Publishing", "Publishing", "Digital Media and Content Creation", "Event Management and Production"
-        ]),
-        ("Arts, Design, and Recreation", [
-            "Graphic Design and Branding", "Performing Arts", "Fine Arts", "Sports and Recreation", "Museums and Cultural Institutions", "Amusement Parks and Zoos"
-        ]),
-        ("Education", [
-            "Primary and Secondary Schools", "Higher Education", "Vocational and Technical Education", "Educational Support Services", "Online Education and E-Learning", "Educational Publishing"
-        ]),
-        ("Health Care and Social Assistance", [
-            "Hospitals and Clinics", "Outpatient Care Centers", "Nursing and Residential Care Facilities", "Home Health Care", "Mental Health and Substance Abuse Services", "Social Assistance", "Medical Equipment and Supplies"
-        ]),
-        ("Real Estate", [
-            "Residential Real Estate", "Commercial Real Estate", "Real Estate Development", "Property Management", "Real Estate Investment Trusts (REITs)"
-        ]),
-        ("Wholesale", [
-            "Durable Goods Wholesale", "Non-Durable Goods Wholesale", "Wholesale Distributors", "Importers and Exporters"
-        ]),
-        ("Retail", [
-            "Grocery Stores", "Clothing and Apparel Stores", "Electronics Retailers", "Home Goods and Furniture Stores", "Sporting Goods Retailers", "E-commerce Platforms", "Pharmacies and Drug Stores"
-        ]),
-        ("Utilities", [
-            "Electric Power Generation", "Natural Gas Distribution", "Water Treatment and Distribution", "Sewage Treatment", "Waste Management", "Energy Transmission"
-        ]),
-        ("Manufacturing", [
-            "Food and Beverage Manufacturing", "Textile Manufacturing", "Electronics Manufacturing", "Automobile Manufacturing", "Chemical Manufacturing", "Machinery Manufacturing", "Furniture Manufacturing"
-        ]),
-        ("Construction", [
-            "Residential Building Construction", "Commercial Building Construction", "Civil Engineering", "Specialized Construction", "Heavy and Civil Engineering Construction", "Construction Support Services"
+        ("Not Mentioned", []),
+        ("Agriculture", [
+            "Crop Production", "Livestock Farming", "Aquaculture", "Dairy Farming", "Forestry", "Agricultural Support Services"
         ]),
         ("Mining and Extraction", [
             "Coal Mining", "Oil and Gas Extraction", "Metal Ore Mining", "Nonmetallic Mineral Mining", "Quarrying", "Renewable Resource Extraction"
         ]),
-        ("Agriculture", [
-            "Crop Production", "Livestock Farming", "Aquaculture", "Dairy Farming", "Forestry", "Agricultural Support Services"
+        ("Construction", [
+            "Residential Building Construction", "Commercial Building Construction", "Civil Engineering", "Specialized Construction", "Heavy and Civil Engineering Construction", "Construction Support Services"
         ]),
-        ("Not Mentioned", [])
+        ("Manufacturing", [
+            "Food and Beverage Manufacturing", "Textile Manufacturing", "Electronics Manufacturing", "Automobile Manufacturing", "Chemical Manufacturing", "Machinery Manufacturing", "Furniture Manufacturing"
+        ]),
+        ("Utilities", [
+            "Electric Power Generation", "Natural Gas Distribution", "Water Treatment and Distribution", "Sewage Treatment", "Waste Management", "Energy Transmission"
+        ]),
+        ("Retail", [
+            "Grocery Stores", "Clothing and Apparel Stores", "Electronics Retailers", "Home Goods and Furniture Stores", "Sporting Goods Retailers", "E-commerce Platforms", "Pharmacies and Drug Stores"
+        ]),
+        ("Wholesale", [
+            "Durable Goods Wholesale", "Non-Durable Goods Wholesale", "Wholesale Distributors", "Importers and Exporters"
+        ]),
+        ("Real Estate", [
+            "Residential Real Estate", "Commercial Real Estate", "Real Estate Development", "Property Management", "Real Estate Investment Trusts (REITs)"
+        ]),
+        ("Health Care and Social Assistance", [
+            "Hospitals and Clinics", "Outpatient Care Centers", "Nursing and Residential Care Facilities", "Home Health Care", "Mental Health and Substance Abuse Services", "Social Assistance", "Medical Equipment and Supplies"
+        ]),
+        ("Education", [
+            "Primary and Secondary Schools", "Higher Education", "Vocational and Technical Education", "Educational Support Services", "Online Education and E-Learning", "Educational Publishing"
+        ]),
+        ("Arts, Design, and Recreation", [
+            "Graphic Design and Branding", "Performing Arts", "Fine Arts", "Sports and Recreation", "Museums and Cultural Institutions", "Amusement Parks and Zoos"
+        ]),
+        ("Entertainment and Media", [
+            "Film Production and Distribution", "Music Production and Distribution", "Television and Radio Broadcasting", "Video Game Development and Publishing", "Publishing", "Digital Media and Content Creation", "Event Management and Production"
+        ]),
+        ("Finance and Insurance", [
+            "Banking Services", "Insurance", "Investment Services", "Fintech", "Credit Agencies and Rating Services"
+        ]),
+        ("Information Technology", [
+            "Software Development", "IT Services", "Hardware Manufacturing", "Cybersecurity Services", "Data Centers and Hosting Services", "Artificial Intelligence and Machine Learning", "Blockchain and Cryptocurrencies"
+        ]),
+        ("Telecommunications", [
+            "Wireless Telecommunications", "Cable and Satellite TV Providers", "Internet Service Providers", "Satellite Communications", "Telecom Equipment Manufacturing", "Mobile Virtual Network Operators (MVNOs)"
+        ]),
+        ("Transportation and Logistics", [
+            "Air Transportation", "Rail Transportation", "Maritime Shipping", "Truck Transportation", "Warehousing and Storage", "Logistics Support Services", "Courier and Delivery Services"
+        ]),
+        ("Non-Profit Organization", [
+            "Charities and Foundations", "Social Advocacy and Political Organizations", "Religious Organizations", "Environmental Organizations", "Cultural and Arts Organizations", "International Development and Humanitarian Aid"
+        ]),
+        ("Public Administration", [
+            "Government Services", "Public Policy and Regulation", "Public Safety", "Defense and National Security", "Urban Planning and Development"
+        ])
     ]
     
     var body: some View {
@@ -144,7 +144,7 @@ struct Page9: View {
                         placeholder: "Industry",
                         options: industries.flatMap { section in
                             [section.0] + section.1 + ["Other"]
-                        },
+                        }.reversed(), // Reverse the order here to make it top to bottom
                         selectedOption: $selectedIndustry,
                         industries: industries
                     )
@@ -207,7 +207,7 @@ struct DropdownField3: View {
     var placeholder: String
     var options: [String]
     @Binding var selectedOption: String?
-    var industries: [(String, [String])] // Pass industries here
+    var industries: [(String, [String])]
 
     var body: some View {
         Menu {
@@ -275,3 +275,4 @@ struct Page9View_Previews: PreviewProvider {
         Page9()
     }
 }
+
