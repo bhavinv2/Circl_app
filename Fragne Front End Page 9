@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct Page9: View {
+    @State private var isIncorporated: Bool = false // State to track checkbox state
+
     var body: some View {
         ZStack {
             // Background Color
@@ -40,6 +42,25 @@ struct Page9: View {
                 }
                 .padding(.horizontal, 50)
                 .padding(.top, 7) // Move input fields down by 7 pixels
+
+                // Checkbox (Toggle) for "Is this business legally incorporated?"
+                HStack {
+                    Button(action: {
+                        isIncorporated.toggle() // Toggle state
+                    }) {
+                        Image(systemName: isIncorporated ? "checkmark.square" : "square")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 20, height: 20)
+                            .foregroundColor(.white)
+                    }
+                    
+                    Text("Is this business legally incorporated?")
+                        .font(.system(size: 16, weight: .regular))
+                        .foregroundColor(.white)
+                }
+                .padding(.top, 8) // Space of 8 pixels below Industry
+                .padding(.horizontal, 50) // Align with input fields
 
                 Spacer()
 
