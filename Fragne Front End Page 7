@@ -52,7 +52,6 @@ struct Page7: View {
                     .offset(x: -UIScreen.main.bounds.width / 2 + 150, y: -UIScreen.main.bounds.height / 2 + 80)
             }
             
-            ScrollView {
                 VStack(spacing: 20) {
                     Spacer()
                     
@@ -70,41 +69,43 @@ struct Page7: View {
                         .padding(.top, 10)
                     
                     // Description Text
-                    VStack(alignment: .center, spacing: 25) {
-                        // Paragraph 1
-                        Text("Let's talk business!")
-                            .font(.system(size: 23, weight: .bold))
-                            .foregroundColor(.white)
-                            .multilineTextAlignment(.center)
+                    ScrollView {
+                        VStack(alignment: .center, spacing: 25) {
+                            // Paragraph 1
+                            Text("Let's talk business!")
+                                .font(.system(size: 23, weight: .bold))
+                                .foregroundColor(.white)
+                                .multilineTextAlignment(.center)
+                            
+                            // Paragraph 2
+                            Text("We are now going to ask about your business’ journey.")
+                                .font(.system(size: 23, weight: .bold))
+                                .foregroundColor(.white)
+                                .multilineTextAlignment(.center)
+                            
+                            // Paragraph 3
+                            Text("Circl will be the driving force to entrepreneurial success.")
+                                .font(.system(size: 23, weight: .bold))
+                                .foregroundColor(.white)
+                                .multilineTextAlignment(.center)
+                            
+                            // Paragraph 4
+                            Text("We will work together to bring your business to new heights by unlocking the full potential of entrepreneurship with all of the resources we will offer you.")
+                                .font(.system(size: 23, weight: .bold))
+                                .foregroundColor(.white)
+                                .multilineTextAlignment(.center)
+                            
+                            // Let's start!
+                            Text("Let's start!")
+                                .font(.system(size: 23, weight: .bold))
+                                .foregroundColor(.white)
+                                .multilineTextAlignment(.center)
+                        }
+                        .padding(.horizontal, 40)
+                        .padding(.top, 35)
                         
-                        // Paragraph 2
-                        Text("We are now going to ask about your business’ journey.")
-                            .font(.system(size: 23, weight: .bold))
-                            .foregroundColor(.white)
-                            .multilineTextAlignment(.center)
-                        
-                        // Paragraph 3
-                        Text("Circl will be the driving force to entrepreneurial success.")
-                            .font(.system(size: 23, weight: .bold))
-                            .foregroundColor(.white)
-                            .multilineTextAlignment(.center)
-                        
-                        // Paragraph 4
-                        Text("We will work together to bring your business to new heights by unlocking the full potential of entrepreneurship with all of the resources we will offer you.")
-                            .font(.system(size: 23, weight: .bold))
-                            .foregroundColor(.white)
-                            .multilineTextAlignment(.center)
-                        
-                        // Let's start!
-                        Text("Let's start!")
-                            .font(.system(size: 23, weight: .bold))
-                            .foregroundColor(.white)
-                            .multilineTextAlignment(.center)
+                        Spacer()
                     }
-                    .padding(.horizontal, 40)
-                    .padding(.top, 35)
-                    
-                    Spacer()
                     
                     // Disclaimer
                     Text("*Only the CEO can make the Business Profile")
@@ -146,7 +147,6 @@ struct Page7: View {
             }
         }
     }
-}
 
 struct Page7View_Previews: PreviewProvider {
     static var previews: some View {
