@@ -140,10 +140,13 @@ struct Page9: View {
                     .frame(maxWidth: 300, maxHeight: 50)
                     
                     // Industry Dropdown
-                    DropdownField(
+                    DropdownField3(
                         placeholder: "Industry",
-                        options: industries.flatMap { [($0.0)] + $0.1 } + ["Other"],
-                        selectedOption: $selectedIndustry
+                        options: industries.flatMap { section in
+                            [section.0] + section.1 + ["Other"]
+                        },
+                        selectedOption: $selectedIndustry,
+                        industries: industries
                     )
                     .frame(maxWidth: 300, maxHeight: 50)
                     
@@ -199,17 +202,29 @@ struct Page9: View {
     }
 }
 
-// Custom Dropdown Component for Page 9
-struct DropdownField: View {
+// Custom Dropdown Component (with industries passed in)
+struct DropdownField3: View {
     var placeholder: String
     var options: [String]
     @Binding var selectedOption: String?
+    var industries: [(String, [String])] // Pass industries here
 
     var body: some View {
         Menu {
             ForEach(options, id: \.self) { option in
-                Button(option) {
-                    selectedOption = option
+                // Check if the option is a header
+                if industries.flatMap({ $0.1 }).contains(option) || option == "Other" {
+                    Button(option) {
+                        selectedOption = option
+                    }
+                } else {
+                    // Display headers as styled section
+                    Text(option)
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .padding(.top, 5)
+                        .background(Color(hexCode: "004aad"))
+                        .padding(.horizontal, 10)
                 }
             }
         } label: {
