@@ -144,14 +144,14 @@ struct Page9: View {
                         placeholder: "Industry",
                         options: industries.flatMap { section in
                             [section.0] + section.1 + ["Other"]
-                        }.reversed(), // Reverse the order here to make it top to bottom
+                        }, // Reverted to original order (no reverse)
                         selectedOption: $selectedIndustry,
                         industries: industries
                     )
                     .frame(maxWidth: 300, maxHeight: 50)
                     
                     // Other Input Fields
-                    InputField(placeholder: "Location")
+                    InputField(placeholder: "Location (City, State Abbreviation")
                 }
                 .padding(.horizontal, 50)
                 .padding(.top, 7)
@@ -247,6 +247,7 @@ struct DropdownField3: View {
                 .padding(.horizontal, 15)
             }
         }
+        .frame(maxWidth: .infinity) // Make the dropdown width match the input field
     }
 }
 
