@@ -222,7 +222,14 @@ struct ExperienceSetupSection: View {
                     placeholder: "Main Industry Interest",
                     options: industryInterestOptions,
                     selectedOption: $selectedIndustryInterest
-                )
+                    )
+                   
+                Spacer()
+                Text("*You Will Get Your Password Upon Approval")
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundColor(.white)
+                        .multilineTextAlignment(.center)
+                
             }
         }
     }
@@ -230,9 +237,7 @@ struct ExperienceSetupSection: View {
 
 struct NextButton: View {
     var body: some View {
-        Button(action: {
-            // Add navigation action here
-        }) {
+        NavigationLink(destination: Page4()) {
             Text("Next")
                 .font(.system(size: 24, weight: .bold))
                 .foregroundColor(Color(hexCode: "004aad"))
