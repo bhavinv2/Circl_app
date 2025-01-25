@@ -118,7 +118,7 @@ struct Page3: View {
                                             .offset(x: -UIScreen.main.bounds.width / 2 + 150, y: UIScreen.main.bounds.height / 2 - 80)
                                     }
                                     
-                                    // Middle Right Cloud
+                                // Middle Right Cloud
                                     ZStack {
                                         Circle()
                                             .fill(Color.white)
@@ -127,13 +127,13 @@ struct Page3: View {
                                         
                                         Circle()
                                             .fill(Color.white)
-                                            .frame(width: 100, height: 100)
+                                            .frame(width: 80, height: 100)
                                             .offset(x: UIScreen.main.bounds.width / 2 - 30, y: -20)
                                         
                                         Circle()
                                             .fill(Color.white)
                                             .frame(width: 80, height: 80)
-                                            .offset(x: UIScreen.main.bounds.width / 2 - 10, y: 30)
+                                            .offset(x: UIScreen.main.bounds.width / 2 - 0, y: 20)
                                         
                                         Circle()
                                             .fill(Color.white)
@@ -142,8 +142,8 @@ struct Page3: View {
                                         
                                         Circle()
                                             .fill(Color.white)
-                                            .frame(width: 110, height: 110)
-                                            .offset(x: UIScreen.main.bounds.width / 2 - 125, y: 20)
+                                            .frame(width: 90, height: 90)
+                                            .offset(x: UIScreen.main.bounds.width / 2 - 115, y: 10)
                                     }
 
             VStack(spacing: 20) {
