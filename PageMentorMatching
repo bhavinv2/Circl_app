@@ -27,52 +27,50 @@ struct PageMentorMatching: View {
                         }
                     }
                     Spacer()
-                    VStack(alignment: .trailing) {
-                        Image(systemName: "person.circle.fill")
-                            .resizable()
-                            .frame(width: 50, height: 50)
-                            .foregroundColor(.white)
-                            .offset(x: -28) // Move the profile picture 7 pixels to the left
+                    VStack(alignment: .trailing, spacing: 5) {
+                        // Profile Icon above "Hello, Fragne" Text
+                        NavigationLink(destination: ProfilePage()) {
+                            Image(systemName: "person.circle.fill")
+                                .resizable()
+                                .frame(width: 50, height: 50)
+                                .foregroundColor(.white)
+                        }
+                        
+                        // Align "Hello, Fragne" with "Filter" button
                         Text("Hello, Fragne")
                             .foregroundColor(.white)
                             .font(.headline)
                     }
                 }
                 .padding(.horizontal)
+                .padding(.top, 15)
+                .padding(.bottom, 10)
+                .background(Color.fromHex("004aad")) // Updated blue color
             }
-            .padding(.top, 15)
-            .padding(.bottom, 10)
-            .background(Color.fromHex3("004aad")) // Updated blue color
             
             // Fixed Selection Buttons Section
             HStack(spacing: 10) {
-                Button(action: {
-                    // Entrepreneurs action
-                }) {
+                NavigationLink(destination: PageEntrepreneurMatching()) {
                     Text("Entrepreneurs")
                         .font(.system(size: 12)) // Reduced font size
                         .padding()
                         .frame(maxWidth: .infinity)
-                        .background(Color.gray) // Changed to gray
+                        .background(Color.gray)
                         .foregroundColor(.black)
                         .cornerRadius(10)
                 }
                 
-                Button(action: {
-                    // Mentors action
-                }) {
+                NavigationLink(destination: PageMentorMatching()) {
                     Text("Mentors")
                         .font(.system(size: 12)) // Reduced font size
                         .padding()
                         .frame(maxWidth: .infinity)
-                        .background(Color.yellow) // Changed to yellow
+                        .background(Color.yellow) // Highlighted in yellow
                         .foregroundColor(.black)
                         .cornerRadius(10)
                 }
                 
-                Button(action: {
-                    // Skill Selling action
-                }) {
+                NavigationLink(destination: PageSkillSellingMatching()) {
                     Text("Skill Selling")
                         .font(.system(size: 12)) // Reduced font size
                         .padding()
@@ -93,18 +91,38 @@ struct PageMentorMatching: View {
                     .background(Color.gray.opacity(0.1))
             }
             
-            // Footer Section
+            // Footer Section with Navigation
             HStack(spacing: 15) {
-                CustomCircleButton3(iconName: "hand.raised.fill")
-                CustomCircleButton3(iconName: "briefcase.fill")
-                CustomCircleButton3(iconName: "person.3.fill")
-                CustomCircleButton3(iconName: "person.2.wave.2.fill")
-                CustomCircleButton3(iconName: "book.fill")
+                // NavigationLink for "Hand Raised" icon
+                NavigationLink(destination: PageEntrepreneurMatching()) {
+                    CustomCircleButton(iconName: "hand.raised.fill")
+                }
+                
+                // NavigationLink for "Briefcase" icon
+                NavigationLink(destination: PageBusinessProfile()) {
+                    CustomCircleButton(iconName: "briefcase.fill")
+                }
+                
+                // NavigationLink for "Person 3" icon
+                NavigationLink(destination: PageForum()) {
+                    CustomCircleButton(iconName: "person.3.fill")
+                }
+                
+                // NavigationLink for "Person 2" icon
+                NavigationLink(destination: PageEntrepreneurResources()) {  // Adjust destination as needed
+                    CustomCircleButton(iconName: "person.2.wave.2.fill")
+                }
+                
+                // NavigationLink for "Book" icon
+                NavigationLink(destination: PageEntrepreneurKnowledge()) {  // Adjust destination as needed
+                    CustomCircleButton(iconName: "book.fill")
+                }
             }
             .padding(.vertical, 10)
             .background(Color.white)
         }
         .edgesIgnoringSafeArea(.bottom)
+        .navigationBarBackButtonHidden(true)
     }
 }
 
@@ -118,7 +136,7 @@ struct CustomCircleButton3: View {
         }) {
             ZStack {
                 Circle()
-                    .fill(Color.fromHex3("004aad"))
+                    .fill(Color.fromHex("004aad"))
                     .frame(width: 60, height: 60)
                 Image(systemName: iconName)
                     .resizable()
@@ -150,6 +168,6 @@ extension Color {
 // MARK: - Preview
 struct PageMentorMatching_Previews: PreviewProvider {
     static var previews: some View {
-        PageEMentorMatching()
+        PageMentorMatching()
     }
 }
