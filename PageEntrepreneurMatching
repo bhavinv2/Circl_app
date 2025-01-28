@@ -27,28 +27,30 @@ struct PageEntrepreneurMatching: View {
                         }
                     }
                     Spacer()
-                    VStack(alignment: .trailing) {
-                        Image(systemName: "person.circle.fill")
-                            .resizable()
-                            .frame(width: 50, height: 50)
-                            .foregroundColor(.white)
-                            .offset(x: -28) // Move the profile picture 7 pixels to the left
+                    VStack(alignment: .trailing, spacing: 5) {
+                        // Profile Icon above "Hello, Fragne" Text
+                        NavigationLink(destination: ProfilePage()) {
+                            Image(systemName: "person.circle.fill")
+                                .resizable()
+                                .frame(width: 50, height: 50)
+                                .foregroundColor(.white)
+                        }
+                        
+                        // Align "Hello, Fragne" with "Filter" button
                         Text("Hello, Fragne")
                             .foregroundColor(.white)
                             .font(.headline)
                     }
                 }
                 .padding(.horizontal)
+                .padding(.top, 15)
+                .padding(.bottom, 10)
+                .background(Color.fromHex("004aad")) // Updated blue color
             }
-            .padding(.top, 15)
-            .padding(.bottom, 10)
-            .background(Color.fromHex("004aad")) // Updated blue color
             
             // Fixed Selection Buttons Section
             HStack(spacing: 10) {
-                Button(action: {
-                    // Entrepreneurs action
-                }) {
+                NavigationLink(destination: PageEntrepreneurMatching()) {
                     Text("Entrepreneurs")
                         .font(.system(size: 12)) // Reduced font size
                         .padding()
@@ -58,9 +60,7 @@ struct PageEntrepreneurMatching: View {
                         .cornerRadius(10)
                 }
                 
-                Button(action: {
-                    // Mentors action
-                }) {
+                NavigationLink(destination: PageMentorMatching()) {
                     Text("Mentors")
                         .font(.system(size: 12)) // Reduced font size
                         .padding()
@@ -70,9 +70,7 @@ struct PageEntrepreneurMatching: View {
                         .cornerRadius(10)
                 }
                 
-                Button(action: {
-                    // Skill Selling action
-                }) {
+                NavigationLink(destination: PageSkillSellingMatching()) {
                     Text("Skill Selling")
                         .font(.system(size: 12)) // Reduced font size
                         .padding()
@@ -93,18 +91,38 @@ struct PageEntrepreneurMatching: View {
                     .background(Color.gray.opacity(0.1))
             }
             
-            // Footer Section
+            // Footer Section with Navigation
             HStack(spacing: 15) {
-                CustomCircleButton(iconName: "hand.raised.fill")
-                CustomCircleButton(iconName: "briefcase.fill")
-                CustomCircleButton(iconName: "person.3.fill")
-                CustomCircleButton(iconName: "person.2.wave.2.fill")
-                CustomCircleButton(iconName: "book.fill")
+                // NavigationLink for "Hand Raised" icon
+                NavigationLink(destination: PageEntrepreneurMatching()) {
+                    CustomCircleButton(iconName: "hand.raised.fill")
+                }
+                
+                // NavigationLink for "Briefcase" icon
+                NavigationLink(destination: PageBusinessProfile()) {
+                    CustomCircleButton(iconName: "briefcase.fill")
+                }
+                
+                // NavigationLink for "Person 3" icon
+                NavigationLink(destination: PageForum()) {
+                    CustomCircleButton(iconName: "person.3.fill")
+                }
+                
+                // NavigationLink for "Person 2" icon
+                NavigationLink(destination: PageEntrepreneurResources()) {  // Adjust the destination as needed
+                    CustomCircleButton(iconName: "person.2.wave.2.fill")
+                }
+                
+                // NavigationLink for "Book" icon
+                NavigationLink(destination: PageEntrepreneurKnowledge()) {  // Adjust the destination as needed
+                    CustomCircleButton(iconName: "book.fill")
+                }
             }
             .padding(.vertical, 10)
             .background(Color.white)
         }
         .edgesIgnoringSafeArea(.bottom)
+        .navigationBarBackButtonHidden(true)
     }
 }
 
