@@ -5,7 +5,7 @@ struct Page5: View {
     @State private var isUnderage: Bool = false
     @State private var educationLevel: String? = nil
     @State private var institutionAttended: String = ""
-    @State private var certifications: String = ""
+    @State private var certifications: [String] = [] // Updated to hold multiple selections
     @State private var yearsOfExperience: String = ""
     @State private var personalityType: String = ""
     @State private var showInvalidPersonalityAlert: Bool = false
@@ -18,6 +18,118 @@ struct Page5: View {
         "Bachelor’s Degree",
         "Master’s Degree",
         "Doctorate / PhD"
+    ]
+    
+    let certificationOptions = [
+        "Business and Management": [
+            "Project Management Professional (PMP)",
+            "Certified ScrumMaster (CSM)",
+            "Six Sigma (Green Belt, Black Belt, etc.)",
+            "Certified Business Analysis Professional (CBAP)",
+            "Certified Management Consultant (CMC)",
+            "Chartered Financial Analyst (CFA)"
+        ],
+        "Technology and IT": [
+            "Certified Information Systems Security Professional (CISSP)",
+            "Certified Ethical Hacker (CEH)",
+            "CompTIA A+",
+            "Cisco Certified Network Associate (CCNA)",
+            "AWS Certified Solutions Architect",
+            "Microsoft Certified Azure Fundamentals",
+            "Certified Information Systems Auditor (CISA)"
+        ],
+        "Healthcare": [
+            "Registered Nurse (RN)",
+            "Certified Medical Assistant (CMA)",
+            "Certified Nursing Assistant (CNA)",
+            "Board Certified Physician (MD, DO)",
+            "Certified Radiologic Technologist (CRT)",
+            "Certified Surgical Technologist (CST)",
+            "Licensed Clinical Social Worker (LCSW)"
+        ],
+        "Legal and Compliance": [
+            "Certified Legal Manager (CLM)",
+            "Certified Paralegal (CP)",
+            "Certified Fraud Examiner (CFE)",
+            "Certified Compliance & Ethics Professional (CCEP)",
+            "Licensed Attorney (JD, LLB)",
+            "Certified Information Privacy Professional (CIPP)"
+        ],
+        "Finance and Accounting": [
+            "Certified Public Accountant (CPA)",
+            "Certified Management Accountant (CMA)",
+            "Chartered Accountant (CA)",
+            "Certified Internal Auditor (CIA)",
+            "Financial Risk Manager (FRM)",
+            "Certified Fraud Examiner (CFE)",
+            "Certified Financial Planner (CFP)"
+        ],
+        "Education and Teaching": [
+            "TESOL/TEFL",
+            "Certified Teacher (varies by state/country)",
+            "National Board Certification (NBC)",
+            "Special Education Certification"
+        ],
+        "Human Resources": [
+            "Professional in Human Resources (PHR)",
+            "Senior Professional in Human Resources (SPHR)",
+            "SHRM Certified Professional (SHRM-CP)",
+            "Certified Employee Benefits Specialist (CEBS)",
+            "Talent Acquisition Specialist (TAS)"
+        ],
+        "Engineering and Architecture": [
+            "Professional Engineer (PE)",
+            "Project Management Professional (PMP)",
+            "Certified Energy Manager (CEM)",
+            "Certified Manufacturing Engineer (CMfgE)",
+            "Architectural Licensing"
+        ],
+        "Construction and Trades": [
+            "Certified Construction Manager (CCM)",
+            "Licensed Electrician",
+            "Certified Welding Inspector (CWI)",
+            "OSHA Safety Certifications"
+        ],
+        "Sales and Marketing": [
+            "Certified Sales Professional (CSP)",
+            "Google Ads Certification",
+            "HubSpot Inbound Marketing Certification",
+            "Certified Digital Marketing Professional (CDMP)",
+            "Salesforce Certified Administrator"
+        ],
+        "Hospitality and Tourism": [
+            "Certified Meeting Professional (CMP)",
+            "Certified Hospitality Administrator (CHA)",
+            "Certified Travel Associate (CTA)"
+        ],
+        "Real Estate": [
+            "Licensed Real Estate Agent/Broker",
+            "Certified Commercial Investment Member (CCIM)",
+            "Accredited Buyer’s Representative (ABR)",
+            "Certified Residential Specialist (CRS)"
+        ],
+        "Environmental and Sustainability": [
+            "Leadership in Energy and Environmental Design (LEED)",
+            "Certified Environmental Professional (CEP)",
+            "Certified Hazardous Materials Manager (CHMM)"
+        ],
+        "Creative Arts and Design": [
+            "Adobe Certified Expert (ACE)",
+            "Certified Graphic Designer (CGD)",
+            "Certified Web Designer",
+            "Certified Fashion Designer"
+        ],
+        "Supply Chain and Logistics": [
+            "Certified Supply Chain Professional (CSCP)",
+            "Certified in Production and Inventory Management (CPIM)",
+            "Certified Logistics Associate (CLA)"
+        ],
+        "Transportation and Aviation": [
+            "Commercial Pilot License (CPL)",
+            "Certified Flight Instructor (CFI)",
+            "Air Traffic Controller Certification",
+            "Certified Transportation Professional (CTP)"
+        ]
     ]
     
     var body: some View {
@@ -179,9 +291,14 @@ struct Page5: View {
                         .textFieldStyle(RoundedTextFieldStyle())
                         .frame(maxWidth: 300)
                     
-                    TextField("Certifications/Licenses", text: $certifications)
-                        .textFieldStyle(RoundedTextFieldStyle())
-                        .frame(maxWidth: 300)
+                    // Multi-Select Dropdown for Certifications
+                    MultiSelectDropdownField(
+                        placeholder: "Select Certifications",
+                        options: certificationOptions.flatMap { $0.value },
+                        selectedOptions: $certifications
+                    )
+
+
                     
                     TextField("Years of Experience", text: $yearsOfExperience)
                         .textFieldStyle(RoundedTextFieldStyle())
@@ -326,6 +443,57 @@ struct DropdownField2: View {
                                 Color(hexCode: "004aad").opacity(0.6) :
                                 Color(hexCode: "004aad")
                         )
+                    Spacer()
+                    Image(systemName: "chevron.down")
+                        .foregroundColor(Color(hexCode: "004aad"))
+                }
+                .padding(.horizontal, 15)
+            }
+        }
+    }
+}
+
+// Multi-Select Dropdown Component
+struct MultiSelectDropdownField: View {
+    var placeholder: String
+    var options: [String]
+    @Binding var selectedOptions: [String]
+
+    var body: some View {
+        Menu {
+            ForEach(options, id: \.self) { option in
+                Button {
+                    if selectedOptions.contains(option) {
+                        selectedOptions.removeAll { $0 == option }
+                    } else {
+                        selectedOptions.append(option)
+                    }
+                } label: {
+                    HStack {
+                        Text(option)
+                        Spacer()
+                        if selectedOptions.contains(option) {
+                            Image(systemName: "checkmark")
+                                .foregroundColor(Color(hexCode: "004aad"))
+                        }
+                    }
+                }
+            }
+        } label: {
+            ZStack {
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color(.systemGray5))
+                    .frame(height: 50)
+
+                HStack {
+                    Text(selectedOptions.isEmpty ? placeholder : selectedOptions.joined(separator: ", "))
+                        .foregroundColor(
+                            selectedOptions.isEmpty ?
+                                Color(hexCode: "004aad").opacity(0.6) :
+                                Color(hexCode: "004aad")
+                        )
+                        .lineLimit(1)
+                        .truncationMode(.tail)
                     Spacer()
                     Image(systemName: "chevron.down")
                         .foregroundColor(Color(hexCode: "004aad"))
