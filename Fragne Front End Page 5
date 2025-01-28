@@ -294,12 +294,10 @@ struct Page5: View {
                     // Multi-Select Dropdown for Certifications
                     MultiSelectDropdownField(
                         placeholder: "Select Certifications",
-                        options: certificationOptions.flatMap { $0.value },
+                        options: certificationOptions, // Pass the dictionary directly
                         selectedOptions: $certifications
                     )
 
-
-                    
                     TextField("Years of Experience", text: $yearsOfExperience)
                         .textFieldStyle(RoundedTextFieldStyle())
                         .frame(maxWidth: 300)
@@ -456,25 +454,36 @@ struct DropdownField2: View {
 // Multi-Select Dropdown Component
 struct MultiSelectDropdownField: View {
     var placeholder: String
-    var options: [String]
+    var options: [String: [String]] // Key as category, value as options
     @Binding var selectedOptions: [String]
 
     var body: some View {
         Menu {
-            ForEach(options, id: \.self) { option in
-                Button {
-                    if selectedOptions.contains(option) {
-                        selectedOptions.removeAll { $0 == option }
-                    } else {
-                        selectedOptions.append(option)
-                    }
-                } label: {
-                    HStack {
-                        Text(option)
-                        Spacer()
+            ForEach(options.keys.sorted(), id: \.self) { category in
+                // Category Header
+                Text(category)
+                    .font(.headline)
+                    .foregroundColor(.gray)
+                    .padding(.vertical, 5)
+
+                // Options under each category
+                ForEach(options[category] ?? [], id: \.self) { option in
+                    Button {
                         if selectedOptions.contains(option) {
-                            Image(systemName: "checkmark")
-                                .foregroundColor(Color(hexCode: "004aad"))
+                            // Remove if already selected
+                            selectedOptions.removeAll { $0 == option }
+                        } else {
+                            // Add if not selected
+                            selectedOptions.append(option)
+                        }
+                    } label: {
+                        HStack {
+                            Text(option)
+                            Spacer()
+                            if selectedOptions.contains(option) {
+                                Image(systemName: "checkmark")
+                                    .foregroundColor(.blue)
+                            }
                         }
                     }
                 }
@@ -501,6 +510,7 @@ struct MultiSelectDropdownField: View {
                 .padding(.horizontal, 15)
             }
         }
+        .frame(maxWidth: 300, maxHeight: 50)
     }
 }
 
