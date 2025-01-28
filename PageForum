@@ -6,180 +6,194 @@ struct PageForum: View {
     @State private var postContent = ""
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Header Section
-            VStack(spacing: 0) {
-                HStack {
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text("Circl.")
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                            .foregroundColor(.white)
-                        
-                        // Filter Button directly under "Circl."
-                        Button(action: {
-                            // Action for Filter
-                        }) {
+           NavigationView {
+               VStack(spacing: 0) {
+                   // Header Section
+                   VStack(spacing: 0) {
+                       HStack {
+                           VStack(alignment: .leading, spacing: 5) {
+                               Text("Circl.")
+                                   .font(.largeTitle)
+                                   .fontWeight(.bold)
+                                   .foregroundColor(.white)
+                               
+                               // Filter Button directly under "Circl."
+                               Button(action: {
+                                   // Action for Filter
+                               }) {
+                                   HStack {
+                                       Image(systemName: "slider.horizontal.3")
+                                           .foregroundColor(.white)
+                                       Text("Filter")
+                                           .font(.headline)
+                                           .foregroundColor(.white)
+                                   }
+                               }
+                           }
+                           Spacer()
+                           VStack(alignment: .trailing, spacing: 5) {
+                               // Profile Icon above "Hello, Fragne" Text
+                               NavigationLink(destination: ProfilePage()) {
+                                   Image(systemName: "person.circle.fill")
+                                       .resizable()
+                                       .frame(width: 50, height: 50)
+                                       .foregroundColor(.white)
+                                       .offset(x: -28) // Move the profile picture slightly to the left
+                               }
+                               
+                               // Align "Hello, Fragne" with "Filter" button
+                               Text("Hello, Fragne")
+                                   .foregroundColor(.white)
+                                   .font(.headline)
+                           }
+                       }
+                       .padding(.horizontal)
+                   }
+                   .padding(.top, 15)
+                   .padding(.bottom, 10)
+                   .background(Color.fromHex("004aad")) // Updated blue color
+                
+                // Scrollable View Section
+                ScrollView {
+                    VStack(spacing: 20) {
+                        // Write a Post Section with White Background
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("Write a Post")
+                                .font(.headline)
+                                .foregroundColor(.black)
+                            
+                            // Text Box
                             HStack {
-                                Image(systemName: "slider.horizontal.3")
-                                    .foregroundColor(.white)
-                                Text("Filter")
-                                    .font(.headline)
-                                    .foregroundColor(.white)
+                                TextField("Ask a question, or share some knowledge", text: $postContent)
+                                    .padding()
+                                    .background(Color(UIColor.systemGray4))
+                                    .cornerRadius(5)
+                                
+                                Image(systemName: "square.and.pencil")
+                                    .foregroundColor(Color.fromHex("004aad")) // Updated blue color
+                            }
+                            
+                            // Dropdown and Buttons in a Smaller Frame
+                            HStack(spacing: 10) {
+                                // Category Dropdown
+                                Menu {
+                                    Button("Category 1", action: { selectedCategory = "Category 1" })
+                                    Button("Category 2", action: { selectedCategory = "Category 2" })
+                                    Button("Category 3", action: { selectedCategory = "Category 3" })
+                                } label: {
+                                    HStack {
+                                        Text(selectedCategory)
+                                            .font(.subheadline)
+                                        Spacer()
+                                        Image(systemName: "chevron.down")
+                                    }
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 6)
+                                    .background(Color(UIColor.systemGray4))
+                                    .cornerRadius(5)
+                                    .frame(width: 120) // Minimized width
+                                }
+                                
+                                // Add Pictures Dropdown
+                                Menu {
+                                    Button("Upload from Camera", action: { /* Upload Action */ })
+                                    Button("Upload from Gallery", action: { /* Upload Action */ })
+                                } label: {
+                                    HStack {
+                                        Text("Pictures")
+                                            .font(.subheadline)
+                                        Spacer()
+                                        Image(systemName: "plus")
+                                    }
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 6)
+                                    .background(Color(UIColor.systemGray4))
+                                    .cornerRadius(5)
+                                    .frame(width: 120) // Minimized width
+                                }
+                                
+                                // Privacy Dropdown
+                                Menu {
+                                    Button("Public", action: { selectedPrivacy = "Public" })
+                                    Button("Friends", action: { selectedPrivacy = "Friends" })
+                                    Button("Company", action: { selectedPrivacy = "Company" })
+                                } label: {
+                                    HStack {
+                                        Text(selectedPrivacy)
+                                            .font(.subheadline)
+                                        Spacer()
+                                        Image(systemName: "chevron.down")
+                                    }
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 6)
+                                    .background(Color(UIColor.systemGray4))
+                                    .cornerRadius(5)
+                                    .frame(width: 120) // Minimized width
+                                }
                             }
                         }
-                    }
-                    Spacer()
-                    VStack(alignment: .trailing) {
-                        Image(systemName: "person.circle.fill")
-                            .resizable()
-                            .frame(width: 50, height: 50)
-                            .foregroundColor(.white)
-                            .offset(x: -7) // Move the profile picture 7 pixels to the left
-                        Text("Hello, Fragne")
-                            .foregroundColor(.white)
-                            .font(.headline)
-                    }
-                }
-                .padding(.horizontal)
-            }
-            .padding(.top, 15)
-            .padding(.bottom, 10)
-            .background(Color.fromHex("004aad")) // Updated blue color
-            
-            // Scrollable View Section
-            ScrollView {
-                VStack(spacing: 20) {
-                    // Write a Post Section with White Background
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("Write a Post")
-                            .font(.headline)
-                            .foregroundColor(.black)
+                        .padding()
+                        .background(Color.white) // White background for the "Write a Post" section
+                        .cornerRadius(10)
+                        .shadow(radius: 3)
                         
-                        // Text Box
-                        HStack {
-                            TextField("Ask a question, or share some knowledge", text: $postContent)
-                                .padding()
-                                .background(Color(UIColor.systemGray4))
-                                .cornerRadius(5)
-                            
-                            Image(systemName: "square.and.pencil")
-                                .foregroundColor(Color.fromHex("004aad")) // Updated blue color
-                        }
-                        
-                        // Dropdown and Buttons in a Smaller Frame
-                        HStack(spacing: 10) {
-                            // Category Dropdown
-                            Menu {
-                                Button("Category 1", action: { selectedCategory = "Category 1" })
-                                Button("Category 2", action: { selectedCategory = "Category 2" })
-                                Button("Category 3", action: { selectedCategory = "Category 3" })
-                            } label: {
-                                HStack {
-                                    Text(selectedCategory)
-                                        .font(.subheadline)
-                                    Spacer()
-                                    Image(systemName: "chevron.down")
-                                }
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 6)
-                                .background(Color(UIColor.systemGray4))
-                                .cornerRadius(5)
-                                .frame(width: 120) // Minimized width
-                            }
-                            
-                            // Add Pictures Dropdown
-                            Menu {
-                                Button("Upload from Camera", action: { /* Upload Action */ })
-                                Button("Upload from Gallery", action: { /* Upload Action */ })
-                            } label: {
-                                HStack {
-                                    Text("Pictures")
-                                        .font(.subheadline)
-                                    Spacer()
-                                    Image(systemName: "plus")
-                                }
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 6)
-                                .background(Color(UIColor.systemGray4))
-                                .cornerRadius(5)
-                                .frame(width: 120) // Minimized width
-                            }
-                            
-                            // Privacy Dropdown
-                            Menu {
-                                Button("Public", action: { selectedPrivacy = "Public" })
-                                Button("Friends", action: { selectedPrivacy = "Friends" })
-                                Button("Company", action: { selectedPrivacy = "Company" })
-                            } label: {
-                                HStack {
-                                    Text(selectedPrivacy)
-                                        .font(.subheadline)
-                                    Spacer()
-                                    Image(systemName: "chevron.down")
-                                }
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 6)
-                                .background(Color(UIColor.systemGray4))
-                                .cornerRadius(5)
-                                .frame(width: 120) // Minimized width
+                        // Placeholder for Forum Posts
+                        VStack(spacing: 10) {
+                            ForEach(0..<20) { index in
+                                Text("Forum Post \(index + 1)")
+                                    .font(.system(size: 18))
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(Color.white)
+                                    .cornerRadius(10)
+                                    .shadow(radius: 2)
                             }
                         }
                     }
                     .padding()
-                    .background(Color.white) // White background for the "Write a Post" section
-                    .cornerRadius(10)
-                    .shadow(radius: 3)
-                    
-                    // Placeholder for Forum Posts
-                    VStack(spacing: 10) {
-                        ForEach(0..<20) { index in
-                            Text("Forum Post \(index + 1)")
-                                .font(.system(size: 18))
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.white)
-                                .cornerRadius(10)
-                                .shadow(radius: 2)
-                        }
+                }
+                .background(Color(UIColor.systemGray6))
+                
+                // Footer Section
+                HStack(spacing: 15) {
+                    NavigationLink(destination: PageEntrepreneurMatching()) {
+                        CustomCircleButton(iconName: "hand.raised.fill")
+                    }
+                    NavigationLink(destination: PageBusinessProfile()) {
+                        CustomCircleButton(iconName: "briefcase.fill")
+                    }
+                    NavigationLink(destination: PageForum()) {
+                        CustomCircleButton(iconName: "person.3.fill")
+                    }
+                    NavigationLink(destination: PageEntrepreneurResources()) {
+                        CustomCircleButton(iconName: "person.2.wave.2.fill")
+                    }
+                    NavigationLink(destination: PageEntrepreneurKnowledge()) {
+                        CustomCircleButton(iconName: "book.fill")
                     }
                 }
-                .padding()
+                .padding(.vertical,10)
+                .background(Color.white)
             }
-            .background(Color(UIColor.systemGray6))
-            
-            // Footer Section
-            HStack(spacing: 15) {
-                CustomCircleButton(iconName: "hand.raised.fill")
-                CustomCircleButton(iconName: "briefcase.fill")
-                CustomCircleButton(iconName: "person.3.fill")
-                CustomCircleButton(iconName: "person.2.wave.2.fill")
-                CustomCircleButton(iconName: "book.fill")
-            }
-            .padding(.vertical,10)
-            .background(Color.white)
+            .edgesIgnoringSafeArea(.bottom)
+            .navigationBarBackButtonHidden(true)
         }
-        .edgesIgnoringSafeArea(.bottom)
     }
 }
 
 struct CustomCircleButton: View {
     let iconName: String
-
+    
     var body: some View {
-        Button(action: {
-            // Action for button
-        }) {
-            ZStack {
-                Circle()
-                    .fill(Color.customHex("004aad"))
-                    .frame(width: 60, height: 60)
-                Image(systemName: iconName)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 30, height: 30)
-                    .foregroundColor(.white)
-            }
+        ZStack {
+            Circle()
+                .fill(Color.fromHex("004aad"))
+                .frame(width: 60, height: 60)
+            Image(systemName: iconName)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 30, height: 30)
+                .foregroundColor(.white)
         }
     }
 }
