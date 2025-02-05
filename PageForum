@@ -1,57 +1,129 @@
 import SwiftUI
 
+struct ForumPost: View {
+    let title: String
+    let content: String
+    let author: String
+    let timestamp: String
+    let category: String
+    let profileImageName: String
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            // Header with author and timestamp
+            HStack {
+                Image(profileImageName)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 40, height: 40)
+                    .clipShape(Circle())
+                    .shadow(radius: 2)
+                
+                VStack(alignment: .leading) {
+                    Text(author)
+                        .font(.headline)
+                    Text(timestamp)
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
+                }
+                Spacer()
+                Text(category)
+                    .font(.caption)
+                    .padding(5)
+                    .background(Color.fromHex("004aad"))
+                    .foregroundColor(.white)
+                    .cornerRadius(5)
+            }
+            
+            // Post Title
+            Text(title)
+                .font(.title3)
+                .fontWeight(.semibold)
+            
+            // Post Content
+            Text(content)
+                .font(.body)
+                .lineLimit(3)
+                .foregroundColor(.gray)
+            
+            // Actions: Like, Comment, Share
+            HStack {
+                Button(action: { /* Like Action */ }) {
+                    Label("Like", systemImage: "hand.thumbsup")
+                        .font(.subheadline)
+                }
+                Spacer()
+                Button(action: { /* Comment Action */ }) {
+                    Label("Comment", systemImage: "message")
+                        .font(.subheadline)
+                }
+                Spacer()
+                Button(action: { /* Share Action */ }) {
+                    Label("Share", systemImage: "square.and.arrow.up")
+                        .font(.subheadline)
+                }
+            }
+            .padding(.top, 10)
+        }
+        .padding()
+        .background(Color.white)
+        .cornerRadius(10)
+        .shadow(radius: 2)
+    }
+}
+
 struct PageForum: View {
     @State private var selectedCategory = "Category"
     @State private var selectedPrivacy = "Privacy"
     @State private var postContent = ""
 
     var body: some View {
-           NavigationView {
-               VStack(spacing: 0) {
-                   // Header Section
-                   VStack(spacing: 0) {
-                       HStack {
-                           VStack(alignment: .leading, spacing: 5) {
-                               Text("Circl.")
-                                   .font(.largeTitle)
-                                   .fontWeight(.bold)
-                                   .foregroundColor(.white)
-                               
-                               // Filter Button directly under "Circl."
-                               Button(action: {
-                                   // Action for Filter
-                               }) {
-                                   HStack {
-                                       Image(systemName: "slider.horizontal.3")
-                                           .foregroundColor(.white)
-                                       Text("Filter")
-                                           .font(.headline)
-                                           .foregroundColor(.white)
-                                   }
-                               }
-                           }
-                           Spacer()
-                           VStack(alignment: .trailing, spacing: 5) {
-                               // Profile Icon above "Hello, Fragne" Text
-                               NavigationLink(destination: ProfilePage()) {
-                                   Image(systemName: "person.circle.fill")
-                                       .resizable()
-                                       .frame(width: 50, height: 50)
-                                       .foregroundColor(.white)
-                                       .offset(x: -28) // Move the profile picture slightly to the left
-                               }
-                               
-                               // Align "Hello, Fragne" with "Filter" button
-                               Text("Hello, Fragne")
-                                   .foregroundColor(.white)
-                                   .font(.headline)
-                           }
-                       }
-                       .padding(.horizontal)
-                   }
-                   .padding(.top, 15)
-                   .padding(.bottom, 10)
-                   .background(Color.fromHex("004aad")) // Updated blue color
+        NavigationView {
+            VStack(spacing: 0) {
+                // Header Section
+                VStack(spacing: 0) {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 5) {
+                            Text("Circl.")
+                                .font(.largeTitle)
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                            
+                            // Filter Button directly under "Circl."
+                            Button(action: {
+                                // Action for Filter
+                            }) {
+                                HStack {
+                                    Image(systemName: "slider.horizontal.3")
+                                        .foregroundColor(.white)
+                                    Text("Filter")
+                                        .font(.headline)
+                                        .foregroundColor(.white)
+                                }
+                            }
+                        }
+                        Spacer()
+                        VStack(alignment: .trailing, spacing: 5) {
+                            // Profile Icon above "Hello, Fragne" Text
+                            NavigationLink(destination: ProfilePage()) {
+                                Image(systemName: "person.circle.fill")
+                                    .resizable()
+                                    .frame(width: 50, height: 50)
+                                    .foregroundColor(.white)
+                                    .offset(x: -28) // Move the profile picture slightly to the left
+                            }
+                            
+                            // Align "Hello, Fragne" with "Filter" button
+                            Text("Hello, Fragne")
+                                .foregroundColor(.white)
+                                .font(.headline)
+                        }
+                    }
+                    .padding(.horizontal)
+                }
+                .padding(.top, 15)
+                .padding(.bottom, 10)
+                .background(Color.fromHex("004aad")) // Updated blue color
                 
                 // Scrollable View Section
                 ScrollView {
@@ -150,16 +222,18 @@ struct PageForum: View {
                         .cornerRadius(10)
                         .shadow(radius: 3)
                         
-                        // Placeholder for Forum Posts
+                        // Forum Posts List
                         VStack(spacing: 10) {
-                            ForEach(0..<20) { index in
-                                Text("Forum Post \(index + 1)")
-                                    .font(.system(size: 18))
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(Color.white)
-                                    .cornerRadius(10)
-                                    .shadow(radius: 2)
+                            ForEach(0..<10, id: \.self) { index in
+                                ForumPost(
+                                    title: "Example Post \(index + 1)",
+                                    content: "This is an example post content.",
+                                    author: "John Doe",
+                                    timestamp: "2 hours ago",
+                                    category: "Advice & Tips",
+                                    profileImageName: "profile_image" // Use your actual profile image here
+                                )
+                                .padding(.bottom, 10)
                             }
                         }
                     }
@@ -168,27 +242,31 @@ struct PageForum: View {
                 .background(Color(UIColor.systemGray6))
                 
                 // Footer Section
-                HStack(spacing: 15) {
-                    NavigationLink(destination: PageEntrepreneurMatching()) {
-                        CustomCircleButton(iconName: "hand.raised.fill")
+                VStack {
+                    Spacer() // Push the footer to the bottom of the screen
+                    HStack(spacing: 15) {
+                        NavigationLink(destination: PageEntrepreneurMatching()) {
+                            CustomCircleButton(iconName: "hand.raised.fill")
+                        }
+                        NavigationLink(destination: PageBusinessProfile()) {
+                            CustomCircleButton(iconName: "briefcase.fill")
+                        }
+                        NavigationLink(destination: PageForum()) {
+                            CustomCircleButton(iconName: "person.3.fill")
+                        }
+                        NavigationLink(destination: PageEntrepreneurResources()) {
+                            CustomCircleButton(iconName: "person.2.wave.2.fill")
+                        }
+                        NavigationLink(destination: PageEntrepreneurKnowledge()) {
+                            CustomCircleButton(iconName: "book.fill")
+                        }
                     }
-                    NavigationLink(destination: PageBusinessProfile()) {
-                        CustomCircleButton(iconName: "briefcase.fill")
-                    }
-                    NavigationLink(destination: PageForum()) {
-                        CustomCircleButton(iconName: "person.3.fill")
-                    }
-                    NavigationLink(destination: PageEntrepreneurResources()) {
-                        CustomCircleButton(iconName: "person.2.wave.2.fill")
-                    }
-                    NavigationLink(destination: PageEntrepreneurKnowledge()) {
-                        CustomCircleButton(iconName: "book.fill")
-                    }
+                    .padding(.vertical, 10)
+                    .background(Color.white)
+                    .frame(maxWidth: .infinity)
                 }
-                .padding(.vertical,10)
-                .background(Color.white)
+                .edgesIgnoringSafeArea(.bottom)
             }
-            .edgesIgnoringSafeArea(.bottom)
             .navigationBarBackButtonHidden(true)
         }
     }
