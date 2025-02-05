@@ -389,19 +389,19 @@ struct PageBusinessProfile: View {
     // MARK: - Footer Section
     private var footerSection: some View {
         HStack(spacing: 15) {
-            NavigationLink(destination: PageEntrepreneurMatching()) {
-                CustomCircleButton(iconName: "hand.raised.fill")
+            NavigationLink(destination: PageEntrepreneurMatching().navigationBarBackButtonHidden(true)) {
+                CustomCircleButton(iconName: "figure.stand.line.dotted.figure.stand")
             }
-            NavigationLink(destination: PageBusinessProfile()) {
+            NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true)) {
                 CustomCircleButton(iconName: "briefcase.fill")
             }
-            NavigationLink(destination: PageForum()) {
-                CustomCircleButton(iconName: "person.3.fill")
+            NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
+                CustomCircleButton(iconName: "captions.bubble.fill")
             }
-            NavigationLink(destination: PageEntrepreneurResources()) {
-                CustomCircleButton(iconName: "person.2.wave.2.fill")
+            NavigationLink(destination: PageEntrepreneurResources().navigationBarBackButtonHidden(true)) {
+                CustomCircleButton(iconName: "building.columns.fill")
             }
-            NavigationLink(destination: PageEntrepreneurResources()) {
+            NavigationLink(destination: PageEntrepreneurResources().navigationBarBackButtonHidden(true)) {
                 CustomCircleButton(iconName: "book.fill")
             }
         }
