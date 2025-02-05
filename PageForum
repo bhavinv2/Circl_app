@@ -242,31 +242,29 @@ struct PageForum: View {
                 .background(Color(UIColor.systemGray6))
                 
                 // Footer Section
-                VStack {
-                    Spacer() // Push the footer to the bottom of the screen
-                    HStack(spacing: 15) {
-                        NavigationLink(destination: PageEntrepreneurMatching()) {
-                            CustomCircleButton(iconName: "hand.raised.fill")
-                        }
-                        NavigationLink(destination: PageBusinessProfile()) {
-                            CustomCircleButton(iconName: "briefcase.fill")
-                        }
-                        NavigationLink(destination: PageForum()) {
-                            CustomCircleButton(iconName: "person.3.fill")
-                        }
-                        NavigationLink(destination: PageEntrepreneurResources()) {
-                            CustomCircleButton(iconName: "person.2.wave.2.fill")
-                        }
-                        NavigationLink(destination: PageEntrepreneurKnowledge()) {
-                            CustomCircleButton(iconName: "book.fill")
-                        }
+                HStack(spacing: 15) {
+                    NavigationLink(destination: PageEntrepreneurMatching()) {
+                        CustomCircleButton(iconName: "hand.raised.fill")
                     }
-                    .padding(.vertical, 10)
-                    .background(Color.white)
-                    .frame(maxWidth: .infinity)
+                    NavigationLink(destination: PageBusinessProfile()) {
+                        CustomCircleButton(iconName: "briefcase.fill")
+                    }
+                    NavigationLink(destination: PageForum()) {
+                        CustomCircleButton(iconName: "person.3.fill")
+                    }
+                    NavigationLink(destination: PageEntrepreneurResources()) {
+                        CustomCircleButton(iconName: "person.2.wave.2.fill")
+                    }
+                    NavigationLink(destination: PageEntrepreneurKnowledge()) {
+                        CustomCircleButton(iconName: "book.fill")
+                    }
                 }
-                .edgesIgnoringSafeArea(.bottom)
+                .padding(.vertical, 10)
+                .background(Color.white)
+                .frame(height: 80) // Fixed height for footer
+                .frame(maxWidth: .infinity) // Ensure footer spans full width
             }
+            .edgesIgnoringSafeArea(.bottom)
             .navigationBarBackButtonHidden(true)
         }
     }
