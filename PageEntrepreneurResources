@@ -79,39 +79,43 @@ struct PageEntrepreneurResources: View {
                 }
                 Spacer()
                 VStack(alignment: .trailing) {
-                    Image(systemName: "person.circle.fill")
-                        .resizable()
-                        .frame(width: 50, height: 50)
-                        .foregroundColor(.white)
-                        .offset(x: -28)
+                    NavigationLink(destination: ProfilePage()) {
+                        Image(systemName: "person.circle.fill")
+                            .resizable()
+                            .frame(width: 50, height: 50)
+                            .foregroundColor(.white)
+                    }
+                    // "Hello, Fragne" text
                     Text("Hello, Fragne")
                         .foregroundColor(.white)
                         .font(.headline)
                 }
             }
             .padding(.horizontal)
-        }
-        .padding(.top, 15)
-        .padding(.bottom, 10)
-        .background(Color.fromHex("004aad"))
-    }
+            .padding(.top, 15)
+            .padding(.bottom, 10)
+            .background(Color.fromHex("004aad")) // Blue background for the header
+
+                }
+            }
+
     
     // MARK: - Footer Section
     private var footerSection: some View {
         HStack(spacing: 15) {
-            NavigationLink(destination: PageEntrepreneurMatching()) {
-                CustomCircleButton(iconName: "hand.raised.fill")
+            NavigationLink(destination: PageEntrepreneurMatching().navigationBarBackButtonHidden(true)) {
+                CustomCircleButton(iconName: "figure.stand.line.dotted.figure.stand")
             }
-            NavigationLink(destination: PageBusinessProfile()) {
+            NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true)) {
                 CustomCircleButton(iconName: "briefcase.fill")
             }
-            NavigationLink(destination: PageForum()) {
-                CustomCircleButton(iconName: "person.3.fill")
+            NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
+                CustomCircleButton(iconName: "captions.bubble.fill")
             }
-            NavigationLink(destination: PageEntrepreneurResources()) {
-                CustomCircleButton(iconName: "person.2.wave.2.fill")
+            NavigationLink(destination: PageEntrepreneurResources().navigationBarBackButtonHidden(true)) {
+                CustomCircleButton(iconName: "building.columns.fill")
             }
-            NavigationLink(destination: PageEntrepreneurResources()) {
+            NavigationLink(destination: PageEntrepreneurResources().navigationBarBackButtonHidden(true)) {
                 CustomCircleButton(iconName: "book.fill")
             }
         }
