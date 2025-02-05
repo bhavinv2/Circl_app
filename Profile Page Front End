@@ -4,341 +4,358 @@ struct ProfilePage: View {
     @State private var showError: Bool = false // State variable to show error when bio exceeds 200 characters
 
     var body: some View {
-        ZStack {
-            VStack(spacing: 0) {
-                // Section 1: Fixed Top Section
-                VStack {
-                    HStack {
-                        Text("Circl")
-                            .font(.system(size: 32, weight: .bold))
-                            .foregroundColor(Color.customHex("004aad"))
-                            .padding(.top, 25) // Move the logo 10 pixels down
+        NavigationView {
+            ZStack {
+                VStack(spacing: 0) {
+                    // Section 1: Fixed Top Section
+                    VStack {
+                        HStack {
+                            Text("Circl")
+                                .font(.system(size: 32, weight: .bold))
+                                .foregroundColor(Color.customHex("004aad"))
+                                .padding(.top, 25) // Move the logo 10 pixels down
 
-                        Spacer()
+                            Spacer()
 
-                        Image(systemName: "pencil.and.outline") // Use SF Symbol for pencil icon
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 24, height: 24)
-                            .foregroundColor(Color.customHex("004aad"))
-                            .padding(.top, 25) // Move the pencil icon 10 pixels down
+                            Image(systemName: "pencil.and.outline") // Use SF Symbol for pencil icon
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 24, height: 24)
+                                .foregroundColor(Color.customHex("004aad"))
+                                .padding(.top, 25) // Move the pencil icon 10 pixels down
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.top, 15)
+
+                        Spacer() // Adds additional space below the content
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 15)
+                    .frame(height: 105) // Increased height (75 + 100 pixels)
+                    .background(Color.white) // Explicitly set Section 1 background to white
 
-                    Spacer() // Adds additional space below the content
-                }
-                .frame(height: 105) // Increased height (75 + 100 pixels)
-                .background(Color.white) // Explicitly set Section 1 background to white
+                    // Section 2: Scrollable Middle Section
+                    ScrollView {
+                        VStack(spacing: 20) {
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 10)
+                                    .fill(Color.customHex("004aad"))
+                                    .frame(height: 300)
 
-                // Section 2: Scrollable Middle Section
-                ScrollView {
-                    VStack(spacing: 20) {
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 10)
-                                .fill(Color.customHex("004aad"))
-                                .frame(height: 300)
-                            
-                            VStack(spacing: 15) {
-                                Circle()
-                                    .fill(Color.gray.opacity(0.3))
-                                    .frame(width: 120, height: 120)
-                                    .overlay(
-                                        Image(systemName: "person.crop.circle")
-                                            .resizable()
-                                            .scaledToFit()
-                                            .frame(width: 60, height: 60)
-                                            .foregroundColor(.gray)
-                                    )
-                                
-                                HStack(spacing: 40) {
-                                    VStack {
-                                        Text("Connections:")
-                                            .font(.system(size: 16, weight: .semibold))
-                                            .foregroundColor(Color.customHex("#ffde59"))
-                                        Text("123") // Placeholder for backend data
-                                            .font(.system(size: 16, weight: .bold))
-                                            .foregroundColor(Color.white)
+                                VStack(spacing: 15) {
+                                    Circle()
+                                        .fill(Color.gray.opacity(0.3))
+                                        .frame(width: 120, height: 120)
+                                        .overlay(
+                                            Image(systemName: "person.crop.circle")
+                                                .resizable()
+                                                .scaledToFit()
+                                                .frame(width: 60, height: 60)
+                                                .foregroundColor(.gray)
+                                        )
+
+                                    HStack(spacing: 40) {
+                                        VStack {
+                                            Text("Connections:")
+                                                .font(.system(size: 16, weight: .semibold))
+                                                .foregroundColor(Color.customHex("#ffde59"))
+                                            Text("123") // Placeholder for backend data
+                                                .font(.system(size: 16, weight: .bold))
+                                                .foregroundColor(Color.white)
+                                        }
+
+                                        VStack {
+                                            Text("Circles:")
+                                                .font(.system(size: 16, weight: .semibold))
+                                                .foregroundColor(Color.customHex("#ffde59"))
+                                            Text("45") // Placeholder for backend data
+                                                .font(.system(size: 16, weight: .bold))
+                                                .foregroundColor(Color.white)
+                                        }
+
+                                        VStack {
+                                            Text("Circs:")
+                                                .font(.system(size: 16, weight: .semibold))
+                                                .foregroundColor(Color.customHex("#ffde59"))
+                                            Text("980") // Placeholder for backend data
+                                                .font(.system(size: 16, weight: .bold))
+                                                .foregroundColor(Color.white)
+                                        }
                                     }
-                                    
-                                    VStack {
-                                        Text("Circles:")
-                                            .font(.system(size: 16, weight: .semibold))
-                                            .foregroundColor(Color.customHex("#ffde59"))
-                                        Text("45") // Placeholder for backend data
-                                            .font(.system(size: 16, weight: .bold))
-                                            .foregroundColor(Color.white)
+
+                                    VStack(spacing: 5) {
+                                        Text("Fragne Delgado") // Placeholder for backend data
+                                            .font(.system(size: 24, weight: .bold))
+                                            .foregroundColor(.white)
+
+                                        Text("CEO - ")
+                                            .font(.system(size: 18, weight: .semibold))
+                                            .foregroundColor(.white)
+                                        + Text("Circl International") // Redirectable link
+                                            .font(.system(size: 18, weight: .semibold))
+                                            .underline()
+                                            .foregroundColor(.white)
+
+                                        Text("ENFJ - A") // Personality type placeholder
+                                            .font(.system(size: 18, weight: .semibold))
+                                            .foregroundColor(.white)
                                     }
-                                    
-                                    VStack {
-                                        Text("Circs:")
-                                            .font(.system(size: 16, weight: .semibold))
-                                            .foregroundColor(Color.customHex("#ffde59"))
-                                        Text("980") // Placeholder for backend data
-                                            .font(.system(size: 16, weight: .bold))
-                                            .foregroundColor(Color.white)
+                                }
+                            }
+
+                            // Personal Secret Section
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 10)
+                                    .fill(Color.customHex("004aad"))
+                                    .shadow(radius: 2)
+                                    .frame(height: 200) // Adjust height as needed
+
+                                VStack(spacing: 10) {
+                                    VStack(alignment: .leading, spacing: 5) {
+                                        Text("Secret Idea")
+                                            .font(.system(size: 22, weight: .bold))
+                                            .foregroundColor(.white)
+
+                                        Text("Creating an app for entrepreneurs") // Placeholder for idea
+                                            .font(.system(size: 16))
+                                            .foregroundColor(.white)
+                                            .multilineTextAlignment(.leading)
+                                    }
+                                    .padding(.bottom, 10) // Space between sections
+
+                                    Divider()
+                                        .background(Color.white)
+
+                                    VStack(alignment: .leading, spacing: 5) {
+                                        Text("Your Next Steps")
+                                            .font(.system(size: 22, weight: .bold))
+                                            .foregroundColor(.white)
+
+                                        Text("Entrepreneur AI coming soon") // Placeholder for next steps
+                                            .font(.system(size: 16))
+                                            .foregroundColor(.white)
+                                            .multilineTextAlignment(.leading)
                                     }
                                 }
-                                
-                                VStack(spacing: 5) {
-                                    Text("Fragne Delgado") // Placeholder for backend data
-                                        .font(.system(size: 24, weight: .bold))
-                                        .foregroundColor(.white)
-                                    
-                                    Text("CEO - ")
-                                        .font(.system(size: 18, weight: .semibold))
-                                        .foregroundColor(.white)
-                                    + Text("Circl International") // Redirectable link
-                                        .font(.system(size: 18, weight: .semibold))
-                                        .underline()
-                                        .foregroundColor(.white)
-                                    
-                                    Text("ENFJ - A") // Personality type placeholder
-                                        .font(.system(size: 18, weight: .semibold))
-                                        .foregroundColor(.white)
-                                }
-                            }
-                        }
-                        // Personal Secret Section
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 10)
-                                .fill(Color.customHex("004aad"))
-                                .shadow(radius: 2)
-                                .frame(height: 200) // Adjust height as needed
-                            
-                            VStack(spacing: 10) {
-                                // Secret Idea
-                                VStack(alignment: .leading, spacing: 5) {
-                                    Text("Secret Idea")
-                                        .font(.system(size: 22, weight: .bold))
-                                        .foregroundColor(.white)
-                                    
-                                    Text("Creating an app for entrepreneurs") // Placeholder for idea
-                                        .font(.system(size: 16))
-                                        .foregroundColor(.white)
-                                        .multilineTextAlignment(.leading)
-                                }
-                                .padding(.bottom, 10) // Space between sections
-                                
-                                Divider()
-                                    .background(Color.white)
-                                
-                                // Your Next Steps
-                                VStack(alignment: .leading, spacing: 5) {
-                                    Text("Your Next Steps")
-                                        .font(.system(size: 22, weight: .bold))
-                                        .foregroundColor(.white)
-                                    
-                                    Text("Entrepreneur AI coming soon") // Placeholder for next steps
-                                        .font(.system(size: 16))
-                                        .foregroundColor(.white)
-                                        .multilineTextAlignment(.leading)
-                                }
-                            }
-                            .padding()
-                        }
-                        
-                        // Profile Section 2: Bio Section
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 10)
-                                .fill(Color.customHex("004aad"))
-                                .shadow(radius: 2)
-                                .frame(height: 150)
-                            
-                            VStack(alignment: .leading, spacing: 15) {
-                                Text("Bio")
-                                    .font(.system(size: 22, weight: .bold))
-                                    .foregroundColor(.white)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                
-                                Text("Entrepreneur with a Harvard Master's, certified project manager, passionate about innovation and driving business growth through strategic leadership.")
-                                    .font(.system(size: 16))
-                                    .foregroundColor(.white)
-                                    .multilineTextAlignment(.leading)
-                                    .padding(.horizontal)
-                            }
-                            .padding()
-                        }
-                        
-                        // Profile Section 3: About (Name) Section
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 10)
-                                .fill(Color.customHex("004aad"))
-                                .shadow(radius: 2)
-                                .frame(height: 400)
-                            
-                            VStack(alignment: .leading, spacing: 15) {
-                                Text("About Fragne Delgado") // Placeholder for backend data
-                                    .font(.system(size: 22, weight: .bold))
-                                    .foregroundColor(.white)
-                                
-                                Text("Age: 30") // Placeholder for backend data
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
-                                
-                                Text("Education Level: Master's Degree") // Placeholder for backend data
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
-                                
-                                Text("Institution Attended: Harvard University") // Placeholder for backend data
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
-                                
-                                Text("Certifications/Licenses: Certified Project Manager") // Placeholder for backend data
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
-                                
-                                Text("Years of Experience: 10") // Placeholder for backend data
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
-                                
-                                Text("Location: New York, USA") // Placeholder for backend data
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
-                                
-                                Text("Achievements: Led a team of 50 to complete a $10M project under budget") // Placeholder for backend data
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
-                            }
-                            .padding()
-                        }
-                        
-                        // Profile Section 4: Technical Side
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 10)
-                                .fill(Color.customHex("004aad"))
-                                .shadow(radius: 2)
-                                .frame(height: 400) // Adjust height as needed
-                            
-                            VStack(alignment: .leading, spacing: 15) {
-                                Text("Technical Side") // Header
-                                    .font(.system(size: 22, weight: .bold))
-                                    .foregroundColor(.white)
-                                
-                                Text("Skills: Swift, UI/UX Design, Project Management") // Placeholder for backend data
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
-                                
-                                Text("Projects/Work Completed: Developed an award-winning app; Implemented successful SEO strategies for multiple clients") // Placeholder for backend data
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
-                                
-                                Text("Availability: Open to collaboration, Monday - Friday, 9 AM - 5 PM EST") // Placeholder for backend data
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
-                            }
-                            .padding()
-                        }
-                        // Profile Section 5: Interests
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 10)
-                                .fill(Color.customHex("004aad"))
-                                .shadow(radius: 2)
-                                .frame(height: 300) // Adjust height as needed
-                            
-                            VStack(alignment: .leading, spacing: 15) {
-                                Text("Interests") // Header
-                                    .font(.system(size: 22, weight: .bold))
-                                    .foregroundColor(.white)
-                                
-                                Text("Clubs/Organizations: Member of Tau Kappa Epsilon, Volunteer at Habitat for Humanity") // Placeholder for backend data
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
-                                
-                                Text("Hobbies/Passions: Reading, Cycling, Digital Art, Traveling") // Placeholder for backend data
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
-                            }
-                            .padding()
-                            
-                        }
-                        // Profile Section 6: Entrepreneurial History
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 10)
-                                .fill(Color.customHex("004aad"))
-                                .shadow(radius: 2)
-                                .frame(height: 150) // Adjust height as needed
-
-                            VStack(alignment: .leading, spacing: 15) {
-                                Text("Entrepreneurial History")
-                                    .font(.system(size: 22, weight: .bold))
-                                    .foregroundColor(.white)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                                Text("Started first business at 18; co-founded a tech startup in college; currently CEO of Circl International.") // Placeholder text
-                                    .font(.system(size: 16))
-                                    .foregroundColor(.white)
-                                    .multilineTextAlignment(.leading)
-                                    .padding(.horizontal)
-                            }
-                            .padding()
-                        }
-
-                        ForEach(4..<21) { index in
-                            Text("Profile Section \(index)")
-                                .font(.system(size: 20))
-                                .frame(maxWidth: .infinity)
                                 .padding()
-                                .background(Color.blue)
-                                .cornerRadius(10)
-                                .shadow(radius: 2)
+                            }
+
+                            bioSection
+                            aboutSection
+                            technicalSideSection
+                            interestsSection
+                            entrepreneurialHistorySection
+
+                            ForEach(4..<21) { index in
+                                Text("Profile Section \(index)")
+                                    .font(.system(size: 20))
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(Color.blue)
+                                    .cornerRadius(10)
+                                    .shadow(radius: 2)
+                            }
+                        }
+                        .padding()
+                    }
+                    .background(Color(UIColor.systemGray4))
+
+                    // Section 3: Fixed Bottom Section
+                    // Footer Section with Navigation
+                    HStack(spacing: 15) {
+                        // NavigationLink for "Hand Raised" icon
+                        NavigationLink(destination: PageEntrepreneurMatching().navigationBarBackButtonHidden(true)) {
+                            CustomCircleButton(iconName: "figure.stand.line.dotted.figure.stand")
+                        }
+                        
+                        // NavigationLink for "Briefcase" icon
+                        NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true)) {
+                            CustomCircleButton(iconName: "briefcase.fill")
+                        }
+                        
+                        // NavigationLink for "Person 3" icon
+                        NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
+                            CustomCircleButton(iconName: "captions.bubble.fill")
+                        }
+                        
+                        // NavigationLink for "Person 2" icon
+                        NavigationLink(destination: PageEntrepreneurResources().navigationBarBackButtonHidden(true)) {  // Adjust the destination as needed
+                            CustomCircleButton(iconName: "building.columns.fill")
+                        }
+                        
+                        // NavigationLink for "Book" icon
+                        NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {  // Adjust the destination as needed
+                            CustomCircleButton(iconName: "book.fill")
                         }
                     }
-                    .padding()
+                    .padding(.vertical, 10)
+                    .background(Color.white) // Explicitly set Section 3 background to white
                 }
-                .background(Color(UIColor.systemGray4))
+            }
+            .edgesIgnoringSafeArea(.all)
+        }
+    }
 
-                // Section 3: Fixed Bottom Section
-                               HStack(spacing: 15) {
-                                   CircleButton(iconName: "hand.raised.fill") // Handshake icon
-                                   CircleButton(iconName: "briefcase.fill") // Briefcase icon
-                                   CircleButton(iconName: "person.3.fill") // Community icon
-                                   CircleButton(iconName: "person.2.circle.fill") // Connection icon
-                                   CircleButton(iconName: "book.fill") // Book icon
-                               }
-                               .padding(.vertical, 10)
-                               .background(Color.white) // Explicitly set Section 3 background to white
-                           }
-                       }
-                       .edgesIgnoringSafeArea(.all)
-                   }
-               }
+    private var bioSection: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 10)
+                .fill(Color.customHex("004aad"))
+                .shadow(radius: 2)
+                .frame(height: 150)
 
-               struct CircleButton: View {
-                   var iconName: String
+            VStack(alignment: .leading, spacing: 15) {
+                Text("Bio")
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity, alignment: .leading)
 
-                   var body: some View {
-                       Button(action: {
-                           // Add action here
-                       }) {
-                           ZStack {
-                               Circle()
-                                   .fill(Color.customHex("004aad"))
-                                   .frame(width: 60, height: 60)
-                               Image(systemName: iconName)
-                                   .resizable()
-                                   .aspectRatio(contentMode: .fit)
-                                   .frame(width: 30, height: 30)
-                                   .foregroundColor(.white)
-                           }
-                       }
-                   }
-               }
+                Text("Entrepreneur with a Harvard Master's, certified project manager, passionate about innovation and driving business growth through strategic leadership.")
+                    .font(.system(size: 16))
+                    .foregroundColor(.white)
+                    .multilineTextAlignment(.leading)
+                    .padding(.horizontal)
+            }
+            .padding()
+        }
+    }
 
-               // Extension to support custom hex colors
-               extension Color {
-                   static func customHex(_ hex: String) -> Color {
-                       let hexValue = Int(hex.dropFirst(), radix: 16) ?? 0
-                       let red = Double((hexValue >> 16) & 0xFF) / 255.0
-                       let green = Double((hexValue >> 8) & 0xFF) / 255.0
-                       let blue = Double(hexValue & 0xFF) / 255.0
-                       return Color(red: red, green: green, blue: blue)
-                   }
-               }
+    private var aboutSection: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 10)
+                .fill(Color.customHex("004aad"))
+                .shadow(radius: 2)
+                .frame(height: 400)
 
-               // Preview
-               struct ProfilePage_Previews: PreviewProvider {
-                   static var previews: some View {
-                       ProfilePage()
-                   }
-               }
+            VStack(alignment: .leading, spacing: 15) {
+                Text("About Fragne Delgado")
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundColor(.white)
+
+                Text("Age: 30")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
+                Text("Education Level: Master's Degree")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
+                Text("Institution Attended: Harvard University")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
+                Text("Certifications/Licenses: Certified Project Manager")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
+                Text("Years of Experience: 10")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
+                Text("Location: New York, USA")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
+                Text("Achievements: Led a team of 50 to complete a $10M project under budget")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
+            }
+            .padding()
+        }
+    }
+
+    private var technicalSideSection: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 10)
+                .fill(Color.customHex("004aad"))
+                .shadow(radius: 2)
+                .frame(height: 400)
+
+            VStack(alignment: .leading, spacing: 15) {
+                Text("Technical Side")
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundColor(.white)
+
+                Text("Skills: Swift, UI/UX Design, Project Management")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
+                Text("Projects/Work Completed: Developed an award-winning app; Implemented successful SEO strategies for multiple clients")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
+                Text("Availability: Open to collaboration, Monday - Friday, 9 AM - 5 PM EST")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
+            }
+            .padding()
+        }
+    }
+
+    private var interestsSection: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 10)
+                .fill(Color.customHex("004aad"))
+                .shadow(radius: 2)
+                .frame(height: 300)
+
+            VStack(alignment: .leading, spacing: 15) {
+                Text("Interests")
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundColor(.white)
+                Text("Clubs/Organizations: Member of Tau Kappa Epsilon, Volunteer at Habitat for Humanity")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
+                Text("Hobbies/Passions: Reading, Cycling, Digital Art, Traveling")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
+            }
+            .padding()
+        }
+    }
+
+    private var entrepreneurialHistorySection: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 10)
+                .fill(Color.customHex("004aad"))
+                .shadow(radius: 2)
+                .frame(height: 150)
+
+            VStack(alignment: .leading, spacing: 15) {
+                Text("Entrepreneurial History")
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                Text("Started first business at 18; co-founded a tech startup in college; currently CEO of Circl International.")
+                    .font(.system(size: 16))
+                    .foregroundColor(.white)
+                    .multilineTextAlignment(.leading)
+                    .padding(.horizontal)
+            }
+            .padding()
+        }
+    }
+}
+
+struct CircleButton: View {
+    var iconName: String
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .fill(Color.customHex("004aad"))
+                .frame(width: 60, height: 60)
+            Image(systemName: iconName)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 30, height: 30)
+                .foregroundColor(.white)
+        }
+    }
+}
+
+extension Color {
+    static func customHex(_ hex: String) -> Color {
+        let hexValue = Int(hex.dropFirst(), radix: 16) ?? 0
+        let red = Double((hexValue >> 16) & 0xFF) / 255.0
+        let green = Double((hexValue >> 8) & 0xFF) / 255.0
+        let blue = Double(hexValue & 0xFF) / 255.0
+        return Color(red: red, green: green, blue: blue)
+    }
+}
+
+struct ProfilePage_Previews: PreviewProvider {
+    static var previews: some View {
+        ProfilePage()
+    }
+}
