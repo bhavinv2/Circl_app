@@ -1,0 +1,201 @@
+import SwiftUI
+
+// MARK: - Main View
+struct PageMessages: View {
+
+    var body: some View {
+        NavigationView {
+            VStack(spacing: 0) {
+                headerSection
+                tabNavigation
+                scrollableSection
+                footerSection
+            }
+            .edgesIgnoringSafeArea(.bottom)
+            .navigationBarBackButtonHidden(true)
+        }
+    }
+
+    var headerSection: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Text("Circl.")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                
+                Spacer()
+                
+                VStack(alignment: .trailing, spacing: 5) {
+                    NavigationLink(destination: ProfilePage()) {
+                        Image(systemName: "person.circle.fill")
+                            .resizable()
+                            .frame(width: 50, height: 50)
+                            .foregroundColor(.white)
+                    }
+                    
+                    Text("Hello, Fragne")
+                        .foregroundColor(.white)
+                        .font(.headline)
+                }
+            }
+            .padding(.horizontal)
+            .padding(.top, 15)
+            .padding(.bottom, 10)
+            .background(Color.fromHex7("004aad"))
+        }
+    }
+
+    var tabNavigation: some View {
+        HStack(spacing: 10) {
+            NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
+                Text("Messages")
+                    .font(.system(size: 12))
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(Color.yellow)
+                    .foregroundColor(.black)
+                    .cornerRadius(10)
+            }
+
+            NavigationLink(destination: PageCircles().navigationBarBackButtonHidden(true)) {
+                Text("Circles")
+                    .font(.system(size: 12))
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(Color.gray)
+                    .foregroundColor(.black)
+                    .cornerRadius(10)
+            }
+
+            NavigationLink(destination: PageInvites().navigationBarBackButtonHidden(true)) {
+                Text("Invites")
+                    .font(.system(size: 12))
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(Color.gray)
+                    .foregroundColor(.black)
+                    .cornerRadius(10)
+            }
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 10)
+    }
+
+    private var scrollableSection: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 0) {
+                ForEach(mockMessages) { message in
+                    MessageRow(message: message)
+                }
+            }
+        }
+    }
+
+    private var footerSection: some View {
+        HStack(spacing: 15) {
+            NavigationLink(destination: PageEntrepreneurMatching().navigationBarBackButtonHidden(true)) {
+                CustomCircleButton(iconName: "figure.stand.line.dotted.figure.stand")
+            }
+            NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true)) {
+                CustomCircleButton(iconName: "briefcase.fill")
+            }
+            NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
+                CustomCircleButton(iconName: "captions.bubble.fill")
+            }
+            NavigationLink(destination: PageEntrepreneurResources().navigationBarBackButtonHidden(true)) {
+                CustomCircleButton(iconName: "building.columns.fill")
+            }
+            NavigationLink(destination: PageEntrepreneurResources().navigationBarBackButtonHidden(true)) {
+                CustomCircleButton(iconName: "book.fill")
+            }
+        }
+        .padding(.vertical, 10)
+        .background(Color.white)
+    }
+
+    struct MessageRow: View {
+        let message: Message
+
+        var body: some View {
+            VStack(alignment: .leading) {
+                HStack {
+                    Image(systemName: "person.crop.circle.fill")
+                        .resizable()
+                        .frame(width: 50, height: 50)
+                        .foregroundColor(.blue)
+                    VStack(alignment: .leading) {
+                        Text(message.senderName)
+                            .font(.headline)
+                        Text("\(message.senderRole) - \(message.senderCompany)")
+                            .font(.subheadline)
+                            .foregroundColor(.gray)
+                    }
+                    Spacer()
+                    Text(message.timeAgo)
+                        .font(.footnote)
+                        .foregroundColor(.gray)
+                }
+                Text(message.previewText)
+                    .font(.body)
+                    .foregroundColor(.black)
+                Divider()
+            }
+            .padding(.vertical, 8)
+            .padding(.horizontal, 16)
+        }
+    }
+
+    struct CustomCircleButton: View {
+        let iconName: String
+
+        var body: some View {
+            ZStack {
+                Circle()
+                    .fill(Color.fromHex7("004aad"))
+                    .frame(width: 60, height: 60)
+                Image(systemName: iconName)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 30, height: 30)
+                    .foregroundColor(.white)
+            }
+        }
+    }
+
+    struct Message: Identifiable {
+        let id = UUID()
+        let senderName: String
+        let senderRole: String
+        let senderCompany: String
+        let previewText: String
+        let timeAgo: String
+    }
+
+    let mockMessages = [
+        Message(senderName: "Howard Brown", senderRole: "District Manager", senderCompany: "Ross", previewText: "Morning Ricky, wanted to reach out...", timeAgo: "Just Now"),
+        Message(senderName: "Ayaan Patel", senderRole: "VP of Human Resources", senderCompany: "Target", previewText: "Hey Ricky, how's the business doin...", timeAgo: "1 hour"),
+        Message(senderName: "John Clark III", senderRole: "CTO", senderCompany: "The Clark Group", previewText: "Have you looked into the sales of th...", timeAgo: "1 day")
+    ]
+}
+
+// MARK: - Color Extension
+extension Color {
+    static func fromHex7(_ hex: String) -> Color {
+        var hexSanitized = hex.trimmingCharacters(in: .whitespacesAndNewlines)
+        hexSanitized = hexSanitized.replacingOccurrences(of: "#", with: "")
+
+        var rgb: UInt64 = 0
+        Scanner(string: hexSanitized).scanHexInt64(&rgb)
+
+        let red = Double((rgb >> 16) & 0xFF) / 255.0
+        let green = Double((rgb >> 8) & 0xFF) / 255.0
+        let blue = Double(rgb & 0xFF) / 255.0
+
+        return Color(red: red, green: green, blue: blue)
+    }
+}
+
+#Preview {
+    PageMessages()
+}
