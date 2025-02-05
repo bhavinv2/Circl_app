@@ -77,9 +77,23 @@ struct PageForum: View {
                             HStack(spacing: 10) {
                                 // Category Dropdown
                                 Menu {
-                                    Button("Category 1", action: { selectedCategory = "Category 1" })
-                                    Button("Category 2", action: { selectedCategory = "Category 2" })
-                                    Button("Category 3", action: { selectedCategory = "Category 3" })
+                                    Button("Advice & Tips", action: { selectedCategory = "Advice & Tips" })
+                                    Button("Personal Development", action: { selectedCategory = "Personal Development" })
+                                    Button("Experience", action: { selectedCategory = "Experience" })
+                                    Button("Product Launch", action: { selectedCategory = "Product Launch" })
+                                    Button("Funding", action: { selectedCategory = "Funding" })
+                                    Button("Investment", action: { selectedCategory = "Investment" })
+                                    Button("Networking", action: { selectedCategory = "Networking" })
+                                    Button("Collaboration", action: { selectedCategory = "Collaboration" })
+                                    Button("News & Trends", action: { selectedCategory = "News & Trends" })
+                                    Button("Challenges", action: { selectedCategory = "Challenges" })
+                                    Button("Marketing", action: { selectedCategory = "Marketing" })
+                                    Button("Growth", action: { selectedCategory = "Growth" })
+                                    Button("Sales", action: { selectedCategory = "Sales" })
+                                    Button("Technology", action: { selectedCategory = "Technology" })
+                                    Button("Legal & Compliance", action: { selectedCategory = "Legal & Compliance" })
+                                    Button("Productivity", action: { selectedCategory = "Productivity" })
+                                    
                                 } label: {
                                     HStack {
                                         Text(selectedCategory)
