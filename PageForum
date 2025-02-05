@@ -129,8 +129,7 @@ struct PageForum: View {
                                 // Privacy Dropdown
                                 Menu {
                                     Button("Public", action: { selectedPrivacy = "Public" })
-                                    Button("Friends", action: { selectedPrivacy = "Friends" })
-                                    Button("Company", action: { selectedPrivacy = "Company" })
+                                    Button("Network", action: { selectedPrivacy = "Network" })
                                 } label: {
                                     HStack {
                                         Text(selectedPrivacy)
