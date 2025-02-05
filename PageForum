@@ -1,7 +1,7 @@
 import SwiftUI
+import UIKit
 
 struct ForumPost: View {
-    let title: String
     let content: String
     let author: String
     let timestamp: String
@@ -48,9 +48,9 @@ struct ForumPost: View {
                 Spacer()
                 Text(category)
                     .font(.caption)
-                    .padding(5)
-                    .background(Color.fromHex("004aad"))
-                    .foregroundColor(.white)
+                    .padding(8)
+                    .background(Color.fromHex("ffde59"))
+                    .foregroundColor(.black)
                     .cornerRadius(5)
             }
 
@@ -90,7 +90,12 @@ struct PageForum: View {
     @State private var selectedCategory = "Category"
     @State private var selectedPrivacy = "Privacy"
     @State private var postContent = ""
-
+    @State private var selectedImage: UIImage? = nil // Image picker state
+    
+    // State to control the image picker
+    @State private var isImagePickerPresented = false
+    @State private var sourceType: UIImagePickerController.SourceType = .photoLibrary
+    
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
@@ -148,7 +153,7 @@ struct PageForum: View {
                                 .font(.headline)
                                 .foregroundColor(.black)
                             
-                            // Text Box
+                            // Text Box for Post Content
                             HStack {
                                 TextField("Ask a question, or share some knowledge", text: $postContent)
                                     .padding()
@@ -157,6 +162,16 @@ struct PageForum: View {
                                 
                                 Image(systemName: "rectangle.portrait.and.arrow.forward")
                                     .foregroundColor(Color.fromHex("004aad")) // Updated blue color
+                            }
+                            
+                            // Image Preview
+                            if let selectedImage = selectedImage {
+                                Image(uiImage: selectedImage)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(height: 200)
+                                    .cornerRadius(10)
+                                    .padding(.top, 10)
                             }
                             
                             // Dropdown and Buttons in a Smaller Frame
@@ -196,8 +211,14 @@ struct PageForum: View {
                                 
                                 // Add Pictures Dropdown
                                 Menu {
-                                    Button("Upload from Camera", action: { /* Upload Action */ })
-                                    Button("Upload from Gallery", action: { /* Upload Action */ })
+                                    Button("Upload from Camera") {
+                                        sourceType = .camera
+                                        isImagePickerPresented = true
+                                    }
+                                    Button("Upload from Gallery") {
+                                        sourceType = .photoLibrary
+                                        isImagePickerPresented = true
+                                    }
                                 } label: {
                                     HStack {
                                         Text("Pictures")
@@ -240,7 +261,6 @@ struct PageForum: View {
                         VStack(spacing: 10) {
                             ForEach(0..<10, id: \.self) { index in
                                 ForumPost(
-                                    title: "Example Post \(index + 1)",
                                     content: "This is an example post content.",
                                     author: "John Doe",
                                     timestamp: "2 hours ago",
@@ -259,19 +279,19 @@ struct PageForum: View {
                 
                 // Footer Section
                 HStack(spacing: 15) {
-                    NavigationLink(destination: PageEntrepreneurMatching()) {
-                        CustomCircleButton(iconName: "hand.raised.fill")
+                    NavigationLink(destination: PageEntrepreneurMatching().navigationBarBackButtonHidden(true)) {
+                        CustomCircleButton(iconName: "figure.stand.line.dotted.figure.stand")
                     }
-                    NavigationLink(destination: PageBusinessProfile()) {
+                    NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true)) {
                         CustomCircleButton(iconName: "briefcase.fill")
                     }
-                    NavigationLink(destination: PageForum()) {
-                        CustomCircleButton(iconName: "person.3.fill")
+                    NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
+                        CustomCircleButton(iconName: "captions.bubble.fill")
                     }
-                    NavigationLink(destination: PageEntrepreneurResources()) {
-                        CustomCircleButton(iconName: "person.2.wave.2.fill")
+                    NavigationLink(destination: PageEntrepreneurResources().navigationBarBackButtonHidden(true)) {
+                        CustomCircleButton(iconName: "building.columns.fill")
                     }
-                    NavigationLink(destination: PageEntrepreneurKnowledge()) {
+                    NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
                         CustomCircleButton(iconName: "book.fill")
                     }
                 }
@@ -282,6 +302,9 @@ struct PageForum: View {
             }
             .edgesIgnoringSafeArea(.bottom)
             .navigationBarBackButtonHidden(true)
+            .sheet(isPresented: $isImagePickerPresented) {
+                ImagePicker(selectedImage: $selectedImage, sourceType: sourceType)
+            }
         }
     }
 }
@@ -314,6 +337,54 @@ extension Color {
         let green = Double((rgbValue & 0x00FF00) >> 8) / 255.0
         let blue = Double(rgbValue & 0x0000FF) / 255.0
         return Color(red: red, green: green, blue: blue)
+    }
+}
+
+// Image Picker View
+struct ImagePicker: View {
+    @Binding var selectedImage: UIImage?
+    let sourceType: UIImagePickerController.SourceType
+    
+    var body: some View {
+        ImagePickerController(selectedImage: $selectedImage, sourceType: sourceType)
+    }
+}
+
+// ImagePickerController Bridge for UIKit to SwiftUI
+struct ImagePickerController: UIViewControllerRepresentable {
+    @Binding var selectedImage: UIImage?
+    let sourceType: UIImagePickerController.SourceType
+    
+    func makeCoordinator() -> Coordinator {
+        return Coordinator(parent: self)
+    }
+    
+    func makeUIViewController(context: Context) -> UIImagePickerController {
+        let picker = UIImagePickerController()
+        picker.delegate = context.coordinator
+        picker.sourceType = sourceType
+        return picker
+    }
+    
+    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
+    
+    class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+        let parent: ImagePickerController
+        
+        init(parent: ImagePickerController) {
+            self.parent = parent
+        }
+        
+        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+            if let image = info[.originalImage] as? UIImage {
+                parent.selectedImage = image
+            }
+            picker.dismiss(animated: true)
+        }
+        
+        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+            picker.dismiss(animated: true)
+        }
     }
 }
 
