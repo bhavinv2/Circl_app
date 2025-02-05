@@ -7,10 +7,12 @@ struct ForumPost: View {
     let timestamp: String
     let category: String
     let profileImageName: String
+    let position: String // Added position
+    let company: String // Added company
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            // Header with author and timestamp
+            // Header with author, position, company, and timestamp
             HStack {
                 Image(profileImageName)
                     .resizable()
@@ -22,6 +24,23 @@ struct ForumPost: View {
                 VStack(alignment: .leading) {
                     Text(author)
                         .font(.headline)
+                    
+                    // Position and Company - New Added Element
+                    HStack {
+                        Text(position)
+                            .font(.subheadline)
+                            .foregroundColor(.gray)
+                        Text("-")
+                            .font(.subheadline)
+                            .foregroundColor(.gray)
+                        NavigationLink(destination: Text("Company Page")) { // Replace with actual company page view
+                            Text(company)
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                                .foregroundColor(Color.fromHex("004aad"))
+                        }
+                    }
+                    
                     Text(timestamp)
                         .font(.subheadline)
                         .foregroundColor(.gray)
@@ -231,7 +250,9 @@ struct PageForum: View {
                                     author: "John Doe",
                                     timestamp: "2 hours ago",
                                     category: "Advice & Tips",
-                                    profileImageName: "profile_image" // Use your actual profile image here
+                                    profileImageName: "profile_image", // Use your actual profile image here
+                                    position: "Software Engineer", // Example position
+                                    company: "Apple" // Example company
                                 )
                                 .padding(.bottom, 10)
                             }
