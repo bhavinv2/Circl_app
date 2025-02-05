@@ -53,17 +53,12 @@ struct ForumPost: View {
                     .foregroundColor(.white)
                     .cornerRadius(5)
             }
-            
-            // Post Title
-            Text(title)
-                .font(.title3)
-                .fontWeight(.semibold)
-            
+
             // Post Content
             Text(content)
                 .font(.body)
                 .lineLimit(3)
-                .foregroundColor(.gray)
+                .foregroundColor(.black)
             
             // Actions: Like, Comment, Share
             HStack {
@@ -160,7 +155,7 @@ struct PageForum: View {
                                     .background(Color(UIColor.systemGray4))
                                     .cornerRadius(5)
                                 
-                                Image(systemName: "square.and.pencil")
+                                Image(systemName: "rectangle.portrait.and.arrow.forward")
                                     .foregroundColor(Color.fromHex("004aad")) // Updated blue color
                             }
                             
