@@ -94,27 +94,27 @@ struct PageMentorMatching: View {
             // Footer Section with Navigation
             HStack(spacing: 15) {
                 // NavigationLink for "Hand Raised" icon
-                NavigationLink(destination: PageEntrepreneurMatching()) {
-                    CustomCircleButton(iconName: "hand.raised.fill")
+                NavigationLink(destination: PageEntrepreneurMatching().navigationBarBackButtonHidden(true)) {
+                    CustomCircleButton(iconName: "figure.stand.line.dotted.figure.stand")
                 }
                 
                 // NavigationLink for "Briefcase" icon
-                NavigationLink(destination: PageBusinessProfile()) {
+                NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true)) {
                     CustomCircleButton(iconName: "briefcase.fill")
                 }
                 
                 // NavigationLink for "Person 3" icon
-                NavigationLink(destination: PageForum()) {
-                    CustomCircleButton(iconName: "person.3.fill")
+                NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
+                    CustomCircleButton(iconName: "captions.bubble.fill")
                 }
                 
                 // NavigationLink for "Person 2" icon
-                NavigationLink(destination: PageEntrepreneurResources()) {  // Adjust destination as needed
-                    CustomCircleButton(iconName: "person.2.wave.2.fill")
+                NavigationLink(destination: PageEntrepreneurResources().navigationBarBackButtonHidden(true)) {  // Adjust destination as needed
+                    CustomCircleButton(iconName: "building.columns.fill")
                 }
                 
                 // NavigationLink for "Book" icon
-                NavigationLink(destination: PageEntrepreneurKnowledge()) {  // Adjust destination as needed
+                NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {  // Adjust destination as needed
                     CustomCircleButton(iconName: "book.fill")
                 }
             }
