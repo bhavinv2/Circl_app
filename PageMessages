@@ -205,8 +205,8 @@ struct PageMessages: View {
     }
 
     static let mockMessages = [
-        Message(senderName: "Howard Brown", senderRole: "District Manager", senderCompany: "Ross", previewText: "Morning Ricky, wanted to reach out...", timeAgo: "Just Now"),
-        Message(senderName: "Ayaan Patel", senderRole: "VP of Human Resources", senderCompany: "Target", previewText: "Hey Ricky, how's the business doin...", timeAgo: "1 hour"),
+        Message(senderName: "Howard Brown", senderRole: "District Manager", senderCompany: "Ross", previewText: "Morning Fragne, wanted to reach out...", timeAgo: "Just Now"),
+        Message(senderName: "Ayaan Patel", senderRole: "VP of Human Resources", senderCompany: "Target", previewText: "Hey Fragne, how's the business doin...", timeAgo: "1 hour"),
         Message(senderName: "John Clark III", senderRole: "CTO", senderCompany: "The Clark Group", previewText: "Have you looked into the sales of th...", timeAgo: "1 day"),
         Message(senderName: "Sophia Johnson", senderRole: "Marketing Manager", senderCompany: "TechCorp", previewText: "We need to talk about the campaign...", timeAgo: "2 days"),
         Message(senderName: "Ella Smith", senderRole: "Founder", senderCompany: "Green Ventures", previewText: "I sent the latest pitch deck...", timeAgo: "1 week"),
@@ -327,31 +327,60 @@ struct WriteMessagePopupView: View {
 struct ChatView: View {
     let message: PageMessages.Message
     @State private var messageText: String = ""
-    @State private var messages: [String] = [] // Store messages for this particular conversation
+    @State private var messages: [(String, Bool)] = [] // Store messages along with a flag for sent-by-user
 
     var body: some View {
         VStack {
+            // Profile Header
+            HStack {
+                // Profile Picture
+                Image(systemName: "person.circle.fill") // Placeholder, replace with an actual profile image
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 80, height: 80)
+                    .foregroundColor(.blue) // Or set a specific color
+
+                VStack(alignment: .leading) {
+                    Text(message.senderName)
+                        .font(.headline)
+                    
+                    Text(message.senderRole) // Sender's position
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
+                    
+                    Text(message.senderCompany) // Sender's company
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
+                }
+            }
+            .padding()
+
+            // Message List
             ScrollView {
                 VStack(alignment: .leading) {
                     // Display the current conversation
-                    ForEach(messages, id: \.self) { message in
-                        Text(message)
+                    ForEach(messages, id: \.0) { message in
+                        Text(message.0) // The message text
                             .padding()
-                            .background(Color.gray.opacity(0.2))
+                            .background(message.1 ? Color(hex: "004aad") : Color.gray.opacity(0.2)) // Custom blue if sent by the user
+                            .foregroundColor(message.1 ? .white : .black) // White text for sent messages
                             .cornerRadius(10)
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .frame(maxWidth: .infinity, alignment: message.1 ? .trailing : .leading) // Align to the right for user messages
                     }
                 }
                 .padding()
             }
 
+            // Message Input
             HStack {
                 TextField("Type a message...", text: $messageText)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .padding(.leading)
+
                 Button("Send") {
                     if !messageText.isEmpty {
-                        // Add the new message to the conversation
-                        messages.append(messageText)
+                        // Add the new message to the conversation (true means it is sent by the user)
+                        messages.append((messageText, true))
                         messageText = ""
                     }
                 }
@@ -359,11 +388,10 @@ struct ChatView: View {
             }
             .padding()
         }
-        .navigationTitle(message.senderName) // Set the title to the sender's name
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             // Initialize the conversation with the first message (or a mockup for now)
-            messages.append(message.previewText)
+            messages.append((message.previewText, false)) // Initially, we assume it's not sent by the user
         }
     }
 }
