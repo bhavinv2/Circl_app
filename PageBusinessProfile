@@ -2,6 +2,55 @@ import SwiftUI
 
 // MARK: - Main View
 struct PageBusinessProfile: View {
+    // MARK: - Placeholder Data
+    @State private var companyName: String = "Company Name"
+    @State private var companyLogo: String = "companyLogo"
+    @State private var companyWebsiteURL: URL? = nil
+    @State private var aboutText: String = "Write about the company here..."
+    @State private var companyDetails: [String: String] = [
+        "Industry": "Technology",
+        "Type": "Startup",
+        "Problem To Solve": "Improving connectivity for entrepreneurs",
+        "Cofounders": "2",
+        "Stage": "Seed",
+        "Revenue": "Pre-revenue",
+        "Location": "San Francisco, CA",
+        "Looking for": "Investors, Mentors, Partners"
+    ]
+    @State private var values: [String: String] = [
+        "Vision": "To revolutionize connectivity among entrepreneurs.",
+        "Mission": "To empower entrepreneurs by fostering meaningful connections.",
+        "Company Culture": "Innovative, inclusive, and results-driven."
+    ]
+    @State private var solutionDetails: [String: String] = [
+        "Product/Service": "Describe the product or service here.",
+        "Unique Selling Proposition": "Highlight what makes this unique.",
+        "Traction/Progress": "Summarize the milestones achieved."
+    ]
+    @State private var businessModelDetails: [String: String] = [
+        "Revenue Streams": "List the revenue streams.",
+        "Pricing Strategy": "Outline the pricing approach.",
+        "Sales/Revenue": "Summarize current sales/revenue."
+    ]
+    @State private var teamDetails: [String: String] = [
+        "CoFounders": "List of cofounders.",
+        "Key Hires": "List of key hires.",
+        "Advisors/Mentors": "List of advisors or mentors."
+    ]
+    @State private var financialsDetails: [String: String] = [
+        "Funding Stage": "Specify the funding stage.",
+        "Amount Raised": "Total amount raised.",
+        "Use of Funds": "Describe how funds are utilized.",
+        "Financial Projections": "Summarize projections."
+    ]
+    @State private var lookingForDetails: [String: String] = [
+        "Roles Needed": "List roles needed.",
+        "Mentorship": "Specify areas where mentorship is needed.",
+        "Investment": "Describe investment needs.",
+        "Other": "Other needs or requirements."
+    ]
+    @State private var contactPerson: String = "John Doe"
+
     var body: some View {
         NavigationView { // Wrap the main view in a NavigationView
             VStack(spacing: 0) {
@@ -60,7 +109,6 @@ struct PageBusinessProfile: View {
             .background(Color.fromHex("004aad")) // Blue background for the header
         }
     }
-
     
     // MARK: - Scrollable Section
     private var scrollableSection: some View {
@@ -91,7 +139,7 @@ struct PageBusinessProfile: View {
                     .fill(Color.gray.opacity(0.2))
                     .frame(height: 120)
                     .overlay(
-                        Image("companyLogo") // Replace with dynamic binding to the company logo
+                        Image(companyLogo) // Dynamically bind the company logo
                             .resizable()
                             .scaledToFit()
                             .padding()
@@ -100,14 +148,14 @@ struct PageBusinessProfile: View {
                     .cornerRadius(10)
                 
                 // Company name with dynamic underline for link
-                if let companyWebsiteURL = companyWebsiteURL, hasWebsiteLink {
-                    Link("Company Name", destination: companyWebsiteURL)
+                if let companyWebsiteURL = companyWebsiteURL {
+                    Link(companyName, destination: companyWebsiteURL)
                         .font(.title2)
                         .fontWeight(.semibold)
                         .foregroundColor(.white)
                         .underline()
                 } else {
-                    Text("Company Name")
+                    Text(companyName)
                         .font(.title2)
                         .fontWeight(.semibold)
                         .foregroundColor(.white)
@@ -119,10 +167,6 @@ struct PageBusinessProfile: View {
         }
     }
     
-    // MARK: - Variables
-    @State private var hasWebsiteLink: Bool = false // Dynamically determine if a website link exists
-    @State private var companyWebsiteURL: URL? = nil // Replace with actual URL data binding
-    
     // MARK: - About Section
     private var aboutSection: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -130,8 +174,7 @@ struct PageBusinessProfile: View {
                 .font(.headline)
                 .foregroundColor(.black)
             
-            // Display box with placeholder text
-            Text("Write about the company here...")
+            Text(aboutText) // Dynamically bind the About text
                 .frame(height: 120)
                 .frame(maxWidth: .infinity)
                 .padding()
@@ -156,14 +199,9 @@ struct PageBusinessProfile: View {
                 .foregroundColor(.black)
             
             VStack(alignment: .leading, spacing: 8) {
-                detailRow(title: "Industry", value: "Technology")
-                detailRow(title: "Type", value: "Startup")
-                detailRow(title: "Problem To Solve", value: "Improving connectivity for entrepreneurs")
-                detailRow(title: "Cofounders", value: "2")
-                detailRow(title: "Stage", value: "Seed")
-                detailRow(title: "Revenue", value: "Pre-revenue")
-                detailRow(title: "Location", value: "San Francisco, CA")
-                detailRow(title: "Looking for", value: "Investors, Mentors, Partners")
+                ForEach(companyDetails.keys.sorted(), id: \.self) { key in
+                    detailRow(title: key, value: companyDetails[key] ?? "")
+                }
             }
             .padding()
             .frame(maxWidth: .infinity)
@@ -179,19 +217,6 @@ struct PageBusinessProfile: View {
         .cornerRadius(10)
     }
     
-    // MARK: - Detail Row Helper Function
-    private func detailRow(title: String, value: String) -> some View {
-        HStack(alignment: .top, spacing: 0) {
-            Text("\(title): ")
-                .font(.body)
-                .fontWeight(.semibold)
-                .foregroundColor(.primary)
-            Text(value)
-                .font(.body)
-                .foregroundColor(.primary)
-        }
-    }
-    
     // MARK: - Values Section
     private var valuesSection: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -201,9 +226,9 @@ struct PageBusinessProfile: View {
                 .foregroundColor(.black)
             
             VStack(alignment: .leading, spacing: 8) {
-                detailRow(title: "Vision", value: "To revolutionize connectivity among entrepreneurs.")
-                detailRow(title: "Mission", value: "To empower entrepreneurs by fostering meaningful connections.")
-                detailRow(title: "Company Culture", value: "Innovative, inclusive, and results-driven.")
+                ForEach(values.keys.sorted(), id: \.self) { key in
+                    detailRow(title: key, value: values[key] ?? "")
+                }
             }
             .padding()
             .frame(maxWidth: .infinity)
@@ -228,9 +253,9 @@ struct PageBusinessProfile: View {
                 .foregroundColor(.black)
             
             VStack(alignment: .leading, spacing: 8) {
-                detailRow(title: "Product/Service", value: "Describe the product or service here.")
-                detailRow(title: "Unique Selling Proposition", value: "Highlight what makes this unique.")
-                detailRow(title: "Traction/Progress", value: "Summarize the milestones achieved.")
+                ForEach(solutionDetails.keys.sorted(), id: \.self) { key in
+                    detailRow(title: key, value: solutionDetails[key] ?? "")
+                }
             }
             .padding()
             .frame(maxWidth: .infinity)
@@ -255,9 +280,9 @@ struct PageBusinessProfile: View {
                 .foregroundColor(.black)
             
             VStack(alignment: .leading, spacing: 8) {
-                detailRow(title: "Revenue Streams", value: "List the revenue streams.")
-                detailRow(title: "Pricing Strategy", value: "Outline the pricing approach.")
-                detailRow(title: "Sales/Revenue", value: "Summarize current sales/revenue.")
+                ForEach(businessModelDetails.keys.sorted(), id: \.self) { key in
+                    detailRow(title: key, value: businessModelDetails[key] ?? "")
+                }
             }
             .padding()
             .frame(maxWidth: .infinity)
@@ -282,9 +307,9 @@ struct PageBusinessProfile: View {
                 .foregroundColor(.black)
             
             VStack(alignment: .leading, spacing: 8) {
-                detailRow(title: "CoFounders", value: "List of cofounders.")
-                detailRow(title: "Key Hires", value: "List of key hires.")
-                detailRow(title: "Advisors/Mentors", value: "List of advisors or mentors.")
+                ForEach(teamDetails.keys.sorted(), id: \.self) { key in
+                    detailRow(title: key, value: teamDetails[key] ?? "")
+                }
             }
             .padding()
             .frame(maxWidth: .infinity)
@@ -309,10 +334,9 @@ struct PageBusinessProfile: View {
                 .foregroundColor(.black)
             
             VStack(alignment: .leading, spacing: 8) {
-                detailRow(title: "Funding Stage", value: "Specify the funding stage.")
-                detailRow(title: "Amount Raised", value: "Total amount raised.")
-                detailRow(title: "Use of Funds", value: "Describe how funds are utilized.")
-                detailRow(title: "Financial Projections", value: "Summarize projections.")
+                ForEach(financialsDetails.keys.sorted(), id: \.self) { key in
+                    detailRow(title: key, value: financialsDetails[key] ?? "")
+                }
             }
             .padding()
             .frame(maxWidth: .infinity)
@@ -337,10 +361,9 @@ struct PageBusinessProfile: View {
                 .foregroundColor(.black)
             
             VStack(alignment: .leading, spacing: 8) {
-                detailRow(title: "Roles Needed", value: "List roles needed.")
-                detailRow(title: "Mentorship", value: "Specify areas where mentorship is needed.")
-                detailRow(title: "Investment", value: "Describe investment needs.")
-                detailRow(title: "Other", value: "Other needs or requirements.")
+                ForEach(lookingForDetails.keys.sorted(), id: \.self) { key in
+                    detailRow(title: key, value: lookingForDetails[key] ?? "")
+                }
             }
             .padding()
             .frame(maxWidth: .infinity)
@@ -365,7 +388,7 @@ struct PageBusinessProfile: View {
                 .foregroundColor(.black)
             
             VStack(alignment: .leading, spacing: 8) {
-                Text("John Doe")
+                Text(contactPerson)
                     .foregroundColor(Color.fromHex("004aad"))
                     .underline()
                     .onTapGesture {
@@ -385,7 +408,7 @@ struct PageBusinessProfile: View {
         .background(Color.white)
         .cornerRadius(10)
     }
-    
+
     // MARK: - Footer Section
     private var footerSection: some View {
         HStack(spacing: 15) {
@@ -424,6 +447,19 @@ struct PageBusinessProfile: View {
                     .frame(width: 30, height: 30)
                     .foregroundColor(.white)
             }
+        }
+    }
+    
+    // MARK: - Detail Row Helper Function
+    private func detailRow(title: String, value: String) -> some View {
+        HStack(alignment: .top, spacing: 0) {
+            Text("\(title): ")
+                .font(.body)
+                .fontWeight(.semibold)
+                .foregroundColor(.primary)
+            Text(value)
+                .font(.body)
+                .foregroundColor(.primary)
         }
     }
 }
