@@ -2,7 +2,7 @@ import SwiftUI
 
 // MARK: - Main View
 struct PageMessages: View {
-
+    @State private var messages: [Message] // Messages array
     @State private var isWriteMessagePopupPresented = false
 
     var body: some View {
@@ -16,7 +16,7 @@ struct PageMessages: View {
             .edgesIgnoringSafeArea(.bottom)
             .navigationBarBackButtonHidden(true)
             .sheet(isPresented: $isWriteMessagePopupPresented) {
-                WriteMessagePopupView()
+                WriteMessagePopupView(messages: $messages)
             }
         }
     }
@@ -76,7 +76,7 @@ struct PageMessages: View {
                     .foregroundColor(.black)
                     .cornerRadius(10)
             }
-
+            
             NavigationLink(destination: PageCircles().navigationBarBackButtonHidden(true)) {
                 Text("Circles")
                     .font(.system(size: 12))
@@ -104,7 +104,7 @@ struct PageMessages: View {
     private var scrollableSection: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                ForEach(mockMessages.sorted { $0.timeAgoValue < $1.timeAgoValue }) { message in
+                ForEach(messages.sorted { $0.timeAgoValue < $1.timeAgoValue }) { message in
                     MessageRow(message: message)
                 }
             }
@@ -137,31 +137,33 @@ struct PageMessages: View {
         let message: Message
 
         var body: some View {
-            VStack(alignment: .leading) {
-                HStack {
-                    Image(systemName: "person.crop.circle.fill")
-                        .resizable()
-                        .frame(width: 50, height: 50)
-                        .foregroundColor(.blue)
-                    VStack(alignment: .leading) {
-                        Text(message.senderName)
-                            .font(.headline)
-                        Text("\(message.senderRole) - \(message.senderCompany)")
-                            .font(.subheadline)
+            NavigationLink(destination: ChatView(message: message)) {
+                VStack(alignment: .leading) {
+                    HStack {
+                        Image(systemName: "person.crop.circle.fill")
+                            .resizable()
+                            .frame(width: 50, height: 50)
+                            .foregroundColor(.blue)
+                        VStack(alignment: .leading) {
+                            Text(message.senderName)
+                                .font(.headline)
+                            Text("\(message.senderRole) - \(message.senderCompany)")
+                                .font(.subheadline)
+                                .foregroundColor(.gray)
+                        }
+                        Spacer()
+                        Text(message.timeAgo)
+                            .font(.footnote)
                             .foregroundColor(.gray)
                     }
-                    Spacer()
-                    Text(message.timeAgo)
-                        .font(.footnote)
-                        .foregroundColor(.gray)
+                    Text(message.previewText)
+                        .font(.body)
+                        .foregroundColor(.black)
+                    Divider()
                 }
-                Text(message.previewText)
-                    .font(.body)
-                    .foregroundColor(.black)
-                Divider()
+                .padding(.vertical, 8)
+                .padding(.horizontal, 16)
             }
-            .padding(.vertical, 8)
-            .padding(.horizontal, 16)
         }
     }
 
@@ -171,7 +173,7 @@ struct PageMessages: View {
         var body: some View {
             ZStack {
                 Circle()
-                    .fill(Color.fromHex7("004aad"))
+                    .fill(Color.fromHex("004aad"))
                     .frame(width: 60, height: 60)
                 Image(systemName: iconName)
                     .resizable()
@@ -202,38 +204,166 @@ struct PageMessages: View {
         }
     }
 
-    let mockMessages = [
+    static let mockMessages = [
         Message(senderName: "Howard Brown", senderRole: "District Manager", senderCompany: "Ross", previewText: "Morning Ricky, wanted to reach out...", timeAgo: "Just Now"),
-                Message(senderName: "Ayaan Patel", senderRole: "VP of Human Resources", senderCompany: "Target", previewText: "Hey Ricky, how's the business doin...", timeAgo: "1 hour"),
-                Message(senderName: "John Clark III", senderRole: "CTO", senderCompany: "The Clark Group", previewText: "Have you looked into the sales of th...", timeAgo: "1 day"),
-                Message(senderName: "Sophia Johnson", senderRole: "Marketing Manager", senderCompany: "TechCorp", previewText: "We need to talk about the campaign...", timeAgo: "2 days"),
-                Message(senderName: "Ella Smith", senderRole: "Founder", senderCompany: "Green Ventures", previewText: "I sent the latest pitch deck...", timeAgo: "1 week"),
-                Message(senderName: "Liam Brown", senderRole: "Analyst", senderCompany: "DataPros", previewText: "The Q4 data is in. Let's connect...", timeAgo: "1 hour"),
-                Message(senderName: "Olivia Davis", senderRole: "CEO", senderCompany: "InnoTech", previewText: "How are partnerships progressing?", timeAgo: "Just Now"),
-                Message(senderName: "Lucas Evans", senderRole: "Consultant", senderCompany: "BizPro", previewText: "Sent the client strategy report...", timeAgo: "1 day"),
-                Message(senderName: "Ava Lee", senderRole: "CFO", senderCompany: "SmartFinance", previewText: "We need to review budget cuts...", timeAgo: "2 days"),
-                Message(senderName: "Ethan Wilson", senderRole: "Product Manager", senderCompany: "AppWorks", previewText: "Beta testing feedback looks good...", timeAgo: "Just Now"),
-                Message(senderName: "Mia Thomas", senderRole: "Head of Design", senderCompany: "VisionDesign", previewText: "Concept sketches are ready...", timeAgo: "1 week"),
-                Message(senderName: "Noah Martinez", senderRole: "Operations Lead", senderCompany: "ShipIt", previewText: "Warehouse ops are stabilized...", timeAgo: "2 days"),
-                Message(senderName: "Amelia Taylor", senderRole: "Recruiter", senderCompany: "TalentSphere", previewText: "The candidate pipeline is looking...", timeAgo: "1 hour"),
-                Message(senderName: "James Anderson", senderRole: "Sales Director", senderCompany: "SellRight", previewText: "Sales targets met for Q1...", timeAgo: "1 day"),
-                Message(senderName: "Isabella Garcia", senderRole: "Engineer", senderCompany: "Codebase", previewText: "Bug fixes pushed to production...", timeAgo: "Just Now"),
-                Message(senderName: "Michael Hernandez", senderRole: "Founder", senderCompany: "DreamWorks", previewText: "Excited about the new venture...", timeAgo: "1 week"),
-                Message(senderName: "Charlotte Lewis", senderRole: "Operations Manager", senderCompany: "BlueSky", previewText: "Inventory levels are optimized...", timeAgo: "2 days"),
-                Message(senderName: "Benjamin White", senderRole: "Creative Director", senderCompany: "PixelHouse", previewText: "Creative assets delivered...", timeAgo: "1 hour"),
-                Message(senderName: "Henry Scott", senderRole: "Investor", senderCompany: "CapitalWise", previewText: "Let's set up a meeting...", timeAgo: "Just Now"),
-                Message(senderName: "Grace Harris", senderRole: "HR Manager", senderCompany: "BrightFuture", previewText: "Looking into employee engagement...", timeAgo: "2 days")
+        Message(senderName: "Ayaan Patel", senderRole: "VP of Human Resources", senderCompany: "Target", previewText: "Hey Ricky, how's the business doin...", timeAgo: "1 hour"),
+        Message(senderName: "John Clark III", senderRole: "CTO", senderCompany: "The Clark Group", previewText: "Have you looked into the sales of th...", timeAgo: "1 day"),
+        Message(senderName: "Sophia Johnson", senderRole: "Marketing Manager", senderCompany: "TechCorp", previewText: "We need to talk about the campaign...", timeAgo: "2 days"),
+        Message(senderName: "Ella Smith", senderRole: "Founder", senderCompany: "Green Ventures", previewText: "I sent the latest pitch deck...", timeAgo: "1 week"),
+        Message(senderName: "Liam Brown", senderRole: "Analyst", senderCompany: "DataPros", previewText: "The Q4 data is in. Let's connect...", timeAgo: "1 hour"),
+        Message(senderName: "Olivia Davis", senderRole: "CEO", senderCompany: "InnoTech", previewText: "How are partnerships progressing?", timeAgo: "Just Now"),
+        Message(senderName: "Lucas Evans", senderRole: "Consultant", senderCompany: "BizPro", previewText: "Sent the client strategy report...", timeAgo: "1 day"),
+        Message(senderName: "Ava Lee", senderRole: "CFO", senderCompany: "SmartFinance", previewText: "We need to review budget cuts...", timeAgo: "2 days"),
+        Message(senderName: "Ethan Wilson", senderRole: "Product Manager", senderCompany: "AppWorks", previewText: "Beta testing feedback looks good...", timeAgo: "Just Now"),
+        Message(senderName: "Mia Thomas", senderRole: "Head of Design", senderCompany: "VisionDesign", previewText: "Concept sketches are ready...", timeAgo: "1 week"),
+        Message(senderName: "Noah Martinez", senderRole: "Operations Lead", senderCompany: "ShipIt", previewText: "Warehouse ops are stabilized...", timeAgo: "2 days"),
+        Message(senderName: "Amelia Taylor", senderRole: "Recruiter", senderCompany: "TalentSphere", previewText: "The candidate pipeline is looking...", timeAgo: "1 hour"),
+        Message(senderName: "James Anderson", senderRole: "Sales Director", senderCompany: "SellRight", previewText: "Sales targets met for Q1...", timeAgo: "1 day"),
+        Message(senderName: "Isabella Garcia", senderRole: "Engineer", senderCompany: "Codebase", previewText: "Bug fixes pushed to production...", timeAgo: "Just Now"),
+        Message(senderName: "Michael Hernandez", senderRole: "Founder", senderCompany: "DreamWorks", previewText: "Excited about the new venture...", timeAgo: "1 week"),
+        Message(senderName: "Charlotte Lewis", senderRole: "Operations Manager", senderCompany: "BlueSky", previewText: "Inventory levels are optimized...", timeAgo: "2 days"),
+        Message(senderName: "Benjamin White", senderRole: "Creative Director", senderCompany: "PixelHouse", previewText: "Creative assets delivered...", timeAgo: "1 hour"),
+        Message(senderName: "Henry Scott", senderRole: "Investor", senderCompany: "CapitalWise", previewText: "Let's set up a meeting...", timeAgo: "Just Now"),
+        Message(senderName: "Grace Harris", senderRole: "HR Manager", senderCompany: "BrightFuture", previewText: "Looking into employee engagement...", timeAgo: "2 days")
     ]
+    // Custom init method
+        init() {
+            // Initialize messages with static mockMessages
+            _messages = State(initialValue: PageMessages.mockMessages)
+    }
 }
 
-// MARK: - Popup View
 struct WriteMessagePopupView: View {
+    @Binding var messages: [PageMessages.Message] // Binding to messages
+    @State private var searchText: String = ""
+    @State private var messageText: String = ""
+    @State private var suggestedUsers: [String] = []
+    @State private var selectedUser: String? = nil
+    let allUsers: [String] = ["Alice Johnson", "Bob Smith", "Charlie Davis", "David Lee", "Emma White"]
+    let myNetwork: [String] = ["Alice Johnson", "David Lee"]
+
+    var body: some View {
+        VStack(spacing: 16) {
+            // Search Bar
+            TextField("Search users...", text: $searchText, onEditingChanged: { _ in
+                filterUsers()
+            })
+            .textFieldStyle(RoundedBorderTextFieldStyle())
+            .padding()
+            
+            // Suggested Users List
+            if !suggestedUsers.isEmpty {
+                List(suggestedUsers, id: \.self) { user in
+                    Text(user)
+                        .font(myNetwork.contains(user) ? .headline : .body)
+                        .onTapGesture {
+                            selectedUser = user
+                            searchText = user
+                            suggestedUsers = []
+                        }
+                }
+                .frame(height: 150)
+            }
+            
+            // Message Input
+            TextField("Write your message here...", text: $messageText, axis: .vertical)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .frame()
+                .padding()
+            
+            // Send Button
+            Button(action: {
+                sendMessage()
+            }) {
+                Text("Send")
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.blue)
+                    .cornerRadius(12)
+            }
+            .padding()
+            .disabled(selectedUser == nil || messageText.isEmpty)
+        }
+        .padding()
+        .background(Color(.systemBackground))
+        .cornerRadius(16)
+        .shadow(radius: 10)
+        .padding()
+    }
+
+    private func filterUsers() {
+        suggestedUsers = allUsers.filter { user in
+            user.lowercased().contains(searchText.lowercased())
+        }.sorted { (myNetwork.contains($0) ? 0 : 1) < (myNetwork.contains($1) ? 0 : 1) }
+    }
+
+    private func sendMessage() {
+        guard let recipient = selectedUser else { return }
+        
+        // Create a new message
+        let newMessage = PageMessages.Message(
+            senderName: recipient,
+            senderRole: "User Role",
+            senderCompany: "User Company",
+            previewText: messageText,
+            timeAgo: "Just Now"
+        )
+        
+        // Add the new message to the messages array
+        messages.append(newMessage)
+        
+        print("Message sent to \(recipient): \(messageText)")
+        
+        // Clear the input fields
+        messageText = ""
+        selectedUser = nil
+        searchText = ""
+    }
+}
+
+// MARK: - Chat View
+struct ChatView: View {
+    let message: PageMessages.Message
+    @State private var messageText: String = ""
+    @State private var messages: [String] = [] // Store messages for this particular conversation
+
     var body: some View {
         VStack {
-            Text("Write your message here")
-                .font(.headline)
+            ScrollView {
+                VStack(alignment: .leading) {
+                    // Display the current conversation
+                    ForEach(messages, id: \.self) { message in
+                        Text(message)
+                            .padding()
+                            .background(Color.gray.opacity(0.2))
+                            .cornerRadius(10)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                }
                 .padding()
-            Spacer()
+            }
+
+            HStack {
+                TextField("Type a message...", text: $messageText)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                Button("Send") {
+                    if !messageText.isEmpty {
+                        // Add the new message to the conversation
+                        messages.append(messageText)
+                        messageText = ""
+                    }
+                }
+                .padding()
+            }
+            .padding()
+        }
+        .navigationTitle(message.senderName) // Set the title to the sender's name
+        .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            // Initialize the conversation with the first message (or a mockup for now)
+            messages.append(message.previewText)
         }
     }
 }
