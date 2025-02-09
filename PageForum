@@ -100,6 +100,7 @@ struct PageForum: View {
         NavigationView {
             VStack(spacing: 0) {
                 // Header Section
+                // Header Section
                 VStack(spacing: 0) {
                     HStack {
                         VStack(alignment: .leading, spacing: 5) {
@@ -108,7 +109,6 @@ struct PageForum: View {
                                 .fontWeight(.bold)
                                 .foregroundColor(.white)
                             
-                            // Filter Button directly under "Circl."
                             Button(action: {
                                 // Action for Filter
                             }) {
@@ -121,28 +121,42 @@ struct PageForum: View {
                                 }
                             }
                         }
+                        
                         Spacer()
+                        
                         VStack(alignment: .trailing, spacing: 5) {
-                            // Profile Icon above "Hello, Fragne" Text
-                            NavigationLink(destination: ProfilePage()) {
-                                Image(systemName: "person.circle.fill")
-                                    .resizable()
-                                    .frame(width: 50, height: 50)
+                            // Add the Bubble and Person icons above "Hello, Fragne"
+                            VStack {
+                                HStack(spacing: 10) {
+                                    // Navigation Link for Bubble Symbol
+                                    NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
+                                        Image(systemName: "bubble.left.and.bubble.right.fill")
+                                            .resizable()
+                                            .frame(width: 50, height: 40)  // Adjust size
+                                            .foregroundColor(.white)
+                                    }
+
+                                    // Person Icon
+                                    NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
+                                        Image(systemName: "person.circle.fill")
+                                            .resizable()
+                                            .frame(width: 50, height: 50)
+                                            .foregroundColor(.white)
+                                    }
+                                }
+
+                                // "Hello, Fragne" text below the icons
+                                Text("Hello, Fragne")
                                     .foregroundColor(.white)
-                                    .offset(x: -28) // Move the profile picture slightly to the left
+                                    .font(.headline)
                             }
-                            
-                            // Align "Hello, Fragne" with "Filter" button
-                            Text("Hello, Fragne")
-                                .foregroundColor(.white)
-                                .font(.headline)
                         }
                     }
                     .padding(.horizontal)
+                    .padding(.top, 15)
+                    .padding(.bottom, 10)
+                    .background(Color.fromHex("004aad")) // Updated blue color
                 }
-                .padding(.top, 15)
-                .padding(.bottom, 10)
-                .background(Color.fromHex("004aad")) // Updated blue color
                 
                 // Scrollable View Section
                 ScrollView {
@@ -159,7 +173,7 @@ struct PageForum: View {
                                     .padding()
                                     .background(Color(UIColor.systemGray4))
                                     .cornerRadius(5)
-                                
+                             //Submit button to backend
                                 Image(systemName: "rectangle.portrait.and.arrow.forward")
                                     .foregroundColor(Color.fromHex("004aad")) // Updated blue color
                             }
@@ -236,7 +250,7 @@ struct PageForum: View {
                                 // Privacy Dropdown
                                 Menu {
                                     Button("Public", action: { selectedPrivacy = "Public" })
-                                    Button("Network", action: { selectedPrivacy = "Network" })
+                                    Button("My Network", action: { selectedPrivacy = "My Network" })
                                 } label: {
                                     HStack {
                                         Text(selectedPrivacy)
@@ -292,7 +306,7 @@ struct PageForum: View {
                         CustomCircleButton(iconName: "building.columns.fill")
                     }
                     NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
-                        CustomCircleButton(iconName: "book.fill")
+                        CustomCircleButton(iconName: "newspaper")
                     }
                 }
                 .padding(.vertical, 10)
