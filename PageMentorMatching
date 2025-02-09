@@ -179,6 +179,7 @@ struct PageMentorMatching: View {
         NavigationView {
             VStack(spacing: 0) {
                 // Header Section
+                // Header Section
                 VStack(spacing: 0) {
                     HStack {
                         VStack(alignment: .leading, spacing: 5) {
@@ -187,7 +188,6 @@ struct PageMentorMatching: View {
                                 .fontWeight(.bold)
                                 .foregroundColor(.white)
                             
-                            // Filter Button directly under "Circl."
                             Button(action: {
                                 // Action for Filter
                             }) {
@@ -200,20 +200,35 @@ struct PageMentorMatching: View {
                                 }
                             }
                         }
+                        
                         Spacer()
+                        
                         VStack(alignment: .trailing, spacing: 5) {
-                            // Profile Icon above "Hello, Fragne" Text
-                            NavigationLink(destination: ProfilePage()) {
-                                Image(systemName: "person.circle.fill")
-                                    .resizable()
-                                    .frame(width: 50, height: 50)
+                            // Add the Bubble and Person icons above "Hello, Fragne"
+                            VStack {
+                                HStack(spacing: 10) {
+                                    // Navigation Link for Bubble Symbol
+                                    NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
+                                        Image(systemName: "bubble.left.and.bubble.right.fill")
+                                            .resizable()
+                                            .frame(width: 50, height: 40)  // Adjust size
+                                            .foregroundColor(.white)
+                                    }
+
+                                    // Person Icon
+                                    NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
+                                        Image(systemName: "person.circle.fill")
+                                            .resizable()
+                                            .frame(width: 50, height: 50)
+                                            .foregroundColor(.white)
+                                    }
+                                }
+
+                                // "Hello, Fragne" text below the icons
+                                Text("Hello, Fragne")
                                     .foregroundColor(.white)
+                                    .font(.headline)
                             }
-                            
-                            // Align "Hello, Fragne" with "Filter" button
-                            Text("Hello, Fragne")
-                                .foregroundColor(.white)
-                                .font(.headline)
                         }
                     }
                     .padding(.horizontal)
@@ -298,7 +313,7 @@ struct PageMentorMatching: View {
                     
                     // NavigationLink for "Book" icon
                     NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {  // Adjust the destination as needed
-                        CustomCircleButton(iconName: "book.fill")
+                        CustomCircleButton(iconName: "newspaper")
                     }
                 }
                 .padding(.vertical, 10)
