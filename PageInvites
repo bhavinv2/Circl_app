@@ -8,6 +8,7 @@ struct InviteProfileTemplate: View {
     var proficiency: String
     var tags: [String]
     var profileImage: String
+    var showAcceptDeclineButtons: Bool = true  // Add this to conditionally show the buttons
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -40,23 +41,26 @@ struct InviteProfileTemplate: View {
 
                 Spacer()
 
-                HStack(spacing: 10) {
-                    Button(action: {
-                        // Accept action
-                    }) {
-                        Image(systemName: "checkmark.circle.fill")
-                            .resizable()
-                            .frame(width: 45, height: 45)
-                            .foregroundColor(.green)
-                    }
+                // Conditionally show the buttons
+                if showAcceptDeclineButtons {
+                    HStack(spacing: 10) {
+                        Button(action: {
+                            // Accept action
+                        }) {
+                            Image(systemName: "checkmark.circle.fill")
+                                .resizable()
+                                .frame(width: 45, height: 45)
+                                .foregroundColor(.green)
+                        }
 
-                    Button(action: {
-                        // Decline action
-                    }) {
-                        Image(systemName: "xmark.circle.fill")
-                            .resizable()
-                            .frame(width: 45, height: 45)
-                            .foregroundColor(.red)
+                        Button(action: {
+                            // Decline action
+                        }) {
+                            Image(systemName: "xmark.circle.fill")
+                                .resizable()
+                                .frame(width: 45, height: 45)
+                                .foregroundColor(.red)
+                        }
                     }
                 }
             }
@@ -144,6 +148,7 @@ struct InviteProfileLink: View {
     var proficiency: String
     var tags: [String]
     var profileImage: String
+    var showAcceptDeclineButtons: Bool = true
 
     var body: some View {
         NavigationLink(destination: InviteProfileDetailPage(
@@ -160,7 +165,8 @@ struct InviteProfileLink: View {
                 company: company,
                 proficiency: proficiency,
                 tags: tags,
-                profileImage: profileImage
+                profileImage: profileImage,
+                showAcceptDeclineButtons: showAcceptDeclineButtons
             )
         }
     }
@@ -168,7 +174,12 @@ struct InviteProfileLink: View {
 
 // MARK: - PageInvites
 struct PageInvites: View {
-    var profiles: [InviteProfileData] = [
+    var friendRequests: [InviteProfileData] = [
+        InviteProfileData(name: "John Doe", title: "Software Engineer", company: "TechCorp", proficiency: "iOS Development", tags: ["iOS", "Swift", "App Development"], profileImage: "sampleProfileImage"),
+        InviteProfileData(name: "Jane Smith", title: "Product Manager", company: "InnoTech", proficiency: "Product Strategy", tags: ["Product", "Strategy", "Management"], profileImage: "sampleProfileImage")
+    ]
+    
+    var myNetwork: [InviteProfileData] = [
         InviteProfileData(name: "Sam Johnston", title: "VP of Sales", company: "Dell", proficiency: "Sales", tags: ["Technology", "Real Estate", "Online Sales"], profileImage: "sampleProfileImage"),
         InviteProfileData(name: "Emily Adams", title: "CTO", company: "TechNova", proficiency: "Software Engineering", tags: ["AI", "Software", "Innovation"], profileImage: "sampleProfileImage"),
         InviteProfileData(name: "Michael Lee", title: "Founder", company: "GreenTech", proficiency: "Sustainability", tags: ["Green Energy", "Innovation", "Tech Startups"], profileImage: "sampleProfileImage"),
@@ -179,6 +190,7 @@ struct PageInvites: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
+                // Header Section
                 // Header Section
                 VStack(spacing: 0) {
                     HStack {
@@ -200,17 +212,35 @@ struct PageInvites: View {
                                 }
                             }
                         }
+                        
                         Spacer()
+                        
                         VStack(alignment: .trailing, spacing: 5) {
-                            NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
-                                Image(systemName: "person.circle.fill")
-                                    .resizable()
-                                    .frame(width: 50, height: 50)
+                            // Add the Bubble and Person icons above "Hello, Fragne"
+                            VStack {
+                                HStack(spacing: 10) {
+                                    // Navigation Link for Bubble Symbol
+                                    NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
+                                        Image(systemName: "bubble.left.and.bubble.right.fill")
+                                            .resizable()
+                                            .frame(width: 50, height: 40)  // Adjust size
+                                            .foregroundColor(.white)
+                                    }
+
+                                    // Person Icon
+                                    NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
+                                        Image(systemName: "person.circle.fill")
+                                            .resizable()
+                                            .frame(width: 50, height: 50)
+                                            .foregroundColor(.white)
+                                    }
+                                }
+
+                                // "Hello, Fragne" text below the icons
+                                Text("Hello, Fragne")
                                     .foregroundColor(.white)
+                                    .font(.headline)
                             }
-                            Text("Hello, Fragne")
-                                .foregroundColor(.white)
-                                .font(.headline)
                         }
                     }
                     .padding(.horizontal)
@@ -242,7 +272,7 @@ struct PageInvites: View {
                     }
 
                     NavigationLink(destination: PageInvites().navigationBarBackButtonHidden(true)) {
-                        Text("Invites")
+                        Text("Friends")
                             .font(.system(size: 12))
                             .padding()
                             .frame(maxWidth: .infinity)
@@ -257,21 +287,47 @@ struct PageInvites: View {
                 // Scrollable Section
                 ScrollView {
                     VStack(spacing: 20) {
-                        ForEach(profiles) { profile in
+                        // Networking Requests Section
+                        Text("Networking Request")
+                            .font(.headline)
+                            .padding(.top)
+                        
+                        ForEach(friendRequests) { profile in
                             InviteProfileLink(
                                 name: profile.name,
                                 title: profile.title,
                                 company: profile.company,
                                 proficiency: profile.proficiency,
                                 tags: profile.tags,
-                                profileImage: profile.profileImage
+                                profileImage: profile.profileImage,
+                                showAcceptDeclineButtons: true // Show buttons for networking requests
+                            )
+                        }
+                        
+                        Divider() // Divider between sections
+                            .padding(.vertical)
+                        
+                        // My Network Section
+                        Text("My Network")
+                            .font(.headline)
+                            .padding(.top)
+                        
+                        ForEach(myNetwork) { profile in
+                            InviteProfileLink(
+                                name: profile.name,
+                                title: profile.title,
+                                company: profile.company,
+                                proficiency: profile.proficiency,
+                                tags: profile.tags,
+                                profileImage: profile.profileImage,
+                                showAcceptDeclineButtons: false // Hide buttons for my network
                             )
                         }
                     }
                     .padding()
                 }
                 
-                // Footer Section
+                // Footer Section (unchanged)
                 HStack(spacing: 15) {
                     NavigationLink(destination: PageEntrepreneurMatching().navigationBarBackButtonHidden(true)) {
                         CustomCircleButton(iconName: "figure.stand.line.dotted.figure.stand")
@@ -286,7 +342,7 @@ struct PageInvites: View {
                         CustomCircleButton(iconName: "building.columns.fill")
                     }
                     NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
-                        CustomCircleButton(iconName: "book.fill")
+                        CustomCircleButton(iconName: "newspaper")
                     }
                 }
                 .padding(.vertical, 10)
