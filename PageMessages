@@ -22,40 +22,54 @@ struct PageMessages: View {
     }
 
     var headerSection: some View {
-        VStack(spacing: 5) {
+        // Header Section
+        VStack(spacing: 0) {
             HStack {
-                VStack(alignment: .leading) {
+                VStack(alignment: .leading, spacing: 5) {
                     Text("Circl.")
                         .font(.largeTitle)
                         .fontWeight(.bold)
                         .foregroundColor(.white)
                     
                     Button(action: {
-                        isWriteMessagePopupPresented.toggle()
+                        // Action for Filter
                     }) {
                         HStack {
-                            Image(systemName: "square.and.pencil")
-                                .resizable()
-                                .frame(width: 20, height: 20)
+                            Image(systemName: "slider.horizontal.3")
                                 .foregroundColor(.white)
-                            Text("Write a Message")
-                                .foregroundColor(.white)
+                            Text("Filter")
                                 .font(.headline)
+                                .foregroundColor(.white)
                         }
                     }
                 }
                 
                 Spacer()
+                
                 VStack(alignment: .trailing, spacing: 5) {
-                    NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
-                        Image(systemName: "person.circle.fill")
-                            .resizable()
-                            .frame(width: 50, height: 50)
+                    // Add the Bubble and Person icons above "Hello, Fragne"
+                    VStack {
+                        HStack(spacing: 10) {
+                            // Navigation Link for Bubble Symbol
+                                Image(systemName: "bubble.left.and.bubble.right.fill")
+                                    .resizable()
+                                    .frame(width: 50, height: 40)  // Adjust size
+                                    .foregroundColor(.white)
+                            
+                            // Person Icon
+                            NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
+                                Image(systemName: "person.circle.fill")
+                                    .resizable()
+                                    .frame(width: 50, height: 50)
+                                    .foregroundColor(.white)
+                            }
+                        }
+                        
+                        // "Hello, Fragne" text below the icons
+                        Text("Hello, Fragne")
                             .foregroundColor(.white)
+                            .font(.headline)
                     }
-                    Text("Hello, Fragne")
-                        .foregroundColor(.white)
-                        .font(.headline)
                 }
             }
             .padding(.horizontal)
@@ -86,9 +100,9 @@ struct PageMessages: View {
                     .foregroundColor(.black)
                     .cornerRadius(10)
             }
-
+            
             NavigationLink(destination: PageInvites().navigationBarBackButtonHidden(true)) {
-                Text("Invites")
+                Text("Friends")
                     .font(.system(size: 12))
                     .padding()
                     .frame(maxWidth: .infinity)
@@ -125,8 +139,8 @@ struct PageMessages: View {
             NavigationLink(destination: PageEntrepreneurResources().navigationBarBackButtonHidden(true)) {
                 CustomCircleButton(iconName: "building.columns.fill")
             }
-            NavigationLink(destination: PageEntrepreneurResources().navigationBarBackButtonHidden(true)) {
-                CustomCircleButton(iconName: "book.fill")
+            NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
+                CustomCircleButton(iconName: "newspaper")
             }
         }
         .padding(.vertical, 10)
