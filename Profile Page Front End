@@ -48,13 +48,22 @@ struct ProfilePage: View {
                 
                 Spacer()
 
-                // Right side: "square.and.pencil" icon for edit action
+                // Right side: Messages Icon
+                NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
+                    Image(systemName: "bubble.left.and.bubble.right.fill")
+                        .resizable()
+                        .frame(width: 50, height: 40)
+                        .foregroundColor(.white)
+                }
+
+                // Square and Pencil Icon for edit action
                 Button(action: {
                     // Action for edit
                 }) {
                     Image(systemName: "square.and.pencil")
                         .foregroundColor(.white)
                         .font(.title)
+                        .frame(width: 50, height: 50)
                 }
             }
             .padding(.horizontal)
@@ -63,6 +72,7 @@ struct ProfilePage: View {
             .background(Color.fromHex("004aad")) // Blue background for the header
         }
     }
+
 
 
     // MARK: - Scrollable Section
@@ -699,8 +709,8 @@ struct ProfilePage: View {
             NavigationLink(destination: PageEntrepreneurResources().navigationBarBackButtonHidden(true)) {
                 CustomCircleButton(iconName: "building.columns.fill")
             }
-            NavigationLink(destination: PageEntrepreneurResources().navigationBarBackButtonHidden(true)) {
-                CustomCircleButton(iconName: "book.fill")
+            NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
+                CustomCircleButton(iconName: "newspaper")
             }
         }
         .padding(.vertical, 10)
