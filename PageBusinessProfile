@@ -64,9 +64,9 @@ struct PageBusinessProfile: View {
     }
     
     var headerSection: some View {
+        // Header Section
         VStack(spacing: 0) {
             HStack {
-                // Left side: "Circl." text and "Filter" button
                 VStack(alignment: .leading, spacing: 5) {
                     Text("Circl.")
                         .font(.largeTitle)
@@ -85,28 +85,41 @@ struct PageBusinessProfile: View {
                         }
                     }
                 }
+                
                 Spacer()
-
-                // Right side: Profile image and "Hello, Fragne" text stacked
+                
                 VStack(alignment: .trailing, spacing: 5) {
-                    // Profile Image
-                    NavigationLink(destination: ProfilePage()) {
-                        Image(systemName: "person.circle.fill")
-                            .resizable()
-                            .frame(width: 50, height: 50)
+                    // Add the Bubble and Person icons above "Hello, Fragne"
+                    VStack {
+                        HStack(spacing: 10) {
+                            // Navigation Link for Bubble Symbol
+                            NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
+                                Image(systemName: "bubble.left.and.bubble.right.fill")
+                                    .resizable()
+                                    .frame(width: 50, height: 40)  // Adjust size
+                                    .foregroundColor(.white)
+                            }
+                            
+                            // Person Icon
+                            NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
+                                Image(systemName: "person.circle.fill")
+                                    .resizable()
+                                    .frame(width: 50, height: 50)
+                                    .foregroundColor(.white)
+                            }
+                        }
+                        
+                        // "Hello, Fragne" text below the icons
+                        Text("Hello, Fragne")
                             .foregroundColor(.white)
+                            .font(.headline)
                     }
-
-                    // "Hello, Fragne" text
-                    Text("Hello, Fragne")
-                        .foregroundColor(.white)
-                        .font(.headline)
                 }
             }
             .padding(.horizontal)
             .padding(.top, 15)
             .padding(.bottom, 10)
-            .background(Color.fromHex("004aad")) // Blue background for the header
+            .background(Color.fromHex("004aad")) // Updated blue color
         }
     }
     
@@ -424,8 +437,8 @@ struct PageBusinessProfile: View {
             NavigationLink(destination: PageEntrepreneurResources().navigationBarBackButtonHidden(true)) {
                 CustomCircleButton(iconName: "building.columns.fill")
             }
-            NavigationLink(destination: PageEntrepreneurResources().navigationBarBackButtonHidden(true)) {
-                CustomCircleButton(iconName: "book.fill")
+            NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
+                CustomCircleButton(iconName: "newspaper")
             }
         }
         .padding(.vertical, 10)
