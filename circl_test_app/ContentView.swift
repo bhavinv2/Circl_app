@@ -1,8 +1,8 @@
 //
 //  ContentView.swift
-//  circl_test_app
+//  Circl
 //
-//  Created by Bhavin Vulli on 1/28/25.
+//  Created by Bhavin Vulli on 1/3/25.
 //
 
 import SwiftUI

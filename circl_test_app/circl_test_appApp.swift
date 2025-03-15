@@ -1,17 +1,17 @@
 //
-//  circl_test_appApp.swift
-//  circl_test_app
+//  CirclApp.swift
+//  Circl
 //
-//  Created by Bhavin Vulli on 1/28/25.
+//  Created by Bhavin Vulli on 1/3/25.
 //
 
 import SwiftUI
 
 @main
-struct circl_test_appApp: App {
+struct CirclApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            Page1() // Change ContentView() to Page1()
         }
     }
 }
