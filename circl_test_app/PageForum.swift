@@ -8,7 +8,9 @@ struct ForumPostModel: Identifiable, Codable {
     let category: String
     let privacy: String
     let created_at: String
+    let comment_count: Int? // ✅ add this line
 }
+
 
 struct CommentModel: Identifiable, Codable {
     let id: Int
@@ -26,6 +28,10 @@ struct ForumPost: View {
     let position: String // Added position
     let company: String // Added company
     var onComment: () -> Void // 👈 Added callback for comment action
+    let commentCount: Int
+
+    
+    
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -75,6 +81,11 @@ struct ForumPost: View {
             Text(content)
                 .font(.body)
                 .lineLimit(3)
+            Text("\(commentCount) Comments")
+                .font(.caption)
+                .foregroundColor(.gray)
+
+            
                 .foregroundColor(.black)
             
             // Actions: Like, Comment, Share
@@ -85,11 +96,17 @@ struct ForumPost: View {
                 }
                 Spacer()
                 Button(action: {
-                    onComment() // ✅ Trigger the callback for comment action
+                    onComment()
                 }) {
-                    Label("Comment", systemImage: "message")
-                        .font(.subheadline)
+                    HStack(spacing: 4) {
+                        Image(systemName: "message")
+                        Text("Comment")
+                        Text("(\(commentCount))") // ✅ shows the number of comments
+                            .foregroundColor(.gray)
+                    }
+                    .font(.subheadline)
                 }
+
                 Spacer()
                 Button(action: { /* Share Action */ }) {
                     Label("Share", systemImage: "square.and.arrow.up")
@@ -305,13 +322,16 @@ struct PageForum: View {
                                     author: post.user,
                                     timestamp: post.created_at,
                                     category: post.category,
-                                    profileImageName: "profile_image", // still placeholder
-                                    position: "Entrepreneur", // optional placeholder
-                                    company: "Circl", // optional placeholder
-                                    onComment: {
-                                        selectedPostIdForComments = post // ✅ Set the selected post for comments
-                                    }
+                                    profileImageName: "profile_image",
+                                    position: "Entrepreneur",
+                                    company: "Circl",
+                                    onComment: { // ✅ this goes first
+                                        selectedPostIdForComments = post
+                                    },
+                                    commentCount: post.comment_count ?? 0 // ✅ this goes after
                                 )
+
+
                                 .padding(.bottom, 10)
                             }
                         }
@@ -505,21 +525,41 @@ struct CommentSheet: View {
     }
 
     func submitComment() {
-        guard let url = URL(string: "http://34.44.204.172:8000/api/forum/comments/add/") else { return }
+        print("🟡 Trying to submit comment: \(newComment)")
+
+        guard let url = URL(string: "http://34.44.204.172:8000/api/forum/comments/add/") else {
+            print("❌ Invalid URL")
+            return
+        }
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
         if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            print("🔐 Auth Token found: \(token.prefix(10))...")
             request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        } else {
+            print("❌ No auth token found")
         }
 
         let body: [String: Any] = ["post_id": postId, "text": newComment]
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
 
         URLSession.shared.dataTask(with: request) { data, response, error in
-            if let _ = data {
+            if let error = error {
+                print("❌ Network error:", error.localizedDescription)
+                return
+            }
+
+            if let httpResponse = response as? HTTPURLResponse {
+                print("📡 COMMENT Status Code:", httpResponse.statusCode)
+            }
+
+            if let data = data {
+                let raw = String(data: data, encoding: .utf8) ?? "No response"
+                print("📡 COMMENT Raw Response:", raw)
+
                 DispatchQueue.main.async {
                     newComment = ""
                     fetchComments()
@@ -527,6 +567,7 @@ struct CommentSheet: View {
             }
         }.resume()
     }
+
 }
 
 
