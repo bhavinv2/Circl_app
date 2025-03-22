@@ -369,8 +369,23 @@ struct PageForum: View {
                 ImagePicker(selectedImage: $selectedImage, sourceType: sourceType)
             }
             .sheet(item: $selectedPostIdForComments) { post in
-                CommentSheet(postId: post.id, isPresented: .constant(true))
+                CommentSheet(
+                    postId: post.id,
+                    isPresented: Binding(
+                        get: { selectedPostIdForComments != nil },
+                        set: { newValue in
+                            if !newValue {
+                                selectedPostIdForComments = nil
+                            }
+                        }
+                    ),
+                    onDismiss: {
+                        fetchPosts() // ✅ Refresh posts after comment view closes
+                    }
+                )
             }
+
+
             .onAppear {
                 fetchPosts()
             }
@@ -469,6 +484,7 @@ struct PageForum: View {
 struct CommentSheet: View {
     let postId: Int
     @Binding var isPresented: Bool
+    var onDismiss: () -> Void = {} // ✅ New callback
 
     @State private var newComment = ""
     @State private var comments: [CommentModel] = []
@@ -494,9 +510,17 @@ struct CommentSheet: View {
                 }.padding()
             }
             .navigationBarTitle("Comments", displayMode: .inline)
-            .navigationBarItems(trailing: Button("Done") {
-                isPresented = false
-            })
+            .navigationBarItems(trailing:
+                Button(action: {
+                    isPresented = false
+                    onDismiss()
+                }) {
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundColor(.blue) // Change to .black or .gray if needed
+                }
+            )
+
             .onAppear {
                 fetchComments()
             }
