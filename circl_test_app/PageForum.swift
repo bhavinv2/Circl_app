@@ -1,6 +1,22 @@
 import SwiftUI
 import UIKit
 
+struct ForumPostModel: Identifiable, Codable {
+    let id: Int
+    let user: String
+    let content: String
+    let category: String
+    let privacy: String
+    let created_at: String
+}
+
+struct CommentModel: Identifiable, Codable {
+    let id: Int
+    let user: String
+    let text: String
+    let created_at: String
+}
+
 struct ForumPost: View {
     let content: String
     let author: String
@@ -9,6 +25,7 @@ struct ForumPost: View {
     let profileImageName: String
     let position: String // Added position
     let company: String // Added company
+    var onComment: () -> Void // 👈 Added callback for comment action
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -67,7 +84,9 @@ struct ForumPost: View {
                         .font(.subheadline)
                 }
                 Spacer()
-                Button(action: { /* Comment Action */ }) {
+                Button(action: {
+                    onComment() // ✅ Trigger the callback for comment action
+                }) {
                     Label("Comment", systemImage: "message")
                         .font(.subheadline)
                 }
@@ -96,10 +115,13 @@ struct PageForum: View {
     @State private var isImagePickerPresented = false
     @State private var sourceType: UIImagePickerController.SourceType = .photoLibrary
     
+    @State private var posts: [ForumPostModel] = []
+    @State private var selectedPostIdForComments: ForumPostModel? = nil
+
+    
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
-                // Header Section
                 // Header Section
                 VStack(spacing: 0) {
                     HStack {
@@ -174,8 +196,12 @@ struct PageForum: View {
                                     .background(Color(UIColor.systemGray4))
                                     .cornerRadius(5)
                              //Submit button to backend
-                                Image(systemName: "rectangle.portrait.and.arrow.forward")
-                                    .foregroundColor(Color.fromHex("004aad")) // Updated blue color
+                                Button(action: {
+                                    submitPost()
+                                }) {
+                                    Image(systemName: "rectangle.portrait.and.arrow.forward")
+                                        .foregroundColor(Color.fromHex("004aad")) // Updated blue color
+                                }
                             }
                             
                             // Image Preview
@@ -273,15 +299,18 @@ struct PageForum: View {
                         
                         // Forum Posts List
                         VStack(spacing: 10) {
-                            ForEach(0..<10, id: \.self) { index in
+                            ForEach(posts) { post in
                                 ForumPost(
-                                    content: "This is an example post content.",
-                                    author: "John Doe",
-                                    timestamp: "2 hours ago",
-                                    category: "Advice & Tips",
-                                    profileImageName: "profile_image", // Use your actual profile image here
-                                    position: "Software Engineer", // Example position
-                                    company: "Apple" // Example company
+                                    content: post.content,
+                                    author: post.user,
+                                    timestamp: post.created_at,
+                                    category: post.category,
+                                    profileImageName: "profile_image", // still placeholder
+                                    position: "Entrepreneur", // optional placeholder
+                                    company: "Circl", // optional placeholder
+                                    onComment: {
+                                        selectedPostIdForComments = post // ✅ Set the selected post for comments
+                                    }
                                 )
                                 .padding(.bottom, 10)
                             }
@@ -319,9 +348,187 @@ struct PageForum: View {
             .sheet(isPresented: $isImagePickerPresented) {
                 ImagePicker(selectedImage: $selectedImage, sourceType: sourceType)
             }
+            .sheet(item: $selectedPostIdForComments) { post in
+                CommentSheet(postId: post.id, isPresented: .constant(true))
+            }
+            .onAppear {
+                fetchPosts()
+            }
         }
     }
+    
+    func fetchPosts() {
+        guard let url = URL(string: "http://34.44.204.172:8000/api/forum/get_posts/") else { return }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+
+            if let error = error {
+                print("❌ Error fetching posts:", error.localizedDescription)
+                return
+            }
+
+            if let httpResponse = response as? HTTPURLResponse {
+                print("📡 GET Status Code:", httpResponse.statusCode)
+            }
+
+            if let data = data {
+                let raw = String(data: data, encoding: .utf8) ?? "No response"
+                print("📡 GET Raw Response:", raw)
+
+                do {
+                    let decoded = try JSONDecoder().decode([ForumPostModel].self, from: data)
+                    DispatchQueue.main.async {
+                        self.posts = decoded
+                    }
+                } catch {
+                    print("❌ Decoding error:", error)
+                }
+            }
+        }.resume()
+    }
+
+    
+    func submitPost() {
+        guard let url = URL(string: "http://34.44.204.172:8000/api/forum/create_post/") else { return }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        let body: [String: Any] = [
+            "content": postContent,
+            "category": selectedCategory,
+            "privacy": selectedPrivacy
+        ]
+
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("❌ Error submitting post:", error.localizedDescription)
+                return
+            }
+
+            if let httpResponse = response as? HTTPURLResponse {
+                print("📡 Status Code:", httpResponse.statusCode)
+            }
+
+            if let data = data {
+                let raw = String(data: data, encoding: .utf8) ?? "No response"
+                print("📡 Raw Response:", raw)
+
+                // ✅ Decode single post (optional)
+                do {
+                    let _ = try JSONDecoder().decode(ForumPostModel.self, from: data)
+                    print("✅ Post decoded successfully")
+                } catch {
+                    print("❌ Decoding single post error:", error)
+                }
+
+                DispatchQueue.main.async {
+                    postContent = ""
+                    fetchPosts()
+                }
+            }
+        }.resume()
+    }
 }
+
+struct CommentSheet: View {
+    let postId: Int
+    @Binding var isPresented: Bool
+
+    @State private var newComment = ""
+    @State private var comments: [CommentModel] = []
+
+    var body: some View {
+        NavigationView {
+            VStack {
+                List(comments) { comment in
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(comment.user).font(.subheadline).bold()
+                        Text(comment.text).font(.body)
+                        Text(comment.created_at).font(.caption).foregroundColor(.gray)
+                    }.padding(.vertical, 4)
+                }
+
+                HStack {
+                    TextField("Add a comment...", text: $newComment)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+
+                    Button("Send") {
+                        submitComment()
+                    }
+                }.padding()
+            }
+            .navigationBarTitle("Comments", displayMode: .inline)
+            .navigationBarItems(trailing: Button("Done") {
+                isPresented = false
+            })
+            .onAppear {
+                fetchComments()
+            }
+        }
+    }
+
+    func fetchComments() {
+        guard let url = URL(string: "http://34.44.204.172:8000/api/forum/comments/\(postId)/") else { return }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let data = data {
+                if let decoded = try? JSONDecoder().decode([CommentModel].self, from: data) {
+                    DispatchQueue.main.async {
+                        comments = decoded
+                    }
+                }
+            }
+        }.resume()
+    }
+
+    func submitComment() {
+        guard let url = URL(string: "http://34.44.204.172:8000/api/forum/comments/add/") else { return }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        let body: [String: Any] = ["post_id": postId, "text": newComment]
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let _ = data {
+                DispatchQueue.main.async {
+                    newComment = ""
+                    fetchComments()
+                }
+            }
+        }.resume()
+    }
+}
+
 
 struct CustomCircleButton: View {
     let iconName: String
