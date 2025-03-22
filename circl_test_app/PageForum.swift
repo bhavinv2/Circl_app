@@ -8,8 +8,13 @@ struct ForumPostModel: Identifiable, Codable {
     let category: String
     let privacy: String
     let created_at: String
-    let comment_count: Int? // ✅ add this line
+    let comment_count: Int? // already added
+
+    // ✅ Add these two missing fields
+    let like_count: Int
+    let liked_by_user: Bool
 }
+
 
 
 struct CommentModel: Identifiable, Codable {
@@ -17,7 +22,10 @@ struct CommentModel: Identifiable, Codable {
     let user: String
     let text: String
     let created_at: String
+    let like_count: Int
+    let liked_by_user: Bool
 }
+
 
 struct ForumPost: View {
     let content: String
@@ -29,6 +37,10 @@ struct ForumPost: View {
     let company: String // Added company
     var onComment: () -> Void // 👈 Added callback for comment action
     let commentCount: Int
+    let likeCount: Int
+    let likedByUser: Bool
+    let toggleLike: () -> Void
+
 
     
     
@@ -81,38 +93,54 @@ struct ForumPost: View {
             Text(content)
                 .font(.body)
                 .lineLimit(3)
-            Text("\(commentCount) Comments")
-                .font(.caption)
-                .foregroundColor(.gray)
+      
 
             
                 .foregroundColor(.black)
             
             // Actions: Like, Comment, Share
             HStack {
-                Button(action: { /* Like Action */ }) {
-                    Label("Like", systemImage: "hand.thumbsup")
-                        .font(.subheadline)
+                // ✅ Like Button (dynamic icon + count)
+                Button(action: {
+                    toggleLike()
+                }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "hand.thumbsup.fill")
+                            .foregroundColor(likedByUser ? .red : .gray)
+                        Text("Like")
+                        Text("(\(likeCount))")
+                            .foregroundColor(.gray)
+                    }
+                    .font(.subheadline)
                 }
+
+
                 Spacer()
+
+                // ✅ Comment Button
                 Button(action: {
                     onComment()
                 }) {
                     HStack(spacing: 4) {
                         Image(systemName: "message")
                         Text("Comment")
-                        Text("(\(commentCount))") // ✅ shows the number of comments
+                        Text("(\(commentCount))")
                             .foregroundColor(.gray)
                     }
                     .font(.subheadline)
                 }
 
                 Spacer()
-                Button(action: { /* Share Action */ }) {
+
+                // ✅ Share Button
+                Button(action: {
+                    // TODO: Add share functionality
+                }) {
                     Label("Share", systemImage: "square.and.arrow.up")
                         .font(.subheadline)
                 }
             }
+
             .padding(.top, 10)
         }
         .padding()
@@ -325,11 +353,19 @@ struct PageForum: View {
                                     profileImageName: "profile_image",
                                     position: "Entrepreneur",
                                     company: "Circl",
-                                    onComment: { // ✅ this goes first
+                                    onComment: {
                                         selectedPostIdForComments = post
                                     },
-                                    commentCount: post.comment_count ?? 0 // ✅ this goes after
+                                    commentCount: post.comment_count ?? 0,
+                                    likeCount: post.like_count,
+                                    likedByUser: post.liked_by_user,
+                                    toggleLike: {
+                                        toggleLike(post) // ✅ This links everything
+                                    }
                                 )
+
+
+
 
 
                                 .padding(.bottom, 10)
@@ -479,6 +515,25 @@ struct PageForum: View {
             }
         }.resume()
     }
+    func toggleLike(_ post: ForumPostModel) {
+        let endpoint = post.liked_by_user ? "unlike" : "like"
+        guard let url = URL(string: "http://34.44.204.172:8000/api/forum/posts/\(post.id)/\(endpoint)/") else { return }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        URLSession.shared.dataTask(with: request) { _, _, _ in
+            DispatchQueue.main.async {
+                fetchPosts() // ✅ Refresh post list
+            }
+        }.resume()
+    }
+
 }
 
 struct CommentSheet: View {
@@ -496,11 +551,9 @@ struct CommentSheet: View {
                     VStack(alignment: .leading, spacing: 12) {
                         ForEach(comments) { comment in
                             HStack(alignment: .top, spacing: 12) {
-                                Image("profile_image")
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fill)
+                                Circle()
+                                    .fill(Color.blue)
                                     .frame(width: 34, height: 34)
-                                    .clipShape(Circle())
                                     .shadow(radius: 1)
 
                                 VStack(alignment: .leading, spacing: 4) {
@@ -515,13 +568,13 @@ struct CommentSheet: View {
                                 }
 
                                 Spacer()
+                            
+
                             }
                         }
                     }
                     .padding()
                 }
-
-
 
                 HStack {
                     TextField("Add a comment...", text: $newComment)
@@ -530,7 +583,8 @@ struct CommentSheet: View {
                     Button("Send") {
                         submitComment()
                     }
-                }.padding()
+                }
+                .padding()
             }
             .navigationBarTitle("Comments", displayMode: .inline)
             .navigationBarItems(trailing:
@@ -540,15 +594,15 @@ struct CommentSheet: View {
                 }) {
                     Image(systemName: "chevron.down")
                         .font(.system(size: 20, weight: .semibold))
-                        .foregroundColor(.blue) // Change to .black or .gray if needed
+                        .foregroundColor(.blue)
                 }
             )
-
             .onAppear {
                 fetchComments()
             }
         }
     }
+
 
     func fetchComments() {
         guard let url = URL(string: "http://34.44.204.172:8000/api/forum/comments/\(postId)/") else { return }
@@ -614,6 +668,25 @@ struct CommentSheet: View {
             }
         }.resume()
     }
+    
+    func toggleLike(_ comment: CommentModel) {
+        guard let url = URL(string: "http://34.44.204.172:8000/api/forum/comments/\(comment.id)/\(comment.liked_by_user ? "unlike" : "like")/") else { return }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        URLSession.shared.dataTask(with: request) { _, _, _ in
+            DispatchQueue.main.async {
+                fetchComments() // Refresh after like/unlike
+            }
+        }.resume()
+    }
+
 
 }
 
