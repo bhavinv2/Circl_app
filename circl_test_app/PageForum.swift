@@ -492,13 +492,36 @@ struct CommentSheet: View {
     var body: some View {
         NavigationView {
             VStack {
-                List(comments) { comment in
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(comment.user).font(.subheadline).bold()
-                        Text(comment.text).font(.body)
-                        Text(comment.created_at).font(.caption).foregroundColor(.gray)
-                    }.padding(.vertical, 4)
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 12) {
+                        ForEach(comments) { comment in
+                            HStack(alignment: .top, spacing: 12) {
+                                Image("profile_image")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(width: 34, height: 34)
+                                    .clipShape(Circle())
+                                    .shadow(radius: 1)
+
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(comment.user)
+                                        .font(.subheadline)
+                                        .fontWeight(.semibold)
+                                        .foregroundColor(.black)
+
+                                    Text(comment.text)
+                                        .font(.body)
+                                        .foregroundColor(.primary)
+                                }
+
+                                Spacer()
+                            }
+                        }
+                    }
+                    .padding()
                 }
+
+
 
                 HStack {
                     TextField("Add a comment...", text: $newComment)
