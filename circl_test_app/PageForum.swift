@@ -46,19 +46,18 @@ struct ForumPost: View {
         ZStack(alignment: .topTrailing) {
             VStack(alignment: .leading, spacing: 10) {
                 // Header with author, position, company, and timestamp
-                HStack {
-                    Image(profileImageName)
+                HStack(alignment: .top, spacing: 12) {
+                    Image("default_image")
                         .resizable()
-                        .aspectRatio(contentMode: .fit)
+                        .aspectRatio(contentMode: .fill)
                         .frame(width: 40, height: 40)
                         .clipShape(Circle())
-                        .shadow(radius: 2)
-                    
-                    VStack(alignment: .leading) {
+                        .shadow(radius: 1)
+
+                    VStack(alignment: .leading, spacing: 4) {
                         Text(author)
                             .font(.headline)
-                        
-                        // Position and Company - New Added Element
+
                         HStack {
                             Text(position)
                                 .font(.subheadline)
@@ -66,18 +65,15 @@ struct ForumPost: View {
                             Text("-")
                                 .font(.subheadline)
                                 .foregroundColor(.gray)
-                            NavigationLink(destination: Text("Company Page")) { // Replace with actual company page view
+                            NavigationLink(destination: Text("Company Page")) {
                                 Text(company)
                                     .font(.subheadline)
                                     .fontWeight(.semibold)
                                     .foregroundColor(Color.fromHex("004aad"))
                             }
                         }
-                        
-//                        Text(timestamp)
-//                            .font(.subheadline)
-//                            .foregroundColor(.gray)
                     }
+
                     Spacer()
 
                     Text(category)
@@ -86,8 +82,9 @@ struct ForumPost: View {
                         .background(Color.fromHex("ffde59"))
                         .foregroundColor(.black)
                         .cornerRadius(5)
-                        .offset(y: 25) // 👈 tweak this to nudge downward
+                        .offset(y: 25)
                 }
+
 
                 // Post Content
                 Text(content)
