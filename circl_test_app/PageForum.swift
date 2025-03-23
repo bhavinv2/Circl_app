@@ -244,7 +244,10 @@ struct ForumPost: View {
 
 struct PageForum: View {
     @State private var selectedCategory = "Category"
-    @State private var selectedPrivacy = "Privacy"
+    @State private var selectedPrivacy = "Public"
+
+
+
     @State private var postContent = ""
     @State private var selectedImage: UIImage? = nil // Image picker state
     
@@ -256,6 +259,12 @@ struct PageForum: View {
     @State private var selectedPostIdForComments: ForumPostModel? = nil
 
     @State private var loggedInUserFullName: String = "" // ✅ Added state for logged-in user's full name
+    
+    @State private var showCategoryAlert = false
+    @State private var selectedFilter: String = "public"
+
+
+
 
     var body: some View {
         NavigationView {
@@ -269,17 +278,51 @@ struct PageForum: View {
                                 .fontWeight(.bold)
                                 .foregroundColor(.white)
                             
-                            Button(action: {
-                                // Action for Filter
-                            }) {
-                                HStack {
-                                    Image(systemName: "slider.horizontal.3")
+                            HStack(spacing: 0) {
+                                Button(action: {
+                                    withAnimation {
+                                        selectedFilter = "public"
+                                        UserDefaults.standard.set("public", forKey: "selectedFilter")
+                                        fetchPosts()
+                                    }
+                                }) {
+                                    Text("Public")
+                                        .fontWeight(selectedFilter == "public" ? .bold : .regular)
                                         .foregroundColor(.white)
-                                    Text("Filter")
-                                        .font(.headline)
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 10)
+                                        .background(selectedFilter == "public" ? Color.white.opacity(0.15) : Color.clear)
+                                        .cornerRadius(8)
+                                        .animation(.easeInOut(duration: 0.2), value: selectedFilter)
+                                }
+
+                                Button(action: {
+                                    withAnimation {
+                                        selectedFilter = "my_network"
+                                        UserDefaults.standard.set("my_network", forKey: "selectedFilter")
+                                        fetchPosts()
+                                    }
+                                }) {
+                                    Text("My Network")
+                                        .fontWeight(selectedFilter == "my_network" ? .bold : .regular)
                                         .foregroundColor(.white)
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 10)
+                                        .background(selectedFilter == "my_network" ? Color.white.opacity(0.15) : Color.clear)
+                                        .cornerRadius(8)
+                                        .animation(.easeInOut(duration: 0.2), value: selectedFilter)
                                 }
                             }
+                            .background(Color.fromHex("004aad"))
+                            .cornerRadius(10)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.leading, -12) // 👈 Try 8 or even 4 for more tightness
+
+
+
+
+
+
                         }
                         
                         Spacer()
@@ -335,11 +378,19 @@ struct PageForum: View {
                                     .cornerRadius(5)
                              //Submit button to backend
                                 Button(action: {
-                                    submitPost()
+                                    if selectedCategory == "Category" {
+                                        showCategoryAlert = true
+                                    } else {
+                                        submitPost()
+                                    }
+
                                 }) {
                                     Image(systemName: "rectangle.portrait.and.arrow.forward")
-                                        .foregroundColor(Color.fromHex("004aad")) // Updated blue color
+                                        .foregroundColor(Color.fromHex("004aad"))
                                 }
+
+
+
                             }
                             
                             // Image Preview
@@ -438,7 +489,7 @@ struct PageForum: View {
                         // Forum Posts List
                         VStack(spacing: 10) {
                             ForEach(posts) { post in
-                                let _ = print("🧾 post.user = \(post.user), 📱 user_fullname = \(loggedInUserFullName)")
+                               
 
                                 ForumPost(
                                     content: post.content,
@@ -516,14 +567,22 @@ struct PageForum: View {
             }
             .onAppear {
                 loggedInUserFullName = UserDefaults.standard.string(forKey: "user_fullname") ?? ""
-                print("✅ Fetched from UserDefaults:", loggedInUserFullName)
+                selectedFilter = UserDefaults.standard.string(forKey: "selectedFilter") ?? "public"
                 fetchPosts()
             }
+
+            .alert("Please select a category to post.", isPresented: $showCategoryAlert) {
+                Button("OK", role: .cancel) { }
+            }
+            
+
+
         }
     }
     
     func fetchPosts() {
-        guard let url = URL(string: "http://34.44.204.172:8000/api/forum/get_posts/") else { return }
+        guard let url = URL(string: "http://34.44.204.172:8000/api/forum/get_posts/?filter=\(selectedFilter)") else { return }
+
 
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
