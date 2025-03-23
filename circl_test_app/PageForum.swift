@@ -23,6 +23,46 @@ struct CommentModel: Identifiable, Codable {
     let like_count: Int
     let liked_by_user: Bool
 }
+    
+// ✅ Added timeAgo function
+func timeAgo(from dateString: String) -> String {
+    let formatter = ISO8601DateFormatter()
+    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+
+    guard let postDate = formatter.date(from: dateString) else {
+        return "Just now"
+    }
+
+    let secondsAgo = Int(Date().timeIntervalSince(postDate))
+
+    let minute = 60
+    let hour = 3600
+    let day = 86400
+    let week = 604800
+    let month = 2592000
+    let year = 31536000
+
+    switch secondsAgo {
+    case 0..<10:
+        return "Just now"
+    case 10..<minute:
+        return "\(secondsAgo) sec\(secondsAgo > 1 ? "s" : "") ago"
+    case minute..<hour:
+        return "\(secondsAgo / minute) min ago"
+    case hour..<day:
+        return "\(secondsAgo / hour) hour\(secondsAgo / hour > 1 ? "s" : "") ago"
+    case day..<week:
+        return "\(secondsAgo / day) day\(secondsAgo / day > 1 ? "s" : "") ago"
+    case week..<month:
+        return "\(secondsAgo / week) week\(secondsAgo / week > 1 ? "s" : "") ago"
+    case month..<year:
+        return "\(secondsAgo / month) month\(secondsAgo / month > 1 ? "s" : "") ago"
+    default:
+        return "\(secondsAgo / year) year\(secondsAgo / year > 1 ? "s" : "") ago"
+    }
+}
+
+
 
 struct ForumPost: View {
     let content: String
@@ -40,7 +80,10 @@ struct ForumPost: View {
     let isCurrentUser: Bool
     let onDelete: () -> Void
 
-    @State private var showDeleteConfirmation = false // State for delete confirmation dialog
+    @State private var showOptionsBox = false
+    @State private var showDeleteConfirmation = false
+
+
 
     var body: some View {
         ZStack(alignment: .topTrailing) {
@@ -54,25 +97,21 @@ struct ForumPost: View {
                         .clipShape(Circle())
                         .shadow(radius: 1)
 
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(author)
-                            .font(.headline)
-
+                    VStack(alignment: .leading, spacing: 2) {
                         HStack {
+                            Text(author)
+                                .font(.headline)
                             Text(position)
                                 .font(.subheadline)
                                 .foregroundColor(.gray)
-                            Text("-")
-                                .font(.subheadline)
-                                .foregroundColor(.gray)
-                            NavigationLink(destination: Text("Company Page")) {
-                                Text(company)
-                                    .font(.subheadline)
-                                    .fontWeight(.semibold)
-                                    .foregroundColor(Color.fromHex("004aad"))
-                            }
                         }
+
+                        Text(timeAgo(from: timestamp))
+                            .font(.subheadline)
+                            .foregroundColor(.gray)
                     }
+
+
 
                     Spacer()
 
@@ -84,7 +123,6 @@ struct ForumPost: View {
                         .cornerRadius(5)
                         .offset(y: 25)
                 }
-
 
                 // Post Content
                 Text(content)
@@ -142,33 +180,67 @@ struct ForumPost: View {
 
             // ✅ Floating delete button
             if isCurrentUser {
-                HStack(spacing: 12) {
-                    Button(action: {
-                        // Action 3: More
-                        showDeleteConfirmation = true
-                    }) {
-                        Image(systemName: "ellipsis")
-                            .foregroundColor(.gray)
-                            .font(.system(size: 25, weight: .regular))
+                ZStack(alignment: .topTrailing) {
+                    // Tapping outside closes the popup
+                    if showOptionsBox {
+                        Color.black.opacity(0.001)
+                            .ignoresSafeArea()
+                            .onTapGesture {
+                                showOptionsBox = false
+                            }
+                    }
+
+                    HStack(spacing: 12) {
+                        ZStack(alignment: .topTrailing) {
+                            Button(action: {
+                                showOptionsBox.toggle()
+                            }) {
+                                Image(systemName: "ellipsis")
+                                    .foregroundColor(.gray)
+                                    .font(.system(size: 25, weight: .regular))
+                            }
+
+                            if showOptionsBox {
+                                VStack(alignment: .trailing, spacing: 8) {
+                                    Button("Delete Post") {
+                                        showOptionsBox = false
+                                        showDeleteConfirmation = true
+                                    }
+                                    .font(.system(size: 14))
+                                    .foregroundColor(.red)
+                                }
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 10)
+                                .background(Color.white)
+                                .cornerRadius(25)
+                                .shadow(radius: 4)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 25)
+                                        .stroke(Color.gray.opacity(0.2), lineWidth: 0.5)
+                                )
+                                .offset(x: -25, y: 0)
+                            }
+                        }
+                    }
+                    .offset(x: -25, y: 20)
+
+                    .alert(isPresented: $showDeleteConfirmation) {
+                        Alert(
+                            title: Text("Delete Post?"),
+                            message: Text("Are you sure you want to delete this post?"),
+                            primaryButton: .destructive(Text("Delete")) {
+                                onDelete()
+                            },
+                            secondaryButton: .cancel()
+                        )
                     }
                 }
-                
-                .alert(isPresented: $showDeleteConfirmation) {
-                    Alert(
-                        title: Text("Delete Post?"),
-                        primaryButton: .destructive(Text("Delete")) {
-                            onDelete()
-                        },
-                        secondaryButton: .cancel()
-                    )
-                }
-                .offset(x: -25, y: 20)
             }
+
 
         }
     }
 }
-
 
 struct PageForum: View {
     @State private var selectedCategory = "Category"
@@ -447,7 +519,6 @@ struct PageForum: View {
                 print("✅ Fetched from UserDefaults:", loggedInUserFullName)
                 fetchPosts()
             }
-
         }
     }
     
