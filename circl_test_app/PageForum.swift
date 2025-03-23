@@ -15,8 +15,6 @@ struct ForumPostModel: Identifiable, Codable {
     let liked_by_user: Bool
 }
 
-
-
 struct CommentModel: Identifiable, Codable {
     let id: Int
     let user: String
@@ -25,7 +23,6 @@ struct CommentModel: Identifiable, Codable {
     let like_count: Int
     let liked_by_user: Bool
 }
-
 
 struct ForumPost: View {
     let content: String
@@ -40,115 +37,141 @@ struct ForumPost: View {
     let likeCount: Int
     let likedByUser: Bool
     let toggleLike: () -> Void
+    let isCurrentUser: Bool
+    let onDelete: () -> Void
 
+    @State private var showDeleteConfirmation = false // State for delete confirmation dialog
 
-    
-    
-    
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            // Header with author, position, company, and timestamp
-            HStack {
-                Image(profileImageName)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 40, height: 40)
-                    .clipShape(Circle())
-                    .shadow(radius: 2)
-                
-                VStack(alignment: .leading) {
-                    Text(author)
-                        .font(.headline)
+        ZStack(alignment: .topTrailing) {
+            VStack(alignment: .leading, spacing: 10) {
+                // Header with author, position, company, and timestamp
+                HStack {
+                    Image(profileImageName)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 40, height: 40)
+                        .clipShape(Circle())
+                        .shadow(radius: 2)
                     
-                    // Position and Company - New Added Element
-                    HStack {
-                        Text(position)
-                            .font(.subheadline)
-                            .foregroundColor(.gray)
-                        Text("-")
-                            .font(.subheadline)
-                            .foregroundColor(.gray)
-                        NavigationLink(destination: Text("Company Page")) { // Replace with actual company page view
-                            Text(company)
+                    VStack(alignment: .leading) {
+                        Text(author)
+                            .font(.headline)
+                        
+                        // Position and Company - New Added Element
+                        HStack {
+                            Text(position)
                                 .font(.subheadline)
-                                .fontWeight(.semibold)
-                                .foregroundColor(Color.fromHex("004aad"))
+                                .foregroundColor(.gray)
+                            Text("-")
+                                .font(.subheadline)
+                                .foregroundColor(.gray)
+                            NavigationLink(destination: Text("Company Page")) { // Replace with actual company page view
+                                Text(company)
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(Color.fromHex("004aad"))
+                            }
                         }
+                        
+//                        Text(timestamp)
+//                            .font(.subheadline)
+//                            .foregroundColor(.gray)
                     }
-                    
-                    Text(timestamp)
-                        .font(.subheadline)
-                        .foregroundColor(.gray)
+                    Spacer()
+
+                    Text(category)
+                        .font(.caption)
+                        .padding(8)
+                        .background(Color.fromHex("ffde59"))
+                        .foregroundColor(.black)
+                        .cornerRadius(5)
+                        .offset(y: 25) // 👈 tweak this to nudge downward
                 }
-                Spacer()
-                Text(category)
-                    .font(.caption)
-                    .padding(8)
-                    .background(Color.fromHex("ffde59"))
+
+                // Post Content
+                Text(content)
+                    .font(.body)
+                    .lineLimit(3)
                     .foregroundColor(.black)
-                    .cornerRadius(5)
-            }
-
-            // Post Content
-            Text(content)
-                .font(.body)
-                .lineLimit(3)
-      
-
-            
-                .foregroundColor(.black)
-            
-            // Actions: Like, Comment, Share
-            HStack {
-                // ✅ Like Button (dynamic icon + count)
-                Button(action: {
-                    toggleLike()
-                }) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "hand.thumbsup.fill")
-                            .foregroundColor(likedByUser ? .red : .gray)
-                        Text("Like")
-                        Text("(\(likeCount))")
-                            .foregroundColor(.gray)
-                    }
-                    .font(.subheadline)
-                }
-
-
-                Spacer()
-
-                // ✅ Comment Button
-                Button(action: {
-                    onComment()
-                }) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "message")
-                        Text("Comment")
-                        Text("(\(commentCount))")
-                            .foregroundColor(.gray)
-                    }
-                    .font(.subheadline)
-                }
-
-                Spacer()
-
-                // ✅ Share Button
-                Button(action: {
-                    // TODO: Add share functionality
-                }) {
-                    Label("Share", systemImage: "square.and.arrow.up")
+                
+                // Actions: Like, Comment, Share
+                HStack {
+                    // ✅ Like Button (dynamic icon + count)
+                    Button(action: {
+                        toggleLike()
+                    }) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "hand.thumbsup.fill")
+                                .foregroundColor(likedByUser ? .red : .gray)
+                            Text("Like")
+                            Text("(\(likeCount))")
+                                .foregroundColor(.gray)
+                        }
                         .font(.subheadline)
+                    }
+
+                    Spacer()
+
+                    // ✅ Comment Button
+                    Button(action: {
+                        onComment()
+                    }) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "message")
+                            Text("Comment")
+                            Text("(\(commentCount))")
+                                .foregroundColor(.gray)
+                        }
+                        .font(.subheadline)
+                    }
+
+                    Spacer()
+
+                    // ✅ Share Button
+                    Button(action: {
+                        // TODO: Add share functionality
+                    }) {
+                        Label("Share", systemImage: "square.and.arrow.up")
+                            .font(.subheadline)
+                    }
                 }
+                .padding(.top, 10)
+            }
+            .padding()
+            .background(Color.white)
+            .cornerRadius(10)
+            .shadow(radius: 2)
+
+            // ✅ Floating delete button
+            if isCurrentUser {
+                HStack(spacing: 12) {
+                    Button(action: {
+                        // Action 3: More
+                        showDeleteConfirmation = true
+                    }) {
+                        Image(systemName: "ellipsis")
+                            .foregroundColor(.gray)
+                            .font(.system(size: 25, weight: .regular))
+                    }
+                }
+                
+                .alert(isPresented: $showDeleteConfirmation) {
+                    Alert(
+                        title: Text("Delete Post?"),
+                        primaryButton: .destructive(Text("Delete")) {
+                            onDelete()
+                        },
+                        secondaryButton: .cancel()
+                    )
+                }
+                .offset(x: -25, y: 20)
             }
 
-            .padding(.top, 10)
         }
-        .padding()
-        .background(Color.white)
-        .cornerRadius(10)
-        .shadow(radius: 2)
     }
 }
+
 
 struct PageForum: View {
     @State private var selectedCategory = "Category"
@@ -163,7 +186,8 @@ struct PageForum: View {
     @State private var posts: [ForumPostModel] = []
     @State private var selectedPostIdForComments: ForumPostModel? = nil
 
-    
+    @State private var loggedInUserFullName: String = "" // ✅ Added state for logged-in user's full name
+
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
@@ -345,6 +369,8 @@ struct PageForum: View {
                         // Forum Posts List
                         VStack(spacing: 10) {
                             ForEach(posts) { post in
+                                let _ = print("🧾 post.user = \(post.user), 📱 user_fullname = \(loggedInUserFullName)")
+
                                 ForumPost(
                                     content: post.content,
                                     author: post.user,
@@ -360,14 +386,13 @@ struct PageForum: View {
                                     likeCount: post.like_count,
                                     likedByUser: post.liked_by_user,
                                     toggleLike: {
-                                        toggleLike(post) // ✅ This links everything
+                                        toggleLike(post)
+                                    },
+                                    isCurrentUser: post.user == loggedInUserFullName,
+                                    onDelete: {
+                                        deletePost(post.id)
                                     }
                                 )
-
-
-
-
-
                                 .padding(.bottom, 10)
                             }
                         }
@@ -420,11 +445,12 @@ struct PageForum: View {
                     }
                 )
             }
-
-
             .onAppear {
+                loggedInUserFullName = UserDefaults.standard.string(forKey: "user_fullname") ?? ""
+                print("✅ Fetched from UserDefaults:", loggedInUserFullName)
                 fetchPosts()
             }
+
         }
     }
     
@@ -466,7 +492,6 @@ struct PageForum: View {
         }.resume()
     }
 
-    
     func submitPost() {
         guard let url = URL(string: "http://34.44.204.172:8000/api/forum/create_post/") else { return }
 
@@ -515,6 +540,7 @@ struct PageForum: View {
             }
         }.resume()
     }
+
     func toggleLike(_ post: ForumPostModel) {
         let endpoint = post.liked_by_user ? "unlike" : "like"
         guard let url = URL(string: "http://34.44.204.172:8000/api/forum/posts/\(post.id)/\(endpoint)/") else { return }
@@ -534,6 +560,23 @@ struct PageForum: View {
         }.resume()
     }
 
+    func deletePost(_ postId: Int) {
+        guard let url = URL(string: "http://34.44.204.172:8000/api/forum/delete_post/\(postId)/") else { return }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "DELETE"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        URLSession.shared.dataTask(with: request) { _, _, _ in
+            DispatchQueue.main.async {
+                fetchPosts() // ✅ Refresh posts after deletion
+            }
+        }.resume()
+    }
 }
 
 struct CommentSheet: View {
@@ -551,9 +594,11 @@ struct CommentSheet: View {
                     VStack(alignment: .leading, spacing: 12) {
                         ForEach(comments) { comment in
                             HStack(alignment: .top, spacing: 12) {
-                                Circle()
-                                    .fill(Color.blue)
+                                Image("default_image")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
                                     .frame(width: 34, height: 34)
+                                    .clipShape(Circle())
                                     .shadow(radius: 1)
 
                                 VStack(alignment: .leading, spacing: 4) {
@@ -568,8 +613,6 @@ struct CommentSheet: View {
                                 }
 
                                 Spacer()
-                            
-
                             }
                         }
                     }
@@ -578,9 +621,12 @@ struct CommentSheet: View {
 
                 HStack {
                     TextField("Add a comment...", text: $newComment)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+                        .background(Color(.systemGray5))
+                        .cornerRadius(25)
 
-                    Button("Send") {
+                    Button("Post") {
                         submitComment()
                     }
                 }
@@ -602,7 +648,6 @@ struct CommentSheet: View {
             }
         }
     }
-
 
     func fetchComments() {
         guard let url = URL(string: "http://34.44.204.172:8000/api/forum/comments/\(postId)/") else { return }
@@ -686,10 +731,7 @@ struct CommentSheet: View {
             }
         }.resume()
     }
-
-
 }
-
 
 struct CustomCircleButton: View {
     let iconName: String

@@ -192,6 +192,16 @@ struct Page1: View {
                                     hasToken = true
                                 }
                                 
+                                if let firstName = jsonResponse["first_name"] as? String,
+                                   let lastName = jsonResponse["last_name"] as? String {
+                                    let fullName = "\(firstName) \(lastName)"
+                                    UserDefaults.standard.set(fullName, forKey: "user_fullname")
+                                    print("✅ user_fullname saved:", fullName)
+                                }
+
+
+
+                                
                                 if hasUserID && hasToken {
                                     UserDefaults.standard.set(true, forKey: "isLoggedIn")
 
@@ -200,6 +210,9 @@ struct Page1: View {
                                         isLoggedIn = UserDefaults.standard.bool(forKey: "isLoggedIn")
                                     }
                                 }
+                                
+                                
+
                             }
                         } catch {
                             loginMessage = "Error parsing response"
