@@ -162,12 +162,11 @@ struct InviteProfileTemplate: View {
     }
 }
 
-
 // MARK: - InviteProfileDetailPage
 struct InviteProfileDetailPage: View {
     var name: String
-    var username: String // ✅ Add username
-    var email: String    // ✅ Add email
+    var username: String
+    var email: String
     var title: String
     var company: String
     var proficiency: String
@@ -224,8 +223,8 @@ struct InviteProfileDetailPage: View {
 // MARK: - InviteProfileLink
 struct InviteProfileLink: View {
     var name: String
-    var username: String // ✅ Ensure username exists
-    var email: String // ✅ Ensure email exists
+    var username: String
+    var email: String
     var title: String
     var company: String
     var proficiency: String
@@ -236,8 +235,8 @@ struct InviteProfileLink: View {
     var body: some View {
         NavigationLink(destination: InviteProfileDetailPage(
             name: name,
-            username: username, // ✅ Pass username
-            email: email, // ✅ Pass email
+            username: username,
+            email: email,
             title: title,
             company: company,
             proficiency: proficiency,
@@ -246,8 +245,8 @@ struct InviteProfileLink: View {
         )) {
             InviteProfileTemplate(
                 name: name,
-                username: username, // ✅ Pass username
-                email: email, // ✅ Pass email
+                username: username,
+                email: email,
                 title: title,
                 company: company,
                 proficiency: proficiency,
@@ -261,12 +260,13 @@ struct InviteProfileLink: View {
 
 // MARK: - PageInvites
 struct PageInvites: View {
-    @State private var searchText: String = "" // Stores the entered username
-    @State private var searchedUser: InviteProfileData? // Stores the searched user
-    @State private var friendRequests: [InviteProfileData] = [] // Now dynamic
+    @State private var searchText: String = ""
+    @State private var searchedUser: InviteProfileData?
+    @State private var friendRequests: [InviteProfileData] = []
     @State private var myNetwork: [InviteProfileData] = []
-    
-    
+    @State private var selectedUserForPreview: InviteProfileData?
+    @State private var showProfilePreview: Bool = false
+    @State private var selectedFullProfile: FullProfile? // Step 2: Added state for detailed profile
     
     var body: some View {
         NavigationView {
@@ -312,10 +312,6 @@ struct PageInvites: View {
                                             .foregroundColor(.white)
                                     }
                                 }
-
-//                                Text("Hello, Fragne")
-//                                    .foregroundColor(.white)
-//                                    .font(.headline)
                             }
                         }
                     }
@@ -385,8 +381,8 @@ struct PageInvites: View {
                             VStack {
                                 InviteProfileLink(
                                     name: user.name,
-                                    username: user.username,  // ✅ Add username
-                                    email: user.email,  // ✅ Ensure email is passed
+                                    username: user.username,
+                                    email: user.email,
                                     title: user.title,
                                     company: user.company,
                                     proficiency: user.proficiency,
@@ -413,14 +409,12 @@ struct PageInvites: View {
                             .font(.headline)
                             .padding(.top)
 
-                        // ✅ Show message if there are no requests
                         if friendRequests.isEmpty {
                             Text("You have no new networking requests.")
                                 .font(.subheadline)
                                 .foregroundColor(.gray)
                                 .padding()
                         } else {
-                            // ✅ Show the list of networking requests when available
                             ForEach(friendRequests) { profile in
                                 InviteProfileLink(
                                     name: profile.name,
@@ -435,21 +429,20 @@ struct PageInvites: View {
                                 )
                             }
                         }
-
                         
                         Divider()
                             .padding(.vertical)
                         
-                        // My Network Section
+                        // My Network Section (Step 2: Updated with fetchUserProfile)
                         Text("My Network")
                             .font(.headline)
                             .padding(.top)
                         
                         ForEach(myNetwork) { profile in
-                            InviteProfileLink(
+                            InviteProfileTemplate(
                                 name: profile.name,
-                                username: profile.username,  // ✅ Ensure username is passed
-                                email: profile.email,        // ✅ Ensure email is passed
+                                username: profile.username,
+                                email: profile.email,
                                 title: profile.title,
                                 company: profile.company,
                                 proficiency: profile.proficiency,
@@ -457,9 +450,124 @@ struct PageInvites: View {
                                 profileImage: profile.profileImage,
                                 showAcceptDeclineButtons: false
                             )
+                            .onTapGesture {
+                                fetchUserProfile(userId: profile.user_id) { profileData in  // ✅ Correctly use numeric user_id
+                                    DispatchQueue.main.async {
+                                        self.selectedFullProfile = profileData
+                                        self.showProfilePreview = true
+                                    }
+                                }
+                            }
                         }
+
                     }
                     .padding()
+                }
+                .sheet(isPresented: $showProfilePreview) { // Step 3: Updated sheet for detailed profile
+                    if let userProfile = selectedFullProfile {
+                        ScrollView {
+                            VStack(spacing: 20) {
+                                // Profile Image
+                                Circle()
+                                    .fill(Color.gray.opacity(0.3))
+                                    .frame(width: 120, height: 120)
+                                    .overlay(
+                                        Image(systemName: "person.crop.circle")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 60, height: 60)
+                                            .foregroundColor(.gray)
+                                    )
+
+                                // Name, Title, Company
+                                VStack {
+                                    Text(userProfile.full_name)
+                                        .font(.title)
+                                        .fontWeight(.bold)
+
+                                    if let title = userProfile.title {
+                                        Text(title)
+                                            .font(.title2)
+                                            .foregroundColor(.gray)
+                                    }
+
+                                    Text("Connections: \(userProfile.connections_count)")
+                                        .font(.headline)
+                                }
+
+                                // Bio Section
+                                if let bio = userProfile.bio {
+                                    VStack(alignment: .leading) {
+                                        Text("Bio").bold()
+                                        Text(bio)
+                                    }.padding()
+                                }
+
+                                // About Section
+                                VStack(alignment: .leading, spacing: 10) {
+                                    Text("About \(userProfile.full_name)").bold()
+
+                                    if let birthday = userProfile.birthday,
+                                       let age = calculateAge(from: birthday) {
+                                        Text("Age: \(age)")
+                                    }
+
+                                    if let education = userProfile.education_level {
+                                        Text("Education Level: \(education)")
+                                    }
+
+                                    if let institution = userProfile.institution_attended {
+                                        Text("Institution: \(institution)")
+                                    }
+
+                                    if !userProfile.certificates.isEmpty {
+                                        Text("Certificates: \(userProfile.certificates.joined(separator: ", "))")
+                                    }
+
+                                    if let yearsExp = userProfile.years_of_experience {
+                                        Text("Experience: \(yearsExp) years")
+                                    }
+
+                                    if let location = userProfile.location {
+                                        Text("Location: \(location)")
+                                    }
+
+                                    if !userProfile.achievements.isEmpty {
+                                        Text("Achievements: \(userProfile.achievements.joined(separator: ", "))")
+                                    }
+                                }.padding()
+
+                                // Technical Side Section
+                                VStack(alignment: .leading, spacing: 10) {
+                                    Text("Technical Side").bold()
+
+                                    if !userProfile.skillsets.isEmpty {
+                                        Text("Skills: \(userProfile.skillsets.joined(separator: ", "))")
+                                    }
+
+                                    if let availability = userProfile.availability {
+                                        Text("Availability: \(availability)")
+                                    }
+                                }.padding()
+
+                                // Interests Section
+                                VStack(alignment: .leading, spacing: 10) {
+                                    Text("Interests").bold()
+
+                                    if !userProfile.clubs.isEmpty {
+                                        Text("Clubs/Organizations: \(userProfile.clubs.joined(separator: ", "))")
+                                    }
+
+                                    if !userProfile.hobbies.isEmpty {
+                                        Text("Hobbies: \(userProfile.hobbies.joined(separator: ", "))")
+                                    }
+                                }.padding()
+                            }
+                            .padding()
+                        }
+                    } else {
+                        Text("Loading profile...")
+                    }
                 }
                 
                 // Footer Section
@@ -487,7 +595,8 @@ struct PageInvites: View {
             .navigationBarBackButtonHidden(true)
             .onAppear {
                 fetchFriendRequests()
-                fetchNetwork()            }
+                fetchNetwork()
+            }
         }
     }
     
@@ -524,8 +633,6 @@ struct PageInvites: View {
         }.resume()
     }
     
-    
-    
     func searchUserByUsername() {
         guard !searchText.isEmpty else { return }
         
@@ -549,7 +656,6 @@ struct PageInvites: View {
             }
             
             if let data = data {
-                // Log the raw API response
                 if let rawResponse = String(data: data, encoding: .utf8) {
                     print("📡 RAW RESPONSE:", rawResponse)
                 }
@@ -584,7 +690,7 @@ struct PageInvites: View {
         }
         
         var request = URLRequest(url: url)
-        request.httpMethod = "POST"  // ✅ Explicitly set POST method
+        request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = jsonData
         
@@ -618,7 +724,6 @@ struct PageInvites: View {
         }.resume()
     }
     
-    
     func fetchFriendRequests() {
         guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else { return }
         
@@ -651,23 +756,114 @@ struct PageInvites: View {
         }.resume()
     }
     
-    
-    
+    // Step 1: Added fetchUserProfile function
+    func fetchUserProfile(userId: Int, completion: @escaping (FullProfile?) -> Void) {
+        let urlString = "http://34.44.204.172:8000/api/users/profile/\(userId)/"
+        print("🌐 Fetching profile from:", urlString) // ✅ debugging line
+        
+        guard let url = URL(string: urlString) else {
+            print("❌ Invalid URL")
+            completion(nil)
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("❌ Request failed:", error)
+                completion(nil)
+                return
+            }
+
+            if let httpResponse = response as? HTTPURLResponse {
+                print("📡 HTTP Status Code:", httpResponse.statusCode) // debugging line
+            }
+
+            if let data = data {
+                if let rawResponse = String(data: data, encoding: .utf8) {
+                    print("📡 RAW RESPONSE:", rawResponse) // debugging line
+                }
+
+                if let decoded = try? JSONDecoder().decode(FullProfile.self, from: data) {
+                    completion(decoded)
+                } else {
+                    print("❌ Failed to decode JSON")
+                    completion(nil)
+                }
+            } else {
+                completion(nil)
+            }
+        }.resume()
+    }
+
     
     // MARK: - CustomCircleButton
-    
+    struct CustomCircleButton: View {
+        let iconName: String
+        
+        var body: some View {
+            ZStack {
+                Circle()
+                    .fill(Color.fromHex("004aad"))
+                    .frame(width: 60, height: 60)
+                Image(systemName: iconName)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 30, height: 30)
+                    .foregroundColor(.white)
+            }
+        }
+    }
     
     // MARK: - Data Model
     struct InviteProfileData: Identifiable, Codable {
         let id = UUID()
+        let user_id: Int
         let name: String
-        let username: String  // ✅ Ensure username exists
-        let email: String     // ✅ Ensure email exists
+        let username: String
+        let email: String
         let title: String
         let company: String
         let proficiency: String
         let tags: [String]
         let profileImage: String
+    }
+    
+    // MARK: - FullProfile Model (Required for decoding detailed profile)
+    struct FullProfile: Codable {
+        let full_name: String
+        let title: String?
+        let connections_count: Int
+        let bio: String?
+        let birthday: String?
+        let education_level: String?
+        let institution_attended: String?
+        let certificates: [String]
+        let years_of_experience: Int?
+        let location: String?
+        let achievements: [String]
+        let skillsets: [String]
+        let availability: String?
+        let clubs: [String]
+        let hobbies: [String]
+    }
+    
+    // MARK: - Helper Function for Age Calculation
+    func calculateAge(from birthday: String) -> Int? {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd" // Assuming this format from API
+        guard let birthDate = dateFormatter.date(from: birthday) else { return nil }
+        let calendar = Calendar.current
+        let now = Date()
+        let ageComponents = calendar.dateComponents([.year], from: birthDate, to: now)
+        return ageComponents.year
     }
     
     // MARK: - Preview
@@ -677,3 +873,4 @@ struct PageInvites: View {
         }
     }
 }
+

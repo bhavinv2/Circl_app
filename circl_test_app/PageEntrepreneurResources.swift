@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct PageEntrepreneurResources: View {
+    
     var body: some View {
         NavigationView { // Add NavigationView to the root of the view
             VStack(spacing: 0) {

@@ -5,6 +5,9 @@ struct PageEntrepreneurMatching: View {
     @State private var entrepreneurs: [EntrepreneurProfileData] = []
     @State private var userNetworkEmails: [String] = [] // ✅ STEP 1: Added state for network emails
     @State private var declinedEmails: Set<String> = [] // ✅ STEP 1: Added state for declined emails
+    @State private var showConfirmation = false
+    @State private var selectedEmailToAdd: String? = nil
+
 
     var body: some View {
         NavigationView {
@@ -105,9 +108,11 @@ struct PageEntrepreneurMatching: View {
                                 proficiency: entrepreneur.proficiency,
                                 tags: entrepreneur.tags,
                                 profileImage: entrepreneur.profileImage,
-                                onAccept: { // ✅ STEP 4: Added onAccept callback
-                                    addToNetwork(email: entrepreneur.email)
+                                onAccept: {
+                                    selectedEmailToAdd = entrepreneur.email
+                                    showConfirmation = true
                                 },
+
                                 onDecline: { // ✅ STEP 4: Added onDecline callback
                                     declinedEmails.insert(entrepreneur.email)
                                     entrepreneurs.removeAll { $0.email == entrepreneur.email }
@@ -116,6 +121,19 @@ struct PageEntrepreneurMatching: View {
                         }
                     }
                     .padding()
+                    .alert(isPresented: $showConfirmation) {
+                        Alert(
+                            title: Text("Send Friend Request?"),
+                            message: Text("Are you sure you want to send a friend request to this user?"),
+                            primaryButton: .default(Text("Yes")) {
+                                if let email = selectedEmailToAdd {
+                                    addToNetwork(email: email)
+                                }
+                            },
+                            secondaryButton: .cancel()
+                        )
+                    }
+
                 }
                 .onAppear {
                     fetchUserNetwork {
