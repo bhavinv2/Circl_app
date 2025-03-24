@@ -547,8 +547,9 @@ struct PageForum: View {
             .edgesIgnoringSafeArea(.bottom)
             .navigationBarBackButtonHidden(true)
             .sheet(isPresented: $isImagePickerPresented) {
-                ImagePicker(selectedImage: $selectedImage, sourceType: sourceType)
+                ImagePicker(image: $selectedImage)
             }
+
             .sheet(item: $selectedPostIdForComments) { post in
                 CommentSheet(
                     postId: post.id,
@@ -891,53 +892,9 @@ extension Color {
     }
 }
 
-// Image Picker View
-struct ImagePicker: View {
-    @Binding var selectedImage: UIImage?
-    let sourceType: UIImagePickerController.SourceType
-    
-    var body: some View {
-        ImagePickerController(selectedImage: $selectedImage, sourceType: sourceType)
-    }
-}
 
-// ImagePickerController Bridge for UIKit to SwiftUI
-struct ImagePickerController: UIViewControllerRepresentable {
-    @Binding var selectedImage: UIImage?
-    let sourceType: UIImagePickerController.SourceType
-    
-    func makeCoordinator() -> Coordinator {
-        return Coordinator(parent: self)
-    }
-    
-    func makeUIViewController(context: Context) -> UIImagePickerController {
-        let picker = UIImagePickerController()
-        picker.delegate = context.coordinator
-        picker.sourceType = sourceType
-        return picker
-    }
-    
-    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
-    
-    class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
-        let parent: ImagePickerController
-        
-        init(parent: ImagePickerController) {
-            self.parent = parent
-        }
-        
-        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
-            if let image = info[.originalImage] as? UIImage {
-                parent.selectedImage = image
-            }
-            picker.dismiss(animated: true)
-        }
-        
-        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
-            picker.dismiss(animated: true)
-        }
-    }
-}
+
+
 
 struct PageForum_Previews: PreviewProvider {
     static var previews: some View {
