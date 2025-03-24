@@ -140,17 +140,17 @@ struct ProfilePage: View {
                                     // Mentor Toggle with backend update
                                     // ProfilePage.swift
                                     
-                                    Toggle("Mentor?", isOn: $isMentor)
-                                        .toggleStyle(SwitchToggleStyle(tint: Color.customHex("ffde59")))
-                                        .foregroundColor(.white)
-                                        .font(.system(size: 14))
-                                        .onChange(of: isMentor) { newValue in
-                                            // Save the updated toggle state in UserDefaults
-                                            UserDefaults.standard.set(newValue, forKey: "isMentor")
-                                            
-                                            // Send the change to the backend (already implemented)
-                                            updateMentorStatus(isMentor: newValue)
-                                        }
+//                                    Toggle("Mentor?", isOn: $isMentor)
+//                                        .toggleStyle(SwitchToggleStyle(tint: Color.customHex("ffde59")))
+//                                        .foregroundColor(.white)
+//                                        .font(.system(size: 14))
+//                                        .onChange(of: isMentor) { newValue in
+//                                            // Save the updated toggle state in UserDefaults
+//                                            UserDefaults.standard.set(newValue, forKey: "isMentor")
+//                                            
+//                                            // Send the change to the backend (already implemented)
+//                                            updateMentorStatus(isMentor: newValue)
+//                                        }
                                     
                                 }
                             }
@@ -383,7 +383,7 @@ struct ProfilePage: View {
         .onAppear {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 // Update the isMentor state from UserDefaults when the view appears
-                isMentor = UserDefaults.standard.bool(forKey: "isMentor")
+//                isMentor = UserDefaults.standard.bool(forKey: "isMentor")
                 isLoggedIn = UserDefaults.standard.bool(forKey: "isLoggedIn")
                 fetchProfile()
 
@@ -439,45 +439,45 @@ struct ProfilePage: View {
 
 
     // Function to update mentor status on the backend
-    func updateMentorStatus(isMentor: Bool) {
-        let userId = UserDefaults.standard.integer(forKey: "user_id") // Get user_id from UserDefaults
-        print("user_id: \(userId), auth_token: \(UserDefaults.standard.string(forKey: "auth_token") ?? "No token")")
-
-        guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else {
-            return
-        }
-
-        let url = URL(string: "http://34.44.204.172:8000/api/users/update-mentor-status/")!
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        // Add authorization token if available
-        if let token = UserDefaults.standard.string(forKey: "auth_token") {
-            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
-        }
-
-        let body: [String: Any] = [
-            "user_id": userId,
-            "is_mentor": isMentor
-        ]
-        
-        guard let httpBody = try? JSONSerialization.data(withJSONObject: body) else { return }
-        request.httpBody = httpBody
-
-        let task = URLSession.shared.dataTask(with: request) { data, response, error in
-            if let error = error {
-                print("Error: \(error.localizedDescription)")
-                return
-            }
-            if let data = data {
-                // Handle the response
-                print("Response data: \(String(data: data, encoding: .utf8) ?? "No data")")
-            }
-        }
-        task.resume()
-    }
+//    func updateMentorStatus(isMentor: Bool) {
+//        let userId = UserDefaults.standard.integer(forKey: "user_id") // Get user_id from UserDefaults
+//        print("user_id: \(userId), auth_token: \(UserDefaults.standard.string(forKey: "auth_token") ?? "No token")")
+//
+//        guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else {
+//            return
+//        }
+//
+//        let url = URL(string: "http://34.44.204.172:8000/api/users/update-mentor-status/")!
+//
+//        var request = URLRequest(url: url)
+//        request.httpMethod = "POST"
+//        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+//
+//        // Add authorization token if available
+//        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+//            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+//        }
+//
+//        let body: [String: Any] = [
+//            "user_id": userId,
+//            "is_mentor": isMentor
+//        ]
+//        
+//        guard let httpBody = try? JSONSerialization.data(withJSONObject: body) else { return }
+//        request.httpBody = httpBody
+//
+//        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+//            if let error = error {
+//                print("Error: \(error.localizedDescription)")
+//                return
+//            }
+//            if let data = data {
+//                // Handle the response
+//                print("Response data: \(String(data: data, encoding: .utf8) ?? "No data")")
+//            }
+//        }
+//        task.resume()
+//    }
     
     
     

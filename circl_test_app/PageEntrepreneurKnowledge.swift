@@ -50,9 +50,9 @@ struct PageEntrepreneurKnowledge: View {
                                 }
                                 
                                 // "Hello, Fragne" text below the icons
-                                Text("Hello, Fragne")
-                                    .foregroundColor(.white)
-                                    .font(.headline)
+//                                Text("Hello, Fragne")
+//                                    .foregroundColor(.white)
+//                                    .font(.headline)
                             }
                         }
                     }

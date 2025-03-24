@@ -2,7 +2,7 @@ import SwiftUI
 
 // MARK: - Main View for Mentor Matching
 struct PageMentorMatching: View {
-    @State private var mentors: [MentorProfileData] = []
+//    @State private var mentors: [MentorProfileData] = []
 
     var body: some View {
         NavigationView {
@@ -49,9 +49,9 @@ struct PageMentorMatching: View {
                                     }
                                 }
 
-                                Text("Hello, Fragne")
-                                    .foregroundColor(.white)
-                                    .font(.headline)
+//                                Text("Hello, Fragne")
+//                                    .foregroundColor(.white)
+//                                    .font(.headline)
                             }
                         }
                     }
@@ -96,25 +96,18 @@ struct PageMentorMatching: View {
                 .padding(.horizontal)
                 .padding(.vertical, 10)
 
-                // Scrollable Section
-                ScrollView {
-                    VStack(spacing: 20) {
-                        ForEach(mentors, id: \.email) { mentor in
-                            MentorProfileLink(
-                                name: mentor.name,
-                                title: "Mentor",
-                                company: mentor.company,
-                                proficiency: "Sharing Knowledge",
-                                tags: ["Mentorship", "Business", "Networking"],
-                                profileImage: "sampleProfileImage"
-                            )
-                        }
-                    }
-                    .padding()
-                }
-                .onAppear {
-                    fetchMentors()
-                }
+                Spacer()
+
+                // Coming Soon Message
+                Text("Mentor Matching Coming Soon")
+                    .font(.title)
+                    .fontWeight(.bold)
+                    .foregroundColor(.gray)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal)
+                    .padding(.top, -50)
+
+                Spacer()
 
                 // Footer Section with Navigation
                 HStack(spacing: 15) {
@@ -147,6 +140,7 @@ struct PageMentorMatching: View {
     }
 
     // ✅ Fetch Mentors API Call
+    /*
     func fetchMentors() {
         guard let url = URL(string: "http://34.44.204.172:8000/api/users/get-mentors/") else { return }
 
@@ -195,9 +189,11 @@ struct PageMentorMatching: View {
             }
         }.resume()
     }
+    */
 }
 
 // MARK: - MentorProfileData Model
+/*
 struct MentorProfileData {
     var name: String
     var title: String
@@ -259,6 +255,7 @@ struct MentorProfileLink: View {
         .padding(.horizontal)
     }
 }
+*/
 
 // MARK: - Preview
 struct PageMentorMatching_Previews: PreviewProvider {

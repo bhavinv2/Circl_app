@@ -84,9 +84,9 @@ struct PageMessages: View {
                                     .foregroundColor(.white)
                             }
                         }
-                        Text("Hello, Fragne")
-                            .foregroundColor(.white)
-                            .font(.headline)
+//                        Text("Hello, Fragne")
+//                            .foregroundColor(.white)
+//                            .font(.headline)
                     }
                 }
             }
