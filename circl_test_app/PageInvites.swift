@@ -1,6 +1,7 @@
 import SwiftUI
 import Foundation
 
+
 // MARK: - InviteProfileTemplate
 struct InviteProfileTemplate: View {
     @State private var requestHandled = false
@@ -463,112 +464,14 @@ struct PageInvites: View {
                     }
                     .padding()
                 }
-                .sheet(isPresented: $showProfilePreview) { // Step 3: Updated sheet for detailed profile
+                .sheet(isPresented: $showProfilePreview) {
                     if let userProfile = selectedFullProfile {
-                        ScrollView {
-                            VStack(spacing: 20) {
-                                // Profile Image
-                                Circle()
-                                    .fill(Color.gray.opacity(0.3))
-                                    .frame(width: 120, height: 120)
-                                    .overlay(
-                                        Image(systemName: "person.crop.circle")
-                                            .resizable()
-                                            .scaledToFit()
-                                            .frame(width: 60, height: 60)
-                                            .foregroundColor(.gray)
-                                    )
-
-                                // Name, Title, Company
-                                VStack {
-                                    Text(userProfile.full_name)
-                                        .font(.title)
-                                        .fontWeight(.bold)
-
-                                    if let title = userProfile.title {
-                                        Text(title)
-                                            .font(.title2)
-                                            .foregroundColor(.gray)
-                                    }
-
-                                    Text("Connections: \(userProfile.connections_count)")
-                                        .font(.headline)
-                                }
-
-                                // Bio Section
-                                if let bio = userProfile.bio {
-                                    VStack(alignment: .leading) {
-                                        Text("Bio").bold()
-                                        Text(bio)
-                                    }.padding()
-                                }
-
-                                // About Section
-                                VStack(alignment: .leading, spacing: 10) {
-                                    Text("About \(userProfile.full_name)").bold()
-
-                                    if let birthday = userProfile.birthday,
-                                       let age = calculateAge(from: birthday) {
-                                        Text("Age: \(age)")
-                                    }
-
-                                    if let education = userProfile.education_level {
-                                        Text("Education Level: \(education)")
-                                    }
-
-                                    if let institution = userProfile.institution_attended {
-                                        Text("Institution: \(institution)")
-                                    }
-
-                                    if !userProfile.certificates.isEmpty {
-                                        Text("Certificates: \(userProfile.certificates.joined(separator: ", "))")
-                                    }
-
-                                    if let yearsExp = userProfile.years_of_experience {
-                                        Text("Experience: \(yearsExp) years")
-                                    }
-
-                                    if let location = userProfile.location {
-                                        Text("Location: \(location)")
-                                    }
-
-                                    if !userProfile.achievements.isEmpty {
-                                        Text("Achievements: \(userProfile.achievements.joined(separator: ", "))")
-                                    }
-                                }.padding()
-
-                                // Technical Side Section
-                                VStack(alignment: .leading, spacing: 10) {
-                                    Text("Technical Side").bold()
-
-                                    if !userProfile.skillsets.isEmpty {
-                                        Text("Skills: \(userProfile.skillsets.joined(separator: ", "))")
-                                    }
-
-                                    if let availability = userProfile.availability {
-                                        Text("Availability: \(availability)")
-                                    }
-                                }.padding()
-
-                                // Interests Section
-                                VStack(alignment: .leading, spacing: 10) {
-                                    Text("Interests").bold()
-
-                                    if !userProfile.clubs.isEmpty {
-                                        Text("Clubs/Organizations: \(userProfile.clubs.joined(separator: ", "))")
-                                    }
-
-                                    if !userProfile.hobbies.isEmpty {
-                                        Text("Hobbies: \(userProfile.hobbies.joined(separator: ", "))")
-                                    }
-                                }.padding()
-                            }
-                            .padding()
-                        }
+                        DynamicProfilePreview(profileData: userProfile)
                     } else {
                         Text("Loading profile...")
                     }
                 }
+
                 
                 // Footer Section
                 HStack(spacing: 15) {
@@ -837,23 +740,7 @@ struct PageInvites: View {
     }
     
     // MARK: - FullProfile Model (Required for decoding detailed profile)
-    struct FullProfile: Codable {
-        let full_name: String
-        let title: String?
-        let connections_count: Int
-        let bio: String?
-        let birthday: String?
-        let education_level: String?
-        let institution_attended: String?
-        let certificates: [String]
-        let years_of_experience: Int?
-        let location: String?
-        let achievements: [String]
-        let skillsets: [String]
-        let availability: String?
-        let clubs: [String]
-        let hobbies: [String]
-    }
+    
     
     // MARK: - Helper Function for Age Calculation
     func calculateAge(from birthday: String) -> Int? {
