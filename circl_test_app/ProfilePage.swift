@@ -1,9 +1,33 @@
 import SwiftUI
 
+struct FullProfile: Codable {
+    let user_id: Int
+    let full_name: String
+    let bio: String?
+    let title: String?
+    let personality_type: String?
+    let birthday: String?
+    let education_level: String?
+    let institution_attended: String?
+    let certificates: [String]
+    let years_of_experience: Int?
+    let location: String?
+    let achievements: [String]
+    let skillsets: [String]
+    let availability: String?
+    let clubs: [String]
+    let hobbies: [String]
+    let connections_count: Int
+
+}
+
+
 struct ProfilePage: View {
     @State private var showError: Bool = false // State variable to show error when bio exceeds 200 characters
     @State private var isLoggedIn: Bool = UserDefaults.standard.bool(forKey: "isLoggedIn") // Track login state
     @State private var isMentor: Bool = UserDefaults.standard.bool(forKey: "isMentor") // Retrieve mentor state from UserDefaults
+    @State private var profileData: FullProfile?
+
 
     var body: some View {
         ZStack {
@@ -22,8 +46,8 @@ struct ProfilePage: View {
                         HStack(spacing: 15) { // Added spacing for better UI
                            
 
-                            // Navigation to ProfilePageSettings (Gear Icon)
-                            NavigationLink(destination: ProfilePageSettings().navigationBarBackButtonHidden(true)) {
+                            // Navigation to PageSettings (Gear Icon)
+                            NavigationLink(destination: PageSettings().navigationBarBackButtonHidden(true)) {
                                 Image(systemName: "gearshape") // Gear Icon
                                     .resizable()
                                     .scaledToFit()
@@ -69,16 +93,17 @@ struct ProfilePage: View {
                                         Text("Connections:")
                                             .font(.system(size: 16, weight: .semibold))
                                             .foregroundColor(Color.customHex("#ffde59"))
-                                        Text("123") // Placeholder for backend data
+                                        Text("\(profileData?.connections_count ?? 0)")
                                             .font(.system(size: 16, weight: .bold))
                                             .foregroundColor(Color.white)
+
                                     }
                                     
                                     VStack {
                                         Text("Circles:")
                                             .font(.system(size: 16, weight: .semibold))
                                             .foregroundColor(Color.customHex("#ffde59"))
-                                        Text("45") // Placeholder for backend data
+                                        Text("0") // Placeholder for backend data
                                             .font(.system(size: 16, weight: .bold))
                                             .foregroundColor(Color.white)
                                     }
@@ -87,14 +112,15 @@ struct ProfilePage: View {
                                         Text("Circs:")
                                             .font(.system(size: 16, weight: .semibold))
                                             .foregroundColor(Color.customHex("#ffde59"))
-                                        Text("980") // Placeholder for backend data
+                                        Text("0") // Placeholder for backend data
                                             .font(.system(size: 16, weight: .bold))
                                             .foregroundColor(Color.white)
                                     }
                                 }
                                 
                                 VStack(spacing: 5) {
-                                    Text("Fragne Delgado") // Placeholder for backend data
+                                    Text(profileData?.full_name ?? "Loading...")
+
                                         .font(.system(size: 24, weight: .bold))
                                         .foregroundColor(.white)
                                     
@@ -106,12 +132,14 @@ struct ProfilePage: View {
                                         .underline()
                                         .foregroundColor(.white)
                                     
-                                    Text("ENFJ - A") // Personality type placeholder
+                                    Text(profileData?.personality_type ?? "")
+
                                         .font(.system(size: 18, weight: .semibold))
                                         .foregroundColor(.white)
                                     
                                     // Mentor Toggle with backend update
                                     // ProfilePage.swift
+                                    
                                     Toggle("Mentor?", isOn: $isMentor)
                                         .toggleStyle(SwitchToggleStyle(tint: Color.customHex("ffde59")))
                                         .foregroundColor(.white)
@@ -179,7 +207,8 @@ struct ProfilePage: View {
                                     .foregroundColor(.white)
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                 
-                                Text("Entrepreneur with a Harvard Master's")
+                                Text(profileData?.bio ?? "")
+
                                     .font(.system(size: 16))
                                     .foregroundColor(.white)
                                     .multilineTextAlignment(.leading)
@@ -196,35 +225,43 @@ struct ProfilePage: View {
                                 .frame(height: 400)
                             
                             VStack(alignment: .leading, spacing: 15) {
-                                Text("About Fragne Delgado") // Placeholder for backend data
+                                Text("About \(profileData?.full_name ?? "")")
+
                                     .font(.system(size: 22, weight: .bold))
                                     .foregroundColor(.white)
                                 
-                                Text("Age: 30") // Placeholder for backend data
+                                if let birthday = profileData?.birthday, let age = calculateAge(from: birthday) {
+                                    Text("Age: \(age)")
+                                        .font(.system(size: 16, weight: .semibold))
+                                        .foregroundColor(.white)
+                                }
+
+
+                                   
+                                Text("Education Level: \(profileData?.education_level ?? "")")
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundColor(.white)
                                 
-                                Text("Education Level: Master's Degree") // Placeholder for backend data
+                                Text("Institution Attended: \(profileData?.institution_attended ?? "")")
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundColor(.white)
                                 
-                                Text("Institution Attended: Harvard University") // Placeholder for backend data
+                                Text("Certifications/Licenses: \(profileData?.certificates.joined(separator: ", ") ?? "")")
+
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundColor(.white)
                                 
-                                Text("Certifications/Licenses: Certified Project Manager") // Placeholder for backend data
+                                Text("Years of Experience: \(profileData?.years_of_experience.map { String($0) } ?? "")")
+
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundColor(.white)
                                 
-                                Text("Years of Experience: 10") // Placeholder for backend data
+                                Text("Location: \(profileData?.location ?? "")")
+
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundColor(.white)
                                 
-                                Text("Location: New York, USA") // Placeholder for backend data
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
-                                
-                                Text("Achievements: Led a team of 50 to complete a $10M project under budget") // Placeholder for backend data
+                                Text("Achievements: \(profileData?.achievements.joined(separator: ", ") ?? "")")
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundColor(.white)
                             }
@@ -243,7 +280,7 @@ struct ProfilePage: View {
                                     .font(.system(size: 22, weight: .bold))
                                     .foregroundColor(.white)
                                 
-                                Text("Skills: Swift, UI/UX Design, Project Management") // Placeholder for backend data
+                                Text("Skills: \(profileData?.skillsets.joined(separator: ", ") ?? "")")
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundColor(.white)
                                 
@@ -251,7 +288,7 @@ struct ProfilePage: View {
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundColor(.white)
                                 
-                                Text("Availability: Open to collaboration, Monday - Friday, 9 AM - 5 PM EST") // Placeholder for backend data
+                                Text("Availability: \(profileData?.availability ?? "")")
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundColor(.white)
                             }
@@ -269,11 +306,11 @@ struct ProfilePage: View {
                                     .font(.system(size: 22, weight: .bold))
                                     .foregroundColor(.white)
                                 
-                                Text("Clubs/Organizations: Member of Tau Kappa Epsilon, Volunteer at Habitat for Humanity") // Placeholder for backend data
+                                Text("Clubs/Organizations: \(profileData?.clubs.joined(separator: ", ") ?? "")")
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundColor(.white)
                                 
-                                Text("Hobbies/Passions: Reading, Cycling, Digital Art, Traveling") // Placeholder for backend data
+                                Text("Hobbies/Passions: \(profileData?.hobbies.joined(separator: ", ") ?? "")")
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundColor(.white)
                             }
@@ -348,11 +385,56 @@ struct ProfilePage: View {
                 // Update the isMentor state from UserDefaults when the view appears
                 isMentor = UserDefaults.standard.bool(forKey: "isMentor")
                 isLoggedIn = UserDefaults.standard.bool(forKey: "isLoggedIn")
+                fetchProfile()
+
             }
         }
     }
         
 
+
+    func fetchProfile() {
+        guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else {
+            print("❌ No user_id in UserDefaults")
+            return
+        }
+
+        let urlString = "http://34.44.204.172:8000/api/users/profile/\(userId)/"
+        print("🌐 Fetching profile from:", urlString)
+
+        guard let url = URL(string: urlString) else {
+            print("❌ Invalid URL")
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("❌ Request failed:", error)
+                return
+            }
+
+            if let data = data {
+                print("📦 Received data:", String(data: data, encoding: .utf8) ?? "No string")
+
+                if let decoded = try? JSONDecoder().decode(FullProfile.self, from: data) {
+                    DispatchQueue.main.async {
+                        print("✅ Decoded:", decoded.full_name)
+                        self.profileData = decoded
+                    }
+                } else {
+                    print("❌ Failed to decode JSON")
+                }
+            }
+        }.resume()
+    }
 
 
 
@@ -396,8 +478,13 @@ struct ProfilePage: View {
         }
         task.resume()
     }
+    
+    
+    
+    
 
 }
+
 
 // Extension to support custom hex colors
 extension Color {
@@ -409,6 +496,15 @@ extension Color {
         return Color(red: red, green: green, blue: blue)
     }
 }
+
+func calculateAge(from birthdayString: String) -> Int? {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "yyyy-MM-dd"
+    guard let birthDate = formatter.date(from: birthdayString) else { return nil }
+    let ageComponents = Calendar.current.dateComponents([.year], from: birthDate, to: Date())
+    return ageComponents.year
+}
+
 
 // Preview
 struct ProfilePage_Previews: PreviewProvider {

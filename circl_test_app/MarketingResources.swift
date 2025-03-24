@@ -1,28 +1,12 @@
 import SwiftUI
 
-struct LegalResource: Codable, Identifiable {
-    var id: String { displayName.text }
-    let displayName: NameText
-    let formattedAddress: String
-    let rating: Double?
-
-    struct NameText: Codable {
-        let text: String
-    }
-}
-
-struct LegalResourcesResponse: Codable {
-    let places: [LegalResource]
-}
-
-struct LegalTeamResources: View {
-    var quizAnswers: LegalQuizAnswers
-
-    @State private var legalResources: [LegalResource] = []
+struct MarketingResources: View {
+    var quizAnswers: MarketingQuizAnswers
+    @State private var resources: [LegalResource] = []
 
     var body: some View {
         NavigationView {
-            List(legalResources) { resource in
+            List(resources) { resource in
                 VStack(alignment: .leading) {
                     Text(resource.displayName.text)
                         .font(.headline)
@@ -38,27 +22,28 @@ struct LegalTeamResources: View {
                 }
                 .padding(.vertical, 5)
             }
-            .navigationTitle("Legal Resources")
+            .navigationTitle("Marketing Teams")
             .onAppear {
-                fetchLegalResources(keyword: quizAnswers.keyword)
+                fetchResources(keyword: quizAnswers.keyword)
             }
         }
     }
 
-    func fetchLegalResources(keyword: String) {
+    func fetchResources(keyword: String) {
         guard let encodedKeyword = keyword.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
-              let url = URL(string: "http://34.44.204.172:8000/api/legal-resources/?keyword=\(encodedKeyword)") else { return }
+              let encodedLocation = quizAnswers.locationPref.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+              let url = URL(string: "http://34.44.204.172:8000/api/legal-resources/?keyword=\(encodedKeyword)&location=\(encodedLocation)") else { return }
 
         URLSession.shared.dataTask(with: url) { data, response, error in
             guard let data = data, error == nil else {
-                print("❌ Error fetching legal resources:", error?.localizedDescription ?? "Unknown error")
+                print("❌ Error fetching marketing resources:", error?.localizedDescription ?? "Unknown error")
                 return
             }
 
             do {
                 let decodedResponse = try JSONDecoder().decode([String: [LegalResource]].self, from: data)
                 DispatchQueue.main.async {
-                    self.legalResources = decodedResponse["places"] ?? []
+                    self.resources = decodedResponse["places"] ?? []
                 }
             } catch {
                 print("❌ Error decoding JSON:", error.localizedDescription)
@@ -67,15 +52,15 @@ struct LegalTeamResources: View {
     }
 }
 
-struct LegalTeamResources_Previews: PreviewProvider {
+struct MarketingResources_Previews: PreviewProvider {
     static var previews: some View {
-        LegalTeamResources(
-            quizAnswers: LegalQuizAnswers(
+        MarketingResources(
+            quizAnswers: MarketingQuizAnswers(
                 locationPref: "Los Angeles",
-                legalNeeds: "Contracts",
-                specialization: "Trademarks",
-                startupExperience: true,
-                pricingModel: "Flat fee"
+                marketingNeed: "SEO",
+                targetAudience: "B2B",
+                serviceType: "freelancer",
+                monthlyBudget: "$3000"
             )
         )
     }

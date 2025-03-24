@@ -22,16 +22,60 @@ struct PageEntrepreneurResources: View {
                         
                         // Categories List
                         VStack(spacing: 15) {
-                            NavigationLink(destination: InvestorsResources()) {  // Removed .navigationBarBackButtonHidden(true)
-                                EntrepreneurResourceItem(title: "Investors")
-                            }
+    
 
-                            NavigationLink(destination: AccountantsResources()) {
+                            NavigationLink(destination: AccountantsQuizView()) {
                                 EntrepreneurResourceItem(title: "Accountants/Tax Advisors")
                             }
-                            NavigationLink(destination: LegalTeamResources()) {
+
+                            NavigationLink(destination: LegalQuizView()) {
                                 EntrepreneurResourceItem(title: "Legal Team")
                             }
+                            NavigationLink(destination: BankLoanQuizView()) {
+                                EntrepreneurResourceItem(title: "Bank Loans")
+                            }
+                            NavigationLink(destination: ConsultantQuizView()) {
+                                EntrepreneurResourceItem(title: "Business Consultants")
+                            }
+                            NavigationLink(destination: InsuranceQuizView()) {
+                                EntrepreneurResourceItem(title: "Business Insurance")
+                            }
+                            NavigationLink(destination: MarketingQuizView()) {
+                                EntrepreneurResourceItem(title: "Marketing Companies")
+                            }
+                            NavigationLink(destination: RealEstateQuizView()) {
+                                EntrepreneurResourceItem(title: "Real Estate Teams")
+                            }
+                            NavigationLink(destination: HRQuizView()) {
+                                EntrepreneurResourceItem(title: "HR Teams")
+                            }
+                            NavigationLink(destination: ManufacturingQuizView()) {
+                                EntrepreneurResourceItem(title: "Manufacturing Firms")
+                            }
+                            NavigationLink(destination: CustomerServiceQuizView()) {
+                                EntrepreneurResourceItem(title: "Customer Service Teams")
+                            }
+                            NavigationLink(destination: SalesQuizView()) {
+                                EntrepreneurResourceItem(title: "Sales Teams")
+                            }
+                            NavigationLink(destination: CSRQuizView()) {
+                                EntrepreneurResourceItem(title: "CSR Teams")
+                            }
+                            NavigationLink(destination: MentalHealthQuizView()) {
+                                EntrepreneurResourceItem(title: "Mental Health Teams")
+                            }
+
+
+
+
+
+
+
+
+
+
+
+
                             
                         }
                         .padding(.horizontal)
