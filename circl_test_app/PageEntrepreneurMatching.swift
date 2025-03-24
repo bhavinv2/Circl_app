@@ -3,6 +3,8 @@ import SwiftUI
 // MARK: - Main View for Entrepreneur Matching
 struct PageEntrepreneurMatching: View {
     @State private var entrepreneurs: [EntrepreneurProfileData] = []
+    @State private var userNetworkEmails: [String] = [] // ✅ STEP 1: Added state for network emails
+    @State private var declinedEmails: Set<String> = [] // ✅ STEP 1: Added state for declined emails
 
     var body: some View {
         NavigationView {
@@ -48,10 +50,6 @@ struct PageEntrepreneurMatching: View {
                                             .foregroundColor(.white)
                                     }
                                 }
-
-//                                Text("Hello, Fragne")
-//                                    .foregroundColor(.white)
-//                                    .font(.headline)
                             }
                         }
                     }
@@ -104,17 +102,27 @@ struct PageEntrepreneurMatching: View {
                                 name: entrepreneur.name,
                                 title: "Entrepreneur",
                                 company: entrepreneur.company,
-                                proficiency: "Networking",
-                                tags: ["Business Growth", "Startups", "Investing"],
-                                profileImage: "sampleProfileImage"
+                                proficiency: entrepreneur.proficiency,
+                                tags: entrepreneur.tags,
+                                profileImage: entrepreneur.profileImage,
+                                onAccept: { // ✅ STEP 4: Added onAccept callback
+                                    addToNetwork(email: entrepreneur.email)
+                                },
+                                onDecline: { // ✅ STEP 4: Added onDecline callback
+                                    declinedEmails.insert(entrepreneur.email)
+                                    entrepreneurs.removeAll { $0.email == entrepreneur.email }
+                                }
                             )
                         }
                     }
                     .padding()
                 }
                 .onAppear {
-                    fetchEntrepreneurs()
+                    fetchUserNetwork {
+                        fetchEntrepreneurs()
+                    }
                 }
+
 
                 // Footer Section with Navigation
                 HStack(spacing: 15) {
@@ -146,10 +154,15 @@ struct PageEntrepreneurMatching: View {
         }
     }
 
-    // ✅ Fetch Entrepreneurs API Call
-    func fetchEntrepreneurs() {
-        guard let url = URL(string: "http://34.44.204.172:8000/api/users/get-entrepreneurs/") else { return }
 
+
+    // ✅ Fetch Entrepreneurs API Call with Filtering (STEP 3)
+    func fetchEntrepreneurs() {
+        let currentUserEmail = UserDefaults.standard.string(forKey: "user_email") ?? ""
+        print("🔍 Stored user_email in UserDefaults:", currentUserEmail)
+
+        guard let url = URL(string: "http://34.44.204.172:8000/api/users/get-entrepreneurs/") else { return }
+        
         print("🚀 Fetching Entrepreneurs from API...") // Debug Log
 
         URLSession.shared.dataTask(with: url) { data, response, error in
@@ -164,14 +177,27 @@ struct PageEntrepreneurMatching: View {
 
                     if let entrepreneurList = decodedResponse["entrepreneurs"] as? [[String: Any]] {
                         DispatchQueue.main.async {
-                            self.entrepreneurs = entrepreneurList.compactMap { entrepreneur in
-                                EntrepreneurProfileData(
+                            self.entrepreneurs = entrepreneurList.compactMap { entrepreneur -> EntrepreneurProfileData? in
+
+                                let email = entrepreneur["email"] as? String ?? ""
+
+                                // Get current user's email
+                                let currentUserEmail = UserDefaults.standard.string(forKey: "user_email") ?? ""
+
+                                guard email != currentUserEmail, // ← exclude myself
+                                      !self.userNetworkEmails.contains(email),
+                                      !self.declinedEmails.contains(email) else {
+                                    return nil
+                                }
+
+
+                                return EntrepreneurProfileData(
                                     name: "\(entrepreneur["first_name"] ?? "") \(entrepreneur["last_name"] ?? "")",
                                     title: "Entrepreneur",
                                     company: entrepreneur["industry_interest"] as? String ?? "Unknown Industry",
                                     proficiency: entrepreneur["main_usage"] as? String ?? "Unknown",
                                     tags: entrepreneur["tags"] as? [String] ?? [],
-                                    email: entrepreneur["email"] as? String ?? "",
+                                    email: email,
                                     profileImage: "sampleProfileImage"
                                 )
                             }
@@ -185,7 +211,82 @@ struct PageEntrepreneurMatching: View {
             }
         }.resume()
     }
+    
+    func fetchUserNetwork(completion: @escaping () -> Void) {
+        guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int,
+              let url = URL(string: "http://34.44.204.172:8000/api/users/get_network/\(userId)/") else {
+            print("❌ No user_id in UserDefaults")
+            return
+        }
 
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            if let error = error {
+                print("❌ Network fetch error: \(error.localizedDescription)")
+                return
+            }
+
+            guard let data = data else {
+                print("❌ No data received")
+                return
+            }
+
+            do {
+                let json = try JSONSerialization.jsonObject(with: data, options: [])
+                print("🔎 Raw Network Response: \(json)")
+
+                if let networkArray = json as? [[String: Any]] {
+                    DispatchQueue.main.async {
+                        self.userNetworkEmails = networkArray.compactMap { $0["email"] as? String }
+                        completion()
+                    }
+                } else if let dict = json as? [String: Any],
+                          let network = dict["network"] as? [[String: Any]] {
+                    DispatchQueue.main.async {
+                        self.userNetworkEmails = network.compactMap { $0["email"] as? String }
+                        completion()
+                    }
+                } else {
+                    print("❌ Unknown format in network response")
+                }
+
+            } catch {
+                if let rawString = String(data: data, encoding: .utf8) {
+                    print("❌ JSON Parsing Error – Raw text: \(rawString)")
+                } else {
+                    print("❌ JSON Parsing Error: Could not decode response")
+                }
+            }
+        }.resume()
+    }
+
+
+
+
+
+
+    // ✅ STEP 6: Add to Network Function
+    func addToNetwork(email: String) {
+        guard let url = URL(string: "http://34.44.204.172:8000/api/users/add-to-network/") else { return }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let body: [String: String] = ["email": email]
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("❌ Error adding to network: \(error.localizedDescription)")
+                return
+            }
+
+            DispatchQueue.main.async {
+                entrepreneurs.removeAll { $0.email == email }
+                userNetworkEmails.append(email)
+            }
+        }.resume()
+    }
 }
 
 // MARK: - EntrepreneurProfileData Model
@@ -207,6 +308,8 @@ struct EntrepreneurProfileTemplate: View {
     var proficiency: String
     var tags: [String]
     var profileImage: String
+    var onAccept: () -> Void // ✅ STEP 5: Added onAccept
+    var onDecline: () -> Void // ✅ STEP 5: Added onDecline
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -240,8 +343,8 @@ struct EntrepreneurProfileTemplate: View {
                 Spacer()
 
                 HStack(spacing: 10) {
-                    Button(action: {
-                        // Accept action
+                    Button(action: { // ✅ STEP 5: Updated to use onAccept
+                        onAccept()
                     }) {
                         Image(systemName: "checkmark.circle.fill")
                             .resizable()
@@ -249,8 +352,8 @@ struct EntrepreneurProfileTemplate: View {
                             .foregroundColor(.green)
                     }
 
-                    Button(action: {
-                        // Decline action
+                    Button(action: { // ✅ STEP 5: Updated to use onDecline
+                        onDecline()
                     }) {
                         Image(systemName: "xmark.circle.fill")
                             .resizable()
@@ -278,6 +381,7 @@ struct EntrepreneurProfileTemplate: View {
         .shadow(radius: 2)
     }
 }
+
 
 // MARK: - Preview
 struct PageEntrepreneurMatching_Previews: PreviewProvider {

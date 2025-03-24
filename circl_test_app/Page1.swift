@@ -175,12 +175,14 @@ struct Page1: View {
                     if let data = data {
                         do {
                             if let jsonResponse = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
-                                print("Parsed Response: \(jsonResponse)")
+                                print("🔎 Parsed Login Response: \(jsonResponse)")
+
 
                                 var hasUserID = false
                                 var hasToken = false
-                                
+
                                 if let userID = jsonResponse["user_id"] as? Int {
+                                    
                                     UserDefaults.standard.set(userID, forKey: "user_id")
                                     print("✅ user_id stored: \(userID)")
                                     hasUserID = true
@@ -191,7 +193,15 @@ struct Page1: View {
                                     print("✅ auth_token stored: \(token)")
                                     hasToken = true
                                 }
-                                
+
+                                if let email = jsonResponse["email"] as? String {
+                                    UserDefaults.standard.set(email, forKey: "user_email")
+                                    print("✅ user_email saved:", email)
+                                }
+
+
+
+
                                 if let firstName = jsonResponse["first_name"] as? String,
                                    let lastName = jsonResponse["last_name"] as? String {
                                     let fullName = "\(firstName) \(lastName)"
@@ -199,19 +209,15 @@ struct Page1: View {
                                     print("✅ user_fullname saved:", fullName)
                                 }
 
-
-
-                                
                                 if hasUserID && hasToken {
-                                    UserDefaults.standard.set(true, forKey: "isLoggedIn")
+                                    UserDefaults.standard.set(self.email, forKey: "user_email")
+                                    print("✅ user_email (fallback from login field) saved manually:", self.email)
 
-                                    // ✅ Ensure `isLoggedIn` is updated correctly before navigating
+                                    UserDefaults.standard.set(true, forKey: "isLoggedIn")
                                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                                         isLoggedIn = UserDefaults.standard.bool(forKey: "isLoggedIn")
                                     }
                                 }
-                                
-                                
 
                             }
                         } catch {
@@ -225,6 +231,7 @@ struct Page1: View {
         }
         task.resume()
     }
+
 
 
 
