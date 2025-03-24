@@ -13,16 +13,16 @@ struct DynamicProfilePreview: View {
                         .frame(height: 300)
 
                     VStack(spacing: 15) {
-                        Circle()
-                            .fill(Color.gray.opacity(0.3))
-                            .frame(width: 120, height: 120)
-                            .overlay(
-                                Image(systemName: "person.crop.circle")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 60, height: 60)
-                                    .foregroundColor(.gray)
-                            )
+                        AsyncImage(url: URL(string: profileData.profile_image ?? "")) { image in
+                            image.resizable()
+                        } placeholder: {
+                            Image(systemName: "person.crop.circle")
+                                .resizable()
+                                .foregroundColor(.gray.opacity(0.3))
+                        }
+                        .frame(width: 120, height: 120)
+                        .clipShape(Circle())
+
 
                         HStack(spacing: 40) {
                             VStack {
@@ -115,7 +115,8 @@ struct DynamicProfilePreview: View {
                             .font(.system(size: 16))
                             .foregroundColor(.white)
 
-                        Text("Certificates: \(profileData.certificates.joined(separator: ", "))")
+                        Text("Certificates: \(profileData.certificates?.joined(separator: ", ") ?? "N/A")")
+
                             .font(.system(size: 16))
                             .foregroundColor(.white)
 
@@ -127,7 +128,8 @@ struct DynamicProfilePreview: View {
                             .font(.system(size: 16))
                             .foregroundColor(.white)
 
-                        Text("Achievements: \(profileData.achievements.joined(separator: ", "))")
+                        Text("Achievements: \(profileData.achievements?.joined(separator: ", ") ?? "N/A")")
+
                             .font(.system(size: 16))
                             .foregroundColor(.white)
                     }
@@ -145,7 +147,8 @@ struct DynamicProfilePreview: View {
                             .font(.system(size: 22, weight: .bold))
                             .foregroundColor(.white)
 
-                        Text("Skills: \(profileData.skillsets.joined(separator: ", "))")
+                        Text("Skills: \(profileData.skillsets?.joined(separator: ", ") ?? "N/A")")
+
                             .font(.system(size: 16))
                             .foregroundColor(.white)
 
@@ -167,11 +170,13 @@ struct DynamicProfilePreview: View {
                             .font(.system(size: 22, weight: .bold))
                             .foregroundColor(.white)
 
-                        Text("Clubs: \(profileData.clubs.joined(separator: ", "))")
+                        Text("Clubs: \(profileData.clubs?.joined(separator: ", ") ?? "N/A")")
+
                             .font(.system(size: 16))
                             .foregroundColor(.white)
 
-                        Text("Hobbies: \(profileData.hobbies.joined(separator: ", "))")
+                        Text("Hobbies: \(profileData.hobbies?.joined(separator: ", ") ?? "N/A")")
+
                             .font(.system(size: 16))
                             .foregroundColor(.white)
                     }

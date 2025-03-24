@@ -2,23 +2,35 @@ import SwiftUI
 
 struct FullProfile: Codable {
     let user_id: Int
-    let full_name: String
-    let bio: String?
+    let profile_image: String?
+    let first_name: String
+    let last_name: String
+    let email: String
+    let main_usage: String?
+    let industry_interest: String?
     let title: String?
-    let personality_type: String?
+    let bio: String? // bio can be null!
     let birthday: String?
     let education_level: String?
     let institution_attended: String?
-    let certificates: [String]
+    let certificates: [String]?
     let years_of_experience: Int?
-    let location: String?
-    let achievements: [String]
-    let skillsets: [String]
+    let personality_type: String?
+    let locations: [String]?
+    let achievements: [String]?
+    let skillsets: [String]?
     let availability: String?
-    let clubs: [String]
-    let hobbies: [String]
+    let clubs: [String]?
+    let hobbies: [String]?
     let connections_count: Int
 
+    var full_name: String {
+        "\(first_name) \(last_name)"
+    }
+
+    var location: String? {
+        locations?.joined(separator: ", ")
+    }
 }
 
 
@@ -27,6 +39,42 @@ struct ProfilePage: View {
     @State private var isLoggedIn: Bool = UserDefaults.standard.bool(forKey: "isLoggedIn") // Track login state
     @State private var isMentor: Bool = UserDefaults.standard.bool(forKey: "isMentor") // Retrieve mentor state from UserDefaults
     @State private var profileData: FullProfile?
+    @State private var myNetwork: [InviteProfileData] = []
+    
+    func fetchNetwork() {
+        guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else {
+            print("❌ No user_id found")
+            return
+        }
+
+        let urlString = "http://34.44.204.172:8000/api/users/get_network/\(userId)/"
+        guard let url = URL(string: urlString) else {
+            print("❌ Invalid URL")
+            return
+        }
+
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            if let error = error {
+                print("❌ Network error:", error.localizedDescription)
+                return
+            }
+
+            if let data = data {
+                if let network = try? JSONDecoder().decode([InviteProfileData].self, from: data) {
+                    DispatchQueue.main.async {
+                        self.myNetwork = network
+                    }
+                } else {
+                    print("❌ Decoding network failed")
+                }
+            }
+        }.resume()
+    }
+
+
+    
+    
+    
 
 
     var body: some View {
@@ -93,7 +141,8 @@ struct ProfilePage: View {
                                         Text("Connections:")
                                             .font(.system(size: 16, weight: .semibold))
                                             .foregroundColor(Color.customHex("#ffde59"))
-                                        Text("\(profileData?.connections_count ?? 0)")
+                                        Text("\(myNetwork.count)")
+
                                             .font(.system(size: 16, weight: .bold))
                                             .foregroundColor(Color.white)
 
@@ -246,7 +295,8 @@ struct ProfilePage: View {
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundColor(.white)
                                 
-                                Text("Certifications/Licenses: \(profileData?.certificates.joined(separator: ", ") ?? "")")
+                                Text("Certificates: \(profileData?.certificates?.joined(separator: ", ") ?? "N/A")")
+
 
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundColor(.white)
@@ -261,7 +311,8 @@ struct ProfilePage: View {
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundColor(.white)
                                 
-                                Text("Achievements: \(profileData?.achievements.joined(separator: ", ") ?? "")")
+                                Text("Achievements: \(profileData?.achievements?.joined(separator: ", ") ?? "N/A")")
+
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundColor(.white)
                             }
@@ -280,7 +331,8 @@ struct ProfilePage: View {
                                     .font(.system(size: 22, weight: .bold))
                                     .foregroundColor(.white)
                                 
-                                Text("Skills: \(profileData?.skillsets.joined(separator: ", ") ?? "")")
+                                Text("Skills: \(profileData?.skillsets?.joined(separator: ", ") ?? "N/A")")
+
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundColor(.white)
                                 
@@ -306,11 +358,12 @@ struct ProfilePage: View {
                                     .font(.system(size: 22, weight: .bold))
                                     .foregroundColor(.white)
                                 
-                                Text("Clubs/Organizations: \(profileData?.clubs.joined(separator: ", ") ?? "")")
+                                Text("Clubs/Organizations: \(profileData?.clubs?.joined(separator: ", ") ?? "N/A")")
+
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundColor(.white)
                                 
-                                Text("Hobbies/Passions: \(profileData?.hobbies.joined(separator: ", ") ?? "")")
+                                Text("Hobbies/Passions: \(profileData?.hobbies?.joined(separator: ", ") ?? "N/A")")
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundColor(.white)
                             }
@@ -382,13 +435,12 @@ struct ProfilePage: View {
         }
         .onAppear {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                // Update the isMentor state from UserDefaults when the view appears
-//                isMentor = UserDefaults.standard.bool(forKey: "isMentor")
                 isLoggedIn = UserDefaults.standard.bool(forKey: "isLoggedIn")
                 fetchProfile()
-
+                fetchNetwork() // Added this clearly here
             }
         }
+
     }
         
 
@@ -504,7 +556,18 @@ func calculateAge(from birthdayString: String) -> Int? {
     let ageComponents = Calendar.current.dateComponents([.year], from: birthDate, to: Date())
     return ageComponents.year
 }
-
+struct InviteProfileData: Identifiable, Codable {
+    let id = UUID()
+    let user_id: Int
+    let name: String
+    let username: String
+    let email: String
+    let title: String
+    let company: String
+    let proficiency: String
+    let tags: [String]
+    let profileImage: String
+}
 
 // Preview
 struct ProfilePage_Previews: PreviewProvider {

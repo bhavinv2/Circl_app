@@ -452,25 +452,35 @@ struct PageInvites: View {
                                 showAcceptDeclineButtons: false
                             )
                             .onTapGesture {
-                                fetchUserProfile(userId: profile.user_id) { profileData in  // ✅ Correctly use numeric user_id
+                                self.selectedFullProfile = nil  // Clear old data explicitly
+                                fetchUserProfile(userId: profile.user_id) { profileData in
                                     DispatchQueue.main.async {
-                                        self.selectedFullProfile = profileData
-                                        self.showProfilePreview = true
+                                        if let profileData = profileData {
+                                            self.selectedFullProfile = profileData
+                                            self.showProfilePreview = true
+                                        }
                                     }
                                 }
                             }
+
+
+
+
                         }
 
                     }
                     .padding()
                 }
-                .sheet(isPresented: $showProfilePreview) {
+                .sheet(isPresented: Binding(
+                    get: { showProfilePreview && selectedFullProfile != nil },
+                    set: { newValue in showProfilePreview = newValue }
+                )) {
                     if let userProfile = selectedFullProfile {
                         DynamicProfilePreview(profileData: userProfile)
-                    } else {
-                        Text("Loading profile...")
                     }
                 }
+
+
 
                 
                 // Footer Section
@@ -662,8 +672,6 @@ struct PageInvites: View {
     // Step 1: Added fetchUserProfile function
     func fetchUserProfile(userId: Int, completion: @escaping (FullProfile?) -> Void) {
         let urlString = "http://34.44.204.172:8000/api/users/profile/\(userId)/"
-        print("🌐 Fetching profile from:", urlString) // ✅ debugging line
-        
         guard let url = URL(string: urlString) else {
             print("❌ Invalid URL")
             completion(nil)
@@ -685,17 +693,11 @@ struct PageInvites: View {
                 return
             }
 
-            if let httpResponse = response as? HTTPURLResponse {
-                print("📡 HTTP Status Code:", httpResponse.statusCode) // debugging line
-            }
-
             if let data = data {
-                if let rawResponse = String(data: data, encoding: .utf8) {
-                    print("📡 RAW RESPONSE:", rawResponse) // debugging line
-                }
-
                 if let decoded = try? JSONDecoder().decode(FullProfile.self, from: data) {
-                    completion(decoded)
+                    DispatchQueue.main.async {
+                        completion(decoded)
+                    }
                 } else {
                     print("❌ Failed to decode JSON")
                     completion(nil)
@@ -705,6 +707,7 @@ struct PageInvites: View {
             }
         }.resume()
     }
+
 
     
     // MARK: - CustomCircleButton
