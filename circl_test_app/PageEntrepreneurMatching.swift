@@ -1,4 +1,6 @@
 import SwiftUI
+import Foundation
+
 
 // MARK: - Main View for Entrepreneur Matching
 struct PageEntrepreneurMatching: View {
@@ -7,7 +9,8 @@ struct PageEntrepreneurMatching: View {
     @State private var declinedEmails: Set<String> = [] // ✅ STEP 1: Added state for declined emails
     @State private var showConfirmation = false
     @State private var selectedEmailToAdd: String? = nil
-    
+    @State private var selectedFullProfile: FullProfile? = nil
+    @State private var showProfilePreview = false
     
     var body: some View {
         NavigationView {
@@ -101,23 +104,35 @@ struct PageEntrepreneurMatching: View {
                 ScrollView {
                     VStack(spacing: 20) {
                         ForEach(entrepreneurs, id: \.email) { entrepreneur in
-                            EntrepreneurProfileTemplate(
-                                name: entrepreneur.name,
-                                title: "Entrepreneur",
-                                company: entrepreneur.company,
-                                proficiency: entrepreneur.proficiency,
-                                tags: entrepreneur.tags,
-                                profileImage: entrepreneur.profileImage,
-                                onAccept: {
-                                    selectedEmailToAdd = entrepreneur.email
-                                    showConfirmation = true
-                                },
-                                
-                                onDecline: { // ✅ STEP 4: Added onDecline callback
-                                    declinedEmails.insert(entrepreneur.email)
-                                    entrepreneurs.removeAll { $0.email == entrepreneur.email }
+                            Button(action: {
+                                fetchUserProfile(userId: entrepreneur.user_id) { profile in
+
+                                    if let profile = profile {
+                                        selectedFullProfile = profile
+                                        showProfilePreview = true
+                                    }
                                 }
-                            )
+                            }) {
+                                EntrepreneurProfileTemplate(
+                                    name: entrepreneur.name,
+                                    title: "Entrepreneur",
+                                    company: entrepreneur.company,
+                                    proficiency: entrepreneur.proficiency,
+                                    tags: entrepreneur.tags,
+                                    profileImage: entrepreneur.profileImage,
+                                    onAccept: {
+                                        selectedEmailToAdd = entrepreneur.email
+                                        showConfirmation = true
+                                    },
+                                    onDecline: {
+                                        declinedEmails.insert(entrepreneur.email)
+                                        entrepreneurs.removeAll { $0.email == entrepreneur.email }
+                                    }
+                                )
+                            }
+                            .buttonStyle(PlainButtonStyle()) // This removes the blue button tint
+
+
                         }
                     }
                     .padding()
@@ -140,7 +155,14 @@ struct PageEntrepreneurMatching: View {
                         fetchEntrepreneurs()
                     }
                 }
-                
+                .sheet(isPresented: Binding(
+                    get: { showProfilePreview && selectedFullProfile != nil },
+                    set: { newValue in showProfilePreview = newValue }
+                )) {
+                    if let profile = selectedFullProfile {
+                        DynamicProfilePreview(profileData: profile)
+                    }
+                }
                 
                 // Footer Section with Navigation
                 HStack(spacing: 15) {
@@ -171,8 +193,6 @@ struct PageEntrepreneurMatching: View {
             .navigationBarBackButtonHidden(true)
         }
     }
-    
-    
     
     // ✅ Fetch Entrepreneurs API Call with Filtering (STEP 3)
     func fetchEntrepreneurs() {
@@ -209,7 +229,12 @@ struct PageEntrepreneurMatching: View {
                                 }
                                 
                                 
+                                guard let user_id = entrepreneur["id"] as? Int else {
+                                    return nil
+                                }
+
                                 return EntrepreneurProfileData(
+                                    user_id: user_id,
                                     name: "\(entrepreneur["first_name"] ?? "") \(entrepreneur["last_name"] ?? "")",
                                     title: "Entrepreneur",
                                     company: entrepreneur["industry_interest"] as? String ?? "Unknown Industry",
@@ -218,6 +243,7 @@ struct PageEntrepreneurMatching: View {
                                     email: email,
                                     profileImage: "sampleProfileImage"
                                 )
+
                             }
                         }
                     } else {
@@ -277,11 +303,6 @@ struct PageEntrepreneurMatching: View {
         }.resume()
     }
     
-    
-    
-    
-    
-    
     // ✅ STEP 6: Add to Network Function
     func addToNetwork(email: String) {
         guard let senderId = UserDefaults.standard.value(forKey: "user_id") as? Int,
@@ -318,9 +339,11 @@ struct PageEntrepreneurMatching: View {
         }.resume()
     }
     
+   
     
     // MARK: - EntrepreneurProfileData Model
     struct EntrepreneurProfileData {
+        var user_id: Int
         var name: String
         var title: String
         var company: String
@@ -329,6 +352,7 @@ struct PageEntrepreneurMatching: View {
         var email: String
         var profileImage: String
     }
+
     
     // MARK: - EntrepreneurProfileTemplate
     struct EntrepreneurProfileTemplate: View {
@@ -412,6 +436,51 @@ struct PageEntrepreneurMatching: View {
         }
     }
     
+    // MARK: - Shared function to fetch full profile by user ID
+    func fetchUserProfile(userId: Int, completion: @escaping (FullProfile?) -> Void) {
+        let urlString = "http://34.44.204.172:8000/api/users/profile/\(userId)/"
+        guard let url = URL(string: urlString) else {
+            print("❌ Invalid URL")
+            completion(nil)
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("❌ Request failed:", error)
+                completion(nil)
+                return
+            }
+
+            if let data = data {
+                if let raw = String(data: data, encoding: .utf8) {
+                    print("📡 Raw Response: \(raw)")
+                }
+                if let decoded = try? JSONDecoder().decode(FullProfile.self, from: data) {
+                    DispatchQueue.main.async {
+                        completion(decoded)
+                    }
+                    return
+                } else {
+                    print("❌ Failed to decode JSON")
+                }
+            }
+            completion(nil)
+        }.resume()
+    }
+
+    
+
+
+
     
     // MARK: - Preview
     struct PageEntrepreneurMatching_Previews: PreviewProvider {
