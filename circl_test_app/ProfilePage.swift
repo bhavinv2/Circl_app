@@ -1,9 +1,6 @@
 import SwiftUI
 import Foundation
 
-
-
-
 struct ProfilePage: View {
     @State private var showError: Bool = false
     @State private var isLoggedIn: Bool = UserDefaults.standard.bool(forKey: "isLoggedIn")
@@ -84,6 +81,14 @@ struct ProfilePage: View {
                                     }
                                 }) {
                                     ImagePicker(image: $selectedImage)
+                                }
+                                
+                                if let lastName = profileData?.last_name,
+                                   let userId = UserDefaults.standard.value(forKey: "user_id") as? Int {
+                                    Text("@\(lastName)\(userId)")
+                                        .font(.system(size: 14, weight: .semibold))
+                                        .foregroundColor(.white)
+                                        .padding(.top, 5)
                                 }
                                 
                                 HStack(spacing: 40) {
@@ -497,7 +502,6 @@ struct InviteProfileData: Identifiable, Codable {
     let proficiency: String
     let tags: [String]
     let profileImage: String?
-
 }
 
 struct ProfilePage_Previews: PreviewProvider {
