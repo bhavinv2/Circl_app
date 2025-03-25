@@ -191,6 +191,7 @@ struct PageMentorMatching: View {
                     DispatchQueue.main.async {
                         self.mentors = mentorList.compactMap { mentor in
                             let email = mentor["email"] as? String ?? ""
+                            print("🖼️ Profile image URL for \(email):", mentor["profileImage"] as? String ?? "nil")
                             guard email != currentUserEmail,
                                   !userNetworkEmails.contains(email),
                                   !declinedEmails.contains(email),
@@ -218,6 +219,7 @@ struct PageMentorMatching: View {
     func fetchUserNetwork(completion: @escaping () -> Void) {
         guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int,
               let url = URL(string: "http://34.44.204.172:8000/api/users/get_network/\(userId)/") else {
+            
             return
         }
 
