@@ -1,4 +1,6 @@
 import SwiftUI
+import Foundation
+
 
 struct PageMessages: View {
     
@@ -14,6 +16,8 @@ struct PageMessages: View {
     @State private var showChatPage = false
 
     @State private var timer: Timer?
+    @State private var selectedProfile: FullProfile? = nil
+
     
     @State private var myNetwork: [NetworkUser] = [] // ✅ Correct type
     
@@ -84,9 +88,6 @@ struct PageMessages: View {
                                     .foregroundColor(.white)
                             }
                         }
-//                        Text("Hello, Fragne")
-//                            .foregroundColor(.white)
-//                            .font(.headline)
                     }
                 }
             }
@@ -182,7 +183,6 @@ struct PageMessages: View {
             }
             .padding(.horizontal)
             
-            // ✅ Only show dropdown if `suggestedUsers` is not empty AND `searchText` is not empty
             if !suggestedUsers.isEmpty && !searchText.isEmpty {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 5) {
@@ -220,21 +220,69 @@ struct PageMessages: View {
     var scrollableSection: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 10) {
-                // Fix: Convert dictionary keys to an array
                 ForEach(Array(groupedMessages.keys), id: \.self) { userId in
                     if let messages = groupedMessages[userId], let user = myNetwork.first(where: { $0.id == userId }) {
                         NavigationLink(destination: ChatView(user: user, messages: messages, myNetwork: $myNetwork, onSendMessage: { newMessage in
-                            // Update the parent's groupedMessages
                             self.groupedMessages[userId, default: []].append(newMessage)
-                            self.refreshToggle.toggle() // Force UI refresh
+                            self.refreshToggle.toggle()
                         })) {
-                            ChatBox(user: user, messages: messages)
+                            HStack {
+                                Button(action: {
+                                    if let window = UIApplication.shared.windows.first {
+                                        let profileView = DynamicProfilePreview(profileData: FullProfile(
+                                            user_id: user.id,
+                                            profile_image: nil,
+                                            first_name: user.name.components(separatedBy: " ").first ?? "",
+                                            last_name: user.name.components(separatedBy: " ").last ?? "",
+                                            email: "",
+                                            main_usage: nil,
+                                            industry_interest: nil,
+                                            title: nil,
+                                            bio: nil,
+                                            birthday: nil,
+                                            education_level: nil,
+                                            institution_attended: nil,
+                                            certificates: nil,
+                                            years_of_experience: nil,
+                                            personality_type: nil,
+                                            locations: nil,
+                                            achievements: nil,
+                                            skillsets: nil,
+                                            availability: nil,
+                                            clubs: nil,
+                                            hobbies: nil,
+                                            connections_count: nil
+                                        ))
+                                        window.rootViewController?.present(UIHostingController(rootView: profileView), animated: true)
+                                    }
+                                }) {
+                                    Image(systemName: "person.crop.circle.fill")
+                                        .resizable()
+                                        .frame(width: 50, height: 50)
+                                        .foregroundColor(.blue)
+                                }
+                                
+                                VStack(alignment: .leading) {
+                                    Text(user.name)
+                                        .font(.headline)
+                                    Text(messages.last?.content ?? "")
+                                        .font(.subheadline)
+                                        .foregroundColor(.gray)
+                                }
+                                Spacer()
+                                Text(messages.last?.timestamp ?? "")
+                                    .font(.footnote)
+                                    .foregroundColor(.gray)
+                            }
+                            .padding()
+                            .background(Color.white)
+                            .cornerRadius(8)
+                            .shadow(radius: 2)
                         }
                     }
                 }
             }
             .padding()
-            
         }
     }
 
@@ -281,19 +329,17 @@ struct PageMessages: View {
 
     private func navigateToChat(user: NetworkUser) {
         if let existingMessages = groupedMessages[user.id] {
-            // ✅ If user has existing messages, open ChatView
             let chatView = ChatView(
                 user: user,
                 messages: existingMessages,
                 myNetwork: $myNetwork,
                 onSendMessage: { newMessage in
                     self.groupedMessages[user.id, default: []].append(newMessage)
-                    self.refreshToggle.toggle() // Force UI update
+                    self.refreshToggle.toggle()
                 }
             )
-            navigateTo(chatView) // ✅ Navigate to the chat page
+            navigateTo(chatView)
         } else {
-            // ✅ If no messages exist, open an empty chat page
             let chatView = ChatView(
                 user: user,
                 messages: [],
@@ -303,7 +349,7 @@ struct PageMessages: View {
                     self.refreshToggle.toggle()
                 }
             )
-            navigateTo(chatView) // ✅ Navigate to chat
+            navigateTo(chatView)
         }
     }
 
@@ -342,7 +388,7 @@ struct PageMessages: View {
                     
                     DispatchQueue.main.async {
                         self.myNetwork = friends
-                        print("✅ Network Updated: \(self.myNetwork.map { "\($0.name) (\($0.id))" })") // Print actual values
+                        print("✅ Network Updated: \(self.myNetwork.map { "\($0.name) (\($0.id))" })")
                     }
                 } catch {
                     print("❌ JSON Decoding Error:", error)
@@ -362,8 +408,6 @@ struct PageMessages: View {
                     let response = try JSONDecoder().decode([String: [Message]].self, from: data)
                     DispatchQueue.main.async {
                         let allMessages = response["messages"] ?? []
-                        
-                        // ✅ Group messages by user
                         self.groupedMessages = Dictionary(grouping: allMessages) { $0.sender_id == userId ? $0.receiver_id : $0.sender_id }
                     }
                 } catch {
@@ -386,12 +430,11 @@ struct PageMessages: View {
         )
 
         DispatchQueue.main.async {
-            // ✅ Ensure a new chat log appears
             if self.groupedMessages[recipient.id] == nil {
                 self.groupedMessages[recipient.id] = []
             }
             self.groupedMessages[recipient.id]?.append(newMessage)
-            self.refreshToggle.toggle() // ✅ Force UI refresh
+            self.refreshToggle.toggle()
         }
 
         let messageData: [String: Any] = [
@@ -437,7 +480,7 @@ struct ChatPopup: View {
                 Spacer()
 
                 Button(action: {
-                    isPresented = false // Close the popup
+                    isPresented = false
                 }) {
                     Image(systemName: "xmark.circle.fill")
                         .resizable()
@@ -457,7 +500,7 @@ struct ChatPopup: View {
                 if !messageText.isEmpty {
                     onSendMessage(messageText)
                     messageText = ""
-                    isPresented = false // Close popup after sending
+                    isPresented = false
                 }
             }) {
                 Text("Send")
@@ -502,10 +545,41 @@ struct ChatBox: View {
     var body: some View {
         VStack {
             HStack {
-                Image(systemName: "person.crop.circle.fill")
-                    .resizable()
-                    .frame(width: 50, height: 50)
-                    .foregroundColor(.blue)
+                Button(action: {
+                    if let window = UIApplication.shared.windows.first {
+                        let profileView = DynamicProfilePreview(profileData: FullProfile(
+                            user_id: user.id,
+                            profile_image: nil,
+                            first_name: user.name.components(separatedBy: " ").first ?? "",
+                            last_name: user.name.components(separatedBy: " ").last ?? "",
+                            email: "",
+                            main_usage: nil,
+                            industry_interest: nil,
+                            title: nil,
+                            bio: nil,
+                            birthday: nil,
+                            education_level: nil,
+                            institution_attended: nil,
+                            certificates: nil,
+                            years_of_experience: nil,
+                            personality_type: nil,
+                            locations: nil,
+                            achievements: nil,
+                            skillsets: nil,
+                            availability: nil,
+                            clubs: nil,
+                            hobbies: nil,
+                            connections_count: nil
+                        ))
+                        window.rootViewController?.present(UIHostingController(rootView: profileView), animated: true)
+                    }
+                }) {
+                    Image(systemName: "person.crop.circle.fill")
+                        .resizable()
+                        .frame(width: 50, height: 50)
+                        .foregroundColor(.blue)
+                }
+
                 VStack(alignment: .leading) {
                     Text(user.name)
                         .font(.headline)
@@ -531,7 +605,7 @@ struct ChatView: View {
     let user: NetworkUser
     let messages: [Message]
     @Binding var myNetwork: [NetworkUser]
-    var onSendMessage: (Message) -> Void // Callback to update parent messages
+    var onSendMessage: (Message) -> Void
     
     @State private var messageText: String = ""
     @State private var chatMessages: [Message] = []
@@ -598,21 +672,17 @@ struct ChatView: View {
         guard let senderId = UserDefaults.standard.value(forKey: "user_id") as? Int else { return }
 
         let newMessage = Message(
-            id: UUID().hashValue, // Unique ID to prevent duplicates
+            id: UUID().hashValue,
             sender_id: senderId,
             receiver_id: recipient.id,
             content: content,
-            timestamp: ISO8601DateFormatter().string(from: Date()), // Proper timestamp
+            timestamp: ISO8601DateFormatter().string(from: Date()),
             is_read: false
         )
 
-        // Append the new message to the local chatMessages
         chatMessages.append(newMessage)
-
-        // Notify the parent to update the groupedMessages
         onSendMessage(newMessage)
 
-        // Send the message to the server
         let messageData: [String: Any] = [
             "sender_id": senderId,
             "receiver_id": recipient.id,
@@ -639,7 +709,6 @@ struct ChatView: View {
     }
 }
 
-// MARK: - Color Extension
 extension Color {
     static func fromHex(_ hex: String) -> Color {
         var hexSanitized = hex.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: "#", with: "")

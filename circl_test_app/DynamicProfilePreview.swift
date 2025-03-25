@@ -1,14 +1,17 @@
 import SwiftUI
 import Foundation
 
-
 struct DynamicProfilePreview: View {
     var profileData: FullProfile
+    
+    @State private var showRemoveFriendConfirmation = false
+    @Environment(\.dismiss) var dismiss
+
+    let loggedInUserId = UserDefaults.standard.integer(forKey: "user_id")
     
     var body: some View {
         ZStack {
             VStack(spacing: 0) {
-                // Main Content (same as ProfilePage)
                 ScrollView {
                     VStack(spacing: 20) {
                         ZStack {
@@ -16,8 +19,33 @@ struct DynamicProfilePreview: View {
                                 .fill(Color.customHex("004aad"))
                                 .frame(height: 300)
                             
+                            if loggedInUserId != profileData.user_id {
+                                VStack {
+                                    HStack {
+                                        Spacer()
+                                        Button(action: {
+                                            showRemoveFriendConfirmation = true
+                                        }) {
+                                            Image(systemName: "minus.circle.fill")
+                                                .resizable()
+                                                .frame(width: 30, height: 30)
+                                                .foregroundColor(.red)
+                                                .padding()
+                                        }
+                                    }
+                                    Spacer()
+                                }
+                                .confirmationDialog("Remove this user from your network?", isPresented: $showRemoveFriendConfirmation) {
+                                    Button("Remove user", role: .destructive) {
+                                        removeFriend()
+                                    }
+                                    Button("Cancel", role: .cancel) {}
+                                }
+                            }
+
+
+                            
                             VStack(spacing: 15) {
-                                // Profile picture
                                 AsyncImage(url: URL(string: profileData.profile_image ?? "")) { image in
                                     image.resizable()
                                         .scaledToFill()
@@ -35,7 +63,6 @@ struct DynamicProfilePreview: View {
                                             .font(.system(size: 16, weight: .semibold))
                                             .foregroundColor(Color.customHex("#ffde59"))
                                         Text("\(profileData.connections_count ?? 0)")
-
                                             .font(.system(size: 16, weight: .bold))
                                             .foregroundColor(Color.white)
                                     }
@@ -79,7 +106,6 @@ struct DynamicProfilePreview: View {
                             }
                         }
                         
-                        // Personal Secret Section
                         ZStack {
                             RoundedRectangle(cornerRadius: 10)
                                 .fill(Color.customHex("004aad"))
@@ -115,7 +141,6 @@ struct DynamicProfilePreview: View {
                             .padding()
                         }
                         
-                        // Bio Section
                         ZStack {
                             RoundedRectangle(cornerRadius: 10)
                                 .fill(Color.customHex("004aad"))
@@ -136,7 +161,6 @@ struct DynamicProfilePreview: View {
                             .padding()
                         }
                         
-                        // About Section
                         ZStack {
                             RoundedRectangle(cornerRadius: 10)
                                 .fill(Color.customHex("004aad"))
@@ -178,7 +202,6 @@ struct DynamicProfilePreview: View {
                             .padding()
                         }
                         
-                        // Technical Side Section
                         ZStack {
                             RoundedRectangle(cornerRadius: 10)
                                 .fill(Color.customHex("004aad"))
@@ -204,7 +227,6 @@ struct DynamicProfilePreview: View {
                             .padding()
                         }
                         
-                        // Interests Section
                         ZStack {
                             RoundedRectangle(cornerRadius: 10)
                                 .fill(Color.customHex("004aad"))
@@ -226,7 +248,6 @@ struct DynamicProfilePreview: View {
                             .padding()
                         }
                         
-                        // Entrepreneurial History Section
                         ZStack {
                             RoundedRectangle(cornerRadius: 10)
                                 .fill(Color.customHex("004aad"))
@@ -265,4 +286,76 @@ struct DynamicProfilePreview: View {
         let ageComponents = calendar.dateComponents([.year], from: birthDate, to: Date())
         return "\(ageComponents.year ?? 0)"
     }
+    
+    func removeFriend() {
+        print("🚨 removeFriend() called")
+        print("🔥 Remove friend called with user_id=\(loggedInUserId), friend_id=\(profileData.user_id)")
+
+        guard let url = URL(string: "http://34.44.204.172:8000/api/users/remove_friend/") else {
+            print("❌ Invalid URL")
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+            print("🔐 Token set: Token \(token)")
+        } else {
+            print("⚠️ No auth token found")
+        }
+
+        let payload: [String: Any] = [
+            "user_id": loggedInUserId,
+            "friend_id": profileData.user_id
+        ]
+
+        print("📤 Payload: \(payload)")
+
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: payload)
+        } catch {
+            print("❌ Error creating JSON payload: \(error)")
+            return
+        }
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("❌ Network error: \(error.localizedDescription)")
+                return
+            }
+
+            print("📡 Request completed — checking HTTP response")
+
+            guard let httpResponse = response as? HTTPURLResponse else {
+                print("❌ Invalid response object")
+                return
+            }
+
+            print("✅ Status code: \(httpResponse.statusCode)")
+
+            if let data = data {
+                let responseString = String(data: data, encoding: .utf8) ?? "Unable to decode"
+                print("📦 Response data: \(responseString)")
+                
+                // Handle the response based on status code
+                DispatchQueue.main.async {
+                    switch httpResponse.statusCode {
+                    case 200:
+                        print("✅ Friend removed successfully, closing sheet")
+                        self.dismiss()
+                    case 404:
+                        print("❌ Friendship not found — no action taken")
+                    default:
+                        print("❌ Unexpected status code: \(httpResponse.statusCode)")
+                    }
+                }
+            } else {
+                print("⚠️ No data returned")
+            }
+        }.resume()
+    }
 }
+
