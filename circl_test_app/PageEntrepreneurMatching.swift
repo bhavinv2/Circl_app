@@ -160,7 +160,7 @@ struct PageEntrepreneurMatching: View {
                     set: { newValue in showProfilePreview = newValue }
                 )) {
                     if let profile = selectedFullProfile {
-                        DynamicProfilePreview(profileData: profile)
+                        DynamicProfilePreview(profileData: profile, isInNetwork: false)
                     }
                 }
                 

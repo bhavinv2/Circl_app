@@ -475,10 +475,12 @@ struct PageInvites: View {
                     get: { showProfilePreview && selectedFullProfile != nil },
                     set: { newValue in showProfilePreview = newValue }
                 )) {
-                    if let userProfile = selectedFullProfile {
-                        DynamicProfilePreview(profileData: userProfile)
+                    if let profile = selectedFullProfile {
+                        DynamicProfilePreview(profileData: profile, isInNetwork: true)
                     }
                 }
+
+
 
 
 

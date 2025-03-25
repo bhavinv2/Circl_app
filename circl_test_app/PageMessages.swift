@@ -229,30 +229,34 @@ struct PageMessages: View {
                             HStack {
                                 Button(action: {
                                     if let window = UIApplication.shared.windows.first {
-                                        let profileView = DynamicProfilePreview(profileData: FullProfile(
-                                            user_id: user.id,
-                                            profile_image: nil,
-                                            first_name: user.name.components(separatedBy: " ").first ?? "",
-                                            last_name: user.name.components(separatedBy: " ").last ?? "",
-                                            email: "",
-                                            main_usage: nil,
-                                            industry_interest: nil,
-                                            title: nil,
-                                            bio: nil,
-                                            birthday: nil,
-                                            education_level: nil,
-                                            institution_attended: nil,
-                                            certificates: nil,
-                                            years_of_experience: nil,
-                                            personality_type: nil,
-                                            locations: nil,
-                                            achievements: nil,
-                                            skillsets: nil,
-                                            availability: nil,
-                                            clubs: nil,
-                                            hobbies: nil,
-                                            connections_count: nil
-                                        ))
+                                        let profileView = DynamicProfilePreview(
+                                            profileData: FullProfile(
+                                                user_id: user.id,
+                                                profile_image: nil,
+                                                first_name: user.name.components(separatedBy: " ").first ?? "",
+                                                last_name: user.name.components(separatedBy: " ").last ?? "",
+                                                email: "",
+                                                main_usage: nil,
+                                                industry_interest: nil,
+                                                title: nil,
+                                                bio: nil,
+                                                birthday: nil,
+                                                education_level: nil,
+                                                institution_attended: nil,
+                                                certificates: nil,
+                                                years_of_experience: nil,
+                                                personality_type: nil,
+                                                locations: nil,
+                                                achievements: nil,
+                                                skillsets: nil,
+                                                availability: nil,
+                                                clubs: nil,
+                                                hobbies: nil,
+                                                connections_count: nil
+                                            ),
+                                            isInNetwork: true
+                                        )
+
                                         window.rootViewController?.present(UIHostingController(rootView: profileView), animated: true)
                                     }
                                 }) {
@@ -547,30 +551,34 @@ struct ChatBox: View {
             HStack {
                 Button(action: {
                     if let window = UIApplication.shared.windows.first {
-                        let profileView = DynamicProfilePreview(profileData: FullProfile(
-                            user_id: user.id,
-                            profile_image: nil,
-                            first_name: user.name.components(separatedBy: " ").first ?? "",
-                            last_name: user.name.components(separatedBy: " ").last ?? "",
-                            email: "",
-                            main_usage: nil,
-                            industry_interest: nil,
-                            title: nil,
-                            bio: nil,
-                            birthday: nil,
-                            education_level: nil,
-                            institution_attended: nil,
-                            certificates: nil,
-                            years_of_experience: nil,
-                            personality_type: nil,
-                            locations: nil,
-                            achievements: nil,
-                            skillsets: nil,
-                            availability: nil,
-                            clubs: nil,
-                            hobbies: nil,
-                            connections_count: nil
-                        ))
+                        let profileView = DynamicProfilePreview(
+                            profileData: FullProfile(
+                                user_id: user.id,
+                                profile_image: nil,
+                                first_name: user.name.components(separatedBy: " ").first ?? "",
+                                last_name: user.name.components(separatedBy: " ").last ?? "",
+                                email: "",
+                                main_usage: nil,
+                                industry_interest: nil,
+                                title: nil,
+                                bio: nil,
+                                birthday: nil,
+                                education_level: nil,
+                                institution_attended: nil,
+                                certificates: nil,
+                                years_of_experience: nil,
+                                personality_type: nil,
+                                locations: nil,
+                                achievements: nil,
+                                skillsets: nil,
+                                availability: nil,
+                                clubs: nil,
+                                hobbies: nil,
+                                connections_count: nil
+                            ),
+                            isInNetwork: true
+                        )
+
                         window.rootViewController?.present(UIHostingController(rootView: profileView), animated: true)
                     }
                 }) {

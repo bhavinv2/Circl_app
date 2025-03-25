@@ -3,6 +3,7 @@ import Foundation
 
 struct DynamicProfilePreview: View {
     var profileData: FullProfile
+    let isInNetwork: Bool
     
     @State private var showRemoveFriendConfirmation = false
     @Environment(\.dismiss) var dismiss
@@ -19,7 +20,8 @@ struct DynamicProfilePreview: View {
                                 .fill(Color.customHex("004aad"))
                                 .frame(height: 300)
                             
-                            if loggedInUserId != profileData.user_id {
+                            if loggedInUserId != profileData.user_id && isInNetwork {
+
                                 VStack {
                                     HStack {
                                         Spacer()
