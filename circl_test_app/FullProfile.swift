@@ -1,6 +1,8 @@
 import Foundation
 
-struct FullProfile: Codable {
+struct FullProfile: Identifiable, Codable {
+    var id: Int { user_id }
+
     let user_id: Int
     let profile_image: String?
     let first_name: String
@@ -13,19 +15,17 @@ struct FullProfile: Codable {
     let birthday: String?
     let education_level: String?
     let institution_attended: String?
-    let certificates: [String]?         // ✅ now handles null or missing
+    let certificates: [String]?
     let years_of_experience: Int?
     let personality_type: String?
-    let locations: [String]?            // ✅ now handles null or missing
-    let achievements: [String]?         // ✅ same here
-    let skillsets: [String]?            // ✅ and here
+    let locations: [String]?
+    let achievements: [String]?
+    let skillsets: [String]?
     let availability: String?
-    let clubs: [String]?                // ✅ here too
-    let hobbies: [String]?              // ✅ and here
+    let clubs: [String]?
+    let hobbies: [String]?
     let connections_count: Int?
 }
-
-
 
 extension FullProfile {
     var full_name: String {
