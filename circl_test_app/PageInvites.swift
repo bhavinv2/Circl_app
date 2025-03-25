@@ -84,19 +84,36 @@ struct InviteProfileTemplate: View {
     var company: String
     var proficiency: String
     var tags: [String]
-    var profileImage: String
+    var profileImage: String?
     var showAcceptDeclineButtons: Bool = true
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .top) {
                 // Profile Image
-                Image(profileImage)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
+                if let imageURL = profileImage, let url = URL(string: imageURL) {
+                    AsyncImage(url: url) { phase in
+                        if let image = phase.image {
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                        } else {
+                            Image("default_image")
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                        }
+                    }
                     .frame(width: 60, height: 60)
                     .clipShape(Circle())
                     .overlay(Circle().stroke(Color.blue, lineWidth: 2))
+                } else {
+                    Image("default_image")
+                        .resizable()
+                        .frame(width: 60, height: 60)
+                        .clipShape(Circle())
+                        .overlay(Circle().stroke(Color.blue, lineWidth: 2))
+                }
+
                 
                 VStack(alignment: .leading, spacing: 5) {
                     Text(name)
@@ -172,17 +189,36 @@ struct InviteProfileDetailPage: View {
     var company: String
     var proficiency: String
     var tags: [String]
-    var profileImage: String
+    var profileImage: String?
+
     
     var body: some View {
         VStack {
-            Image(profileImage)
-                .resizable()
-                .aspectRatio(contentMode: .fill)
+            if let imageURL = profileImage, let url = URL(string: imageURL) {
+                AsyncImage(url: url) { phase in
+                    if let image = phase.image {
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                    } else {
+                        Image("default_image")
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                    }
+                }
                 .frame(width: 120, height: 120)
                 .clipShape(Circle())
                 .overlay(Circle().stroke(Color.blue, lineWidth: 2))
                 .padding()
+            } else {
+                Image("default_image")
+                    .resizable()
+                    .frame(width: 120, height: 120)
+                    .clipShape(Circle())
+                    .overlay(Circle().stroke(Color.blue, lineWidth: 2))
+                    .padding()
+            }
+
             
             Text(name)
                 .font(.largeTitle)
@@ -230,7 +266,8 @@ struct InviteProfileLink: View {
     var company: String
     var proficiency: String
     var tags: [String]
-    var profileImage: String
+    var profileImage: String?
+
     var showAcceptDeclineButtons: Bool
     
     var body: some View {
@@ -741,7 +778,7 @@ struct PageInvites: View {
         let company: String
         let proficiency: String
         let tags: [String]
-        let profileImage: String
+        let profileImage: String?
     }
     
     // MARK: - FullProfile Model (Required for decoding detailed profile)

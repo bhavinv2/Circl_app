@@ -496,7 +496,8 @@ struct InviteProfileData: Identifiable, Codable {
     let company: String
     let proficiency: String
     let tags: [String]
-    let profileImage: String
+    let profileImage: String?
+
 }
 
 struct ProfilePage_Previews: PreviewProvider {

@@ -235,10 +235,29 @@ struct PageMessages: View {
                                         }
                                     }
                                 }) {
-                                    Image(systemName: "person.crop.circle.fill")
-                                        .resizable()
+                                    if let imageURL = user.profileImage,
+                                       let url = URL(string: imageURL) {
+                                        AsyncImage(url: url) { phase in
+                                            if let image = phase.image {
+                                                image
+                                                    .resizable()
+                                                    .aspectRatio(contentMode: .fill)
+                                            } else {
+                                                Image("default_image")
+                                                    .resizable()
+                                                    .aspectRatio(contentMode: .fill)
+                                            }
+                                        }
                                         .frame(width: 55, height: 55)
-                                        .foregroundColor(.blue)
+                                        .clipShape(Circle())
+                                    } else {
+                                        Image("default_image")
+                                            .resizable()
+                                            .frame(width: 55, height: 55)
+                                            .clipShape(Circle())
+                                    }
+
+
                                 }
 
                                 
@@ -560,7 +579,14 @@ struct NetworkUser: Codable, Identifiable, Hashable {
     let id: Int
     let name: String
     let email: String
+    let profileImage: String?
+
+    enum CodingKeys: String, CodingKey {
+        case id, name, email
+        case profileImage = "profileImage" // 👈 match backend key
+    }
 }
+
 
 struct ChatBox: View {
     let user: NetworkUser
