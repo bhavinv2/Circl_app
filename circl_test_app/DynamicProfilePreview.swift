@@ -25,15 +25,20 @@ struct DynamicProfilePreview: View {
                                 VStack {
                                     HStack {
                                         Spacer()
-                                        Button(action: {
-                                            showRemoveFriendConfirmation = true
-                                        }) {
-                                            Image(systemName: "minus.circle.fill")
+                                        Menu {
+                                            Button(role: .destructive) {
+                                                showRemoveFriendConfirmation = true
+                                            } label: {
+                                                Label("Remove user", systemImage: "person.fill.xmark")
+                                            }
+                                        } label: {
+                                            Image(systemName: "ellipsis.circle")
                                                 .resizable()
                                                 .frame(width: 30, height: 30)
-                                                .foregroundColor(.red)
+                                                .foregroundColor(.white)
                                                 .padding()
                                         }
+
                                     }
                                     Spacer()
                                 }

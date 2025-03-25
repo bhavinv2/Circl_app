@@ -241,7 +241,9 @@ struct PageEntrepreneurMatching: View {
                                     proficiency: entrepreneur["main_usage"] as? String ?? "Unknown",
                                     tags: entrepreneur["tags"] as? [String] ?? [],
                                     email: email,
-                                    profileImage: "sampleProfileImage"
+                                    profileImage: entrepreneur["profileImage"] as? String
+
+
                                 )
 
                             }
@@ -350,7 +352,7 @@ struct PageEntrepreneurMatching: View {
         var proficiency: String
         var tags: [String]
         var email: String
-        var profileImage: String
+        var profileImage: String?
     }
 
     
@@ -361,7 +363,7 @@ struct PageEntrepreneurMatching: View {
         var company: String
         var proficiency: String
         var tags: [String]
-        var profileImage: String
+        var profileImage: String?
         var onAccept: () -> Void // ✅ STEP 5: Added onAccept
         var onDecline: () -> Void // ✅ STEP 5: Added onDecline
         
@@ -369,12 +371,33 @@ struct PageEntrepreneurMatching: View {
             VStack(alignment: .leading, spacing: 10) {
                 HStack(alignment: .top) {
                     // Profile Image
-                    Image(profileImage)
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
+                    if let imageURL = profileImage,
+                       let encodedURLString = imageURL.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+                       let url = URL(string: encodedURLString) {
+                        AsyncImage(url: url) { phase in
+                            if let image = phase.image {
+                                image
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                            } else {
+                                Image("default_image")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                            }
+                        }
                         .frame(width: 60, height: 60)
                         .clipShape(Circle())
                         .overlay(Circle().stroke(Color.blue, lineWidth: 2))
+                    } else {
+                        Image("default_image")
+                            .resizable()
+                            .frame(width: 60, height: 60)
+                            .clipShape(Circle())
+                            .overlay(Circle().stroke(Color.blue, lineWidth: 2))
+                    }
+
+
+
                     
                     VStack(alignment: .leading, spacing: 5) {
                         Text(name)
