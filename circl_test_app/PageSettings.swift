@@ -33,6 +33,8 @@ struct PageSettings: View {
 
                         // Account Settings
                         SectionHeader(title: "Account Settings")
+                        settingsOption(title: "Become a Mentor", iconName: "graduationcap.fill", destination: BecomeMentorPage())
+
                         settingsOption(title: "Change Password", iconName: "lock.fill", destination: ChangePasswordPage())
                         settingsOption(title: "Two-Factor Authentication", iconName: "shield.fill", destination: TwoFactorAuthPage())
                         settingsOption(title: "Delete Account", iconName: "trash.fill", destination: DeleteAccountPage())
@@ -154,6 +156,85 @@ struct PageSettings: View {
 }
 
 // MARK: - Placeholder Pages for Navigation
+struct BecomeMentorPage: View {
+    @State private var name = ""
+    @State private var industry = ""
+    @State private var reason = ""
+    @State private var isSubmitted = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            Text("Mentor Application")
+                .font(.title)
+                .bold()
+
+            TextField("Your Name", text: $name)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+
+            TextField("Industry", text: $industry)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+
+            Text("Why do you want to become a mentor?")
+                .font(.headline)
+
+            TextEditor(text: $reason)
+                .frame(height: 120)
+                .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.gray.opacity(0.5)))
+
+            Button(action: {
+                submitMentorApplication()
+            }) {
+                Text("Submit Application")
+                    .foregroundColor(.white)
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(Color.blue)
+                    .cornerRadius(10)
+            }
+
+            if isSubmitted {
+                Text("Application submitted! We'll review it shortly.")
+                    .foregroundColor(.green)
+            }
+
+            Spacer()
+        }
+        .padding()
+    }
+
+    func submitMentorApplication() {
+        guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else { return }
+
+        let payload: [String: Any] = [
+            "user_id": userId,
+            "name": name,
+            "industry": industry,
+            "reason": reason
+        ]
+
+        guard let url = URL(string: "http://34.44.204.172:8000/api/users/apply_mentor/") else { return }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                isSubmitted = true
+                name = ""
+                industry = ""
+                reason = ""
+            }
+        }.resume()
+    }
+}
+
+
 struct ChangePasswordPage: View { var body: some View { Text("Change Password Page") } }
 struct TwoFactorAuthPage: View { var body: some View { Text("Two-Factor Authentication Page") } }
 struct DeleteAccountPage: View { var body: some View { Text("Delete Account Page") } }
