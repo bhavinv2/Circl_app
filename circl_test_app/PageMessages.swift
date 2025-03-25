@@ -1,7 +1,6 @@
 import SwiftUI
 import Foundation
 
-
 struct PageMessages: View {
     
     @State private var messages: [Message] = [] // Messages array
@@ -226,62 +225,45 @@ struct PageMessages: View {
                             self.groupedMessages[userId, default: []].append(newMessage)
                             self.refreshToggle.toggle()
                         })) {
-                            HStack {
+                            HStack(spacing: 15) {
                                 Button(action: {
-                                    if let window = UIApplication.shared.windows.first {
-                                        let profileView = DynamicProfilePreview(
-                                            profileData: FullProfile(
-                                                user_id: user.id,
-                                                profile_image: nil,
-                                                first_name: user.name.components(separatedBy: " ").first ?? "",
-                                                last_name: user.name.components(separatedBy: " ").last ?? "",
-                                                email: "",
-                                                main_usage: nil,
-                                                industry_interest: nil,
-                                                title: nil,
-                                                bio: nil,
-                                                birthday: nil,
-                                                education_level: nil,
-                                                institution_attended: nil,
-                                                certificates: nil,
-                                                years_of_experience: nil,
-                                                personality_type: nil,
-                                                locations: nil,
-                                                achievements: nil,
-                                                skillsets: nil,
-                                                availability: nil,
-                                                clubs: nil,
-                                                hobbies: nil,
-                                                connections_count: nil
-                                            ),
-                                            isInNetwork: true
-                                        )
-
-                                        window.rootViewController?.present(UIHostingController(rootView: profileView), animated: true)
+                                    fetchUserProfile(userId: user.id) { profile in
+                                        if let profile = profile,
+                                           let window = UIApplication.shared.windows.first {
+                                            let profileView = DynamicProfilePreview(profileData: profile, isInNetwork: true)
+                                            window.rootViewController?.present(UIHostingController(rootView: profileView), animated: true)
+                                        }
                                     }
                                 }) {
                                     Image(systemName: "person.crop.circle.fill")
                                         .resizable()
-                                        .frame(width: 50, height: 50)
+                                        .frame(width: 55, height: 55)
                                         .foregroundColor(.blue)
                                 }
+
                                 
-                                VStack(alignment: .leading) {
+                                VStack(alignment: .leading, spacing: 4) {
                                     Text(user.name)
-                                        .font(.headline)
+                                        .font(.system(size: 16, weight: .semibold))
                                     Text(messages.last?.content ?? "")
-                                        .font(.subheadline)
+                                        .font(.system(size: 14))
+                                        .foregroundColor(.gray)
+                                        .lineLimit(1)
+                                }
+                            
+                                Spacer()
+                                
+                                VStack {
+                                    Text(messages.last?.timestamp.components(separatedBy: "T").first ?? "")
+                                        .font(.system(size: 12))
                                         .foregroundColor(.gray)
                                 }
-                                Spacer()
-                                Text(messages.last?.timestamp ?? "")
-                                    .font(.footnote)
-                                    .foregroundColor(.gray)
                             }
-                            .padding()
+                            .padding(.vertical, 10)
+                            .padding(.horizontal)
                             .background(Color.white)
-                            .cornerRadius(8)
-                            .shadow(radius: 2)
+                            .cornerRadius(15)
+                            .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
                         }
                     }
                 }
@@ -420,6 +402,44 @@ struct PageMessages: View {
             }
         }.resume()
     }
+    
+    func fetchUserProfile(userId: Int, completion: @escaping (FullProfile?) -> Void) {
+        let urlString = "http://34.44.204.172:8000/api/users/profile/\(userId)/"
+        guard let url = URL(string: urlString) else {
+            print("❌ Invalid URL")
+            completion(nil)
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("❌ Request failed:", error)
+                completion(nil)
+                return
+            }
+
+            if let data = data {
+                if let decoded = try? JSONDecoder().decode(FullProfile.self, from: data) {
+                    DispatchQueue.main.async {
+                        completion(decoded)
+                    }
+                    return
+                } else {
+                    print("❌ Failed to decode JSON")
+                }
+            }
+            completion(nil)
+        }.resume()
+    }
+
 
     private func sendMessage(content: String, recipient: NetworkUser) {
         guard let senderId = UserDefaults.standard.value(forKey: "user_id") as? Int else { return }
@@ -475,7 +495,7 @@ struct ChatPopup: View {
     var onSendMessage: (String) -> Void
 
     var body: some View {
-        VStack {
+        VStack(spacing: 10) {
             HStack {
                 Text("Chat with \(user.name)")
                     .font(.headline)
