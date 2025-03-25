@@ -121,7 +121,7 @@ struct ProfilePage: View {
                                     if let lastName = profileData?.last_name,
                                        let userId = UserDefaults.standard.value(forKey: "user_id") as? Int {
                                         Text("@\(lastName)\(userId)")
-                                            .font(.system(size: 14, weight: .semibold))
+                                            .font(.system(size: 16, weight: .semibold))
                                             .foregroundColor(.white)
                                     }
 

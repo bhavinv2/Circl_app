@@ -148,7 +148,16 @@ struct PageMessages: View {
                         filterUsers()
                     }
                 }
-                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .padding(.vertical, 12)
+                .padding(.horizontal, 16)
+                .background(Color.white)
+                .cornerRadius(20)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                )
+                .font(.system(size: 16))
+
 
                 NavigationLink(
                     destination: selectedUser.map { user in
@@ -273,9 +282,12 @@ struct PageMessages: View {
                                 Spacer()
                                 
                                 VStack {
-                                    Text(messages.last?.timestamp.components(separatedBy: "T").first ?? "")
-                                        .font(.system(size: 12))
-                                        .foregroundColor(.gray)
+                                    if let lastMessage = messages.last {
+                                        Text(lastMessage.displayTime)
+                                            .font(.system(size: 12))
+                                            .foregroundColor(.gray)
+                                    }
+
                                 }
                             }
                             .padding(.vertical, 10)
@@ -566,14 +578,46 @@ struct ChatPopup: View {
     }
 }
 
-struct Message: Identifiable, Codable {
+struct Message: Identifiable, Codable, Equatable {
     let id: Int
     let sender_id: Int
     let receiver_id: Int
     let content: String
     let timestamp: String
     let is_read: Bool
+    
+    var displayTime: String {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds] // for full precision
+
+        // Try parsing timestamp string
+        guard let date = formatter.date(from: timestamp) ??
+                         ISO8601DateFormatter().date(from: timestamp.components(separatedBy: ".").first ?? "") else {
+            return "just now"
+        }
+
+        let secondsAgo = Int(Date().timeIntervalSince(date))
+
+        switch secondsAgo {
+        case ..<10: return "just now"
+        case 10..<60: return "\(secondsAgo) seconds"
+        case 60..<3600:
+            let minutes = secondsAgo / 60
+            return minutes == 1 ? "1 minute" : "\(minutes) minutes"
+        case 3600..<86400:
+            let hours = secondsAgo / 3600
+            return hours == 1 ? "1 hour" : "\(hours) hours"
+        case 86400..<2592000:
+            let days = secondsAgo / 86400
+            return days == 1 ? "1 day" : "\(days) days"
+        default:
+            let months = secondsAgo / 2592000
+            return months == 1 ? "1 month" : "\(months) months"
+        }
+    }
+
 }
+
 
 struct NetworkUser: Codable, Identifiable, Hashable {
     let id: Int
@@ -666,55 +710,75 @@ struct ChatView: View {
 
     var body: some View {
         VStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 10) {
-                    ForEach(chatMessages) { message in
-                        HStack {
-                            if message.sender_id == UserDefaults.standard.integer(forKey: "user_id") {
-                                Spacer()
-                                Text(message.content)
-                                    .padding()
-                                    .background(Color.blue)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(10)
-                                    .frame(maxWidth: 250, alignment: .trailing)
-                            } else {
-                                Text(message.content)
-                                    .padding()
-                                    .background(Color.gray.opacity(0.2))
-                                    .foregroundColor(.black)
-                                    .cornerRadius(10)
-                                    .frame(maxWidth: 250, alignment: .leading)
-                                Spacer()
+            ScrollViewReader { scrollViewProxy in
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 10) {
+                        ForEach(chatMessages) { message in
+                            HStack {
+                                if message.sender_id == UserDefaults.standard.integer(forKey: "user_id") {
+                                    Spacer()
+                                    Text(message.content)
+                                        .padding()
+                                        .background(Color.blue)
+                                        .foregroundColor(.white)
+                                        .cornerRadius(10)
+                                        .frame(maxWidth: 250, alignment: .trailing)
+                                } else {
+                                    Text(message.content)
+                                        .padding()
+                                        .background(Color.gray.opacity(0.2))
+                                        .foregroundColor(.black)
+                                        .cornerRadius(10)
+                                        .frame(maxWidth: 250, alignment: .leading)
+                                    Spacer()
+                                }
                             }
+                            .id(message.id)
+                        }
+                    }
+                    .padding()
+                }
+                .onAppear {
+                    chatMessages = messages
+                }
+                .onChange(of: chatMessages) { _ in
+                    if let last = chatMessages.last {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                            scrollViewProxy.scrollTo(last.id, anchor: .bottom)
                         }
                     }
                 }
-                .padding()
             }
 
-            HStack(spacing: 15) {
+
+
+            HStack(spacing: 10) {
                 TextField("Type a message...", text: $messageText)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .padding(.leading)
-                
+                    .padding(.vertical, 12)
+                    .padding(.horizontal, 16)
+                    .background(Color.white)
+                    .cornerRadius(25)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 25)
+                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                    )
+                    .font(.system(size: 16))
+
                 Button(action: {
                     if !messageText.isEmpty {
                         sendMessage(content: messageText, recipient: user)
                         messageText = ""
                     }
                 }) {
-                    Text("Send")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.blue)
-                        .cornerRadius(12)
+                    Image(systemName: "arrow.up.circle.fill")
+                        .resizable()
+                        .frame(width: 30, height: 30)
+                        .foregroundColor(.blue)
                 }
-                .padding()
             }
-            .padding()
+            .padding(.horizontal)
+            .padding(.bottom)
+
         }
         .navigationBarTitle(user.name, displayMode: .inline)
         .onAppear {
@@ -762,6 +826,8 @@ struct ChatView: View {
         }.resume()
     }
 }
+
+
 
 extension Color {
     static func fromHex(_ hex: String) -> Color {
