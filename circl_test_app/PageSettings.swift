@@ -235,9 +235,151 @@ struct BecomeMentorPage: View {
 }
 
 
-struct ChangePasswordPage: View { var body: some View { Text("Change Password Page") } }
+struct ChangePasswordPage: View {
+    @State private var oldPassword = ""
+    @State private var newPassword = ""
+    @State private var confirmPassword = ""
+    @State private var message = ""
+    @State private var isSuccess = false
+
+    var body: some View {
+        VStack(spacing: 20) {
+            Text("Change Password")
+                .font(.title)
+                .bold()
+
+            SecureField("Current Password", text: $oldPassword)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+
+            SecureField("New Password", text: $newPassword)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+
+            SecureField("Confirm New Password", text: $confirmPassword)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+
+            Button(action: changePassword) {
+                Text("Update Password")
+                    .foregroundColor(.white)
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(Color.blue)
+                    .cornerRadius(10)
+            }
+
+            if !message.isEmpty {
+                Text(message)
+                    .foregroundColor(isSuccess ? .green : .red)
+            }
+
+            Spacer()
+        }
+        .padding()
+    }
+
+    func changePassword() {
+        guard !oldPassword.isEmpty, !newPassword.isEmpty, newPassword == confirmPassword else {
+            message = "Please fill all fields and make sure new passwords match."
+            isSuccess = false
+            return
+        }
+
+        guard let url = URL(string: "http://34.44.204.172:8000/api/users/change_password/") else { return }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        let payload = [
+            "old_password": oldPassword,
+            "new_password": newPassword
+        ]
+
+        request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                if let data = data,
+                   let response = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
+                    if let status = response["status"] as? String {
+                        message = status
+                        isSuccess = true
+                        oldPassword = ""
+                        newPassword = ""
+                        confirmPassword = ""
+                    } else if let errorMsg = response["error"] as? String {
+                        message = errorMsg
+                        isSuccess = false
+                    }
+                } else {
+                    message = "Unexpected error occurred."
+                    isSuccess = false
+                }
+            }
+        }.resume()
+    }
+}
+
 struct TwoFactorAuthPage: View { var body: some View { Text("Two-Factor Authentication Page") } }
-struct DeleteAccountPage: View { var body: some View { Text("Delete Account Page") } }
+struct DeleteAccountPage: View {
+    @State private var reason = ""
+    @State private var message = ""
+    @State private var isSubmitted = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            Text("Why do you want to delete your account?")
+                .font(.headline)
+
+            TextEditor(text: $reason)
+                .frame(height: 150)
+                .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.gray.opacity(0.5)))
+
+            Button(action: submitDeleteRequest) {
+                Text("Request to Delete Account")
+                    .foregroundColor(.white)
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(Color.red)
+                    .cornerRadius(10)
+            }
+
+            if isSubmitted {
+                Text(message)
+                    .foregroundColor(.green)
+            }
+
+            Spacer()
+        }
+        .padding()
+    }
+
+    func submitDeleteRequest() {
+        guard let url = URL(string: "http://34.44.204.172:8000/api/users/request_delete_account/") else { return }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        let payload = ["reason": reason]
+        request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                isSubmitted = true
+                message = "Your request has been submitted."
+                reason = ""
+            }
+        }.resume()
+    }
+}
+
 struct RateAppPage: View { var body: some View { Text("Rate the App Page") } }
 struct SuggestFeaturePage: View { var body: some View { Text("Suggest a Feature Page") } }
 struct ReportProblemPage: View { var body: some View { Text("Report a Problem Page") } }
