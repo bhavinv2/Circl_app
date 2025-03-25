@@ -83,13 +83,6 @@ struct ProfilePage: View {
                                     ImagePicker(image: $selectedImage)
                                 }
                                 
-                                if let lastName = profileData?.last_name,
-                                   let userId = UserDefaults.standard.value(forKey: "user_id") as? Int {
-                                    Text("@\(lastName)\(userId)")
-                                        .font(.system(size: 14, weight: .semibold))
-                                        .foregroundColor(.white)
-                                        .padding(.top, 5)
-                                }
                                 
                                 HStack(spacing: 40) {
                                     VStack {
@@ -124,7 +117,14 @@ struct ProfilePage: View {
                                     Text(profileData?.full_name ?? "Loading...")
                                         .font(.system(size: 24, weight: .bold))
                                         .foregroundColor(.white)
-                                    
+
+                                    if let lastName = profileData?.last_name,
+                                       let userId = UserDefaults.standard.value(forKey: "user_id") as? Int {
+                                        Text("@\(lastName)\(userId)")
+                                            .font(.system(size: 14, weight: .semibold))
+                                            .foregroundColor(.white)
+                                    }
+
                                     Text("CEO - ")
                                         .font(.system(size: 18, weight: .semibold))
                                         .foregroundColor(.white)
@@ -132,11 +132,9 @@ struct ProfilePage: View {
                                         .font(.system(size: 18, weight: .semibold))
                                         .underline()
                                         .foregroundColor(.white)
-                                    
-                                    Text(profileData?.personality_type ?? "")
-                                        .font(.system(size: 18, weight: .semibold))
-                                        .foregroundColor(.white)
+
                                 }
+
                             }
                         }
                         
@@ -193,6 +191,14 @@ struct ProfilePage: View {
                                     .foregroundColor(.white)
                                     .multilineTextAlignment(.leading)
                                     .padding(.horizontal)
+
+                                if let type = profileData?.personality_type, !type.isEmpty {
+                                    Text("Personality Type: \(type)")
+                                        .font(.system(size: 16, weight: .semibold))
+                                        .foregroundColor(.white)
+                                        .padding(.horizontal)
+                                }
+
                             }
                             .padding()
                         }

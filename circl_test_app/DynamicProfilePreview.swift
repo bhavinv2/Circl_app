@@ -92,7 +92,11 @@ struct DynamicProfilePreview: View {
                                     Text(profileData.full_name)
                                         .font(.system(size: 24, weight: .bold))
                                         .foregroundColor(.white)
-                                    
+
+                                    Text("@\(profileData.last_name)\(profileData.user_id)")
+                                        .font(.system(size: 14, weight: .semibold))
+                                        .foregroundColor(.white)
+
                                     Text("CEO - ")
                                         .font(.system(size: 18, weight: .semibold))
                                         .foregroundColor(.white)
@@ -100,11 +104,8 @@ struct DynamicProfilePreview: View {
                                         .font(.system(size: 18, weight: .semibold))
                                         .underline()
                                         .foregroundColor(.white)
-                                    
-                                    Text(profileData.personality_type ?? "")
-                                        .font(.system(size: 18, weight: .semibold))
-                                        .foregroundColor(.white)
                                 }
+
                             }
                         }
                         
@@ -159,6 +160,14 @@ struct DynamicProfilePreview: View {
                                     .foregroundColor(.white)
                                     .multilineTextAlignment(.leading)
                                     .padding(.horizontal)
+
+                                if let type = profileData.personality_type, !type.isEmpty {
+                                    Text("Personality Type: \(type)")
+                                        .font(.system(size: 16, weight: .semibold))
+                                        .foregroundColor(.white)
+                                        .padding(.horizontal)
+                                }
+
                             }
                             .padding()
                         }
