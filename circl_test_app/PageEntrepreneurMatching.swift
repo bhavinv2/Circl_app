@@ -403,18 +403,11 @@ struct PageEntrepreneurMatching: View {
                         Text(name)
                             .font(.headline)
                         
-                        HStack(spacing: 5) {
-                            Text(title)
-                                .font(.subheadline)
-                            Text("-")
-                            Text(company)
-                                .font(.subheadline)
-                                .foregroundColor(.blue)
-                        }
-                        
-                        Text("Proficient in: \(proficiency)")
+                        Text(company)
                             .font(.subheadline)
-                            .foregroundColor(.gray)
+                            .foregroundColor(.blue)
+
+
                     }
                     
                     Spacer()

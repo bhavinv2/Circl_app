@@ -304,16 +304,14 @@ struct PageMentorMatching: View {
 
 
                     VStack(alignment: .leading, spacing: 5) {
-                        Text(name).font(.headline)
-                        HStack(spacing: 5) {
-                            Text(title).font(.subheadline)
-                            Text("-")
-                            Text(company).font(.subheadline).foregroundColor(.blue)
-                        }
-                        Text("Proficient in: \(proficiency)")
+                        Text(name)
+                            .font(.headline)
+                        
+                        Text(company)
                             .font(.subheadline)
-                            .foregroundColor(.gray)
+                            .foregroundColor(.blue)
                     }
+
 
                     Spacer()
 
