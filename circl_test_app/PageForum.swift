@@ -15,12 +15,17 @@ struct ForumPostModel: Identifiable, Codable {
     let comment_count: Int?
     let like_count: Int
     let liked_by_user: Bool
+    let isMentor: Bool?
+
 
     enum CodingKeys: String, CodingKey {
         case id, user, user_id, content, category, privacy, image, created_at
         case comment_count, like_count, liked_by_user
         case profileImage = "profile_image"
+        case isMentor = "is_mentor"  // ✅ This correctly maps JSON field to Swift property
     }
+
+
 }
 
 
@@ -79,7 +84,6 @@ struct ForumPost: View {
     let timestamp: String
     let category: String
     let profileImageName: String
-    let position: String
     let company: String
     var onComment: () -> Void
     let commentCount: Int
@@ -90,6 +94,8 @@ struct ForumPost: View {
     let onDelete: () -> Void
     let onTapProfile: () -> Void
     let isMentor: Bool
+
+
 
 
     @State private var showOptionsBox = false
@@ -130,10 +136,11 @@ struct ForumPost: View {
                         HStack {
                             Text(author)
                                 .font(.headline)
-                            Text(position)
+                            Text(isMentor ? "Mentor" : "Entrepreneur")
                                 .font(.subheadline)
                                 .foregroundColor(.gray)
                         }
+
 
                         Text(timeAgo(from: timestamp))
                             .font(.subheadline)
@@ -198,17 +205,7 @@ struct ForumPost: View {
             .background(Color.white)
             .cornerRadius(10)
             .shadow(radius: 2)
-            if isMentor {
-                Text("Mentor")
-                    .font(.caption2)
-                    .bold()
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Color.yellow)
-                    .cornerRadius(5)
-                    .padding(.top, 6)
-                    .padding(.trailing, 6)
-            }
+          
 
 
             if isCurrentUser {
@@ -491,7 +488,7 @@ struct ForumMainContent: View {
                                 timestamp: post.created_at,
                                 category: post.category,
                                 profileImageName: post.profileImage ?? "",
-                                position: "Entrepreneur",
+                                
                                 company: "Circl",
                                 onComment: {
                                     selectedPostIdForComments = post
@@ -514,7 +511,9 @@ struct ForumMainContent: View {
                                         }
                                     }
                                 },
-                                isMentor: true
+                                isMentor: post.isMentor ?? false
+
+
                             )
                             .onAppear {
                                 print("🧠 profileImage for \(post.user): \(post.profileImage ?? "nil")")
