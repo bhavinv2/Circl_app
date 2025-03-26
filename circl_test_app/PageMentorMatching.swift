@@ -112,7 +112,8 @@ struct PageMentorMatching: View {
                                     onDecline: {
                                         declinedEmails.insert(mentor.email)
                                         mentors.removeAll { $0.email == mentor.email }
-                                    }
+                                    },
+                                    isMentor: true
                                 )
                             }
                             .buttonStyle(PlainButtonStyle())
@@ -273,80 +274,92 @@ struct PageMentorMatching: View {
         var profileImage: String?
         var onAccept: () -> Void
         var onDecline: () -> Void
+        var isMentor: Bool
 
         var body: some View {
-            VStack(alignment: .leading, spacing: 10) {
-                HStack(alignment: .top) {
-                    if let imageURL = profileImage,
-                       let encodedURLString = imageURL.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
-                       let url = URL(string: encodedURLString) {
-                        AsyncImage(url: url) { phase in
-                            if let image = phase.image {
-                                image
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fill)
-                            } else {
-                                Image("default_image")
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fill)
+            ZStack(alignment: .topLeading) {
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack(alignment: .top) {
+                        if let imageURL = profileImage,
+                           let encodedURLString = imageURL.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+                           let url = URL(string: encodedURLString) {
+                            AsyncImage(url: url) { phase in
+                                if let image = phase.image {
+                                    image
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fill)
+                                } else {
+                                    Image("default_image")
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fill)
+                                }
                             }
-                        }
-                        .frame(width: 60, height: 60)
-                        .clipShape(Circle())
-                        .overlay(Circle().stroke(Color.blue, lineWidth: 2))
-                    } else {
-                        Image("default_image")
-                            .resizable()
                             .frame(width: 60, height: 60)
                             .clipShape(Circle())
                             .overlay(Circle().stroke(Color.blue, lineWidth: 2))
+                        } else {
+                            Image("default_image")
+                                .resizable()
+                                .frame(width: 60, height: 60)
+                                .clipShape(Circle())
+                                .overlay(Circle().stroke(Color.blue, lineWidth: 2))
+                        }
+
+                        VStack(alignment: .leading, spacing: 5) {
+                            Text(name)
+                                .font(.headline)
+                            Text(company)
+                                .font(.subheadline)
+                                .foregroundColor(.blue)
+                        }
+
+                        Spacer()
+
+                        HStack(spacing: 10) {
+                            Button(action: onAccept) {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .resizable()
+                                    .frame(width: 45, height: 45)
+                                    .foregroundColor(.green)
+                            }
+
+                            Button(action: onDecline) {
+                                Image(systemName: "xmark.circle.fill")
+                                    .resizable()
+                                    .frame(width: 45, height: 45)
+                                    .foregroundColor(.red)
+                            }
+                        }
                     }
-
-
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text(name)
-                            .font(.headline)
-                        
-                        Text(company)
-                            .font(.subheadline)
-                            .foregroundColor(.blue)
-                    }
-
-
-                    Spacer()
 
                     HStack(spacing: 10) {
-                        Button(action: onAccept) {
-                            Image(systemName: "checkmark.circle.fill")
-                                .resizable()
-                                .frame(width: 45, height: 45)
-                                .foregroundColor(.green)
-                        }
-
-                        Button(action: onDecline) {
-                            Image(systemName: "xmark.circle.fill")
-                                .resizable()
-                                .frame(width: 45, height: 45)
-                                .foregroundColor(.red)
+                        ForEach(tags, id: \.self) { tag in
+                            Text(tag)
+                                .font(.caption)
+                                .padding(8)
+                                .background(Color.blue.opacity(0.1))
+                                .cornerRadius(10)
+                                .foregroundColor(.blue)
                         }
                     }
                 }
+                .padding()
+                .background(Color.white)
+                .cornerRadius(10)
+                .shadow(radius: 2)
 
-                HStack(spacing: 10) {
-                    ForEach(tags, id: \.self) { tag in
-                        Text(tag)
-                            .font(.caption)
-                            .padding(8)
-                            .background(Color.blue.opacity(0.1))
-                            .cornerRadius(10)
-                            .foregroundColor(.blue)
-                    }
+                if isMentor {
+                    Text("Mentor")
+                        .font(.caption2)
+                        .bold()
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.yellow)
+                        .cornerRadius(5)
+                        .padding(.top, 6)
+                        .padding(.leading, 6)
                 }
             }
-            .padding()
-            .background(Color.white)
-            .cornerRadius(10)
-            .shadow(radius: 2)
         }
     }
     

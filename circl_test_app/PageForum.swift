@@ -89,6 +89,8 @@ struct ForumPost: View {
     let isCurrentUser: Bool
     let onDelete: () -> Void
     let onTapProfile: () -> Void
+    let isMentor: Bool
+
 
     @State private var showOptionsBox = false
     @State private var showDeleteConfirmation = false
@@ -196,6 +198,18 @@ struct ForumPost: View {
             .background(Color.white)
             .cornerRadius(10)
             .shadow(radius: 2)
+            if isMentor {
+                Text("Mentor")
+                    .font(.caption2)
+                    .bold()
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.yellow)
+                    .cornerRadius(5)
+                    .padding(.top, 6)
+                    .padding(.trailing, 6)
+            }
+
 
             if isCurrentUser {
                 ZStack(alignment: .topTrailing) {
@@ -499,7 +513,8 @@ struct ForumMainContent: View {
                                             showProfileSheet = true
                                         }
                                     }
-                                }
+                                },
+                                isMentor: true
                             )
                             .onAppear {
                                 print("🧠 profileImage for \(post.user): \(post.profileImage ?? "nil")")
