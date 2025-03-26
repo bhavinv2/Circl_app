@@ -17,20 +17,13 @@ struct ForumPostModel: Identifiable, Codable {
     let liked_by_user: Bool
     let isMentor: Bool?
 
-
     enum CodingKeys: String, CodingKey {
         case id, user, user_id, content, category, privacy, image, created_at
         case comment_count, like_count, liked_by_user
         case profileImage = "profile_image"
         case isMentor = "is_mentor"  // ✅ This correctly maps JSON field to Swift property
     }
-
-
 }
-
-
-
-
 
 struct CommentModel: Identifiable, Codable {
     let id: Int
@@ -95,9 +88,6 @@ struct ForumPost: View {
     let onTapProfile: () -> Void
     let isMentor: Bool
 
-
-
-
     @State private var showOptionsBox = false
     @State private var showDeleteConfirmation = false
 
@@ -140,7 +130,6 @@ struct ForumPost: View {
                                 .font(.subheadline)
                                 .foregroundColor(.gray)
                         }
-
 
                         Text(timeAgo(from: timestamp))
                             .font(.subheadline)
@@ -205,8 +194,6 @@ struct ForumPost: View {
             .background(Color.white)
             .cornerRadius(10)
             .shadow(radius: 2)
-          
-
 
             if isCurrentUser {
                 ZStack(alignment: .topTrailing) {
@@ -369,7 +356,7 @@ struct ForumMainContent: View {
             }
             
             ScrollView {
-                VStack(spacing: 20) {
+                LazyVStack(spacing: 20) {
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Write a Post")
                             .font(.headline)
@@ -479,48 +466,41 @@ struct ForumMainContent: View {
                     .cornerRadius(10)
                     .shadow(radius: 3)
                     
-                    VStack(spacing: 10) {
-                        ForEach(posts) { post in
-                            
-                            ForumPost(
-                                content: post.content,
-                                author: post.user,
-                                timestamp: post.created_at,
-                                category: post.category,
-                                profileImageName: post.profileImage ?? "",
-                                
-                                company: "Circl",
-                                onComment: {
-                                    selectedPostIdForComments = post
-                                },
-                                commentCount: post.comment_count ?? 0,
-                                likeCount: post.like_count,
-                                likedByUser: post.liked_by_user,
-                                toggleLike: {
-                                    toggleLike(post)
-                                },
-                                isCurrentUser: post.user == loggedInUserFullName,
-                                onDelete: {
-                                    deletePost(post.id)
-                                },
-                                onTapProfile: {
-                                    fetchUserProfile(post.user_id) { profile in
-                                        if let profile = profile {
-                                            selectedProfile = profile
-                                            showProfileSheet = true
-                                        }
+                    ForEach(posts) { post in
+                        ForumPost(
+                            content: post.content,
+                            author: post.user,
+                            timestamp: post.created_at,
+                            category: post.category,
+                            profileImageName: post.profileImage ?? "",
+                            company: "Circl",
+                            onComment: {
+                                selectedPostIdForComments = post
+                            },
+                            commentCount: post.comment_count ?? 0,
+                            likeCount: post.like_count,
+                            likedByUser: post.liked_by_user,
+                            toggleLike: {
+                                toggleLike(post)
+                            },
+                            isCurrentUser: post.user == loggedInUserFullName,
+                            onDelete: {
+                                deletePost(post.id)
+                            },
+                            onTapProfile: {
+                                fetchUserProfile(post.user_id) { profile in
+                                    if let profile = profile {
+                                        selectedProfile = profile
+                                        showProfileSheet = true
                                     }
-                                },
-                                isMentor: post.isMentor ?? false
-
-
-                            )
-                            .onAppear {
-                                print("🧠 profileImage for \(post.user): \(post.profileImage ?? "nil")")
-                            }
-
-                            .padding(.bottom, 10)
+                                }
+                            },
+                            isMentor: post.isMentor ?? false
+                        )
+                        .onAppear {
+                            print("🧠 profileImage for \(post.user): \(post.profileImage ?? "nil")")
                         }
+                        .padding(.bottom, 10)
                     }
                 }
                 .padding()
@@ -551,6 +531,8 @@ struct ForumMainContent: View {
         }
     }
 }
+
+// ... [Rest of the code remains exactly the same, including PageForum, CommentSheet, CustomCircleButton, and PageForum_Previews]
 
 struct PageForum: View {
     @State private var selectedCategory = "Category"
