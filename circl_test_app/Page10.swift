@@ -117,7 +117,7 @@ struct Page10: View {
 
     // ✅ Added submitBusinessDetails function
     func submitBusinessDetails() {
-        guard let url = URL(string: "http://34.44.204.172:8000/api/users/update-business-details/") else {
+        guard let url = URL(string: "http://34.136.164.254:8000/api/users/update-business-details/") else {
             print("❌ Invalid API URL")
             return
         }

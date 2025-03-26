@@ -125,13 +125,13 @@ struct ProfilePage: View {
                                             .foregroundColor(.white)
                                     }
 
-                                    Text("CEO - ")
-                                        .font(.system(size: 18, weight: .semibold))
-                                        .foregroundColor(.white)
-                                    + Text("Circl International")
-                                        .font(.system(size: 18, weight: .semibold))
-                                        .underline()
-                                        .foregroundColor(.white)
+//                                    Text("CEO - ")
+//                                        .font(.system(size: 18, weight: .semibold))
+//                                        .foregroundColor(.white)
+//                                    + Text("Circl International")
+//                                        .font(.system(size: 18, weight: .semibold))
+//                                        .underline()
+//                                        .foregroundColor(.white)
 
                                 }
 
@@ -186,11 +186,21 @@ struct ProfilePage: View {
                                     .foregroundColor(.white)
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                 
-                                Text(profileData?.bio ?? "N/A")
-                                    .font(.system(size: 16))
-                                    .foregroundColor(.white)
-                                    .multilineTextAlignment(.leading)
-                                    .padding(.horizontal)
+                                if let usage = profileData?.main_usage,
+                                   let industry = profileData?.industry_interest {
+                                    Text("I want to \(usage) in the \(industry) industry.")
+                                        .font(.system(size: 16))
+                                        .foregroundColor(.white)
+                                        .multilineTextAlignment(.leading)
+                                        .padding(.horizontal)
+                                } else {
+                                    Text("Bio not set.")
+                                        .font(.system(size: 16))
+                                        .foregroundColor(.white)
+                                        .multilineTextAlignment(.leading)
+                                        .padding(.horizontal)
+                                }
+
 
                                 if let type = profileData?.personality_type, !type.isEmpty {
                                     Text("Personality Type: \(type)")
@@ -226,13 +236,8 @@ struct ProfilePage: View {
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundColor(.white)
                                 
-                                Text("Certificates: \(profileData?.certificates?.joined(separator: ", ") ?? "N/A")")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
-                                
-                                Text("Experience: \(profileData?.years_of_experience.map { "\($0) years" } ?? "N/A")")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
+                        
+                            
                                 
                                 Text("Location: \(profileData?.locations?.joined(separator: ", ") ?? "N/A")")
                                     .font(.system(size: 16, weight: .semibold))
@@ -260,9 +265,17 @@ struct ProfilePage: View {
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundColor(.white)
                                 
-                                Text("Projects/Work Completed: xxx")
+                                Text("Certificates: \(profileData?.certificates?.joined(separator: ", ") ?? "N/A")")
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundColor(.white)
+                                
+                                Text("Experience: \(profileData?.years_of_experience.map { "\($0) years" } ?? "N/A")")
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundColor(.white)
+                                
+//                                Text("Projects/Work Completed: xxx")
+//                                    .font(.system(size: 16, weight: .semibold))
+//                                    .foregroundColor(.white)
                                 
                                 Text("Availability: \(profileData?.availability ?? "N/A")")
                                     .font(.system(size: 16, weight: .semibold))
@@ -305,11 +318,11 @@ struct ProfilePage: View {
                                     .foregroundColor(.white)
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                 
-                                Text("xxx")
-                                    .font(.system(size: 16))
-                                    .foregroundColor(.white)
-                                    .multilineTextAlignment(.leading)
-                                    .padding(.horizontal)
+//                                Text("nba player")
+//                                    .font(.system(size: 16))
+//                                    .foregroundColor(.white)
+//                                    .multilineTextAlignment(.leading)
+//                                    .padding(.horizontal)
                             }
                             .padding()
                         }
@@ -357,7 +370,8 @@ struct ProfilePage: View {
     // Image upload function
     func uploadProfileImage(image: UIImage) {
         guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else { return }
-        let urlString = "http://34.44.204.172:8000/api/users/upload_profile_image/"
+        let urlString = "http://34.136.164.254:8000/api/users/upload_profile_image/"
+
         guard let url = URL(string: urlString) else { return }
 
         var request = URLRequest(url: url)
@@ -408,7 +422,7 @@ struct ProfilePage: View {
             return
         }
 
-        let urlString = "http://34.44.204.172:8000/api/users/get_network/\(userId)/"
+        let urlString = "http://34.136.164.254:8000/api/users/get_network/\(userId)/"
         guard let url = URL(string: urlString) else {
             print("❌ Invalid URL")
             return
@@ -438,7 +452,7 @@ struct ProfilePage: View {
             return
         }
 
-        let urlString = "http://34.44.204.172:8000/api/users/profile/\(userId)/"
+        let urlString = "http://34.136.164.254:8000/api/users/profile/\(userId)/"
         print("🌐 Fetching profile from:", urlString)
 
         guard let url = URL(string: urlString) else {

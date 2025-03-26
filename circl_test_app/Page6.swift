@@ -10,7 +10,7 @@ struct Page6: View {
     @State private var navigateToPage7 = false
 
     func submitSkillsInterests(completion: @escaping (Bool) -> Void) {
-        guard let url = URL(string: "http://34.44.204.172:8000/api/users/update-skills-interests/") else {
+        guard let url = URL(string: "http://34.136.164.254:8000/api/users/update-skills-interests/") else {
             print("❌ Invalid API URL")
             completion(false)
             return

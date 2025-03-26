@@ -17,7 +17,7 @@ struct InviteProfileTemplate: View {
             "receiver_id": receiverId
         ]
 
-        guard let url = URL(string: "http://34.44.204.172:8000/api/users/accept_friend_request/"),
+        guard let url = URL(string: "http://34.136.164.254:8000/api/users/accept_friend_request/"),
               let jsonData = try? JSONSerialization.data(withJSONObject: requestBody) else {
             print("❌ Invalid URL or JSON Encoding Failed")
             return
@@ -55,7 +55,7 @@ struct InviteProfileTemplate: View {
             "receiver_id": receiverId
         ]
 
-        guard let url = URL(string: "http://34.44.204.172:8000/api/users/decline_friend_request/"),
+        guard let url = URL(string: "http://34.136.164.254:8000/api/users/decline_friend_request/"),
               let jsonData = try? JSONSerialization.data(withJSONObject: requestBody) else {
             print("❌ Invalid URL or JSON Encoding Failed")
             return
@@ -556,7 +556,7 @@ struct PageInvites: View {
     func fetchNetwork() {
         guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else { return }
         
-        guard let url = URL(string: "http://34.44.204.172:8000/api/users/get_network/\(userId)") else {
+        guard let url = URL(string: "http://34.136.164.254:8000/api/users/get_network/\(userId)") else {
             print("❌ Invalid URL")
             return
         }
@@ -588,7 +588,7 @@ struct PageInvites: View {
     func searchUserByUsername() {
         guard !searchText.isEmpty else { return }
         
-        let urlString = "http://34.44.204.172:8000/api/users/search_user/?username=\(searchText)"
+        let urlString = "http://34.136.164.254:8000/api/users/search_user/?username=\(searchText)"
         guard let url = URL(string: urlString) else {
             print("❌ Invalid URL")
             return
@@ -635,7 +635,7 @@ struct PageInvites: View {
             "receiver_email": email
         ]
         
-        guard let url = URL(string: "http://34.44.204.172:8000/api/users/send_friend_request/"),
+        guard let url = URL(string: "http://34.136.164.254:8000/api/users/send_friend_request/"),
               let jsonData = try? JSONSerialization.data(withJSONObject: requestBody) else {
             print("❌ Invalid URL or JSON Encoding Failed")
             return
@@ -679,7 +679,7 @@ struct PageInvites: View {
     func fetchFriendRequests() {
         guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else { return }
         
-        guard let url = URL(string: "http://34.44.204.172:8000/api/users/get_friend_requests/\(userId)") else {
+        guard let url = URL(string: "http://34.136.164.254:8000/api/users/get_friend_requests/\(userId)") else {
             print("❌ Invalid URL")
             return
         }
@@ -710,7 +710,7 @@ struct PageInvites: View {
     
     // Step 1: Added fetchUserProfile function
     func fetchUserProfile(userId: Int, completion: @escaping (FullProfile?) -> Void) {
-        let urlString = "http://34.44.204.172:8000/api/users/profile/\(userId)/"
+        let urlString = "http://34.136.164.254:8000/api/users/profile/\(userId)/"
         guard let url = URL(string: urlString) else {
             print("❌ Invalid URL")
             completion(nil)

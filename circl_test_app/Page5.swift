@@ -147,7 +147,7 @@ struct Page5: View {
     }
 
     func submitPersonalDetails(completion: @escaping (Bool) -> Void) {
-        guard let url = URL(string: "http://34.44.204.172:8000/api/users/update-personal-details/") else {
+        guard let url = URL(string: "http://34.136.164.254:8000/api/users/update-personal-details/") else {
             print("❌ Invalid API URL")
             completion(false)
             return

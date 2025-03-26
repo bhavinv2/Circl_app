@@ -142,7 +142,7 @@ struct Page1: View {
     
     // 🚀 Function to handle login
     func loginUser() {
-        guard let url = URL(string: "http://34.44.204.172:8000/api/login/") else {
+        guard let url = URL(string: "http://34.136.164.254:8000/api/login/") else {
             loginMessage = "Invalid login URL"
             return
         }

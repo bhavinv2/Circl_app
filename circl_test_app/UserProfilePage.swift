@@ -107,7 +107,7 @@ struct UserProfilePage: View {
 
     // MARK: - Fetch User Profile Data from Backend
     private func fetchUserProfile(userId: Int) {
-        guard let url = URL(string: "http://34.44.204.172:8000/api/users/profile/\(userId)/") else {
+        guard let url = URL(string: "http://34.136.164.254:8000/api/users/profile/\(userId)/") else {
             return
         }
 

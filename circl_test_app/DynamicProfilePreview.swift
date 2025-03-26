@@ -102,13 +102,13 @@ struct DynamicProfilePreview: View {
                                         .font(.system(size: 14, weight: .semibold))
                                         .foregroundColor(.white)
 
-                                    Text("CEO - ")
-                                        .font(.system(size: 18, weight: .semibold))
-                                        .foregroundColor(.white)
-                                    + Text("Circl International")
-                                        .font(.system(size: 18, weight: .semibold))
-                                        .underline()
-                                        .foregroundColor(.white)
+//                                    Text("CEO - ")
+//                                        .font(.system(size: 18, weight: .semibold))
+//                                        .foregroundColor(.white)
+//                                    + Text("Circl International")
+//                                        .font(.system(size: 18, weight: .semibold))
+//                                        .underline()
+//                                        .foregroundColor(.white)
                                 }
 
                             }
@@ -160,7 +160,7 @@ struct DynamicProfilePreview: View {
                                     .foregroundColor(.white)
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                 
-                                Text(profileData.bio ?? "N/A")
+//                                Text(profileData.bio ?? "N/A")
                                     .font(.system(size: 16))
                                     .foregroundColor(.white)
                                     .multilineTextAlignment(.leading)
@@ -199,13 +199,7 @@ struct DynamicProfilePreview: View {
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundColor(.white)
                                 
-                                Text("Certificates: \(profileData.certificates?.joined(separator: ", ") ?? "N/A")")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
                                 
-                                Text("Experience: \(profileData.years_of_experience.map { "\($0) years" } ?? "N/A")")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
                                 
                                 Text("Location: \(profileData.locations?.joined(separator: ", ") ?? "N/A")")
                                     .font(.system(size: 16, weight: .semibold))
@@ -232,9 +226,18 @@ struct DynamicProfilePreview: View {
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundColor(.white)
                                 
-                                Text("Projects/Work Completed: xxx")
+                                Text("Certificates: \(profileData.certificates?.joined(separator: ", ") ?? "N/A")")
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundColor(.white)
+                                
+                                Text("Experience: \(profileData.years_of_experience.map { "\($0) years" } ?? "N/A")")
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundColor(.white)
+                                    .foregroundColor(.white)
+                                
+//                                Text("Projects/Work Completed: xxx")
+//                                    .font(.system(size: 16, weight: .semibold))
+//                                    .foregroundColor(.white)
                                 
                                 Text("Availability: \(profileData.availability ?? "N/A")")
                                     .font(.system(size: 16, weight: .semibold))
@@ -275,11 +278,11 @@ struct DynamicProfilePreview: View {
                                     .foregroundColor(.white)
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                 
-                                Text("xxx")
-                                    .font(.system(size: 16))
-                                    .foregroundColor(.white)
-                                    .multilineTextAlignment(.leading)
-                                    .padding(.horizontal)
+//                                Text("xxx")
+//                                    .font(.system(size: 16))
+//                                    .foregroundColor(.white)
+//                                    .multilineTextAlignment(.leading)
+//                                    .padding(.horizontal)
                             }
                             .padding()
                         }
@@ -307,7 +310,7 @@ struct DynamicProfilePreview: View {
         print("🚨 removeFriend() called")
         print("🔥 Remove friend called with user_id=\(loggedInUserId), friend_id=\(profileData.user_id)")
 
-        guard let url = URL(string: "http://34.44.204.172:8000/api/users/remove_friend/") else {
+        guard let url = URL(string: "http://34.136.164.254:8000/api/users/remove_friend/") else {
             print("❌ Invalid URL")
             return
         }

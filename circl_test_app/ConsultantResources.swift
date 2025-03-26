@@ -32,7 +32,7 @@ struct ConsultantResources: View {
     func fetchResources(keyword: String) {
         guard let encodedKeyword = keyword.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
               let encodedLocation = quizAnswers.locationPref.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
-              let url = URL(string: "http://34.44.204.172:8000/api/legal-resources/?keyword=\(encodedKeyword)&location=\(encodedLocation)") else { return }
+              let url = URL(string: "http://34.136.164.254:8000/api/legal-resources/?keyword=\(encodedKeyword)&location=\(encodedLocation)") else { return }
 
         URLSession.shared.dataTask(with: url) { data, response, error in
             guard let data = data, error == nil else {

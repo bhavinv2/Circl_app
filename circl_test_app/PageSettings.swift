@@ -212,7 +212,7 @@ struct BecomeMentorPage: View {
             "reason": reason
         ]
 
-        guard let url = URL(string: "http://34.44.204.172:8000/api/users/apply_mentor/") else { return }
+        guard let url = URL(string: "http://34.136.164.254:8000/api/users/apply_mentor/") else { return }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -283,7 +283,7 @@ struct ChangePasswordPage: View {
             return
         }
 
-        guard let url = URL(string: "http://34.44.204.172:8000/api/users/change_password/") else { return }
+        guard let url = URL(string: "http://34.136.164.254:8000/api/users/change_password/") else { return }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -357,7 +357,7 @@ struct DeleteAccountPage: View {
     }
 
     func submitDeleteRequest() {
-        guard let url = URL(string: "http://34.44.204.172:8000/api/users/request_delete_account/") else { return }
+        guard let url = URL(string: "http://34.136.164.254:8000/api/users/request_delete_account/") else { return }
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -383,9 +383,170 @@ struct DeleteAccountPage: View {
 struct RateAppPage: View { var body: some View { Text("Rate the App Page") } }
 struct SuggestFeaturePage: View { var body: some View { Text("Suggest a Feature Page") } }
 struct ReportProblemPage: View { var body: some View { Text("Report a Problem Page") } }
-struct TermsOfServicePage: View { var body: some View { Text("Terms of Service Page") } }
-struct PrivacyPolicyPage: View { var body: some View { Text("Privacy Policy Page") } }
-struct CommunityGuidelinesPage: View { var body: some View { Text("Community Guidelines Page") } }
+struct TermsOfServicePage: View {
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 15) {
+                Text("A. Terms & Conditions")
+                    .font(.title)
+                    .foregroundColor(Color(hexCode: "004aad"))
+
+                Text("Effective Date: March 30, 2025")
+                    .font(.subheadline)
+                    .foregroundColor(.gray)
+
+                Text("""
+Welcome to Circl International Inc. (“Circl,” “we,” “us,” or “our”). By accessing or using our platform, you agree to abide by these Terms & Conditions. If you do not agree, please do not use our platform.
+
+1. Use of the Platform
+You must be at least 18 years old to use Circl.
+You are responsible for all activity under your account.
+Misuse of the platform, including spamming, harassment, or unauthorized access, will result in suspension or termination.
+
+2. Intellectual Property
+Circl owns all platform content, trademarks, and proprietary materials.
+Users retain ownership of their content but grant Circl a license to use it for platform functionality.
+
+3. Modification of Terms
+Circl reserves the right to update these Terms & Conditions at any time. Users will be notified of significant changes.
+
+4. Limitation of Liability
+Circl is not responsible for business outcomes, financial losses, or damages resulting from platform use.
+We provide the platform “as is” without warranties of any kind.
+
+5. Governing Law
+These Terms & Conditions are governed by the laws of the State of Texas, USA.
+
+6. Termination
+We reserve the right to terminate accounts violating these terms.
+""")
+                    .foregroundColor(.black)
+                    .multilineTextAlignment(.leading)
+            }
+            .padding()
+        }
+        .background(Color.white)
+        .navigationTitle("Terms & Conditions")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+struct PrivacyPolicyPage: View {
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 15) {
+                Text("B. Privacy Policy")
+                    .font(.title)
+                    .foregroundColor(Color(hexCode: "004aad"))
+
+                Text("Effective Date: March 30, 2025")
+                    .font(.subheadline)
+                    .foregroundColor(.gray)
+
+                Text("""
+Circl International Inc. values your privacy. This Privacy Policy explains how we collect, use, and protect your data.
+
+1. Information We Collect
+Personal data (e.g., name, email, business details).
+Usage data (e.g., interactions with the platform).
+
+2. How We Use Your Data
+To provide and improve our platform.
+To personalize user experience and offer relevant business connections.
+
+3. Data Sharing & Security
+We do not sell user data.
+Third-party service providers may access data for platform functionality.
+We implement security measures but cannot guarantee absolute protection.
+
+4. Data Retention Policy
+User data is retained for as long as necessary to provide services and comply with legal obligations.
+
+5. User Rights
+You may request data access, modification, or deletion.
+
+C. Competition Clause
+Effective Date: March 30, 2025
+Circl International Inc. fosters a collaborative entrepreneurial environment. We support businesses on our platform, including those that may compete with each other.
+
+1. Fair Use Policy
+Users may engage in competition but must not engage in unethical practices such as data scraping, user poaching, or misleading promotions.
+
+2. Platform Protection
+Users may not use Circl to undermine the platform’s integrity or to create a directly competing service using Circl’s proprietary features.
+
+3. Reporting & Enforcement
+Violations may result in suspension or legal action.
+""")
+                    .foregroundColor(.black)
+                    .multilineTextAlignment(.leading)
+            }
+            .padding()
+        }
+        .background(Color.white)
+        .navigationTitle("Privacy Policy")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+struct CommunityGuidelinesPage: View {
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 15) {
+                Text("D. Community Guidelines")
+                    .font(.title)
+                    .foregroundColor(Color(hexCode: "004aad"))
+
+                Text("Effective Date: March 30, 2025")
+                    .font(.subheadline)
+                    .foregroundColor(.gray)
+
+                Text("""
+To maintain a productive environment, Circl International Inc. enforces the following guidelines:
+
+1. Respectful Communication
+No harassment, discrimination, or hate speech.
+Constructive discussions are encouraged.
+
+2. Business Ethics
+No fraudulent activities, scams, or misinformation.
+Respect confidentiality and intellectual property.
+
+3. User-Generated Content Policy
+Users are responsible for the content they post.
+Circl reserves the right to remove content that violates policies.
+Users grant Circl a non-exclusive license to use content posted on the platform for operational purposes.
+
+4. Enforcement
+Violations may result in content removal, account suspension, or permanent bans.
+
+5. Dispute Resolution & Liability Disclaimer
+Effective Date: March 30, 2025
+
+E. Dispute Resolution
+Disputes will be resolved through arbitration in the State of Texas, USA.
+Users waive the right to class-action lawsuits.
+
+2. Limitation of Liability
+Circl is not responsible for user interactions, business decisions, or losses.
+Users agree to indemnify Circl against legal claims arising from platform use.
+
+3. Refund & Subscription Policy
+If paid services are introduced, refund policies will be clearly stated at the time of purchase.
+
+By using Circl, you agree to these terms. For inquiries, contact join@circlinternational.com.
+""")
+                    .foregroundColor(.black)
+                    .multilineTextAlignment(.leading)
+            }
+            .padding()
+        }
+        .background(Color.white)
+        .navigationTitle("Community Guidelines")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
 struct HelpCenterPage: View { var body: some View { Text("Help Center Page") } }
 struct ContactSupportPage: View { var body: some View { Text("Contact Support Page") } }
 struct FAQsPage: View { var body: some View { Text("FAQs Page") } }

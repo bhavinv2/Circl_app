@@ -107,7 +107,7 @@ struct Page11: View {
     
     // Function to send data to the backend
     func saveBusinessDetails() {
-        guard let url = URL(string: "http://34.44.204.172:8000/api/users/update-business-details/") else { return }
+        guard let url = URL(string: "http://34.136.164.254:8000/api/users/update-business-details/") else { return }
         
         let user_id = UserDefaults.standard.integer(forKey: "user_id")
         
