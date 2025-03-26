@@ -10,7 +10,7 @@ struct ForumPostModel: Identifiable, Codable {
     let content: String
     let category: String
     let privacy: String
-    let image: String?  // ✅ <- This was missing!
+    let image: String?
     let created_at: String
     let comment_count: Int?
     let like_count: Int
@@ -21,7 +21,7 @@ struct ForumPostModel: Identifiable, Codable {
         case id, user, user_id, content, category, privacy, image, created_at
         case comment_count, like_count, liked_by_user
         case profileImage = "profile_image"
-        case isMentor = "is_mentor"  // ✅ This correctly maps JSON field to Swift property
+        case isMentor = "is_mentor"
     }
 }
 
@@ -269,6 +269,7 @@ struct ForumMainContent: View {
     @Binding var selectedProfile: FullProfile?
     @Binding var showProfileSheet: Bool
     @Binding var showCategoryAlert: Bool
+    @Binding var isLoading: Bool
 
     var fetchPosts: () -> Void
     var submitPost: () -> Void
@@ -356,156 +357,169 @@ struct ForumMainContent: View {
             }
             
             ScrollView {
-                LazyVStack(spacing: 20) {
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("Write a Post")
-                            .font(.headline)
-                            .foregroundColor(.black)
-                        
-                        HStack {
-                            TextField("Ask a question, or share some knowledge", text: $postContent)
-                                .padding()
-                                .background(Color(UIColor.systemGray4))
-                                .cornerRadius(5)
-                            Button(action: {
-                                if selectedCategory == "Category" {
-                                    showCategoryAlert = true
-                                } else {
-                                    submitPost()
-                                }
-                            }) {
-                                Image(systemName: "rectangle.portrait.and.arrow.forward")
-                                    .foregroundColor(Color.fromHex("004aad"))
-                            }
-                        }
-                        
-                        if let selectedImage = selectedImage {
-                            Image(uiImage: selectedImage)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(height: 200)
-                                .cornerRadius(10)
-                                .padding(.top, 10)
-                        }
-                        
-                        HStack(spacing: 10) {
-                            Menu {
-                                Button("Advice & Tips", action: { selectedCategory = "Advice & Tips" })
-                                Button("Personal Development", action: { selectedCategory = "Personal Development" })
-                                Button("Experience", action: { selectedCategory = "Experience" })
-                                Button("Product Launch", action: { selectedCategory = "Product Launch" })
-                                Button("Funding", action: { selectedCategory = "Funding" })
-                                Button("Investment", action: { selectedCategory = "Investment" })
-                                Button("Networking", action: { selectedCategory = "Networking" })
-                                Button("Collaboration", action: { selectedCategory = "Collaboration" })
-                                Button("News & Trends", action: { selectedCategory = "News & Trends" })
-                                Button("Challenges", action: { selectedCategory = "Challenges" })
-                                Button("Marketing", action: { selectedCategory = "Marketing" })
-                                Button("Growth", action: { selectedCategory = "Growth" })
-                                Button("Sales", action: { selectedCategory = "Sales" })
-                                Button("Technology", action: { selectedCategory = "Technology" })
-                                Button("Legal & Compliance", action: { selectedCategory = "Legal & Compliance" })
-                                Button("Productivity", action: { selectedCategory = "Productivity" })
-                            } label: {
-                                HStack {
-                                    Text(selectedCategory)
-                                        .font(.subheadline)
-                                    Spacer()
-                                    Image(systemName: "chevron.down")
-                                }
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 6)
-                                .background(Color(UIColor.systemGray4))
-                                .cornerRadius(5)
-                                .frame(width: 120)
-                            }
-                            
-                            Menu {
-                                Button("Upload from Camera") {
-                                    sourceType = .camera
-                                    isImagePickerPresented = true
-                                }
-                                Button("Upload from Gallery") {
-                                    sourceType = .photoLibrary
-                                    isImagePickerPresented = true
-                                }
-                            } label: {
-                                HStack {
-                                    Text("Pictures")
-                                        .font(.subheadline)
-                                    Spacer()
-                                    Image(systemName: "plus")
-                                }
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 6)
-                                .background(Color(UIColor.systemGray4))
-                                .cornerRadius(5)
-                                .frame(width: 120)
-                            }
-                            
-                            Menu {
-                                Button("Public", action: { selectedPrivacy = "Public" })
-                                Button("My Network", action: { selectedPrivacy = "My Network" })
-                            } label: {
-                                HStack {
-                                    Text(selectedPrivacy)
-                                        .font(.subheadline)
-                                    Spacer()
-                                    Image(systemName: "chevron.down")
-                                }
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 6)
-                                .background(Color(UIColor.systemGray4))
-                                .cornerRadius(5)
-                                .frame(width: 120)
-                            }
-                        }
+                if isLoading {
+                    VStack {
+                        Spacer()
+                        ProgressView("Loading Posts...")
+                            .progressViewStyle(CircularProgressViewStyle())
+                            .padding()
+                        Spacer()
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    LazyVStack(spacing: 20) {
+                        VStack(alignment: .leading, spacing: 10) {
+                                                    Text("Write a Post")
+                                                        .font(.headline)
+                                                        .foregroundColor(.black)
+                                                    
+                                                    HStack {
+                                                        TextField("Ask a question, or share some knowledge", text: $postContent)
+                                                            .padding()
+                                                            .background(Color(UIColor.systemGray4))
+                                                            .cornerRadius(5)
+                                                        Button(action: {
+                                                            if selectedCategory == "Category" {
+                                                                showCategoryAlert = true
+                                                            } else {
+                                                                submitPost()
+                                                            }
+                                                        }) {
+                                                            Image(systemName: "rectangle.portrait.and.arrow.forward")
+                                                                .foregroundColor(Color.fromHex("004aad"))
+                                                        }
+                                                    }
+                                                    
+                                                    if let selectedImage = selectedImage {
+                                                        Image(uiImage: selectedImage)
+                                                            .resizable()
+                                                            .scaledToFit()
+                                                            .frame(height: 200)
+                                                            .cornerRadius(10)
+                                                            .padding(.top, 10)
+                                                    }
+                                                    
+                                                    HStack(spacing: 10) {
+                                                        Menu {
+                                                            Button("Advice & Tips", action: { selectedCategory = "Advice & Tips" })
+                                                            Button("Personal Development", action: { selectedCategory = "Personal Development" })
+                                                            Button("Experience", action: { selectedCategory = "Experience" })
+                                                            Button("Product Launch", action: { selectedCategory = "Product Launch" })
+                                                            Button("Funding", action: { selectedCategory = "Funding" })
+                                                            Button("Investment", action: { selectedCategory = "Investment" })
+                                                            Button("Networking", action: { selectedCategory = "Networking" })
+                                                            Button("Collaboration", action: { selectedCategory = "Collaboration" })
+                                                            Button("News & Trends", action: { selectedCategory = "News & Trends" })
+                                                            Button("Challenges", action: { selectedCategory = "Challenges" })
+                                                            Button("Marketing", action: { selectedCategory = "Marketing" })
+                                                            Button("Growth", action: { selectedCategory = "Growth" })
+                                                            Button("Sales", action: { selectedCategory = "Sales" })
+                                                            Button("Technology", action: { selectedCategory = "Technology" })
+                                                            Button("Legal & Compliance", action: { selectedCategory = "Legal & Compliance" })
+                                                            Button("Productivity", action: { selectedCategory = "Productivity" })
+                                                        } label: {
+                                                            HStack {
+                                                                Text(selectedCategory)
+                                                                    .font(.subheadline)
+                                                                Spacer()
+                                                                Image(systemName: "chevron.down")
+                                                            }
+                                                            .padding(.horizontal, 8)
+                                                            .padding(.vertical, 6)
+                                                            .background(Color(UIColor.systemGray4))
+                                                            .cornerRadius(5)
+                                                            .frame(width: 120)
+                                                        }
+                                                        
+                                                        Menu {
+                                                            Button("Upload from Camera") {
+                                                                sourceType = .camera
+                                                                isImagePickerPresented = true
+                                                            }
+                                                            Button("Upload from Gallery") {
+                                                                sourceType = .photoLibrary
+                                                                isImagePickerPresented = true
+                                                            }
+                                                        } label: {
+                                                            HStack {
+                                                                Text("Pictures")
+                                                                    .font(.subheadline)
+                                                                Spacer()
+                                                                Image(systemName: "plus")
+                                                            }
+                                                            .padding(.horizontal, 8)
+                                                            .padding(.vertical, 6)
+                                                            .background(Color(UIColor.systemGray4))
+                                                            .cornerRadius(5)
+                                                            .frame(width: 120)
+                                                        }
+                                                        
+                                                        Menu {
+                                                            Button("Public", action: { selectedPrivacy = "Public" })
+                                                            Button("My Network", action: { selectedPrivacy = "My Network" })
+                                                        } label: {
+                                                            HStack {
+                                                                Text(selectedPrivacy)
+                                                                    .font(.subheadline)
+                                                                Spacer()
+                                                                Image(systemName: "chevron.down")
+                                                            }
+                                                            .padding(.horizontal, 8)
+                                                            .padding(.vertical, 6)
+                                                            .background(Color(UIColor.systemGray4))
+                                                            .cornerRadius(5)
+                                                            .frame(width: 120)
+                                                        }
+                                                    }
+                                                }
+                                                .padding()
+                                                .background(Color.white)
+                                                .cornerRadius(10)
+                                                .shadow(radius: 3)
+                                                
+                                                ForEach(posts) { post in
+                                                    ForumPost(
+                                                        content: post.content,
+                                                        author: post.user,
+                                                        timestamp: post.created_at,
+                                                        category: post.category,
+                                                        profileImageName: post.profileImage ?? "",
+                                                        company: "Circl",
+                                                        onComment: {
+                                                            selectedPostIdForComments = post
+                                                        },
+                                                        commentCount: post.comment_count ?? 0,
+                                                        likeCount: post.like_count,
+                                                        likedByUser: post.liked_by_user,
+                                                        toggleLike: {
+                                                            toggleLike(post)
+                                                        },
+                                                        isCurrentUser: post.user == loggedInUserFullName,
+                                                        onDelete: {
+                                                            deletePost(post.id)
+                                                        },
+                                                        onTapProfile: {
+                                                            fetchUserProfile(post.user_id) { profile in
+                                                                if let profile = profile {
+                                                                    selectedProfile = profile
+                                                                    showProfileSheet = true
+                                                                }
+                                                            }
+                                                        },
+                                                        isMentor: post.isMentor ?? false
+                                                    )
+                                                    .onAppear {
+                                                        print("🧠 profileImage for \(post.user): \(post.profileImage ?? "nil")")
+                                                    }
+                                                    .padding(.bottom, 10)
+                                                }
+                        // your posts go here
                     }
                     .padding()
-                    .background(Color.white)
-                    .cornerRadius(10)
-                    .shadow(radius: 3)
-                    
-                    ForEach(posts) { post in
-                        ForumPost(
-                            content: post.content,
-                            author: post.user,
-                            timestamp: post.created_at,
-                            category: post.category,
-                            profileImageName: post.profileImage ?? "",
-                            company: "Circl",
-                            onComment: {
-                                selectedPostIdForComments = post
-                            },
-                            commentCount: post.comment_count ?? 0,
-                            likeCount: post.like_count,
-                            likedByUser: post.liked_by_user,
-                            toggleLike: {
-                                toggleLike(post)
-                            },
-                            isCurrentUser: post.user == loggedInUserFullName,
-                            onDelete: {
-                                deletePost(post.id)
-                            },
-                            onTapProfile: {
-                                fetchUserProfile(post.user_id) { profile in
-                                    if let profile = profile {
-                                        selectedProfile = profile
-                                        showProfileSheet = true
-                                    }
-                                }
-                            },
-                            isMentor: post.isMentor ?? false
-                        )
-                        .onAppear {
-                            print("🧠 profileImage for \(post.user): \(post.profileImage ?? "nil")")
-                        }
-                        .padding(.bottom, 10)
-                    }
                 }
-                .padding()
             }
             .background(Color(UIColor.systemGray6))
+
             
             HStack(spacing: 15) {
                 NavigationLink(destination: PageEntrepreneurMatching().navigationBarBackButtonHidden(true)) {
@@ -532,8 +546,6 @@ struct ForumMainContent: View {
     }
 }
 
-// ... [Rest of the code remains exactly the same, including PageForum, CommentSheet, CustomCircleButton, and PageForum_Previews]
-
 struct PageForum: View {
     @State private var selectedCategory = "Category"
     @State private var selectedPrivacy = "Public"
@@ -548,6 +560,7 @@ struct PageForum: View {
     @State private var selectedFilter: String = "public"
     @State private var selectedProfile: FullProfile?
     @State private var showProfileSheet = false
+    @State private var isLoading = false
 
     var body: some View {
         NavigationView {
@@ -565,7 +578,11 @@ struct PageForum: View {
                 selectedProfile: $selectedProfile,
                 showProfileSheet: $showProfileSheet,
                 showCategoryAlert: $showCategoryAlert,
-                fetchPosts: fetchPosts,
+                isLoading: $isLoading,
+                fetchPosts: {
+                    isLoading = true
+                    fetchPosts()
+                },
                 submitPost: submitPost,
                 deletePost: deletePost,
                 toggleLike: toggleLike,
@@ -595,7 +612,6 @@ struct PageForum: View {
             .sheet(item: $selectedProfile) { profile in
                 DynamicProfilePreview(profileData: profile, isInNetwork: true)
             }
-
             .onAppear {
                 loggedInUserFullName = UserDefaults.standard.string(forKey: "user_fullname") ?? ""
                 selectedFilter = UserDefaults.standard.string(forKey: "selectedFilter") ?? "public"
@@ -640,7 +656,11 @@ struct PageForum: View {
     }
     
     func fetchPosts() {
-        guard let url = URL(string: "http://34.136.164.254:8000/api/forum/get_posts/?filter=\(selectedFilter)") else { return }
+        isLoading = true
+        guard let url = URL(string: "http://34.136.164.254:8000/api/forum/get_posts/?filter=\(selectedFilter)") else {
+            isLoading = false
+            return
+        }
 
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
@@ -651,6 +671,12 @@ struct PageForum: View {
         }
 
         URLSession.shared.dataTask(with: request) { data, response, error in
+            defer {
+                DispatchQueue.main.async {
+                    isLoading = false
+                }
+            }
+            
             if let error = error {
                 print("❌ Error fetching posts:", error.localizedDescription)
                 return
@@ -932,8 +958,6 @@ struct CustomCircleButton: View {
         }
     }
 }
-
-
 
 struct PageForum_Previews: PreviewProvider {
     static var previews: some View {
