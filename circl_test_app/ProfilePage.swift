@@ -107,10 +107,11 @@ struct ProfilePage: View {
                                         Text("Circs:")
                                             .font(.system(size: 16, weight: .semibold))
                                             .foregroundColor(Color.customHex("#ffde59"))
-                                        Text("0")
+                                        Text("\(profileData?.circs ?? 0)")
                                             .font(.system(size: 16, weight: .bold))
                                             .foregroundColor(Color.white)
                                     }
+
                                 }
                                 
                                 VStack(spacing: 5) {
@@ -522,6 +523,7 @@ struct InviteProfileData: Identifiable, Codable {
     let proficiency: String
     let tags: [String]
     let profileImage: String?
+    
 }
 
 struct ProfilePage_Previews: PreviewProvider {

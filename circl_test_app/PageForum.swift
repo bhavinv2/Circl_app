@@ -270,6 +270,8 @@ struct ForumMainContent: View {
     @Binding var showProfileSheet: Bool
     @Binding var showCategoryAlert: Bool
     @Binding var isLoading: Bool
+    @Binding var showPageLoading: Bool
+
 
     var fetchPosts: () -> Void
     var submitPost: () -> Void
@@ -357,7 +359,7 @@ struct ForumMainContent: View {
             }
             
             ScrollView {
-                if isLoading {
+                if showPageLoading {
                     VStack {
                         Spacer()
                         ProgressView("Loading Posts...")
@@ -546,6 +548,8 @@ struct ForumMainContent: View {
     }
 }
 
+// [Previous code remains exactly the same until the PageForum struct]
+
 struct PageForum: View {
     @State private var selectedCategory = "Category"
     @State private var selectedPrivacy = "Public"
@@ -561,6 +565,7 @@ struct PageForum: View {
     @State private var selectedProfile: FullProfile?
     @State private var showProfileSheet = false
     @State private var isLoading = false
+    @State private var showPageLoading = true
 
     var body: some View {
         NavigationView {
@@ -579,9 +584,9 @@ struct PageForum: View {
                 showProfileSheet: $showProfileSheet,
                 showCategoryAlert: $showCategoryAlert,
                 isLoading: $isLoading,
+                showPageLoading: $showPageLoading,
                 fetchPosts: {
-                    isLoading = true
-                    fetchPosts()
+                    fetchPostsWithLoading()
                 },
                 submitPost: submitPost,
                 deletePost: deletePost,
@@ -605,7 +610,7 @@ struct PageForum: View {
                         }
                     ),
                     onDismiss: {
-                        fetchPosts()
+                        fetchPostsWithoutLoading()
                     }
                 )
             }
@@ -615,13 +620,60 @@ struct PageForum: View {
             .onAppear {
                 loggedInUserFullName = UserDefaults.standard.string(forKey: "user_fullname") ?? ""
                 selectedFilter = UserDefaults.standard.string(forKey: "selectedFilter") ?? "public"
-                fetchPosts()
+                fetchPostsWithLoading()
             }
             .alert("Please select a category to post.", isPresented: $showCategoryAlert) {
                 Button("OK", role: .cancel) { }
             }
         }
     }
+    
+    // MARK: - Fetch Posts Functions
+    
+    func fetchPostsWithLoading() {
+        showPageLoading = true
+        fetchPostsInternal()
+    }
+    
+    func fetchPostsWithoutLoading() {
+        fetchPostsInternal()
+    }
+    
+    private func fetchPostsInternal() {
+        guard let url = URL(string: "http://34.136.164.254:8000/api/forum/get_posts/?filter=\(selectedFilter)") else {
+            showPageLoading = false
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            defer {
+                DispatchQueue.main.async {
+                    showPageLoading = false
+                }
+            }
+
+            if let data = data {
+                do {
+                    let decoded = try JSONDecoder().decode([ForumPostModel].self, from: data)
+                    DispatchQueue.main.async {
+                        self.posts = decoded
+                    }
+                } catch {
+                    print("❌ Decoding error:", error)
+                }
+            }
+        }.resume()
+    }
+    
+    // MARK: - Other Network Functions
     
     func fetchUserProfile(userId: Int, completion: @escaping (FullProfile?) -> Void) {
         guard let url = URL(string: "http://34.136.164.254:8000/api/users/profile/\(userId)/") else {
@@ -651,53 +703,6 @@ struct PageForum: View {
             } catch {
                 print("❌ Error decoding profile:", error)
                 completion(nil)
-            }
-        }.resume()
-    }
-    
-    func fetchPosts() {
-        isLoading = true
-        guard let url = URL(string: "http://34.136.164.254:8000/api/forum/get_posts/?filter=\(selectedFilter)") else {
-            isLoading = false
-            return
-        }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        if let token = UserDefaults.standard.string(forKey: "auth_token") {
-            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
-        }
-
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            defer {
-                DispatchQueue.main.async {
-                    isLoading = false
-                }
-            }
-            
-            if let error = error {
-                print("❌ Error fetching posts:", error.localizedDescription)
-                return
-            }
-
-            if let httpResponse = response as? HTTPURLResponse {
-                print("📡 GET Status Code:", httpResponse.statusCode)
-            }
-
-            if let data = data {
-                let raw = String(data: data, encoding: .utf8) ?? "No response"
-                print("📡 GET Raw Response:", raw)
-
-                do {
-                    let decoded = try JSONDecoder().decode([ForumPostModel].self, from: data)
-                    DispatchQueue.main.async {
-                        self.posts = decoded
-                    }
-                } catch {
-                    print("❌ Decoding error:", error)
-                }
             }
         }.resume()
     }
@@ -744,7 +749,7 @@ struct PageForum: View {
 
                 DispatchQueue.main.async {
                     postContent = ""
-                    fetchPosts()
+                    fetchPostsWithoutLoading()
                 }
             }
         }.resume()
@@ -764,7 +769,7 @@ struct PageForum: View {
 
         URLSession.shared.dataTask(with: request) { _, _, _ in
             DispatchQueue.main.async {
-                fetchPosts()
+                fetchPostsWithoutLoading()
             }
         }.resume()
     }
@@ -782,11 +787,13 @@ struct PageForum: View {
 
         URLSession.shared.dataTask(with: request) { _, _, _ in
             DispatchQueue.main.async {
-                fetchPosts()
+                fetchPostsWithoutLoading()
             }
         }.resume()
     }
 }
+
+// [Rest of the code remains exactly the same]
 
 struct CommentSheet: View {
     let postId: Int
@@ -964,3 +971,4 @@ struct PageForum_Previews: PreviewProvider {
         PageForum()
     }
 }
+

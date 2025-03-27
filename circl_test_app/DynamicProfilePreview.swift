@@ -87,10 +87,11 @@ struct DynamicProfilePreview: View {
                                         Text("Circs:")
                                             .font(.system(size: 16, weight: .semibold))
                                             .foregroundColor(Color.customHex("#ffde59"))
-                                        Text("0")
+                                        Text("\(profileData.circs ?? 0)")
                                             .font(.system(size: 16, weight: .bold))
                                             .foregroundColor(Color.white)
                                     }
+
                                 }
                                 
                                 VStack(spacing: 5) {

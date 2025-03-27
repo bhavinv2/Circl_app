@@ -25,6 +25,8 @@ struct FullProfile: Identifiable, Codable {
     let clubs: [String]?
     let hobbies: [String]?
     let connections_count: Int?
+    let circs: Int?  // ✅ Add this line
+
 }
 
 extension FullProfile {

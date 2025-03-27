@@ -664,7 +664,8 @@ struct ChatBox: View {
                                 availability: nil,
                                 clubs: nil,
                                 hobbies: nil,
-                                connections_count: nil
+                                connections_count: nil,
+                                circs: nil
                             ),
                             isInNetwork: true
                         )
