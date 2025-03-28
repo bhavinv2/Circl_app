@@ -1,32 +1,43 @@
-//
-//  Page19.swift
-//  circl_test_app
-//
-//  Created by Bhavin Vulli on 3/5/25.
-//
-
 import SwiftUI
 
 struct Page19: View {
     var body: some View {
         VStack(spacing: 20) {
+            Spacer() // Moves content down slightly
+            
             Text("Thank You for Signing Up!")
                 .font(.largeTitle)
                 .bold()
                 .multilineTextAlignment(.center)
-
+                .foregroundColor(Color.white)
+            
             Text("Your account is now awaiting approval. Once approved, you will receive an email with your login credentials.")
                 .font(.body)
                 .multilineTextAlignment(.center)
                 .padding()
-
+                .foregroundColor(Color.white)
+            
             Text("You can close the app now.")
                 .font(.headline)
                 .foregroundColor(.gray)
-
-            Spacer()
+            
+            Spacer() // Centers content vertically by balancing space
+            
+            NavigationLink(destination: Page1()) {
+                Text("Back to Login")
+                    .font(.headline)
+                    .fontWeight(.bold)
+                    .foregroundColor(Color.white)
+                    .padding()
+                    .background(Color.yellow) // Changed to regular yellow
+                    .cornerRadius(10)
+            }
+            .padding(.bottom, 20)
         }
         .padding()
+        .background(Color.fromHex("004aad")) // Blue color
+        .cornerRadius(20)
+        .edgesIgnoringSafeArea(.all)
         .navigationBarHidden(true)
     }
 }
@@ -36,3 +47,5 @@ struct Page19_Previews: PreviewProvider {
         Page19()
     }
 }
+
+

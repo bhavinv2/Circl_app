@@ -30,11 +30,9 @@ struct BusinessProfileResponse: Codable {
     let pricing_strategy: String?
 }
 
-
-
-// In BusinessProfileViewModel.swift
 class BusinessProfileViewModel: ObservableObject {
-    @Published var profile: BusinessProfile?  // Changed from BusinessProfileResponse to BusinessProfile
+    @Published var profile: BusinessProfile?
+    @Published var hasBusinessInfo: Bool = false
     
     func fetchProfile(for userId: Int) {
         guard let url = URL(string: "http://34.136.164.254:8000/api/users/full-business-profile/\(userId)/") else { return }
@@ -43,8 +41,12 @@ class BusinessProfileViewModel: ObservableObject {
             if let data = data {
                 DispatchQueue.main.async {
                     do {
-                        let profileResponse = try JSONDecoder().decode(BusinessProfile.self, from: data)  // Changed to BusinessProfile
+                        let profileResponse = try JSONDecoder().decode(BusinessProfile.self, from: data)
                         self.profile = profileResponse
+                        // Check if any business info exists
+                        self.hasBusinessInfo = profileResponse.industry != nil ||
+                                              profileResponse.location != nil ||
+                                              profileResponse.business_name != nil
                         print("✅ Profile fetched: \(profileResponse)")
                     } catch {
                         print("Decoding error: \(error)")

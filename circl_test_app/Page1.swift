@@ -6,6 +6,10 @@ struct Page1: View {
     @State private var loginMessage: String = ""
     @State private var isLoggedIn: Bool = false
     @State private var isNavigatingToSignup = false // For "Join Circl"
+    @State private var isShowingForgotPasswordPopup = false
+    @State private var forgotPasswordEmail: String = ""
+    @State private var forgotPasswordConfirmationShown = false
+
 
     var body: some View {
         NavigationStack {
@@ -101,9 +105,8 @@ struct Page1: View {
                         .padding(.horizontal, 50)
                     }
 
-                    // Forgot Password Link
                     Button(action: {
-                        // Forgot password functionality here
+                        isShowingForgotPasswordPopup = true
                     }) {
                         Text("Forgot your password?")
                             .font(.system(size: 18))
@@ -111,6 +114,7 @@ struct Page1: View {
                             .underline()
                     }
                     .padding(.top, 10)
+
 
                     Spacer()
 
@@ -121,7 +125,48 @@ struct Page1: View {
                             .padding()
                     }
                 }
+                
             }
+            .sheet(isPresented: $isShowingForgotPasswordPopup) {
+                VStack(spacing: 20) {
+                    Text("Forgot Password")
+                        .font(.title)
+                        .bold()
+
+                    Text("Enter your email. We will get back to you soon with a new password.")
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
+
+                    TextField("Email", text: $forgotPasswordEmail)
+                        .padding()
+                        .background(Color(.systemGray6))
+                        .cornerRadius(10)
+                        .keyboardType(.emailAddress)
+                        .autocapitalization(.none)
+                        .padding(.horizontal)
+
+                    Button("Submit") {
+                        submitForgotPasswordRequest()
+                    }
+
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(Color(hexCode: "ffde59"))
+                    .foregroundColor(Color(hexCode: "004aad"))
+                    .cornerRadius(10)
+                    .padding(.horizontal)
+
+                    Spacer()
+                }
+                .padding()
+            }
+            .alert("Password Reset", isPresented: $forgotPasswordConfirmationShown) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("We will get back to you soon with a new password.")
+            }
+
+            
             .navigationDestination(isPresented: $isLoggedIn) {
                 PageForum() // Navigate to main page on successful login
             }
@@ -231,6 +276,32 @@ struct Page1: View {
         }
         task.resume()
     }
+    
+    func submitForgotPasswordRequest() {
+        guard let url = URL(string: "http://34.136.164.254:8000/api/forgot-password/") else {
+            print("Invalid forgot password URL")
+            return
+        }
+
+        let requestData = ["email": forgotPasswordEmail]
+        guard let jsonData = try? JSONSerialization.data(withJSONObject: requestData) else {
+            print("Failed to encode email")
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = jsonData
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                isShowingForgotPasswordPopup = false
+                forgotPasswordConfirmationShown = true
+            }
+        }.resume()
+    }
+
 
 
 
