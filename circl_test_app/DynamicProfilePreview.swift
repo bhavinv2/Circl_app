@@ -258,8 +258,7 @@ struct DynamicProfilePreview: View {
                                     .foregroundColor(.white)
                                 
                                 Text("Clubs: \(profileData.clubs?.joined(separator: ", ") ?? "N/A")")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
+
                                 
                                 Text("Hobbies: \(profileData.hobbies?.joined(separator: ", ") ?? "N/A")")
                                     .font(.system(size: 16, weight: .semibold))

@@ -1,8 +1,42 @@
 import SwiftUI
+struct BusinessProfile: Codable {
+    let id: Int?
+    let business_name: String?  // Add this field
+    let about: String?
+    let vision: String?
+    let mission: String?
+    let company_culture: String?
+    let product_service: String?
+    let traction: String?
+    let unique_selling_proposition: String?
+    let revenue_streams: String?
+    let advisors_mentors: String?
+    let cofounders: String?
+    let key_hires: String?
+    let amount_raised: String?
+    let financial_projections: String?
+    let funding_stage: String?
+    let use_of_funds: String?
+    let investment: String?
+    let mentorship: String?
+    let other: String?
+    let roles_needed: String?
+    let user: Int?
+    let pricing_strategy: String?
+    let industry: String?  // Add these company detail fields
+    let type: String?
+    let stage: String?
+    let revenue: String?
+    let location: String?
+    let looking_for: String?
+}
+
 
 // MARK: - Main View
 struct PageBusinessProfile: View {
     // MARK: - Placeholder Data
+    @State private var isEditing: Bool = false
+    
     @State private var companyName: String = "Company Name"
     @State private var companyLogo: String = "companyLogo"
     @State private var companyWebsiteURL: URL? = nil
@@ -10,8 +44,8 @@ struct PageBusinessProfile: View {
     @State private var companyDetails: [String: String] = [
         "Industry": "Technology",
         "Type": "Startup",
-        "Problem To Solve": "Improving connectivity for entrepreneurs",
-        "Cofounders": "2",
+//        "Problem To Solve": "Improving connectivity for entrepreneurs",
+//        "Cofounders": "2",
         "Stage": "Seed",
         "Revenue": "Pre-revenue",
         "Location": "San Francisco, CA",
@@ -30,7 +64,6 @@ struct PageBusinessProfile: View {
     @State private var businessModelDetails: [String: String] = [
         "Revenue Streams": "List the revenue streams.",
         "Pricing Strategy": "Outline the pricing approach.",
-        "Sales/Revenue": "Summarize current sales/revenue."
     ]
     @State private var teamDetails: [String: String] = [
         "CoFounders": "List of cofounders.",
@@ -50,9 +83,11 @@ struct PageBusinessProfile: View {
         "Other": "Other needs or requirements."
     ]
     @State private var contactPerson: String = "John Doe"
+    @StateObject private var viewModel = BusinessProfileViewModel()
+
 
     var body: some View {
-        NavigationView { // Wrap the main view in a NavigationView
+        NavigationView {
             VStack(spacing: 0) {
                 headerSection
                 scrollableSection
@@ -60,8 +95,75 @@ struct PageBusinessProfile: View {
             }
             .edgesIgnoringSafeArea(.bottom)
             .navigationBarBackButtonHidden(true)
+            .onAppear {
+                if let userId = UserDefaults.standard.value(forKey: "user_id") as? Int {
+                    viewModel.fetchProfile(for: userId)
+                } else {
+                    print("⚠️ User ID not found in UserDefaults")
+                }
+
+            }
+            .onReceive(viewModel.$profile) { profile in
+                guard let profile = profile, !isEditing else { return }
+
+                // Ensure nil-coalescing for optional values
+                companyName = profile.business_name ?? ""  // Provide a default empty string if nil
+                aboutText = profile.about ?? ""  // Provide a default empty string if nil
+
+                companyDetails = [
+                    "Industry": profile.industry ?? "",  // Provide default empty string if nil
+                    "Type": profile.type ?? "",  // Same for type
+                    "Stage": profile.stage ?? "",  // Same for stage
+                    "Revenue": profile.revenue ?? "",  // Same for revenue
+                    "Location": profile.location ?? "",  // Same for location
+                    "Looking for": profile.looking_for ?? ""  // Same for looking_for
+                ]
+
+                values = [
+                    "Vision": profile.vision ?? "",  // Same for vision
+                    "Mission": profile.mission ?? "",  // Same for mission
+                    "Company Culture": profile.company_culture ?? ""  // Same for company culture
+                ]
+
+                solutionDetails = [
+                    "Product/Service": profile.product_service ?? "",  // Same for product_service
+                    "Unique Selling Proposition": profile.unique_selling_proposition ?? "",  // Same for unique_selling_proposition
+                    "Traction/Progress": profile.traction ?? ""  // Same for traction
+                ]
+
+                businessModelDetails = [
+                    "Revenue Streams": profile.revenue_streams ?? "",  // Same for revenue_streams
+                    "Pricing Strategy": profile.pricing_strategy ?? ""  // Same for pricing_strategy
+                ]
+
+                teamDetails = [
+                    "CoFounders": profile.cofounders ?? "",  // Same for cofounders
+                    "Key Hires": profile.key_hires ?? "",  // Same for key_hires
+                    "Advisors/Mentors": profile.advisors_mentors ?? ""  // Same for advisors_mentors
+                ]
+
+                financialsDetails = [
+                    "Funding Stage": profile.funding_stage ?? "",  // Same for funding_stage
+                    "Amount Raised": profile.amount_raised ?? "",  // Same for amount_raised
+                    "Use of Funds": profile.use_of_funds ?? "",  // Same for use_of_funds
+                    "Financial Projections": profile.financial_projections ?? ""  // Same for financial_projections
+                ]
+
+                lookingForDetails = [
+                    "Roles Needed": profile.roles_needed ?? "",  // Same for roles_needed
+                    "Mentorship": profile.mentorship ?? "",  // Same for mentorship
+                    "Investment": profile.investment ?? "",  // Same for investment
+                    "Other": profile.other ?? ""  // Same for other
+                ]
+            }
+
+
+
+
+            
         }
     }
+
     
     var headerSection: some View {
         // Header Section
@@ -77,45 +179,49 @@ struct PageBusinessProfile: View {
                         // Action for Filter
                     }) {
                         HStack {
-                            Image(systemName: "slider.horizontal.3")
-                                .foregroundColor(.white)
-                            Text("Filter")
-                                .font(.headline)
-                                .foregroundColor(.white)
+//                            Image(systemName: "slider.horizontal.3")
+//                                .foregroundColor(.white)
+//                            Text("Filter")
+//                                .font(.headline)
+//                                .foregroundColor(.white)
                         }
                     }
                 }
-                
+
                 Spacer()
-                
+
                 VStack(alignment: .trailing, spacing: 5) {
-                    // Add the Bubble and Person icons above "Hello, Fragne"
-                    VStack {
-                        HStack(spacing: 10) {
-                            // Navigation Link for Bubble Symbol
-                            NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
-                                Image(systemName: "bubble.left.and.bubble.right.fill")
-                                    .resizable()
-                                    .frame(width: 50, height: 40)  // Adjust size
-                                    .foregroundColor(.white)
-                            }
-                            
-                            // Person Icon
-                            NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
-                                Image(systemName: "person.circle.fill")
-                                    .resizable()
-                                    .frame(width: 50, height: 50)
-                                    .foregroundColor(.white)
-                            }
+                    // Top-right Edit/Save Button
+                    Button(action: {
+                        if isEditing {
+                            saveChanges()
                         }
-                        
-                        // "Hello, Fragne" text below the icons
-//                        Text("Hello, Fragne")
-//                            .foregroundColor(.white)
-//                            .font(.headline)
+                        isEditing.toggle()
+                    }) {
+                        Text(isEditing ? "Save" : "Edit")
+                            .foregroundColor(.white)
+                            .fontWeight(.bold)
+                    }
+
+                    // Icons Row
+                    HStack(spacing: 10) {
+                        NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
+                            Image(systemName: "bubble.left.and.bubble.right.fill")
+                                .resizable()
+                                .frame(width: 50, height: 40)
+                                .foregroundColor(.white)
+                        }
+
+                        NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
+                            Image(systemName: "person.circle.fill")
+                                .resizable()
+                                .frame(width: 50, height: 50)
+                                .foregroundColor(.white)
+                        }
                     }
                 }
             }
+
             .padding(.horizontal)
             .padding(.top, 15)
             .padding(.bottom, 10)
@@ -186,22 +292,27 @@ struct PageBusinessProfile: View {
             Text("About")
                 .font(.headline)
                 .foregroundColor(.black)
-            
-            Text(aboutText) // Dynamically bind the About text
-                .frame(height: 120)
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(Color.white)
-                .cornerRadius(10)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(Color.gray, lineWidth: 1)
-                )
+
+            if isEditing {
+                TextEditor(text: $aboutText)
+                    .frame(height: 120)
+                    .padding()
+                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.gray.opacity(0.4)))
+            } else {
+                Text(aboutText)
+                    .frame(height: 120)
+            }
         }
         .padding()
+        .frame(maxWidth: .infinity)
         .background(Color.white)
         .cornerRadius(10)
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(Color.gray, lineWidth: 1)
+        )
     }
+
     
     // MARK: - Company Details Section
     private var companyDetailsSection: some View {
@@ -210,10 +321,19 @@ struct PageBusinessProfile: View {
                 .font(.headline)
                 .fontWeight(.bold)
                 .foregroundColor(.black)
-            
+
             VStack(alignment: .leading, spacing: 8) {
                 ForEach(companyDetails.keys.sorted(), id: \.self) { key in
-                    detailRow(title: key, value: companyDetails[key] ?? "")
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(key)
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.gray)
+
+                        Text(companyDetails[key] ?? "") // Displaying the value with Text
+                            .font(.body)
+                            .foregroundColor(.primary)
+                    }
                 }
             }
             .padding()
@@ -229,6 +349,8 @@ struct PageBusinessProfile: View {
         .background(Color.white)
         .cornerRadius(10)
     }
+
+
     
     // MARK: - Values Section
     private var valuesSection: some View {
@@ -237,10 +359,29 @@ struct PageBusinessProfile: View {
                 .font(.headline)
                 .fontWeight(.bold)
                 .foregroundColor(.black)
-            
-            VStack(alignment: .leading, spacing: 8) {
-                ForEach(values.keys.sorted(), id: \.self) { key in
-                    detailRow(title: key, value: values[key] ?? "")
+
+            VStack(alignment: .leading, spacing: 12) {
+                ForEach(["Vision", "Mission", "Company Culture"], id: \.self) { key in
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(key)
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.gray)
+
+                        if isEditing {
+                            TextEditor(text: Binding(
+                                get: { values[key, default: ""] },
+                                set: { values[key] = $0 }
+                            ))
+                            .frame(height: 80)
+                            .padding(8)
+                            .background(Color(.systemGray6))
+                            .cornerRadius(8)
+                        } else {
+                            Text(values[key, default: ""])
+                                .foregroundColor(.primary)
+                        }
+                    }
                 }
             }
             .padding()
@@ -256,6 +397,7 @@ struct PageBusinessProfile: View {
         .background(Color.white)
         .cornerRadius(10)
     }
+
     
     // MARK: - Solution Section
     private var solutionSection: some View {
@@ -265,9 +407,28 @@ struct PageBusinessProfile: View {
                 .fontWeight(.bold)
                 .foregroundColor(.black)
             
-            VStack(alignment: .leading, spacing: 8) {
-                ForEach(solutionDetails.keys.sorted(), id: \.self) { key in
-                    detailRow(title: key, value: solutionDetails[key] ?? "")
+            VStack(alignment: .leading, spacing: 12) {
+                ForEach(["Product/Service", "Unique Selling Proposition", "Traction/Progress"], id: \.self) { key in
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(key)
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.gray)
+                        
+                        if isEditing {
+                            TextEditor(text: Binding(
+                                get: { solutionDetails[key, default: ""] },
+                                set: { solutionDetails[key] = $0 }
+                            ))
+                            .frame(height: 80)
+                            .padding(8)
+                            .background(Color(.systemGray6))
+                            .cornerRadius(8)
+                        } else {
+                            Text(solutionDetails[key, default: ""])
+                                .foregroundColor(.primary)
+                        }
+                    }
                 }
             }
             .padding()
@@ -283,6 +444,7 @@ struct PageBusinessProfile: View {
         .background(Color.white)
         .cornerRadius(10)
     }
+
     
     // MARK: - Business Model Section
     private var businessModelSection: some View {
@@ -292,9 +454,28 @@ struct PageBusinessProfile: View {
                 .fontWeight(.bold)
                 .foregroundColor(.black)
             
-            VStack(alignment: .leading, spacing: 8) {
-                ForEach(businessModelDetails.keys.sorted(), id: \.self) { key in
-                    detailRow(title: key, value: businessModelDetails[key] ?? "")
+            VStack(alignment: .leading, spacing: 12) {
+                ForEach(["Revenue Streams", "Pricing Strategy"], id: \.self) { key in
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(key)
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.gray)
+                        
+                        if isEditing {
+                            TextEditor(text: Binding(
+                                get: { businessModelDetails[key, default: ""] },
+                                set: { businessModelDetails[key] = $0 }
+                            ))
+                            .frame(height: 80)
+                            .padding(8)
+                            .background(Color(.systemGray6))
+                            .cornerRadius(8)
+                        } else {
+                            Text(businessModelDetails[key, default: ""])
+                                .foregroundColor(.primary)
+                        }
+                    }
                 }
             }
             .padding()
@@ -310,6 +491,7 @@ struct PageBusinessProfile: View {
         .background(Color.white)
         .cornerRadius(10)
     }
+
     
     // MARK: - Team Section
     private var teamSection: some View {
@@ -319,9 +501,28 @@ struct PageBusinessProfile: View {
                 .fontWeight(.bold)
                 .foregroundColor(.black)
             
-            VStack(alignment: .leading, spacing: 8) {
-                ForEach(teamDetails.keys.sorted(), id: \.self) { key in
-                    detailRow(title: key, value: teamDetails[key] ?? "")
+            VStack(alignment: .leading, spacing: 12) {
+                ForEach(["CoFounders", "Key Hires", "Advisors/Mentors"], id: \.self) { key in
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(key)
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.gray)
+                        
+                        if isEditing {
+                            TextEditor(text: Binding(
+                                get: { teamDetails[key, default: ""] },
+                                set: { teamDetails[key] = $0 }
+                            ))
+                            .frame(height: 80)
+                            .padding(8)
+                            .background(Color(.systemGray6))
+                            .cornerRadius(8)
+                        } else {
+                            Text(teamDetails[key, default: ""])
+                                .foregroundColor(.primary)
+                        }
+                    }
                 }
             }
             .padding()
@@ -337,6 +538,7 @@ struct PageBusinessProfile: View {
         .background(Color.white)
         .cornerRadius(10)
     }
+
     
     // MARK: - Financials/Funding Section
     private var financialsFundingSection: some View {
@@ -348,7 +550,26 @@ struct PageBusinessProfile: View {
             
             VStack(alignment: .leading, spacing: 8) {
                 ForEach(financialsDetails.keys.sorted(), id: \.self) { key in
-                    detailRow(title: key, value: financialsDetails[key] ?? "")
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(key)
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.gray)
+                        
+                        if isEditing {
+                            TextEditor(text: Binding(
+                                get: { financialsDetails[key, default: ""] },
+                                set: { financialsDetails[key] = $0 }
+                            ))
+                            .frame(height: 80)
+                            .padding(8)
+                            .background(Color(.systemGray6))
+                            .cornerRadius(8)
+                        } else {
+                            Text(financialsDetails[key, default: ""])
+                                .foregroundColor(.primary)
+                        }
+                    }
                 }
             }
             .padding()
@@ -366,6 +587,7 @@ struct PageBusinessProfile: View {
     }
     
     // MARK: - Looking For Section
+    // MARK: - Looking For Section
     private var lookingForSection: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Looking For")
@@ -375,7 +597,26 @@ struct PageBusinessProfile: View {
             
             VStack(alignment: .leading, spacing: 8) {
                 ForEach(lookingForDetails.keys.sorted(), id: \.self) { key in
-                    detailRow(title: key, value: lookingForDetails[key] ?? "")
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(key)
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.gray)
+                        
+                        if isEditing {
+                            TextEditor(text: Binding(
+                                get: { lookingForDetails[key, default: ""] },
+                                set: { lookingForDetails[key] = $0 }
+                            ))
+                            .frame(height: 80)
+                            .padding(8)
+                            .background(Color(.systemGray6))
+                            .cornerRadius(8)
+                        } else {
+                            Text(lookingForDetails[key, default: ""])
+                                .foregroundColor(.primary)
+                        }
+                    }
                 }
             }
             .padding()
@@ -475,6 +716,83 @@ struct PageBusinessProfile: View {
                 .foregroundColor(.primary)
         }
     }
+    func saveChanges() {
+        guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else {
+            print("❌ User ID not found in UserDefaults")
+            return
+        }
+
+        let url = URL(string: "http://34.136.164.254:8000/api/users/business-profile/\(userId)/")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "PATCH"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let payload: [String: Any] = [
+            "about": aboutText,
+            "vision": values["Vision", default: ""],
+            "mission": values["Mission", default: ""],
+            "company_culture": values["Company Culture", default: ""],
+            "product_service": solutionDetails["Product/Service", default: ""],
+            "unique_selling_proposition": solutionDetails["Unique Selling Proposition", default: ""],
+            "traction": solutionDetails["Traction/Progress", default: ""],
+            "revenue_streams": businessModelDetails["Revenue Streams", default: ""],
+            "pricing_strategy": businessModelDetails["Pricing Strategy", default: ""],
+            "advisors_mentors": teamDetails["Advisors/Mentors", default: ""],
+            "cofounders": teamDetails["CoFounders", default: ""],
+            "key_hires": teamDetails["Key Hires", default: ""],
+            "industry": companyDetails["Industry", default: ""],  // Add industry field
+            "location": companyDetails["Location", default: ""],  // Add location field
+            "revenue": companyDetails["Revenue", default: ""],  // Add revenue field
+            "stage": companyDetails["Stage", default: ""],  // Add stage field
+            "type": companyDetails["Type", default: ""],  // Add type field
+            "looking_for": companyDetails["Looking for", default: ""],  // Add looking_for field
+        ]
+
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: payload, options: [])
+        } catch {
+            print("⚠️ JSON encode error: \(error)")
+            return
+        }
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("❌ Save failed: \(error)")
+                return
+            }
+
+            if let httpResponse = response as? HTTPURLResponse {
+                print("📡 Status code: \(httpResponse.statusCode)")
+                if let data = data {
+                    do {
+                        DispatchQueue.main.async {
+                            isEditing = false
+                            // Refresh profile after successful update
+                            viewModel.fetchProfile(for: userId)
+                        }
+                    } catch {
+                        print("❌ JSON decode failed: \(error)")
+                    }
+
+                    if let responseBody = String(data: data, encoding: .utf8) {
+                        print("📦 Response body: \(responseBody)")
+                    }
+                }
+            } else {
+                print("⚠️ No HTTP response")
+            }
+        }.resume()
+    }
+
+
+
+
+
+
+
+
+
+
 }
 
 // MARK: - Color Extension
@@ -500,3 +818,4 @@ struct PageBusinessProfile_Previews: PreviewProvider {
         PageBusinessProfile()
     }
 }
+
