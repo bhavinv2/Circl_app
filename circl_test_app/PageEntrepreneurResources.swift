@@ -106,17 +106,17 @@ struct PageEntrepreneurResources: View {
                         .fontWeight(.bold)
                         .foregroundColor(.white)
                     
-                    Button(action: {
-                        // Action for Filter
-                    }) {
-                        HStack {
-                            Image(systemName: "slider.horizontal.3")
-                                .foregroundColor(.white)
-                            Text("Filter")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                        }
-                    }
+//                    Button(action: {
+//                        // Action for Filter
+//                    }) {
+//                        HStack {
+//                            Image(systemName: "slider.horizontal.3")
+//                                .foregroundColor(.white)
+//                            Text("Filter")
+//                                .font(.headline)
+//                                .foregroundColor(.white)
+//                        }
+//                    }
                 }
                 
                 Spacer()

@@ -59,15 +59,15 @@ struct PageMessages: View {
                         .fontWeight(.bold)
                         .foregroundColor(.white)
                     
-                    Button(action: {}) {
-                        HStack {
-                            Image(systemName: "slider.horizontal.3")
-                                .foregroundColor(.white)
-                            Text("Filter")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                        }
-                    }
+//                    Button(action: {}) {
+//                        HStack {
+//                            Image(systemName: "slider.horizontal.3")
+//                                .foregroundColor(.white)
+//                            Text("Filter")
+//                                .font(.headline)
+//                                .foregroundColor(.white)
+//                        }
+//                    }
                 }
                 
                 Spacer()

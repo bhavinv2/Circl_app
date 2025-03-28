@@ -182,11 +182,11 @@ struct ForumPost: View {
 
                     Spacer()
 
-                    Button(action: {
-                    }) {
-                        Label("Share", systemImage: "square.and.arrow.up")
-                            .font(.subheadline)
-                    }
+//                    Button(action: {
+//                    }) {
+//                        Label("Share", systemImage: "square.and.arrow.up")
+//                            .font(.subheadline)
+//                    }
                 }
                 .padding(.top, 10)
             }
@@ -392,14 +392,14 @@ struct ForumMainContent: View {
                                                         }
                                                     }
                                                     
-                                                    if let selectedImage = selectedImage {
-                                                        Image(uiImage: selectedImage)
-                                                            .resizable()
-                                                            .scaledToFit()
-                                                            .frame(height: 200)
-                                                            .cornerRadius(10)
-                                                            .padding(.top, 10)
-                                                    }
+//                                                    if let selectedImage = selectedImage {
+//                                                        Image(uiImage: selectedImage)
+//                                                            .resizable()
+//                                                            .scaledToFit()
+//                                                            .frame(height: 200)
+//                                                            .cornerRadius(10)
+//                                                            .padding(.top, 10)
+//                                                    }
                                                     
                                                     HStack(spacing: 10) {
                                                         Menu {
@@ -433,28 +433,28 @@ struct ForumMainContent: View {
                                                             .frame(width: 120)
                                                         }
                                                         
-                                                        Menu {
-                                                            Button("Upload from Camera") {
-                                                                sourceType = .camera
-                                                                isImagePickerPresented = true
-                                                            }
-                                                            Button("Upload from Gallery") {
-                                                                sourceType = .photoLibrary
-                                                                isImagePickerPresented = true
-                                                            }
-                                                        } label: {
-                                                            HStack {
-                                                                Text("Pictures")
-                                                                    .font(.subheadline)
-                                                                Spacer()
-                                                                Image(systemName: "plus")
-                                                            }
-                                                            .padding(.horizontal, 8)
-                                                            .padding(.vertical, 6)
-                                                            .background(Color(UIColor.systemGray4))
-                                                            .cornerRadius(5)
-                                                            .frame(width: 120)
-                                                        }
+//                                                        Menu {
+//                                                            Button("Upload from Camera") {
+//                                                                sourceType = .camera
+//                                                                isImagePickerPresented = true
+//                                                            }
+//                                                            Button("Upload from Gallery") {
+//                                                                sourceType = .photoLibrary
+//                                                                isImagePickerPresented = true
+//                                                            }
+//                                                        } label: {
+//                                                            HStack {
+//                                                                Text("Pictures")
+//                                                                    .font(.subheadline)
+//                                                                Spacer()
+//                                                                Image(systemName: "plus")
+//                                                            }
+//                                                            .padding(.horizontal, 8)
+//                                                            .padding(.vertical, 6)
+//                                                            .background(Color(UIColor.systemGray4))
+//                                                            .cornerRadius(5)
+//                                                            .frame(width: 120)
+//                                                        }
                                                         
                                                         Menu {
                                                             Button("Public", action: { selectedPrivacy = "Public" })
