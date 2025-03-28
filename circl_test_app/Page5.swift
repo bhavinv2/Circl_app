@@ -10,6 +10,8 @@ struct Page5: View {
     @State private var personalityType: String = ""
     @State private var showInvalidPersonalityAlert: Bool = false
     @State private var navigateToPage6: Bool = false // Add this line
+    @State private var showMissingFieldsAlert = false
+
     
     let educationOptions = [
         "No Formal Education",
@@ -303,9 +305,18 @@ struct Page5: View {
                     
                     // ✅ Updated Next Button with Proper Navigation
                     Button(action: {
-                        submitPersonalDetails { success in
-                            if success {
-                                navigateToPage6 = true
+                        if birthday.isEmpty ||
+                           educationLevel == nil ||
+                           institutionAttended.isEmpty ||
+                           certifications.isEmpty ||
+                           yearsOfExperience.isEmpty ||
+                           personalityType.isEmpty {
+                            showMissingFieldsAlert = true
+                        } else {
+                            submitPersonalDetails { success in
+                                if success {
+                                    navigateToPage6 = true
+                                }
                             }
                         }
                     }) {
@@ -323,10 +334,17 @@ struct Page5: View {
                             .padding(.horizontal, 50)
                     }
 
+
                     Spacer()
                 }
             }
             .navigationBarHidden(true) // Hide the navigation bar
+            .alert("Missing Fields", isPresented: $showMissingFieldsAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("Please fill out all fields before continuing.")
+            }
+
             .background(
                 NavigationLink(
                     destination: Page6(),

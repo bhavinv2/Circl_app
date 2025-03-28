@@ -4,6 +4,7 @@ import SwiftUI
 struct PageSettings: View {
     @Environment(\.presentationMode) var presentationMode  // For dismissing the settings page
 
+
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {

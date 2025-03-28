@@ -3,6 +3,9 @@ import SwiftUI
 struct Page11: View {
     @State private var successDefinition: String = ""
     @State private var businessUniqueness: String = ""
+    @State private var showMissingFieldsAlert = false
+    
+
     
     var body: some View {
         NavigationView {

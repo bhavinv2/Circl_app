@@ -9,6 +9,8 @@ struct Page9: View {
     @State private var businessLocation: String = ""
     @State private var isIncorporated: Bool = false
     @State private var navigateToPage10 = false
+    @State private var showMissingFieldsAlert = false
+
 
     // The available scale types
     let scaleTypes = [
@@ -350,8 +352,18 @@ struct Page9: View {
                     // Checkbox (Toggle) for "Is this business legally incorporated?"
                     HStack {
                         Button(action: {
-                            isIncorporated.toggle() // Toggle state
+                            if businessName.isEmpty ||
+                               selectedScaleType == nil ||
+                               selectedBusinessStage == nil ||
+                               selectedRevenue == nil ||
+                               selectedIndustry == nil ||
+                               businessLocation.isEmpty {
+                                showMissingFieldsAlert = true
+                            } else {
+                                submitBusinessInfo()
+                            }
                         }) {
+
                             Image(systemName: isIncorporated ? "checkmark.square" : "square")
                                 .resizable()
                                 .scaledToFit()
@@ -396,6 +408,12 @@ struct Page9: View {
                 }
             }
             .navigationBarHidden(true) // ✅ Hides default navigation bar
+            .alert("Missing Fields", isPresented: $showMissingFieldsAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("Please fill out all fields before continuing.")
+            }
+
         }
     }
 }

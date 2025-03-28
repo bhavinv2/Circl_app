@@ -4,6 +4,8 @@ struct Page10: View {
     @State private var navigateToPage11 = false // ✅ State variable for navigation
     @State private var businessGoals: String = "" // ✅ Added for business goals
     @State private var businessChallenges: String = "" // ✅ Added for business challenges
+    @State private var showMissingFieldsAlert = false
+
 
     var body: some View {
         NavigationView { // ✅ Wrap the ZStack in a NavigationView
@@ -84,10 +86,15 @@ struct Page10: View {
 
                     Spacer()
 
-                    // Next Button
                     Button(action: {
-                        submitBusinessDetails() // ✅ Sends data to API before navigating
+                        if businessGoals.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
+                           businessChallenges.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                            showMissingFieldsAlert = true
+                        } else {
+                            submitBusinessDetails()
+                        }
                     }) {
+
                         Text("Next")
                             .font(.system(size: 24, weight: .bold))
                             .foregroundColor(Color(hexCode: "004aad"))
@@ -112,6 +119,12 @@ struct Page10: View {
                 }
             }
             .navigationBarHidden(true) // ✅ Hide the default navigation bar
+            .alert("Missing Fields", isPresented: $showMissingFieldsAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("Please fill out both fields before continuing.")
+            }
+
         }
     }
 

@@ -8,6 +8,8 @@ struct Page6: View {
     @State private var achievements: String = ""
     @State private var availability: String = ""
     @State private var navigateToPage7 = false
+    @State private var showMissingFieldsAlert = false
+
 
     func submitSkillsInterests(completion: @escaping (Bool) -> Void) {
         guard let url = URL(string: "http://34.136.164.254:8000/api/users/update-skills-interests/") else {
@@ -138,9 +140,18 @@ struct Page6: View {
 
                     // Next Button
                     Button(action: {
-                        submitSkillsInterests { success in
-                            if success {
-                                navigateToPage7 = true // Navigate to Page7 only if the API call succeeds
+                        if clubs.isEmpty ||
+                           locations.isEmpty ||
+                           skillsets.isEmpty ||
+                           hobbies.isEmpty ||
+                           achievements.isEmpty ||
+                           availability.isEmpty {
+                            showMissingFieldsAlert = true
+                        } else {
+                            submitSkillsInterests { success in
+                                if success {
+                                    navigateToPage7 = true
+                                }
                             }
                         }
                     }) {
@@ -158,10 +169,17 @@ struct Page6: View {
                             .padding(.horizontal, 50)
                     }
 
+
                     Spacer()
                 }
             }
             .navigationBarHidden(true) // Hide the navigation bar
+            .alert("Missing Fields", isPresented: $showMissingFieldsAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("Please fill out all fields before continuing.")
+            }
+
             .background(
                 NavigationLink(
                     destination: Page7(),

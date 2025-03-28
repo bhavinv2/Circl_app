@@ -14,6 +14,8 @@ struct Page3: View {
     @State private var isSubmitting: Bool = false
     @State private var submissionMessage: String = ""
     @State private var navigateToPage4: Bool = false
+    @State private var showAlert = false
+
     
     let usageInterestOptions = [
         "Sell a Skill",
@@ -76,10 +78,25 @@ struct Page3: View {
                     NextButton(
                         isSubmitting: $isSubmitting,
                         submissionMessage: $submissionMessage,
-                        action: submitUserInfo
+                        action: {
+                            if firstName.isEmpty || lastName.isEmpty || email.isEmpty || phoneNumber.isEmpty || selectedUsageInterest == nil || selectedIndustryInterest == nil {
+                                showAlert = true
+                            } else {
+                                submitUserInfo()
+                            }
+                        }
                     )
+
                     Spacer()
                 }
+                .alert(isPresented: $showAlert) {
+                    Alert(
+                        title: Text("Missing Fields"),
+                        message: Text("Please fill out all fields before continuing."),
+                        dismissButton: .default(Text("OK"))
+                    )
+                }
+
                 .padding(.horizontal, 40)
             }
             .overlay(CloudsOverlay(), alignment: .topLeading)
