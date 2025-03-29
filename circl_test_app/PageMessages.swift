@@ -17,7 +17,6 @@ struct PageMessages: View {
     @State private var timer: Timer?
     @State private var selectedProfile: FullProfile? = nil
 
-    
     @State private var myNetwork: [NetworkUser] = [] // ✅ Correct type
     
     var body: some View {
@@ -58,16 +57,6 @@ struct PageMessages: View {
                         .font(.largeTitle)
                         .fontWeight(.bold)
                         .foregroundColor(.white)
-                    
-//                    Button(action: {}) {
-//                        HStack {
-//                            Image(systemName: "slider.horizontal.3")
-//                                .foregroundColor(.white)
-//                            Text("Filter")
-//                                .font(.headline)
-//                                .foregroundColor(.white)
-//                        }
-//                    }
                 }
                 
                 Spacer()
@@ -158,7 +147,6 @@ struct PageMessages: View {
                 )
                 .font(.system(size: 16))
 
-
                 NavigationLink(
                     destination: selectedUser.map { user in
                         ChatView(
@@ -228,13 +216,43 @@ struct PageMessages: View {
     var scrollableSection: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 10) {
-                ForEach(Array(groupedMessages.keys), id: \.self) { userId in
+                // Sort conversations by most recent message timestamp
+                ForEach(Array(groupedMessages.keys).sorted(by: { userId1, userId2 in
+                    let messages1 = groupedMessages[userId1] ?? []
+                    let messages2 = groupedMessages[userId2] ?? []
+                    
+                    let lastMessage1 = messages1.last?.timestamp ?? ""
+                    let lastMessage2 = messages2.last?.timestamp ?? ""
+                    
+                    return lastMessage1 > lastMessage2 // Sort descending (newest first)
+                }), id: \.self) { userId in
                     if let messages = groupedMessages[userId], let user = myNetwork.first(where: { $0.id == userId }) {
-                        NavigationLink(destination: ChatView(user: user, messages: messages, myNetwork: $myNetwork, onSendMessage: { newMessage in
-                            self.groupedMessages[userId, default: []].append(newMessage)
-                            self.refreshToggle.toggle()
-                        })) {
+                        let myId = UserDefaults.standard.integer(forKey: "user_id")
+                        let hasUnread = messages.contains { message in
+                            message.receiver_id == myId &&
+                            !message.is_read &&
+                            message.sender_id != myId
+                        }
+                        
+                        NavigationLink(
+                            destination: ChatView(
+                                user: user,
+                                messages: messages,
+                                myNetwork: $myNetwork,
+                                onSendMessage: { newMessage in
+                                    self.groupedMessages[userId, default: []].append(newMessage)
+                                    self.refreshToggle.toggle()
+                                }
+                            )
+                            .onAppear {
+                                markMessagesAsRead(senderId: user.id)
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                    fetchMessages()
+                                }
+                            }
+                        ) {
                             HStack(spacing: 15) {
+                                // Profile image code
                                 Button(action: {
                                     fetchUserProfile(userId: user.id) { profile in
                                         if let profile = profile,
@@ -265,20 +283,19 @@ struct PageMessages: View {
                                             .frame(width: 55, height: 55)
                                             .clipShape(Circle())
                                     }
-
-
                                 }
-
                                 
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(user.name)
                                         .font(.system(size: 16, weight: .semibold))
-                                    Text(messages.last?.content ?? "")
-                                        .font(.system(size: 14))
-                                        .foregroundColor(.gray)
+                                    
+                                    let lastMessage = messages.last
+                                    Text(lastMessage?.content ?? "")
+                                        .font(.system(size: 14, weight: hasUnread ? .bold : .regular))
+                                        .foregroundColor(hasUnread ? .primary : .gray)
                                         .lineLimit(1)
                                 }
-                            
+                                
                                 Spacer()
                                 
                                 VStack {
@@ -287,7 +304,6 @@ struct PageMessages: View {
                                             .font(.system(size: 12))
                                             .foregroundColor(.gray)
                                     }
-
                                 }
                             }
                             .padding(.vertical, 10)
@@ -425,6 +441,11 @@ struct PageMessages: View {
                     let response = try JSONDecoder().decode([String: [Message]].self, from: data)
                     DispatchQueue.main.async {
                         let allMessages = response["messages"] ?? []
+                        print("=== MESSAGES DEBUG ===")
+                        allMessages.forEach { message in
+                            print("Message \(message.id): From \(message.sender_id) to \(message.receiver_id), Read: \(message.is_read), Content: \(message.content)")
+                        }
+                        print("=====================")
                         self.groupedMessages = Dictionary(grouping: allMessages) { $0.sender_id == userId ? $0.receiver_id : $0.sender_id }
                     }
                 } catch {
@@ -471,7 +492,6 @@ struct PageMessages: View {
         }.resume()
     }
 
-
     private func sendMessage(content: String, recipient: NetworkUser) {
         guard let senderId = UserDefaults.standard.value(forKey: "user_id") as? Int else { return }
 
@@ -513,6 +533,29 @@ struct PageMessages: View {
                 if httpResponse.statusCode != 201 {
                     print("❌ Failed to send message")
                 }
+            }
+        }.resume()
+    }
+    
+    func markMessagesAsRead(senderId: Int) {
+        guard let myId = UserDefaults.standard.value(forKey: "user_id") as? Int else { return }
+        print("Marking messages as read from \(senderId) to \(myId)")
+
+        guard let url = URL(string: "https://circlapp.online/api/users/mark_messages_read/") else { return }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let payload: [String: Any] = ["sender_id": senderId, "receiver_id": myId]
+        request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let httpResponse = response as? HTTPURLResponse {
+                print("Mark as read response: \(httpResponse.statusCode)")
+            }
+            if let error = error {
+                print("Mark as read error: \(error)")
             }
         }.resume()
     }
@@ -615,9 +658,7 @@ struct Message: Identifiable, Codable, Equatable {
             return months == 1 ? "1 month" : "\(months) months"
         }
     }
-
 }
-
 
 struct NetworkUser: Codable, Identifiable, Hashable {
     let id: Int
@@ -630,7 +671,6 @@ struct NetworkUser: Codable, Identifiable, Hashable {
         case profileImage = "profileImage" // 👈 match backend key
     }
 }
-
 
 struct ChatBox: View {
     let user: NetworkUser
@@ -751,8 +791,6 @@ struct ChatView: View {
                 }
             }
 
-
-
             HStack(spacing: 10) {
                 TextField("Type a message...", text: $messageText)
                     .padding(.vertical, 12)
@@ -779,7 +817,6 @@ struct ChatView: View {
             }
             .padding(.horizontal)
             .padding(.bottom)
-
         }
         .navigationBarTitle(user.name, displayMode: .inline)
         .onAppear {
@@ -827,8 +864,6 @@ struct ChatView: View {
         }.resume()
     }
 }
-
-
 
 extension Color {
     static func fromHex(_ hex: String) -> Color {
