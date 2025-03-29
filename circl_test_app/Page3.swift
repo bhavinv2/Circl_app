@@ -112,7 +112,7 @@ struct Page3: View {
     
     // 🚀 This function ties SwiftUI to PostgreSQL via Django API
     func submitUserInfo() {
-        guard let url = URL(string: "http://34.136.164.254:8000/api/users/register/") else {
+        guard let url = URL(string: "https://circlapp.online/api/users/register/") else {
             submissionMessage = "Invalid API URL"
             print("❌ Invalid API URL")
             return

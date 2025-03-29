@@ -386,7 +386,7 @@ struct PageMessages: View {
             return
         }
 
-        guard let url = URL(string: "http://34.136.164.254:8000/api/users/get_network/\(userId)/") else {
+        guard let url = URL(string: "https://circlapp.online/api/users/get_network/\(userId)/") else {
             print("❌ Invalid URL")
             return
         }
@@ -417,7 +417,7 @@ struct PageMessages: View {
     func fetchMessages() {
         guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else { return }
 
-        guard let url = URL(string: "http://34.136.164.254:8000/api/users/get_messages/\(userId)/") else { return }
+        guard let url = URL(string: "https://circlapp.online/api/users/get_messages/\(userId)/") else { return }
 
         URLSession.shared.dataTask(with: url) { data, _, error in
             if let data = data {
@@ -435,7 +435,7 @@ struct PageMessages: View {
     }
     
     func fetchUserProfile(userId: Int, completion: @escaping (FullProfile?) -> Void) {
-        let urlString = "http://34.136.164.254:8000/api/users/profile/\(userId)/"
+        let urlString = "https://circlapp.online/api/users/profile/\(userId)/"
         guard let url = URL(string: urlString) else {
             print("❌ Invalid URL")
             completion(nil)
@@ -500,7 +500,7 @@ struct PageMessages: View {
 
         guard let jsonData = try? JSONSerialization.data(withJSONObject: messageData) else { return }
 
-        guard let url = URL(string: "http://34.136.164.254:8000/api/users/send_message/") else { return }
+        guard let url = URL(string: "https://circlapp.online/api/users/send_message/") else { return }
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -810,7 +810,7 @@ struct ChatView: View {
 
         guard let jsonData = try? JSONSerialization.data(withJSONObject: messageData) else { return }
 
-        guard let url = URL(string: "http://34.136.164.254:8000/api/users/send_message/") else { return }
+        guard let url = URL(string: "https://circlapp.online/api/users/send_message/") else { return }
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"

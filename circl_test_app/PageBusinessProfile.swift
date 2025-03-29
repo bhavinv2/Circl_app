@@ -715,7 +715,7 @@ struct PageBusinessProfile: View {
             return
         }
 
-        let url = URL(string: "http://34.136.164.254:8000/api/users/business-profile/\(userId)/")!
+        let url = URL(string: "https://circlapp.online/api/users/business-profile/\(userId)/")!
         var request = URLRequest(url: url)
         request.httpMethod = "PATCH"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")

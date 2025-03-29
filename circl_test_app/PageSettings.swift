@@ -213,7 +213,7 @@ struct BecomeMentorPage: View {
             "reason": reason
         ]
 
-        guard let url = URL(string: "http://34.136.164.254:8000/api/users/apply_mentor/") else { return }
+        guard let url = URL(string: "https://circlapp.online/api/users/apply_mentor/") else { return }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -284,7 +284,7 @@ struct ChangePasswordPage: View {
             return
         }
 
-        guard let url = URL(string: "http://34.136.164.254:8000/api/users/change_password/") else { return }
+        guard let url = URL(string: "https://circlapp.online/api/users/change_password/") else { return }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -358,7 +358,7 @@ struct DeleteAccountPage: View {
     }
 
     func submitDeleteRequest() {
-        guard let url = URL(string: "http://34.136.164.254:8000/api/users/request_delete_account/") else { return }
+        guard let url = URL(string: "https://circlapp.online/api/users/request_delete_account/") else { return }
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"

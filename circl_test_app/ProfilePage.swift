@@ -371,7 +371,7 @@ struct ProfilePage: View {
     // Image upload function
     func uploadProfileImage(image: UIImage) {
         guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else { return }
-        let urlString = "http://34.136.164.254:8000/api/users/upload_profile_image/"
+        let urlString = "https://circlapp.online/api/users/upload_profile_image/"
 
         guard let url = URL(string: urlString) else { return }
 
@@ -423,7 +423,7 @@ struct ProfilePage: View {
             return
         }
 
-        let urlString = "http://34.136.164.254:8000/api/users/get_network/\(userId)/"
+        let urlString = "https://circlapp.online/api/users/get_network/\(userId)/"
         guard let url = URL(string: urlString) else {
             print("❌ Invalid URL")
             return
@@ -453,7 +453,7 @@ struct ProfilePage: View {
             return
         }
 
-        let urlString = "http://34.136.164.254:8000/api/users/profile/\(userId)/"
+        let urlString = "https://circlapp.online/api/users/profile/\(userId)/"
         print("🌐 Fetching profile from:", urlString)
 
         guard let url = URL(string: urlString) else {

@@ -641,7 +641,7 @@ struct PageForum: View {
     }
     
     private func fetchPostsInternal() {
-        guard let url = URL(string: "http://34.136.164.254:8000/api/forum/get_posts/?filter=\(selectedFilter)") else {
+        guard let url = URL(string: "https://circlapp.online/api/forum/get_posts/?filter=\(selectedFilter)") else {
             showPageLoading = false
             return
         }
@@ -677,7 +677,7 @@ struct PageForum: View {
     // MARK: - Other Network Functions
     
     func fetchUserProfile(userId: Int, completion: @escaping (FullProfile?) -> Void) {
-        guard let url = URL(string: "http://34.136.164.254:8000/api/users/profile/\(userId)/") else {
+        guard let url = URL(string: "https://circlapp.online/api/users/profile/\(userId)/") else {
             completion(nil)
             return
         }
@@ -709,7 +709,7 @@ struct PageForum: View {
     }
 
     func submitPost() {
-        guard let url = URL(string: "http://34.136.164.254:8000/api/forum/create_post/") else { return }
+        guard let url = URL(string: "https://circlapp.online/api/forum/create_post/") else { return }
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -759,7 +759,7 @@ struct PageForum: View {
 
     func toggleLike(_ post: ForumPostModel) {
         let endpoint = post.liked_by_user ? "unlike" : "like"
-        guard let url = URL(string: "http://34.136.164.254:8000/api/forum/posts/\(post.id)/\(endpoint)/") else { return }
+        guard let url = URL(string: "https://circlapp.online/api/forum/posts/\(post.id)/\(endpoint)/") else { return }
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -777,7 +777,7 @@ struct PageForum: View {
     }
 
     func deletePost(_ postId: Int) {
-        guard let url = URL(string: "http://34.136.164.254:8000/api/forum/delete_post/\(postId)/") else { return }
+        guard let url = URL(string: "https://circlapp.online/api/forum/delete_post/\(postId)/") else { return }
 
         var request = URLRequest(url: url)
         request.httpMethod = "DELETE"
@@ -868,7 +868,7 @@ struct CommentSheet: View {
     }
 
     func fetchComments() {
-        guard let url = URL(string: "http://34.136.164.254:8000/api/forum/comments/\(postId)/") else { return }
+        guard let url = URL(string: "https://circlapp.online/api/forum/comments/\(postId)/") else { return }
 
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
@@ -891,7 +891,7 @@ struct CommentSheet: View {
     func submitComment() {
         print("🟡 Trying to submit comment: \(newComment)")
 
-        guard let url = URL(string: "http://34.136.164.254:8000/api/forum/comments/add/") else {
+        guard let url = URL(string: "https://circlapp.online/api/forum/comments/add/") else {
             print("❌ Invalid URL")
             return
         }
@@ -933,7 +933,7 @@ struct CommentSheet: View {
     }
     
     func toggleLike(_ comment: CommentModel) {
-        guard let url = URL(string: "http://34.136.164.254:8000/api/forum/comments/\(comment.id)/\(comment.liked_by_user ? "unlike" : "like")/") else { return }
+        guard let url = URL(string: "https://circlapp.online/api/forum/comments/\(comment.id)/\(comment.liked_by_user ? "unlike" : "like")/") else { return }
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"

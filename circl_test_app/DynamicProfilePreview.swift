@@ -326,7 +326,7 @@ struct DynamicProfilePreview: View {
         print("🚨 removeFriend() called")
         print("🔥 Remove friend called with user_id=\(loggedInUserId), friend_id=\(profileData.user_id)")
 
-        guard let url = URL(string: "http://34.136.164.254:8000/api/users/remove_friend/") else {
+        guard let url = URL(string: "https://circlapp.online/api/users/remove_friend/") else {
             print("❌ Invalid URL")
             return
         }

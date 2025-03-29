@@ -91,7 +91,7 @@ struct Page9: View {
     ]
     
     func submitBusinessInfo() {
-        guard let url = URL(string: "http://34.136.164.254:8000/api/users/update-business-info/") else {
+        guard let url = URL(string: "https://circlapp.online/api/users/update-business-info/") else {
             print("❌ Invalid API URL")
             return
         }

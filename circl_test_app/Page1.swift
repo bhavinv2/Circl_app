@@ -187,7 +187,7 @@ struct Page1: View {
     
     // 🚀 Function to handle login
     func loginUser() {
-        guard let url = URL(string: "http://34.136.164.254:8000/api/login/") else {
+        guard let url = URL(string: "https://circlapp.online/api/login/") else {
             loginMessage = "Invalid login URL"
             return
         }
@@ -278,7 +278,7 @@ struct Page1: View {
     }
     
     func submitForgotPasswordRequest() {
-        guard let url = URL(string: "http://34.136.164.254:8000/api/forgot-password/") else {
+        guard let url = URL(string: "https://circlapp.online/api/forgot-password/") else {
             print("Invalid forgot password URL")
             return
         }

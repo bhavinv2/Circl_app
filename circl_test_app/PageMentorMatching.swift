@@ -175,7 +175,7 @@ struct PageMentorMatching: View {
 
     func fetchMentors() {
         let currentUserEmail = UserDefaults.standard.string(forKey: "user_email") ?? ""
-        guard let url = URL(string: "http://34.136.164.254:8000/api/users/approved_mentors/") else { return }
+        guard let url = URL(string: "https://circlapp.online/api/users/approved_mentors/") else { return }
 
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
@@ -219,7 +219,7 @@ struct PageMentorMatching: View {
 
     func fetchUserNetwork(completion: @escaping () -> Void) {
         guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int,
-              let url = URL(string: "http://34.136.164.254:8000/api/users/get_network/\(userId)/") else {
+              let url = URL(string: "https://circlapp.online/api/users/get_network/\(userId)/") else {
             
             return
         }
@@ -238,7 +238,7 @@ struct PageMentorMatching: View {
 
     func addToNetwork(email: String) {
         guard let senderId = UserDefaults.standard.value(forKey: "user_id") as? Int,
-              let url = URL(string: "http://34.136.164.254:8000/api/users/send_friend_request/") else { return }
+              let url = URL(string: "https://circlapp.online/api/users/send_friend_request/") else { return }
 
         let body: [String: Any] = ["user_id": senderId, "receiver_email": email]
         var request = URLRequest(url: url)
@@ -364,7 +364,7 @@ struct PageMentorMatching: View {
     }
     
     func fetchUserProfile(userId: Int, completion: @escaping (FullProfile?) -> Void) {
-        let urlString = "http://34.136.164.254:8000/api/users/profile/\(userId)/"
+        let urlString = "https://circlapp.online/api/users/profile/\(userId)/"
         guard let url = URL(string: urlString) else {
             print("❌ Invalid URL")
             completion(nil)

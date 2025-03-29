@@ -47,7 +47,7 @@ struct LegalTeamResources: View {
 
     func fetchLegalResources(keyword: String) {
         guard let encodedKeyword = keyword.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
-              let url = URL(string: "http://34.136.164.254:8000/api/legal-resources/?keyword=\(encodedKeyword)") else { return }
+              let url = URL(string: "https://circlapp.online/api/legal-resources/?keyword=\(encodedKeyword)") else { return }
 
         URLSession.shared.dataTask(with: url) { data, response, error in
             guard let data = data, error == nil else {

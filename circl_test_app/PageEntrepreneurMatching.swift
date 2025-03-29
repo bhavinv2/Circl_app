@@ -201,7 +201,7 @@ struct PageEntrepreneurMatching: View {
         let currentUserEmail = UserDefaults.standard.string(forKey: "user_email") ?? ""
         print("🔍 Stored user_email in UserDefaults:", currentUserEmail)
         
-        guard let url = URL(string: "http://34.136.164.254:8000/api/users/get-entrepreneurs/") else { return }
+        guard let url = URL(string: "https://circlapp.online/api/users/get-entrepreneurs/") else { return }
         
         print("🚀 Fetching Entrepreneurs from API...") // Debug Log
         
@@ -260,7 +260,7 @@ struct PageEntrepreneurMatching: View {
     
     func fetchUserNetwork(completion: @escaping () -> Void) {
         guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int,
-              let url = URL(string: "http://34.136.164.254:8000/api/users/get_network/\(userId)/") else {
+              let url = URL(string: "https://circlapp.online/api/users/get_network/\(userId)/") else {
             print("❌ No user_id in UserDefaults")
             return
         }
@@ -307,7 +307,7 @@ struct PageEntrepreneurMatching: View {
     
     func addToNetwork(email: String) {
         guard let senderId = UserDefaults.standard.value(forKey: "user_id") as? Int,
-              let url = URL(string: "http://34.136.164.254:8000/api/users/send_friend_request/") else {
+              let url = URL(string: "https://circlapp.online/api/users/send_friend_request/") else {
             print("❌ Missing sender ID or bad URL")
             return
         }
@@ -341,7 +341,7 @@ struct PageEntrepreneurMatching: View {
     }
     
     func fetchUserProfile(userId: Int, completion: @escaping (FullProfile?) -> Void) {
-        let urlString = "http://34.136.164.254:8000/api/users/profile/\(userId)/"
+        let urlString = "https://circlapp.online/api/users/profile/\(userId)/"
         guard let url = URL(string: urlString) else {
             print("❌ Invalid URL")
             completion(nil)
