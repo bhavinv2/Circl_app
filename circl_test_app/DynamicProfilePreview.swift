@@ -11,14 +11,28 @@ struct DynamicProfilePreview: View {
     let loggedInUserId = UserDefaults.standard.integer(forKey: "user_id")
     
     var body: some View {
-        ZStack {
+        ZStack(alignment: .topTrailing) {
+            
             VStack(spacing: 0) {
                 ScrollView {
+                    HStack {
+                        Spacer()
+                        Button(action: {
+                            dismiss()
+                        }) {
+                            Image(systemName: "chevron.down")
+                                .resizable()
+                                .frame(width: 24, height: 14)
+                                .foregroundColor(.white)
+                                .padding()
+                        }
+                    }
+
                     VStack(spacing: 20) {
                         ZStack {
                             RoundedRectangle(cornerRadius: 10)
                                 .fill(Color.customHex("004aad"))
-                                .frame(height: 300)
+
                             
                             if loggedInUserId != profileData.user_id && isInNetwork {
 
@@ -267,6 +281,7 @@ struct DynamicProfilePreview: View {
                             }
                             .padding()
                         }
+                        
                         
                         ZStack {
                             RoundedRectangle(cornerRadius: 10)

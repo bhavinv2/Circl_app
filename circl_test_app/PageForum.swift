@@ -138,13 +138,17 @@ struct ForumPost: View {
 
                     Spacer()
 
-                    Text(category)
-                        .font(.caption)
-                        .padding(8)
-                        .background(Color.fromHex("ffde59"))
-                        .foregroundColor(.black)
-                        .cornerRadius(5)
-                        .offset(y: 25)
+                    if !category.trimmingCharacters(in: .whitespaces).isEmpty && category != "Category" {
+                        Text(category)
+                            .font(.caption)
+                            .padding(8)
+                            .background(Color.fromHex("ffde59"))
+                            .foregroundColor(.black)
+                            .cornerRadius(5)
+                            .offset(y: 25)
+                    }
+
+
                 }
 
                 Text(content)
@@ -381,15 +385,12 @@ struct ForumMainContent: View {
                                                             .background(Color(UIColor.systemGray4))
                                                             .cornerRadius(5)
                                                         Button(action: {
-                                                            if selectedCategory == "Category" {
-                                                                showCategoryAlert = true
-                                                            } else {
-                                                                submitPost()
-                                                            }
+                                                            submitPost()
                                                         }) {
                                                             Image(systemName: "rectangle.portrait.and.arrow.forward")
                                                                 .foregroundColor(Color.fromHex("004aad"))
                                                         }
+
                                                     }
                                                     
 //                                                    if let selectedImage = selectedImage {
@@ -720,9 +721,10 @@ struct PageForum: View {
 
         let body: [String: Any] = [
             "content": postContent,
-            "category": selectedCategory,
+            "category": selectedCategory == "Category" ? "" : selectedCategory,
             "privacy": selectedPrivacy
         ]
+
 
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
 
