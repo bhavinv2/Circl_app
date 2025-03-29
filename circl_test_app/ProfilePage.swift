@@ -368,7 +368,7 @@ struct ProfilePage: View {
         }
     }
     
-    // Image upload function
+    // Image the upload function
     func uploadProfileImage(image: UIImage) {
         guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else { return }
         let urlString = "https://circlapp.online/api/users/upload_profile_image/"
