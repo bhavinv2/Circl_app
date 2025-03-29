@@ -29,6 +29,8 @@ struct FullProfile: Identifiable, Codable {
 
     let connections_count: Int?
     let circs: Int?
+    let entrepreneurial_history: String?
+
 }
 
 

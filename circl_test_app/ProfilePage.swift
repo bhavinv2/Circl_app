@@ -11,6 +11,25 @@ struct ProfilePage: View {
     // Add these for image upload
     @State private var selectedImage: UIImage?
     @State private var isImagePickerPresented = false
+    
+    @State private var isEditing = false
+    @State private var updatedBio = ""
+    @State private var updatedPersonalityType = ""
+    @State private var updatedEducationLevel = ""
+    @State private var updatedInstitution = ""
+    @State private var updatedCertificates: String = ""
+    @State private var updatedExperience = ""
+    @State private var updatedLocations = ""
+    @State private var updatedAchievements = ""
+    @State private var updatedSkills = ""
+    @State private var updatedAvailability = ""
+    @State private var updatedClubs = ""
+    @State private var updatedHobbies = ""
+    @State private var updatedBirthday = ""  // Add this to your @State variables
+    @State private var updatedEntrepreneurialHistory: String = ""
+
+
+
 
     var body: some View {
         ZStack {
@@ -22,9 +41,9 @@ struct ProfilePage: View {
                             .font(.system(size: 32, weight: .bold))
                             .foregroundColor(Color.customHex("004aad"))
                             .padding(.top, 25)
-                        
+
                         Spacer()
-                        
+
                         HStack(spacing: 15) {
                             NavigationLink(destination: PageSettings().navigationBarBackButtonHidden(true)) {
                                 Image(systemName: "gearshape")
@@ -33,9 +52,28 @@ struct ProfilePage: View {
                                     .frame(width: 30, height: 30)
                                     .foregroundColor(Color.customHex("004aad"))
                             }
+
+                            Button(action: {
+                                if isEditing {
+                                    saveAllProfileUpdates()
+
+                                    // ✅ Delay profile refresh slightly after save
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                                        fetchProfile()
+                                    }
+                                }
+
+                                isEditing.toggle()
+                            }) {
+                                Text(isEditing ? "Save" : "Edit")
+                                    .foregroundColor(Color.customHex("004aad"))
+                                    .fontWeight(.bold)
+                            }
                         }
+                        
                         .padding(.top, 25)
                     }
+
                     .padding(.horizontal, 20)
                     .padding(.top, 15)
                 }
@@ -139,194 +177,340 @@ struct ProfilePage: View {
                             }
                         }
                         
-                        // Personal Secret Section
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 10)
-                                .fill(Color.customHex("004aad"))
-                                .frame(height: 200)
-                            
-                            VStack(spacing: 10) {
-                                VStack(alignment: .leading, spacing: 5) {
-                                    Text("Secret Idea")
-                                        .font(.system(size: 22, weight: .bold))
-                                        .foregroundColor(.white)
-                                    
-                                    Text("Creating an app for entrepreneurs")
-                                        .font(.system(size: 16))
-                                        .foregroundColor(.white)
-                                        .multilineTextAlignment(.leading)
-                                }
-                                .padding(.bottom, 10)
-                                
-                                Divider()
-                                    .background(Color.white)
-                                
-                                VStack(alignment: .leading, spacing: 5) {
-                                    Text("Your Next Steps")
-                                        .font(.system(size: 22, weight: .bold))
-                                        .foregroundColor(.white)
-                                    
-                                    Text("Entrepreneur AI coming soon")
-                                        .font(.system(size: 16))
-                                        .foregroundColor(.white)
-                                        .multilineTextAlignment(.leading)
-                                }
-                            }
-                            .padding()
-                        }
+//                        // Personal Secret Section
+//                        ZStack {
+//                            RoundedRectangle(cornerRadius: 10)
+//                                .fill(Color.customHex("004aad"))
+//                                .frame(height: 200)
+//                            
+//                            VStack(spacing: 10) {
+//                                VStack(alignment: .leading, spacing: 5) {
+//                                    Text("Secret Idea")
+//                                        .font(.system(size: 22, weight: .bold))
+//                                        .foregroundColor(.white)
+//                                    
+//                                    Text("Creating an app for entrepreneurs")
+//                                        .font(.system(size: 16))
+//                                        .foregroundColor(.white)
+//                                        .multilineTextAlignment(.leading)
+//                                }
+//                                .padding(.bottom, 10)
+//                                
+//                                Divider()
+//                                    .background(Color.white)
+//                                
+//                                VStack(alignment: .leading, spacing: 5) {
+//                                    Text("Your Next Steps")
+//                                        .font(.system(size: 22, weight: .bold))
+//                                        .foregroundColor(.white)
+//                                    
+//                                    Text("Entrepreneur AI coming soon")
+//                                        .font(.system(size: 16))
+//                                        .foregroundColor(.white)
+//                                        .multilineTextAlignment(.leading)
+//                                }
+//                            }
+//                            .padding()
+//                        }
                         
+          
                         // Bio Section
-                        ZStack {
+                        ZStack(alignment: .top) {
                             RoundedRectangle(cornerRadius: 10)
                                 .fill(Color.customHex("004aad"))
-                                .frame(height: 150)
-                            
+
                             VStack(alignment: .leading, spacing: 15) {
                                 Text("Bio")
                                     .font(.system(size: 22, weight: .bold))
                                     .foregroundColor(.white)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .frame(maxWidth: .infinity, alignment: .center)
+
+                                VStack(alignment: .leading, spacing: 8) {
+                                  
+
+                                    if isEditing {
+                                        TextEditor(text: $updatedBio)
+                                            .frame(height: 100)
+                                            .foregroundColor(.black)
+                                            .padding(5)
+                                            .background(Color.white)
+                                            .cornerRadius(10)
+                                        
+                                    } else {
+                                        Text(updatedBio.isEmpty ? "Bio not set." : updatedBio)
+                                            .font(.system(size: 16, weight: .bold))
+                                            .foregroundColor(.white)
+                                            .multilineTextAlignment(.leading)
+                                            .frame(maxWidth: .infinity, alignment: .center)
+                                    }
+                                }
+
                                 
-                                if let usage = profileData?.main_usage,
-                                   let industry = profileData?.industry_interest {
-                                    Text("I want to \(usage) in the \(industry) industry.")
-                                        .font(.system(size: 16))
-                                        .foregroundColor(.white)
-                                        .multilineTextAlignment(.leading)
-                                        .padding(.horizontal)
-                                } else {
-                                    Text("Bio not set.")
-                                        .font(.system(size: 16))
-                                        .foregroundColor(.white)
-                                        .multilineTextAlignment(.leading)
-                                        .padding(.horizontal)
-                                }
-
-
-                                if let type = profileData?.personality_type, !type.isEmpty {
-                                    Text("Personality Type: \(type)")
-                                        .font(.system(size: 16, weight: .semibold))
-                                        .foregroundColor(.white)
-                                        .padding(.horizontal)
-                                }
-
                             }
                             .padding()
                         }
-                        
+
+
+
+
+
                         // About Section
                         ZStack {
                             RoundedRectangle(cornerRadius: 10)
                                 .fill(Color.customHex("004aad"))
-                                .frame(height: 400)
-                            
+
                             VStack(alignment: .leading, spacing: 15) {
                                 Text("About \(profileData?.first_name ?? "") \(profileData?.last_name ?? "")")
                                     .font(.system(size: 22, weight: .bold))
                                     .foregroundColor(.white)
+                                    .frame(maxWidth: .infinity, alignment: .center)
                                 
-                                Text("Age: \(calculateAge(from: profileData?.birthday ?? ""))")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
                                 
-                                Text("Education Level: \(profileData?.education_level ?? "N/A")")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
+
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text("Age")
+                                        .foregroundColor(.white)
+                                        .font(.subheadline)
+                                    if isEditing {
+                                        TextField("YYYY-MM-DD", text: $updatedBirthday)
+                                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                                    } else {
+                                        Text(calculateAge(from: updatedBirthday))
+                                            .foregroundColor(.white)
+                                            .font(.system(size: 16, weight: .bold))
+                                    }
+                                }
+
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text("Education Level")
+                                        .foregroundColor(.white)
+                                        .font(.subheadline)
+                                    if isEditing {
+                                        TextField("Education Level", text: $updatedEducationLevel)
+                                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                                    } else {
+                                        Text(updatedEducationLevel)
+                                            .foregroundColor(.white)
+                                            .font(.system(size: 16, weight: .bold))
+                                    }
+                                }
+
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text("Institution")
+                                        .foregroundColor(.white)
+                                        .font(.subheadline)
+                                    if isEditing {
+                                        TextField("Institution", text: $updatedInstitution)
+                                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                                    } else {
+                                        Text(updatedInstitution)
+                                            .foregroundColor(.white)
+                                            .font(.system(size: 16, weight: .bold))
+                                    }
+                                }
+
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text("Location(s)")
+                                        .foregroundColor(.white)
+                                        .font(.subheadline)
+                                    if isEditing {
+                                        TextField("Location(s)", text: $updatedLocations)
+                                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                                    } else {
+                                        Text(updatedLocations)
+                                            .foregroundColor(.white)
+                                            .font(.system(size: 16, weight: .bold))
+                                    }
+                                }
+
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text("Achievements")
+                                        .foregroundColor(.white)
+                                        .font(.subheadline)
+                                    if isEditing {
+                                        TextField("Achievements (comma-separated)", text: $updatedAchievements)
+                                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                                    } else {
+                                        Text(updatedAchievements)
+                                            .foregroundColor(.white)
+                                            .font(.system(size: 16, weight: .bold))
+                                    }
+                                }
                                 
-                                Text("Institution: \(profileData?.institution_attended ?? "N/A")")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
-                                
-                        
-                            
-                                
-                                Text("Location: \(profileData?.locations?.joined(separator: ", ") ?? "N/A")")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
-                                
-                                Text("Achievements: \(profileData?.achievements?.joined(separator: ", ") ?? "N/A")")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text("Personality Type")
+                                        .foregroundColor(.white)
+                                        .font(.subheadline)
+                           
+
+                                    if isEditing {
+                                        TextField("Personality Type", text: $updatedPersonalityType)
+                                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                                    } else if !updatedPersonalityType.isEmpty {
+                                        Text(updatedPersonalityType)
+                                            .font(.system(size: 16, weight: .bold))
+                                            .foregroundColor(.white)
+                                           
+                                    }
+                                }
                             }
                             .padding()
                         }
+
                         
+
+
+
+
                         // Technical Side Section
                         ZStack {
                             RoundedRectangle(cornerRadius: 10)
                                 .fill(Color.customHex("004aad"))
-                                .frame(height: 400)
-                            
+
                             VStack(alignment: .leading, spacing: 15) {
                                 Text("Technical Side")
                                     .font(.system(size: 22, weight: .bold))
                                     .foregroundColor(.white)
-                                
-                                Text("Skills: \(profileData?.skillsets?.joined(separator: ", ") ?? "N/A")")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
-                                
-                                Text("Certificates: \(profileData?.certificates?.joined(separator: ", ") ?? "N/A")")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
-                                
-                                Text("Experience: \(profileData?.years_of_experience.map { "\($0) years" } ?? "N/A")")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
-                                
-//                                Text("Projects/Work Completed: xxx")
-//                                    .font(.system(size: 16, weight: .semibold))
-//                                    .foregroundColor(.white)
-                                
-                                Text("Availability: \(profileData?.availability ?? "N/A")")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
+                                    .frame(maxWidth: .infinity, alignment: .center)
+
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text("Skills")
+                                        .foregroundColor(.white)
+                                        .font(.subheadline)
+                                    if isEditing {
+                                        TextField("Skills (comma-separated)", text: $updatedSkills)
+                                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                                    } else {
+                                        Text(updatedSkills)
+                                            .foregroundColor(.white)
+                                            .font(.system(size: 16, weight: .bold))
+                                    }
+                                }
+
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text("Certificates")
+                                        .foregroundColor(.white)
+                                        .font(.subheadline)
+                                    if isEditing {
+                                        TextField("Certificates (comma-separated)", text: $updatedCertificates)
+                                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                                    } else {
+                                        Text(updatedCertificates)
+                                            .foregroundColor(.white)
+                                            .font(.system(size: 16, weight: .bold))
+                                    }
+                                }
+
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text("Experience")
+                                        .foregroundColor(.white)
+                                        .font(.subheadline)
+                                    if isEditing {
+                                        TextField("Experience (years)", text: $updatedExperience)
+                                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                                            .keyboardType(.numberPad)
+                                    } else {
+                                        Text("\(updatedExperience) years")
+                                            .foregroundColor(.white)
+                                            .font(.system(size: 16, weight: .bold))
+                                    }
+                                }
+
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text("Availability")
+                                        .foregroundColor(.white)
+                                        .font(.subheadline)
+                                    if isEditing {
+                                        TextField("Availability", text: $updatedAvailability)
+                                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                                    } else {
+                                        Text(updatedAvailability)
+                                            .foregroundColor(.white)
+                                            .font(.system(size: 16, weight: .bold))
+                                    }
+                                }
                             }
                             .padding()
                         }
-                        
+
+
                         // Interests Section
                         ZStack {
                             RoundedRectangle(cornerRadius: 10)
                                 .fill(Color.customHex("004aad"))
-                                .frame(height: 300)
-                            
+
                             VStack(alignment: .leading, spacing: 15) {
                                 Text("Interests")
                                     .font(.system(size: 22, weight: .bold))
                                     .foregroundColor(.white)
-                                
-                                Text("Clubs: \(profileData?.clubs?.joined(separator: ", ") ?? "N/A")")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
-                                
-                                Text("Hobbies: \(profileData?.hobbies?.joined(separator: ", ") ?? "N/A")")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
+                                    .frame(maxWidth: .infinity, alignment: .center)
+
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text("Clubs")
+                                        .foregroundColor(.white)
+                                        .font(.subheadline)
+                                    if isEditing {
+                                        TextField("Clubs (comma-separated)", text: $updatedClubs)
+                                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                                    } else {
+                                        Text(updatedClubs)
+                                            .foregroundColor(.white)
+                                            .font(.system(size: 16, weight: .bold))
+                                    }
+                                }
+
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text("Hobbies")
+                                        .foregroundColor(.white)
+                                        .font(.subheadline)
+                                    if isEditing {
+                                        TextField("Hobbies (comma-separated)", text: $updatedHobbies)
+                                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                                    } else {
+                                        Text(updatedHobbies)
+                                            .foregroundColor(.white)
+                                            .font(.system(size: 16, weight: .bold))
+                                    }
+                                }
                             }
                             .padding()
                         }
+
                         
                         // Entrepreneurial History Section
                         ZStack {
                             RoundedRectangle(cornerRadius: 10)
                                 .fill(Color.customHex("004aad"))
-                                .frame(height: 150)
-                            
+
                             VStack(alignment: .leading, spacing: 15) {
                                 Text("Entrepreneurial History")
                                     .font(.system(size: 22, weight: .bold))
                                     .foregroundColor(.white)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                
-//                                Text("nba player")
-//                                    .font(.system(size: 16))
-//                                    .foregroundColor(.white)
-//                                    .multilineTextAlignment(.leading)
-//                                    .padding(.horizontal)
+                                    .frame(maxWidth: .infinity, alignment: .center)
+
+                                VStack(alignment: .leading, spacing: 8) {
+
+                                    if isEditing {
+                                        TextEditor(text: $updatedEntrepreneurialHistory)
+                                            .frame(height: 100)
+                                            .foregroundColor(.black)
+                                            .padding(5)
+                                            .background(Color.white)
+                                            .cornerRadius(10)
+                                    } else {
+                                        Text(updatedEntrepreneurialHistory.isEmpty ? "Enter work experience..." : updatedEntrepreneurialHistory)
+                                            .font(.system(size: 16, weight: .bold))
+                                            .foregroundColor(.white)
+                                            .multilineTextAlignment(.leading)
+                                            .frame(maxWidth: .infinity, alignment: .center)
+                                    }
+                                }
                             }
                             .padding()
                         }
+
+
+                        
                     }
                     .padding()
                 }
@@ -482,6 +666,23 @@ struct ProfilePage: View {
                     DispatchQueue.main.async {
                         print("✅ Decoded:", decoded.full_name)
                         self.profileData = decoded
+                        self.updatedBio = decoded.bio ?? ""
+                        self.updatedPersonalityType = decoded.personality_type ?? ""
+                        self.updatedEducationLevel = decoded.education_level ?? ""
+                        self.updatedInstitution = decoded.institution_attended ?? ""
+                        self.updatedCertificates = (decoded.certificates ?? []).joined(separator: ", ")
+                        self.updatedExperience = decoded.years_of_experience.map { String($0) } ?? ""
+                        self.updatedLocations = (decoded.locations ?? []).joined(separator: ", ")
+                        self.updatedAchievements = (decoded.achievements ?? []).joined(separator: ", ")
+                        self.updatedSkills = (decoded.skillsets ?? []).joined(separator: ", ")
+                        self.updatedAvailability = decoded.availability ?? ""
+                        self.updatedClubs = (decoded.clubs ?? []).joined(separator: ", ")
+                        self.updatedHobbies = (decoded.hobbies ?? []).joined(separator: ", ")
+                        self.updatedBirthday = decoded.birthday ?? ""
+                        self.updatedEntrepreneurialHistory = decoded.entrepreneurial_history ?? ""
+
+
+
                     }
                 } else {
                     print("❌ Failed to decode JSON")
@@ -489,6 +690,54 @@ struct ProfilePage: View {
             }
         }.resume()
     }
+    
+    func saveAllProfileUpdates() {
+        guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else { return }
+        
+        func post(_ urlString: String, _ body: [String: Any]) {
+            guard let url = URL(string: urlString) else { return }
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            if let token = UserDefaults.standard.string(forKey: "auth_token") {
+                request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+            }
+            request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+            URLSession.shared.dataTask(with: request).resume()
+        }
+        
+        post("https://circlapp.online/api/users/update-user-bio/", [
+            "user_id": userId,
+            "bio": updatedBio
+        ])
+        
+        post("https://circlapp.online/api/users/update-personal-details/", [
+            "user_id": userId,
+            "personality_type": updatedPersonalityType,
+            "education_level": updatedEducationLevel,
+            "institution_attended": updatedInstitution,
+            "certificates": updatedCertificates.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespaces) },
+            "years_of_experience": Int(updatedExperience) ?? 0,
+            "birthday": updatedBirthday
+        ])
+        
+        post("https://circlapp.online/api/users/update-skills-interests/", [
+            "user_id": userId,
+            "locations": updatedLocations.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespaces) },
+            "achievements": updatedAchievements.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespaces) },
+            "skillsets": updatedSkills.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespaces) },
+            "availability": updatedAvailability,
+            "clubs": updatedClubs.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespaces) },
+            "hobbies": updatedHobbies.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+        ])
+        
+        post("https://circlapp.online/api/users/update-entrepreneurial-history/", [
+            "user_id": userId,
+            "entrepreneurial_history": updatedEntrepreneurialHistory
+        ])
+    }
+
+
 }
 
 extension Color {

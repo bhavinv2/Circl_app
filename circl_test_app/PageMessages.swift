@@ -705,7 +705,9 @@ struct ChatBox: View {
                                 clubs: nil,
                                 hobbies: nil,
                                 connections_count: nil,
-                                circs: nil
+                                circs: nil,
+                                entrepreneurial_history: ""
+
                             ),
                             isInNetwork: true
                         )
