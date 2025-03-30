@@ -508,6 +508,8 @@ struct PageInvites: View {
                     }
                     .padding()
                 }
+                .dismissKeyboardOnScroll()
+                .dismissKeyboardOnScroll()
                 .sheet(isPresented: Binding(
                     get: { showProfilePreview && selectedFullProfile != nil },
                     set: { newValue in showProfilePreview = newValue }

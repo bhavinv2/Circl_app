@@ -13,97 +13,101 @@ struct Page11: View {
                 // Background Color
                 Color(hexCode: "004aad")
                     .edgesIgnoringSafeArea(.all)
-
-                VStack(spacing: 20) {
-                    Spacer()
-
-                    // Title
-                    Text("Your Business Profile")
-                        .font(.system(size: 32, weight: .bold))
-                        .foregroundColor(Color(hexCode: "ffde59"))
-
-                    // Separator
-                    Rectangle()
-                        .frame(height: 2)
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 40)
-
-                    // Subtitle
-                    Text("Let Us Understand You")
-                        .font(.system(size: 24, weight: .bold))
-                        .foregroundColor(.white)
-                        .padding(.top, 4) // Move text down
-
-                    // Instruction
-                    Text("Please answer below in your own words\nBe as detailed as possible")
-                        .font(.system(size: 18))
-                        .foregroundColor(.white)
-                        .multilineTextAlignment(.center)
-                        .padding(.top, -8) // Reduce spacing between subtitle and instruction
-
-                    // Input Fields
+                
+                
+                ScrollView {
                     VStack(spacing: 20) {
-                        ZStack(alignment: .topLeading) {
-                            TextEditor(text: $successDefinition)
-                                .frame(height: 200)
-                                .background(Color.white.opacity(0.2))
-                                .cornerRadius(10)
-                                .padding(.top, 8)
+                        Spacer()
+
+                        // Title
+                        Text("Your Business Profile")
+                            .font(.system(size: 32, weight: .bold))
+                            .foregroundColor(Color(hexCode: "ffde59"))
+
+                        // Separator
+                        Rectangle()
+                            .frame(height: 2)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 40)
+
+                        // Subtitle
+                        Text("Let Us Understand You")
+                            .font(.system(size: 24, weight: .bold))
+                            .foregroundColor(.white)
+                            .padding(.top, 4) // Move text down
+
+                        // Instruction
+                        Text("Please answer below in your own words\nBe as detailed as possible")
+                            .font(.system(size: 18))
+                            .foregroundColor(.white)
+                            .multilineTextAlignment(.center)
+                            .padding(.top, -8) // Reduce spacing between subtitle and instruction
+
+                        // Input Fields
+                        VStack(spacing: 20) {
+                            ZStack(alignment: .topLeading) {
+                                TextEditor(text: $successDefinition)
+                                    .frame(height: 200)
+                                    .background(Color.white.opacity(0.2))
+                                    .cornerRadius(10)
+                                    .padding(.top, 8)
+                                
+                                if successDefinition.isEmpty {
+                                    Text("What makes your business successful?")
+                                        .foregroundColor(.gray)
+                                        .padding(.leading, 8)
+                                        .padding(.top, 16)
+                                }
+                            }
                             
-                            if successDefinition.isEmpty {
-                                Text("What makes your business successful?")
-                                    .foregroundColor(.gray)
-                                    .padding(.leading, 8)
-                                    .padding(.top, 16)
+                            ZStack(alignment: .topLeading) {
+                                TextEditor(text: $businessUniqueness)
+                                    .frame(height: 200)
+                                    .background(Color.white.opacity(0.2))
+                                    .cornerRadius(10)
+                                    .padding(.top, 8)
+                                
+                                if businessUniqueness.isEmpty {
+                                    Text("What makes your business unique?")
+                                        .foregroundColor(.gray)
+                                        .padding(.leading, 8)
+                                        .padding(.top, 16)
+                                }
                             }
                         }
-                        
-                        ZStack(alignment: .topLeading) {
-                            TextEditor(text: $businessUniqueness)
-                                .frame(height: 200)
-                                .background(Color.white.opacity(0.2))
-                                .cornerRadius(10)
-                                .padding(.top, 8)
-                            
-                            if businessUniqueness.isEmpty {
-                                Text("What makes your business unique?")
-                                    .foregroundColor(.gray)
-                                    .padding(.leading, 8)
-                                    .padding(.top, 16)
+                        .padding(.horizontal, 50)
+                        .padding(.top, 10)
+
+                        Spacer()
+
+                        // Next Button
+                        Button(action: {
+                            saveBusinessDetails()
+                        }) {
+                            NavigationLink(destination: Page12()) {
+                                Text("Next")
+                                    .font(.system(size: 24, weight: .bold))
+                                    .foregroundColor(Color(hexCode: "004aad"))
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 15)
+                                    .background(Color(hexCode: "ffde59"))
+                                    .cornerRadius(10)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 10)
+                                            .stroke(Color.white, lineWidth: 2) // White outline
+                                    )
+                                    .padding(.horizontal, 50)
+                                    .padding(.bottom, 20)
                             }
                         }
+                        .simultaneousGesture(TapGesture().onEnded {
+                            saveBusinessDetails()
+                        })
+
+                        Spacer()
                     }
-                    .padding(.horizontal, 50)
-                    .padding(.top, 10)
-
-                    Spacer()
-
-                    // Next Button
-                    Button(action: {
-                        saveBusinessDetails()
-                    }) {
-                        NavigationLink(destination: Page12()) {
-                            Text("Next")
-                                .font(.system(size: 24, weight: .bold))
-                                .foregroundColor(Color(hexCode: "004aad"))
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 15)
-                                .background(Color(hexCode: "ffde59"))
-                                .cornerRadius(10)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 10)
-                                        .stroke(Color.white, lineWidth: 2) // White outline
-                                )
-                                .padding(.horizontal, 50)
-                                .padding(.bottom, 20)
-                        }
-                    }
-                    .simultaneousGesture(TapGesture().onEnded {
-                        saveBusinessDetails()
-                    })
-
-                    Spacer()
                 }
+                .dismissKeyboardOnScroll()
             }
         }
     }

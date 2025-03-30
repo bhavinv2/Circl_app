@@ -87,91 +87,95 @@ struct Page6: View {
                 // Background Color
                 Color(hexCode: "004aad")
                     .edgesIgnoringSafeArea(.all)
-
-                VStack(spacing: 20) {
-                    Spacer()
-
-                    // Title
-                    Text("Create Your Account")
-                        .font(.system(size: 32, weight: .bold))
-                        .foregroundColor(Color(hexCode: "ffde59"))
-
-                    // Separator
-                    Rectangle()
-                        .frame(height: 2)
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 40)
-
-                    // Section Title aligned to text boxes
-                    HStack {
-                        Text("Personal Information")
-                            .font(.system(size: 24, weight: .bold))
-                            .foregroundColor(.white)
+                
+                ScrollView {
+                    VStack(spacing: 20) {
                         Spacer()
-                    }
-                    .padding(.horizontal, 40) // Aligns with text box padding
-                    .padding(.top, 20)
 
-                    // Input Fields
-                    VStack(spacing: 15) {
-                        TextField("Clubs/Organizations", text: $clubs)
-                            .textFieldStyle(CustomRoundedTextFieldStyle())
-                            .frame(maxWidth: 300) // Matches previous text box width
-                        TextField("Location", text: $locations)
-                            .textFieldStyle(CustomRoundedTextFieldStyle())
-                            .frame(maxWidth: 300)
-                        TextField("Skill Sets", text: $skillsets)
-                            .textFieldStyle(CustomRoundedTextFieldStyle())
-                            .frame(maxWidth: 300)
-                        TextField("Hobbies/Passions", text: $hobbies)
-                            .textFieldStyle(CustomRoundedTextFieldStyle())
-                            .frame(maxWidth: 300)
-                        TextField("Achievements", text: $achievements)
-                            .textFieldStyle(CustomRoundedTextFieldStyle())
-                            .frame(maxWidth: 300)
-                        TextField("Availability", text: $availability)
-                            .textFieldStyle(CustomRoundedTextFieldStyle())
-                            .frame(maxWidth: 300)
-                    }
-                    .padding(.horizontal, 30)
-                    .padding(.top, 10)
+                        // Title
+                        Text("Create Your Account")
+                            .font(.system(size: 32, weight: .bold))
+                            .foregroundColor(Color(hexCode: "ffde59"))
 
-                    Spacer()
+                        // Separator
+                        Rectangle()
+                            .frame(height: 2)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 40)
 
-                    // Next Button
-                    Button(action: {
-                        if clubs.isEmpty ||
-                           locations.isEmpty ||
-                           skillsets.isEmpty ||
-                           hobbies.isEmpty ||
-                           achievements.isEmpty ||
-                           availability.isEmpty {
-                            showMissingFieldsAlert = true
-                        } else {
-                            submitSkillsInterests { success in
-                                if success {
-                                    navigateToPage7 = true
+                        // Section Title aligned to text boxes
+                        HStack {
+                            Text("Personal Information")
+                                .font(.system(size: 24, weight: .bold))
+                                .foregroundColor(.white)
+                            Spacer()
+                        }
+                        .padding(.horizontal, 40) // Aligns with text box padding
+                        .padding(.top, 20)
+
+                        // Input Fields
+                        VStack(spacing: 15) {
+                            TextField("Clubs/Organizations", text: $clubs)
+                                .textFieldStyle(CustomRoundedTextFieldStyle())
+                                .frame(maxWidth: 300) // Matches previous text box width
+                            TextField("Location", text: $locations)
+                                .textFieldStyle(CustomRoundedTextFieldStyle())
+                                .frame(maxWidth: 300)
+                            TextField("Skill Sets", text: $skillsets)
+                                .textFieldStyle(CustomRoundedTextFieldStyle())
+                                .frame(maxWidth: 300)
+                            TextField("Hobbies/Passions", text: $hobbies)
+                                .textFieldStyle(CustomRoundedTextFieldStyle())
+                                .frame(maxWidth: 300)
+                            TextField("Achievements", text: $achievements)
+                                .textFieldStyle(CustomRoundedTextFieldStyle())
+                                .frame(maxWidth: 300)
+                            TextField("Availability", text: $availability)
+                                .textFieldStyle(CustomRoundedTextFieldStyle())
+                                .frame(maxWidth: 300)
+                        }
+                        .padding(.horizontal, 30)
+                        .padding(.top, 10)
+
+                        Spacer()
+
+                        // Next Button
+                        Button(action: {
+                            if clubs.isEmpty ||
+                               locations.isEmpty ||
+                               skillsets.isEmpty ||
+                               hobbies.isEmpty ||
+                               achievements.isEmpty ||
+                               availability.isEmpty {
+                                showMissingFieldsAlert = true
+                            } else {
+                                submitSkillsInterests { success in
+                                    if success {
+                                        navigateToPage7 = true
+                                    }
                                 }
                             }
+                        }) {
+                            Text("Next")
+                                .font(.system(size: 24, weight: .bold))
+                                .foregroundColor(Color(hexCode: "004aad"))
+                                .frame(maxWidth: 300)
+                                .padding(.vertical, 15)
+                                .background(Color(hexCode: "ffde59"))
+                                .cornerRadius(10)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .stroke(Color.white, lineWidth: 2)
+                                )
+                                .padding(.horizontal, 50)
                         }
-                    }) {
-                        Text("Next")
-                            .font(.system(size: 24, weight: .bold))
-                            .foregroundColor(Color(hexCode: "004aad"))
-                            .frame(maxWidth: 300)
-                            .padding(.vertical, 15)
-                            .background(Color(hexCode: "ffde59"))
-                            .cornerRadius(10)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(Color.white, lineWidth: 2)
-                            )
-                            .padding(.horizontal, 50)
+
+
+                        Spacer()
                     }
-
-
-                    Spacer()
                 }
+                .dismissKeyboardOnScroll()
+                
             }
             .navigationBarHidden(true) // Hide the navigation bar
             .alert("Missing Fields", isPresented: $showMissingFieldsAlert) {

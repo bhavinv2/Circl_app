@@ -264,148 +264,152 @@ struct Page9: View {
                         .frame(width: 120, height: 120)
                         .offset(x: UIScreen.main.bounds.width / 2 - 125, y: 20)
                 }
-                VStack(spacing: 20) {
-                    Spacer()
-                    
-                    // Title
-                    Text("Your Business Profile")
-                        .font(.system(size: 32, weight: .bold))
-                        .foregroundColor(Color(hexCode: "ffde59"))
-                    
-                    // Separator
-                    Rectangle()
-                        .frame(height: 2)
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 40)
-                    
-                    // Subtitle
-                    Text("Basic Business Information")
-                        .font(.system(size: 24, weight: .bold))
-                        .foregroundColor(.white)
+                ScrollView {
+                    VStack(spacing: 20) {
+                        Spacer()
+                        
+                        // Title
+                        Text("Your Business Profile")
+                            .font(.system(size: 32, weight: .bold))
+                            .foregroundColor(Color(hexCode: "ffde59"))
+                        
+                        // Separator
+                        Rectangle()
+                            .frame(height: 2)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 40)
+                        
+                        // Subtitle
+                        Text("Basic Business Information")
+                            .font(.system(size: 24, weight: .bold))
+                            .foregroundColor(.white)
+                            .padding(.top, 7)
+                        
+                        VStack(spacing: 15) {
+                            // Business Name Field
+                            TextField("Business Name", text: $businessName)
+                                .padding(15)
+                                .background(Color(hexCode: "d9d9d9"))
+                                .cornerRadius(10)
+                                .font(.system(size: 20))
+                                .foregroundColor(Color(hexCode: "004aad"))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .stroke(Color(hexCode: "004aad"), lineWidth: 2)
+                                )
+                                .frame(maxWidth: .infinity)
+                            
+                            // Potential Scale Type Dropdown
+                            DropdownField(
+                                placeholder: "Potential Scale Type",
+                                options: scaleTypes,
+                                selectedOption: $selectedScaleType
+                            )
+                            .frame(maxWidth: 300, maxHeight: 50)
+                            
+                            // Business Stage Dropdown
+                            DropdownField(
+                                placeholder: "Business Stage",
+                                options: businessStages,
+                                selectedOption: $selectedBusinessStage
+                            )
+                            .frame(maxWidth: 300, maxHeight: 50)
+                            
+                            // Current Revenue Annually Dropdown
+                            DropdownField(
+                                placeholder: "Current Revenue Annually",
+                                options: revenueRanges,
+                                selectedOption: $selectedRevenue
+                            )
+                            .frame(maxWidth: 300, maxHeight: 50)
+                            
+                            // Industry Dropdown
+                            DropdownField3(
+                                placeholder: "Industry",
+                                options: industries.flatMap { section in
+                                    [section.0] + section.1 + ["Other"]
+                                }, // Reverted to original order (no reverse)
+                                selectedOption: $selectedIndustry,
+                                industries: industries
+                            )
+                            .frame(maxWidth: 300, maxHeight: 50)
+                            
+                            // Other Input Fields
+                            TextField("Location (City, State Abbreviation)", text: $businessLocation)
+                                .padding(15)
+                                .background(Color(hexCode: "d9d9d9"))
+                                .cornerRadius(10)
+                                .font(.system(size: 20))
+                                .foregroundColor(Color(hexCode: "004aad"))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .stroke(Color(hexCode: "004aad"), lineWidth: 2)
+                                )
+                                .frame(maxWidth: .infinity)
+                        }
+                        .padding(.horizontal, 50)
                         .padding(.top, 7)
-                    
-                    VStack(spacing: 15) {
-                        // Business Name Field
-                        TextField("Business Name", text: $businessName)
-                            .padding(15)
-                            .background(Color(hexCode: "d9d9d9"))
-                            .cornerRadius(10)
-                            .font(.system(size: 20))
-                            .foregroundColor(Color(hexCode: "004aad"))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(Color(hexCode: "004aad"), lineWidth: 2)
-                            )
-                            .frame(maxWidth: .infinity)
                         
-                        // Potential Scale Type Dropdown
-                        DropdownField(
-                            placeholder: "Potential Scale Type",
-                            options: scaleTypes,
-                            selectedOption: $selectedScaleType
-                        )
-                        .frame(maxWidth: 300, maxHeight: 50)
-                        
-                        // Business Stage Dropdown
-                        DropdownField(
-                            placeholder: "Business Stage",
-                            options: businessStages,
-                            selectedOption: $selectedBusinessStage
-                        )
-                        .frame(maxWidth: 300, maxHeight: 50)
-                        
-                        // Current Revenue Annually Dropdown
-                        DropdownField(
-                            placeholder: "Current Revenue Annually",
-                            options: revenueRanges,
-                            selectedOption: $selectedRevenue
-                        )
-                        .frame(maxWidth: 300, maxHeight: 50)
-                        
-                        // Industry Dropdown
-                        DropdownField3(
-                            placeholder: "Industry",
-                            options: industries.flatMap { section in
-                                [section.0] + section.1 + ["Other"]
-                            }, // Reverted to original order (no reverse)
-                            selectedOption: $selectedIndustry,
-                            industries: industries
-                        )
-                        .frame(maxWidth: 300, maxHeight: 50)
-                        
-                        // Other Input Fields
-                        TextField("Location (City, State Abbreviation)", text: $businessLocation)
-                            .padding(15)
-                            .background(Color(hexCode: "d9d9d9"))
-                            .cornerRadius(10)
-                            .font(.system(size: 20))
-                            .foregroundColor(Color(hexCode: "004aad"))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(Color(hexCode: "004aad"), lineWidth: 2)
-                            )
-                            .frame(maxWidth: .infinity)
-                    }
-                    .padding(.horizontal, 50)
-                    .padding(.top, 7)
-                    
-                    // Checkbox (Toggle) for "Is this business legally incorporated?"
-                    HStack {
-                        Button(action: {
-                            if businessName.isEmpty ||
-                               selectedScaleType == nil ||
-                               selectedBusinessStage == nil ||
-                               selectedRevenue == nil ||
-                               selectedIndustry == nil ||
-                               businessLocation.isEmpty {
-                                showMissingFieldsAlert = true
-                            } else {
-                                submitBusinessInfo()
-                            }
-                        }) {
+                        // Checkbox (Toggle) for "Is this business legally incorporated?"
+                        HStack {
+                            Button(action: {
+                                if businessName.isEmpty ||
+                                   selectedScaleType == nil ||
+                                   selectedBusinessStage == nil ||
+                                   selectedRevenue == nil ||
+                                   selectedIndustry == nil ||
+                                   businessLocation.isEmpty {
+                                    showMissingFieldsAlert = true
+                                } else {
+                                    submitBusinessInfo()
+                                }
+                            }) {
 
-                            Image(systemName: isIncorporated ? "checkmark.square" : "square")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 20, height: 20)
+                                Image(systemName: isIncorporated ? "checkmark.square" : "square")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 20, height: 20)
+                                    .foregroundColor(.white)
+                            }
+                            
+                            Text("Is this business legally incorporated?")
+                                .font(.system(size: 16, weight: .regular))
                                 .foregroundColor(.white)
                         }
+                        .padding(.top, 8)
+                        .padding(.horizontal, 50)
                         
-                        Text("Is this business legally incorporated?")
-                            .font(.system(size: 16, weight: .regular))
-                            .foregroundColor(.white)
+                        Spacer()
+                        
+                        // Next Button
+                        Button(action: {
+                            submitBusinessInfo() // ✅ Sends Business Info & Marks User as Business Owner
+                        }) {
+                            Text("Next")
+                                .font(.system(size: 24, weight: .bold))
+                                .foregroundColor(Color(hexCode: "004aad"))
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 15)
+                                .background(Color(hexCode: "ffde59"))
+                                .cornerRadius(10)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .stroke(Color.white, lineWidth: 2)
+                                )
+                                .padding(.horizontal, 50)
+                                .padding(.bottom, 20)
+                        }
+                        
+                        // ✅ Navigation to Page 10
+                        NavigationLink(destination: Page10(), isActive: $navigateToPage10) {
+                            EmptyView()
+                        }
+                        
+                        Spacer()
                     }
-                    .padding(.top, 8)
-                    .padding(.horizontal, 50)
-                    
-                    Spacer()
-                    
-                    // Next Button
-                    Button(action: {
-                        submitBusinessInfo() // ✅ Sends Business Info & Marks User as Business Owner
-                    }) {
-                        Text("Next")
-                            .font(.system(size: 24, weight: .bold))
-                            .foregroundColor(Color(hexCode: "004aad"))
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 15)
-                            .background(Color(hexCode: "ffde59"))
-                            .cornerRadius(10)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(Color.white, lineWidth: 2)
-                            )
-                            .padding(.horizontal, 50)
-                            .padding(.bottom, 20)
-                    }
-                    
-                    // ✅ Navigation to Page 10
-                    NavigationLink(destination: Page10(), isActive: $navigateToPage10) {
-                        EmptyView()
-                    }
-                    
-                    Spacer()
                 }
+                .dismissKeyboardOnScroll()
+                
             }
             .navigationBarHidden(true) // ✅ Hides default navigation bar
             .alert("Missing Fields", isPresented: $showMissingFieldsAlert) {

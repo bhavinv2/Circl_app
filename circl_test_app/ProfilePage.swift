@@ -515,6 +515,7 @@ struct ProfilePage: View {
                     .padding()
                 }
                 .background(Color(UIColor.systemGray4))
+                .dismissKeyboardOnScroll()
                 
                 // Footer Navigation
                 HStack(spacing: 15) {

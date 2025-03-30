@@ -262,6 +262,7 @@ struct PageBusinessProfile: View {
             .padding()
             .background(Color(.systemGray4))
         }
+        .dismissKeyboardOnScroll()
     }
     
     private var companyOverviewSection: some View {

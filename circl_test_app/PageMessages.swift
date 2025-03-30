@@ -205,6 +205,7 @@ struct PageMessages: View {
                     .cornerRadius(5)
                     .padding(.horizontal)
                 }
+                .dismissKeyboardOnScroll()
                 
                 .frame(height: 150)
             }
@@ -317,6 +318,7 @@ struct PageMessages: View {
             }
             .padding()
         }
+        .dismissKeyboardOnScroll()
     }
 
     private var footerSection: some View {
@@ -781,6 +783,7 @@ struct ChatView: View {
                     }
                     .padding()
                 }
+                .dismissKeyboardOnScroll()
                 .onAppear {
                     chatMessages = messages
                 }

@@ -228,115 +228,118 @@ struct Page5: View {
             ZStack {
                 Color(hexCode: "004aad")
                     .edgesIgnoringSafeArea(.all)
-                
-                VStack(spacing: 20) {
-                    Spacer()
-                    
-                    Text("Create Your Account")
-                        .font(.system(size: 32, weight: .bold))
-                        .foregroundColor(Color(hexCode: "ffde59"))
-                    
-                    Rectangle()
-                        .frame(height: 2)
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 40)
-                    
-                    HStack {
-                        Text("Personal Information")
-                            .font(.system(size: 24, weight: .bold))
-                            .foregroundColor(.white)
+                ScrollView {
+                    VStack(spacing: 20) {
                         Spacer()
-                    }
-                    .padding(.horizontal, 40)
-                    .padding(.top, 20)
-                    
-                    VStack(spacing: 15) {
-                        TextField("Birthday (MM/DD/YY)", text: $birthday)
-                            .onChange(of: birthday) { _ in
-                                formatBirthday()
-                                validateBirthday()
-                            }
-                            .textFieldStyle(RoundedTextFieldStyle())
-                            .frame(maxWidth: 300)
-                            .alert("You must be 18 years or older to sign up.", isPresented: $isUnderage) {
-                                Button("OK", role: .cancel) { }
-                            }
                         
-                        DropdownField(
-                            placeholder: "Education Level",
-                            options: educationOptions,
-                            selectedOption: $educationLevel
-                        )
-                        .frame(maxWidth: 300, maxHeight: 50)
-                        
-                        TextField("Institution Attended", text: $institutionAttended)
-                            .textFieldStyle(RoundedTextFieldStyle())
-                            .frame(maxWidth: 300)
-                        
-                        MultiSelectDropdownField(
-                            placeholder: "Select Certifications",
-                            options: certificationOptions,
-                            selectedOptions: $certifications
-                        )
-
-                        TextField("Years of Experience", text: $yearsOfExperience)
-                            .textFieldStyle(RoundedTextFieldStyle())
-                            .frame(maxWidth: 300)
-                        
-                        TextField("Personality Type (XXXX-Y)", text: $personalityType)
-                            .autocapitalization(.allCharacters)
-                            .onChange(of: personalityType) { _ in validatePersonalityType() }
-                            .textFieldStyle(RoundedTextFieldStyle())
-                            .frame(maxWidth: 300)
-                            .alert("Invalid Personality Type format. Use XXXX-Y.", isPresented: $showInvalidPersonalityAlert) {
-                                Button("OK", role: .cancel) { }
-                            }
-                        
-                        Link("Take the 16 personalities test", destination: URL(string: "https://www.16personalities.com")!)
-                            .font(.system(size: 14, weight: .regular))
+                        Text("Create Your Account")
+                            .font(.system(size: 32, weight: .bold))
                             .foregroundColor(Color(hexCode: "ffde59"))
-                            .underline(true, color: Color(hexCode: "ffde59"))
-                            .padding(.top, 8)
-                    }
-                    .padding(.horizontal, 30)
-                    .padding(.top, 10)
-                    
-                    Spacer()
-                    
-                    // ✅ Updated Next Button with Proper Navigation
-                    Button(action: {
-                        if birthday.isEmpty ||
-                           educationLevel == nil ||
-                           institutionAttended.isEmpty ||
-                           certifications.isEmpty ||
-                           yearsOfExperience.isEmpty ||
-                           personalityType.isEmpty {
-                            showMissingFieldsAlert = true
-                        } else {
-                            submitPersonalDetails { success in
-                                if success {
-                                    navigateToPage6 = true
+                        
+                        Rectangle()
+                            .frame(height: 2)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 40)
+                        
+                        HStack {
+                            Text("Personal Information")
+                                .font(.system(size: 24, weight: .bold))
+                                .foregroundColor(.white)
+                            Spacer()
+                        }
+                        .padding(.horizontal, 40)
+                        .padding(.top, 20)
+                        
+                        VStack(spacing: 15) {
+                            TextField("Birthday (MM/DD/YY)", text: $birthday)
+                                .onChange(of: birthday) { _ in
+                                    formatBirthday()
+                                    validateBirthday()
+                                }
+                                .textFieldStyle(RoundedTextFieldStyle())
+                                .frame(maxWidth: 300)
+                                .alert("You must be 18 years or older to sign up.", isPresented: $isUnderage) {
+                                    Button("OK", role: .cancel) { }
+                                }
+                            
+                            DropdownField(
+                                placeholder: "Education Level",
+                                options: educationOptions,
+                                selectedOption: $educationLevel
+                            )
+                            .frame(maxWidth: 300, maxHeight: 50)
+                            
+                            TextField("Institution Attended", text: $institutionAttended)
+                                .textFieldStyle(RoundedTextFieldStyle())
+                                .frame(maxWidth: 300)
+                            
+                            MultiSelectDropdownField(
+                                placeholder: "Select Certifications",
+                                options: certificationOptions,
+                                selectedOptions: $certifications
+                            )
+
+                            TextField("Years of Experience", text: $yearsOfExperience)
+                                .textFieldStyle(RoundedTextFieldStyle())
+                                .frame(maxWidth: 300)
+                            
+                            TextField("Personality Type (XXXX-Y)", text: $personalityType)
+                                .autocapitalization(.allCharacters)
+                                .onChange(of: personalityType) { _ in validatePersonalityType() }
+                                .textFieldStyle(RoundedTextFieldStyle())
+                                .frame(maxWidth: 300)
+                                .alert("Invalid Personality Type format. Use XXXX-Y.", isPresented: $showInvalidPersonalityAlert) {
+                                    Button("OK", role: .cancel) { }
+                                }
+                            
+                            Link("Take the 16 personalities test", destination: URL(string: "https://www.16personalities.com")!)
+                                .font(.system(size: 14, weight: .regular))
+                                .foregroundColor(Color(hexCode: "ffde59"))
+                                .underline(true, color: Color(hexCode: "ffde59"))
+                                .padding(.top, 8)
+                        }
+                        .padding(.horizontal, 30)
+                        .padding(.top, 10)
+                        
+                        Spacer()
+                        
+                        // ✅ Updated Next Button with Proper Navigation
+                        Button(action: {
+                            if birthday.isEmpty ||
+                               educationLevel == nil ||
+                               institutionAttended.isEmpty ||
+                               certifications.isEmpty ||
+                               yearsOfExperience.isEmpty ||
+                               personalityType.isEmpty {
+                                showMissingFieldsAlert = true
+                            } else {
+                                submitPersonalDetails { success in
+                                    if success {
+                                        navigateToPage6 = true
+                                    }
                                 }
                             }
+                        }) {
+                            Text("Next")
+                                .font(.system(size: 24, weight: .bold))
+                                .foregroundColor(Color(hexCode: "004aad"))
+                                .frame(maxWidth: 300)
+                                .padding(.vertical, 15)
+                                .background(Color(hexCode: "ffde59"))
+                                .cornerRadius(10)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .stroke(Color.white, lineWidth: 2)
+                                )
+                                .padding(.horizontal, 50)
                         }
-                    }) {
-                        Text("Next")
-                            .font(.system(size: 24, weight: .bold))
-                            .foregroundColor(Color(hexCode: "004aad"))
-                            .frame(maxWidth: 300)
-                            .padding(.vertical, 15)
-                            .background(Color(hexCode: "ffde59"))
-                            .cornerRadius(10)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(Color.white, lineWidth: 2)
-                            )
-                            .padding(.horizontal, 50)
+
+
+                        Spacer()
                     }
-
-
-                    Spacer()
                 }
+                .dismissKeyboardOnScroll()
+                
             }
             .navigationBarHidden(true) // Hide the navigation bar
             .alert("Missing Fields", isPresented: $showMissingFieldsAlert) {

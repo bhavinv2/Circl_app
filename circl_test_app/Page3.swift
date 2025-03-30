@@ -62,33 +62,36 @@ struct Page3: View {
                     .edgesIgnoringSafeArea(.all)
                 
                 // Clouds and other UI components...
-                
-                VStack(spacing: 20) {
-                    TitleSection()
-                    Spacer()
-                    PersonalInformationSection(firstName: $firstName, lastName: $lastName, email: $email, phoneNumber: $phoneNumber)
-                    Spacer()
-                    ExperienceSetupSection(
-                        usageInterestOptions: usageInterestOptions,
-                        industryInterestOptions: industryInterestOptions,
-                        selectedUsageInterest: $selectedUsageInterest,
-                        selectedIndustryInterest: $selectedIndustryInterest
-                    )
-                    Spacer()
-                    NextButton(
-                        isSubmitting: $isSubmitting,
-                        submissionMessage: $submissionMessage,
-                        action: {
-                            if firstName.isEmpty || lastName.isEmpty || email.isEmpty || phoneNumber.isEmpty || selectedUsageInterest == nil || selectedIndustryInterest == nil {
-                                showAlert = true
-                            } else {
-                                submitUserInfo()
+                ScrollView {
+                    VStack(spacing: 20) {
+                        TitleSection()
+                        Spacer()
+                        PersonalInformationSection(firstName: $firstName, lastName: $lastName, email: $email, phoneNumber: $phoneNumber)
+                        Spacer()
+                        ExperienceSetupSection(
+                            usageInterestOptions: usageInterestOptions,
+                            industryInterestOptions: industryInterestOptions,
+                            selectedUsageInterest: $selectedUsageInterest,
+                            selectedIndustryInterest: $selectedIndustryInterest
+                        )
+                        Spacer()
+                        NextButton(
+                            isSubmitting: $isSubmitting,
+                            submissionMessage: $submissionMessage,
+                            action: {
+                                if firstName.isEmpty || lastName.isEmpty || email.isEmpty || phoneNumber.isEmpty || selectedUsageInterest == nil || selectedIndustryInterest == nil {
+                                    showAlert = true
+                                } else {
+                                    submitUserInfo()
+                                }
                             }
-                        }
-                    )
+                        )
 
-                    Spacer()
+                        Spacer()
+                    }
                 }
+                .dismissKeyboardOnScroll()
+                
                 .alert(isPresented: $showAlert) {
                     Alert(
                         title: Text("Missing Fields"),

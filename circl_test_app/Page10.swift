@@ -13,110 +13,113 @@ struct Page10: View {
                 // Background Color
                 Color(hexCode: "004aad")
                     .edgesIgnoringSafeArea(.all)
-
-                VStack(spacing: 20) {
-                    Spacer()
-
-                    // Title
-                    Text("Your Business Profile")
-                        .font(.system(size: 32, weight: .bold))
-                        .foregroundColor(Color(hexCode: "ffde59"))
-
-                    // Separator
-                    Rectangle()
-                        .frame(height: 2)
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 40)
-
-                    // Subtitle
-                    Text("Let Us Understand You")
-                        .font(.system(size: 24, weight: .bold))
-                        .foregroundColor(.white)
-                        .padding(.top, 4) // Move text down
-
-                    // Instruction
-                    Text("Please answer in your own words\nbe as detailed as possible")
-                        .font(.system(size: 18))
-                        .foregroundColor(.white)
-                        .multilineTextAlignment(.center)
-                        .padding(.top, -8) // Reduce spacing between subtitle and instruction
-
-                    // Input Fields
+                ScrollView {
                     VStack(spacing: 20) {
-                        // Updated to bind to businessGoals
-                        TextEditor(text: $businessGoals)
-                            .frame(height: 200)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 10)
-                            .background(Color(hexCode: "d9d9d9"))
-                            .cornerRadius(10)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(Color(hexCode: "004aad"), lineWidth: 2)
-                            )
-                            .overlay(
-                                Text("What are your business' goals?")
-                                    .foregroundColor(businessGoals.isEmpty ? .gray : .clear)
-                                    .padding(.leading, 19)
-                                    .padding(.top, 12), alignment: .topLeading
-                            )
-                            .padding(.top, 8) // Move text down
+                        Spacer()
 
-                        // Updated to bind to businessChallenges
-                        TextEditor(text: $businessChallenges)
-                            .frame(height: 200)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 10)
-                            .background(Color(hexCode: "d9d9d9"))
-                            .cornerRadius(10)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(Color(hexCode: "004aad"), lineWidth: 2)
-                            )
-                            .overlay(
-                                Text("What has stopped/is stopping your company from growing?")
-                                    .foregroundColor(businessChallenges.isEmpty ? .gray : .clear)
-                                    .padding(.leading, 19)
-                                    .padding(.top, 12), alignment: .topLeading
-                            )
-                            .padding(.top, 8) // Move text down
-                    }
-                    .padding(.horizontal, 50)
-                    .padding(.top, 10)
+                        // Title
+                        Text("Your Business Profile")
+                            .font(.system(size: 32, weight: .bold))
+                            .foregroundColor(Color(hexCode: "ffde59"))
 
-                    Spacer()
+                        // Separator
+                        Rectangle()
+                            .frame(height: 2)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 40)
 
-                    Button(action: {
-                        if businessGoals.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
-                           businessChallenges.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                            showMissingFieldsAlert = true
-                        } else {
-                            submitBusinessDetails()
-                        }
-                    }) {
-
-                        Text("Next")
+                        // Subtitle
+                        Text("Let Us Understand You")
                             .font(.system(size: 24, weight: .bold))
-                            .foregroundColor(Color(hexCode: "004aad"))
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 15)
-                            .background(Color(hexCode: "ffde59"))
-                            .cornerRadius(10)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(Color.white, lineWidth: 2) // White outline
-                            )
-                            .padding(.horizontal, 50)
-                            .padding(.bottom, 20)
-                    }
+                            .foregroundColor(.white)
+                            .padding(.top, 4) // Move text down
 
-                    // ✅ Navigation to Page 11
-                    NavigationLink(destination: Page11(), isActive: $navigateToPage11) {
-                        EmptyView()
-                    }
+                        // Instruction
+                        Text("Please answer in your own words\nbe as detailed as possible")
+                            .font(.system(size: 18))
+                            .foregroundColor(.white)
+                            .multilineTextAlignment(.center)
+                            .padding(.top, -8) // Reduce spacing between subtitle and instruction
 
-                    Spacer()
+                        // Input Fields
+                        VStack(spacing: 20) {
+                            // Updated to bind to businessGoals
+                            TextEditor(text: $businessGoals)
+                                .frame(height: 200)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 10)
+                                .background(Color(hexCode: "d9d9d9"))
+                                .cornerRadius(10)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .stroke(Color(hexCode: "004aad"), lineWidth: 2)
+                                )
+                                .overlay(
+                                    Text("What are your business' goals?")
+                                        .foregroundColor(businessGoals.isEmpty ? .gray : .clear)
+                                        .padding(.leading, 19)
+                                        .padding(.top, 12), alignment: .topLeading
+                                )
+                                .padding(.top, 8) // Move text down
+
+                            // Updated to bind to businessChallenges
+                            TextEditor(text: $businessChallenges)
+                                .frame(height: 200)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 10)
+                                .background(Color(hexCode: "d9d9d9"))
+                                .cornerRadius(10)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .stroke(Color(hexCode: "004aad"), lineWidth: 2)
+                                )
+                                .overlay(
+                                    Text("What has stopped/is stopping your company from growing?")
+                                        .foregroundColor(businessChallenges.isEmpty ? .gray : .clear)
+                                        .padding(.leading, 19)
+                                        .padding(.top, 12), alignment: .topLeading
+                                )
+                                .padding(.top, 8) // Move text down
+                        }
+                        .padding(.horizontal, 50)
+                        .padding(.top, 10)
+
+                        Spacer()
+
+                        Button(action: {
+                            if businessGoals.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
+                               businessChallenges.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                                showMissingFieldsAlert = true
+                            } else {
+                                submitBusinessDetails()
+                            }
+                        }) {
+
+                            Text("Next")
+                                .font(.system(size: 24, weight: .bold))
+                                .foregroundColor(Color(hexCode: "004aad"))
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 15)
+                                .background(Color(hexCode: "ffde59"))
+                                .cornerRadius(10)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .stroke(Color.white, lineWidth: 2) // White outline
+                                )
+                                .padding(.horizontal, 50)
+                                .padding(.bottom, 20)
+                        }
+
+                        // ✅ Navigation to Page 11
+                        NavigationLink(destination: Page11(), isActive: $navigateToPage11) {
+                            EmptyView()
+                        }
+
+                        Spacer()
+                    }
                 }
+                .dismissKeyboardOnScroll()
+                
             }
             .navigationBarHidden(true) // ✅ Hide the default navigation bar
             .alert("Missing Fields", isPresented: $showMissingFieldsAlert) {

@@ -522,6 +522,7 @@ struct ForumMainContent: View {
                 }
             }
             .background(Color(UIColor.systemGray6))
+            .dismissKeyboardOnScroll()
 
             
             HStack(spacing: 15) {
@@ -541,6 +542,7 @@ struct ForumMainContent: View {
                     CustomCircleButton(iconName: "newspaper")
                 }
             }
+            
             .padding(.vertical, 10)
             .background(Color.white)
             .frame(height: 80)
@@ -836,6 +838,7 @@ struct CommentSheet: View {
                     }
                     .padding()
                 }
+                .dismissKeyboardOnScroll()
 
                 HStack {
                     TextField("Add a comment...", text: $newComment)
