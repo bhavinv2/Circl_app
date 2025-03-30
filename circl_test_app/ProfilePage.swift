@@ -20,9 +20,7 @@ struct ProfilePage: View {
     @State private var updatedCertificates: String = ""
     @State private var updatedExperience = ""
     @State private var updatedLocations = ""
-    @State private var updatedAchievements = ""
     @State private var updatedSkills = ""
-    @State private var updatedAvailability = ""
     @State private var updatedClubs = ""
     @State private var updatedHobbies = ""
     @State private var updatedBirthday = ""  // Add this to your @State variables
@@ -323,19 +321,7 @@ struct ProfilePage: View {
                                     }
                                 }
 
-                                VStack(alignment: .leading, spacing: 8) {
-                                    Text("Achievements")
-                                        .foregroundColor(.white)
-                                        .font(.subheadline)
-                                    if isEditing {
-                                        TextField("Achievements (comma-separated)", text: $updatedAchievements)
-                                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                                    } else {
-                                        Text(updatedAchievements)
-                                            .foregroundColor(.white)
-                                            .font(.system(size: 16, weight: .bold))
-                                    }
-                                }
+                                
                                 
                                 VStack(alignment: .leading, spacing: 8) {
                                     Text("Personality Type")
@@ -416,19 +402,7 @@ struct ProfilePage: View {
                                     }
                                 }
 
-                                VStack(alignment: .leading, spacing: 8) {
-                                    Text("Availability")
-                                        .foregroundColor(.white)
-                                        .font(.subheadline)
-                                    if isEditing {
-                                        TextField("Availability", text: $updatedAvailability)
-                                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                                    } else {
-                                        Text(updatedAvailability)
-                                            .foregroundColor(.white)
-                                            .font(.system(size: 16, weight: .bold))
-                                    }
-                                }
+                                
                             }
                             .padding()
                         }
@@ -674,9 +648,9 @@ struct ProfilePage: View {
                         self.updatedCertificates = (decoded.certificates ?? []).joined(separator: ", ")
                         self.updatedExperience = decoded.years_of_experience.map { String($0) } ?? ""
                         self.updatedLocations = (decoded.locations ?? []).joined(separator: ", ")
-                        self.updatedAchievements = (decoded.achievements ?? []).joined(separator: ", ")
+                      
                         self.updatedSkills = (decoded.skillsets ?? []).joined(separator: ", ")
-                        self.updatedAvailability = decoded.availability ?? ""
+                       
                         self.updatedClubs = (decoded.clubs ?? []).joined(separator: ", ")
                         self.updatedHobbies = (decoded.hobbies ?? []).joined(separator: ", ")
                         self.updatedBirthday = decoded.birthday ?? ""
@@ -725,9 +699,9 @@ struct ProfilePage: View {
         post("https://circlapp.online/api/users/update-skills-interests/", [
             "user_id": userId,
             "locations": updatedLocations.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespaces) },
-            "achievements": updatedAchievements.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespaces) },
+            
             "skillsets": updatedSkills.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespaces) },
-            "availability": updatedAvailability,
+            
             "clubs": updatedClubs.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespaces) },
             "hobbies": updatedHobbies.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespaces) }
         ])

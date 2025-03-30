@@ -17,6 +17,8 @@ struct Page1: View {
             ZStack {
                 Color(hexCode: "004aad")
                     .edgesIgnoringSafeArea(.all)
+                    .navigationBarBackButtonHidden(true)  // Hide back button
+                            .navigationBarHidden(true)  // Hide entire navigation bar if desired
                 
                 ScrollView {
                     

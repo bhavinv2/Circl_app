@@ -230,11 +230,7 @@ struct DynamicProfilePreview: View {
                                         .font(.system(size: 16, weight: .bold))
                                 }
 
-                                if let achievements = profileData.achievements {
-                                    Text("Achievements: \(achievements.joined(separator: ", "))")
-                                        .foregroundColor(.white)
-                                        .font(.system(size: 16, weight: .bold))
-                                }
+                                
 
                                 if let type = profileData.personality_type {
                                     Text("Personality Type: \(type)")
@@ -274,11 +270,7 @@ struct DynamicProfilePreview: View {
                                         .font(.system(size: 16, weight: .bold))
                                 }
 
-                                if let avail = profileData.availability {
-                                    Text("Availability: \(avail)")
-                                        .foregroundColor(.white)
-                                        .font(.system(size: 16, weight: .bold))
-                                }
+                                
                             }
                             .padding()
                         }

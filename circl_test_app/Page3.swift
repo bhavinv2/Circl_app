@@ -55,63 +55,62 @@ struct Page3: View {
     ]
     
     var body: some View {
-        NavigationView {
-            ZStack {
-                // Background Color
-                Color(hexCode: "004aad")
-                    .edgesIgnoringSafeArea(.all)
-                
-                // Clouds and other UI components...
-                ScrollView {
-                    VStack(spacing: 20) {
-                        TitleSection()
-                        Spacer()
-                        PersonalInformationSection(firstName: $firstName, lastName: $lastName, email: $email, phoneNumber: $phoneNumber)
-                        Spacer()
-                        ExperienceSetupSection(
-                            usageInterestOptions: usageInterestOptions,
-                            industryInterestOptions: industryInterestOptions,
-                            selectedUsageInterest: $selectedUsageInterest,
-                            selectedIndustryInterest: $selectedIndustryInterest
-                        )
-                        Spacer()
-                        NextButton(
-                            isSubmitting: $isSubmitting,
-                            submissionMessage: $submissionMessage,
-                            action: {
-                                if firstName.isEmpty || lastName.isEmpty || email.isEmpty || phoneNumber.isEmpty || selectedUsageInterest == nil || selectedIndustryInterest == nil {
-                                    showAlert = true
-                                } else {
-                                    submitUserInfo()
+            NavigationView {
+                ZStack {
+                    // Background Color
+                    Color(hexCode: "004aad")
+                        .edgesIgnoringSafeArea(.all)
+                    
+                    // Clouds and other UI components...
+                    ScrollView {
+                        VStack(spacing: 20) {
+                            TitleSection()
+                            Spacer()
+                            PersonalInformationSection(firstName: $firstName, lastName: $lastName, email: $email, phoneNumber: $phoneNumber)
+                            Spacer()
+                            ExperienceSetupSection(
+                                usageInterestOptions: usageInterestOptions,
+                                industryInterestOptions: industryInterestOptions,
+                                selectedUsageInterest: $selectedUsageInterest,
+                                selectedIndustryInterest: $selectedIndustryInterest
+                            )
+                            Spacer()
+                            NextButton(
+                                isSubmitting: $isSubmitting,
+                                submissionMessage: $submissionMessage,
+                                action: {
+                                    if firstName.isEmpty || lastName.isEmpty || email.isEmpty || phoneNumber.isEmpty || selectedUsageInterest == nil || selectedIndustryInterest == nil {
+                                        showAlert = true
+                                    } else {
+                                        submitUserInfo()
+                                    }
                                 }
-                            }
+                            )
+                            Spacer()
+                        }
+                        .frame(maxWidth: .infinity) // Add this to ensure full width
+                        .padding(.horizontal, 40) // Move padding here from ScrollView
+                    }
+                    .dismissKeyboardOnScroll()
+                    
+                    .alert(isPresented: $showAlert) {
+                        Alert(
+                            title: Text("Missing Fields"),
+                            message: Text("Please fill out all fields before continuing."),
+                            dismissButton: .default(Text("OK"))
                         )
-
-                        Spacer()
                     }
                 }
-                .dismissKeyboardOnScroll()
-                
-                .alert(isPresented: $showAlert) {
-                    Alert(
-                        title: Text("Missing Fields"),
-                        message: Text("Please fill out all fields before continuing."),
-                        dismissButton: .default(Text("OK"))
+                .overlay(CloudsOverlay(), alignment: .topLeading)
+                .background(
+                    NavigationLink(
+                        destination: Page4(),
+                        isActive: $navigateToPage4,
+                        label: { EmptyView() }
                     )
-                }
-
-                .padding(.horizontal, 40)
-            }
-            .overlay(CloudsOverlay(), alignment: .topLeading)
-            .background(
-                NavigationLink(
-                    destination: Page4(),
-                    isActive: $navigateToPage4,
-                    label: { EmptyView() }
                 )
-            )
+            }
         }
-    }
     
     // 🚀 This function ties SwiftUI to PostgreSQL via Django API
     func submitUserInfo() {

@@ -25,6 +25,7 @@ struct Page5: View {
     
     let certificationOptions = [
         "Business and Management": [
+            "Other",
             "Project Management Professional (PMP)",
             "Certified ScrumMaster (CSM)",
             "Six Sigma (Green Belt, Black Belt, etc.)",
@@ -157,25 +158,26 @@ struct Page5: View {
 
         let userId = UserDefaults.standard.integer(forKey: "user_id")
         
-        // ✅ Debugging: Check if user_id is correct
-        print("📌 Stored user_id in UserDefaults: \(userId)")
-
-        // ✅ If user_id is missing, show an error and stop
+        // If user_id is missing, show an error and stop
         if userId == 0 {
             print("❌ User ID not found. Make sure you completed registration on Page 3.")
             completion(false)
             return
         }
 
-        let personalDetails: [String: Any] = [
+        var personalDetails: [String: Any] = [
             "user_id": userId,
             "birthday": formatDateString(birthday),
-            "education_level": educationLevel ?? "",
-            "institution_attended": institutionAttended,
-            "certificates": certifications,
-            "years_of_experience": Int(yearsOfExperience) ?? 0,
-            "personality_type": personalityType
+            "education_level": educationLevel ?? "",  // Optional field
+            "institution_attended": institutionAttended,  // Optional field
+            "certificates": certifications,  // Optional field
+            "years_of_experience": Int(yearsOfExperience) ?? 0,  // Optional field
+            "personality_type": personalityType  // Optional field
         ]
+        
+        // Remove empty fields from the dictionary
+        personalDetails = personalDetails.filter { !($0.value is String && ($0.value as! String).isEmpty) }
+        personalDetails = personalDetails.filter { !($0.value is [String] && ($0.value as! [String]).isEmpty) }
 
         // ✅ Debugging: Print the JSON payload before sending
         if let jsonData = try? JSONSerialization.data(withJSONObject: personalDetails),
@@ -222,6 +224,8 @@ struct Page5: View {
         }
         task.resume()
     }
+
+
 
     var body: some View {
         NavigationView { // Wrap the entire view in a NavigationView
@@ -305,18 +309,11 @@ struct Page5: View {
                         
                         // ✅ Updated Next Button with Proper Navigation
                         Button(action: {
-                            if birthday.isEmpty ||
-                               educationLevel == nil ||
-                               institutionAttended.isEmpty ||
-                               certifications.isEmpty ||
-                               yearsOfExperience.isEmpty ||
-                               personalityType.isEmpty {
-                                showMissingFieldsAlert = true
-                            } else {
-                                submitPersonalDetails { success in
-                                    if success {
-                                        navigateToPage6 = true
-                                    }
+                            submitPersonalDetails { success in
+                                if success {
+                                    navigateToPage6 = true
+                                } else {
+                                    showMissingFieldsAlert = true // Show alert only if submission fails
                                 }
                             }
                         }) {
@@ -333,6 +330,8 @@ struct Page5: View {
                                 )
                                 .padding(.horizontal, 50)
                         }
+
+
 
 
                         Spacer()

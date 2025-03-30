@@ -5,8 +5,6 @@ struct Page6: View {
     @State private var locations: String = ""
     @State private var skillsets: String = ""
     @State private var hobbies: String = ""
-    @State private var achievements: String = ""
-    @State private var availability: String = ""
     @State private var navigateToPage7 = false
     @State private var showMissingFieldsAlert = false
 
@@ -31,9 +29,8 @@ struct Page6: View {
             "clubs": clubs.split(separator: ",").map { String($0).trimmingCharacters(in: .whitespaces) },
             "locations": locations.split(separator: ",").map { String($0).trimmingCharacters(in: .whitespaces) },
             "skillsets": skillsets.split(separator: ",").map { String($0).trimmingCharacters(in: .whitespaces) },
-            "hobbies": hobbies.split(separator: ",").map { String($0).trimmingCharacters(in: .whitespaces) },
-            "achievements": achievements.split(separator: ",").map { String($0).trimmingCharacters(in: .whitespaces) },
-            "availability": availability
+            "hobbies": hobbies.split(separator: ",").map { String($0).trimmingCharacters(in: .whitespaces) }
+           
         ]
 
         // ✅ Debugging: Print the JSON payload before sending
@@ -127,12 +124,8 @@ struct Page6: View {
                             TextField("Hobbies/Passions", text: $hobbies)
                                 .textFieldStyle(CustomRoundedTextFieldStyle())
                                 .frame(maxWidth: 300)
-                            TextField("Achievements", text: $achievements)
-                                .textFieldStyle(CustomRoundedTextFieldStyle())
-                                .frame(maxWidth: 300)
-                            TextField("Availability", text: $availability)
-                                .textFieldStyle(CustomRoundedTextFieldStyle())
-                                .frame(maxWidth: 300)
+                          
+                           
                         }
                         .padding(.horizontal, 30)
                         .padding(.top, 10)
@@ -144,9 +137,7 @@ struct Page6: View {
                             if clubs.isEmpty ||
                                locations.isEmpty ||
                                skillsets.isEmpty ||
-                               hobbies.isEmpty ||
-                               achievements.isEmpty ||
-                               availability.isEmpty {
+                               hobbies.isEmpty {
                                 showMissingFieldsAlert = true
                             } else {
                                 submitSkillsInterests { success in
@@ -169,6 +160,7 @@ struct Page6: View {
                                 )
                                 .padding(.horizontal, 50)
                         }
+
 
 
                         Spacer()
