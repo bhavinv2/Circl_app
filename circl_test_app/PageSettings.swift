@@ -31,21 +31,19 @@ struct PageSettings: View {
                 // ✅ Settings Content (moved up slightly)
                 ScrollView {
                     VStack(spacing: 20) {
-                        // Invite a Friend
-                        SectionHeader(title: "Invite a Friend")
-                        settingsOption(title: "Invite a Friend", iconName: "person.badge.plus.fill", destination: InviteFriendPage())
+
 
                         // Account Settings
                         SectionHeader(title: "Account Settings")
                         settingsOption(title: "Become a Mentor", iconName: "graduationcap.fill", destination: BecomeMentorPage())
 
                         settingsOption(title: "Change Password", iconName: "lock.fill", destination: ChangePasswordPage())
-                        settingsOption(title: "Two-Factor Authentication", iconName: "shield.fill", destination: TwoFactorAuthPage())
+                        
                         settingsOption(title: "Delete Account", iconName: "trash.fill", destination: DeleteAccountPage())
 
                         // Feedback & Suggestions
                         SectionHeader(title: "Feedback & Suggestions")
-                        settingsOption(title: "Rate the App", iconName: "star.fill", destination: RateAppPage())
+                       
                         settingsOption(title: "Suggest a Feature", iconName: "lightbulb.fill", destination: SuggestFeaturePage())
                         settingsOption(title: "Report a Problem", iconName: "exclamationmark.triangle.fill", destination: ReportProblemPage())
 
@@ -57,9 +55,9 @@ struct PageSettings: View {
 
                         // Help & Support
                         SectionHeader(title: "Help & Support")
-                        settingsOption(title: "Help Center", iconName: "questionmark.circle.fill", destination: HelpCenterPage())
+                        
                         settingsOption(title: "Contact Support", iconName: "headphones", destination: ContactSupportPage())
-                        settingsOption(title: "FAQs", iconName: "text.bubble.fill", destination: FAQsPage())
+
 
                         // Logout Button
                         Button(action: {
@@ -77,7 +75,7 @@ struct PageSettings: View {
 
                     }
                     .padding(.horizontal, 20)
-                    .padding(.top, 5) // ✅ Moved up content spacing
+                    .padding(.top, 5) // ✅ Moved up content spacingg
                 }
             }
             .edgesIgnoringSafeArea(.bottom)
@@ -340,7 +338,7 @@ struct ChangePasswordPage: View {
     }
 }
 
-struct TwoFactorAuthPage: View { var body: some View { Text("Two-Factor Authentication Page") } }
+
 struct DeleteAccountPage: View {
     @State private var reason = ""
     @State private var message = ""
@@ -398,9 +396,173 @@ struct DeleteAccountPage: View {
     }
 }
 
-struct RateAppPage: View { var body: some View { Text("Rate the App Page") } }
-struct SuggestFeaturePage: View { var body: some View { Text("Suggest a Feature Page") } }
-struct ReportProblemPage: View { var body: some View { Text("Report a Problem Page") } }
+
+struct SuggestFeaturePage: View {
+    @State private var featureSuggestion = ""
+    @State private var isSubmitted = false
+    @State private var successMessage = ""
+
+    var body: some View {
+        VStack(spacing: 20) {
+            Text("Suggest a Feature")
+                .font(.title)
+                .bold()
+
+            Text("We value your suggestions! Please provide details of the feature you'd like to see.")
+                .font(.body)
+                .foregroundColor(.gray)
+
+            TextEditor(text: $featureSuggestion)
+                .frame(height: 150)
+                .padding()
+                .border(Color.gray, width: 1)
+                .cornerRadius(8)
+
+            Button(action: submitFeatureSuggestion) {
+                Text("Submit Suggestion")
+                    .foregroundColor(.white)
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(Color.blue)
+                    .cornerRadius(10)
+            }
+
+            if isSubmitted {
+                Text(successMessage)
+                    .foregroundColor(.green)
+                    .font(.subheadline)
+            }
+
+            Spacer()
+        }
+        .padding()
+    }
+
+    func submitFeatureSuggestion() {
+        // Ensure feature suggestion is not empty
+        guard !featureSuggestion.isEmpty else {
+            successMessage = "Please provide a suggestion before submitting."
+            return
+        }
+
+        // Prepare the data to send
+        guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else { return }
+
+        let payload: [String: Any] = [
+            "user_id": userId,
+            "feedback_type": "feature_suggestion",
+            "feedback_content": featureSuggestion
+        ]
+
+        // Send to backend (create a new table `app_feedback`)
+        guard let url = URL(string: "https://circlapp.online/api/users/submit_feedback/") else { return }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    successMessage = "Error: \(error.localizedDescription)"
+                } else {
+                    successMessage = "Thank you for your suggestion!"
+                    isSubmitted = true
+                    featureSuggestion = ""  // Clear the field
+                }
+            }
+        }.resume()
+    }
+}
+
+struct ReportProblemPage: View {
+    @State private var problemReport = ""
+    @State private var isSubmitted = false
+    @State private var successMessage = ""
+
+    var body: some View {
+        VStack(spacing: 20) {
+            Text("Report a Problem")
+                .font(.title)
+                .bold()
+
+            Text("Please describe the issue you encountered.")
+                .font(.body)
+                .foregroundColor(.gray)
+
+            TextEditor(text: $problemReport)
+                .frame(height: 150)
+                .padding()
+                .border(Color.gray, width: 1)
+                .cornerRadius(8)
+
+            Button(action: submitProblemReport) {
+                Text("Submit Report")
+                    .foregroundColor(.white)
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(Color.red)
+                    .cornerRadius(10)
+            }
+
+            if isSubmitted {
+                Text(successMessage)
+                    .foregroundColor(.green)
+                    .font(.subheadline)
+            }
+
+            Spacer()
+        }
+        .padding()
+    }
+
+    func submitProblemReport() {
+        // Ensure problem report is not empty
+        guard !problemReport.isEmpty else {
+            successMessage = "Please provide a description of the problem."
+            return
+        }
+
+        // Prepare the data to send
+        guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else { return }
+
+        let payload: [String: Any] = [
+            "user_id": userId,
+            "feedback_type": "problem_report",
+            "feedback_content": problemReport
+        ]
+
+        // Send to backend (create a new table `app_feedback`)
+        guard let url = URL(string: "https://circlapp.online/api/users/submit_feedback/") else { return }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    successMessage = "Error: \(error.localizedDescription)"
+                } else {
+                    successMessage = "Thank you for reporting the problem!"
+                    isSubmitted = true
+                    problemReport = ""  // Clear the field
+                }
+            }
+        }.resume()
+    }
+}
+
 struct TermsOfServicePage: View {
     var body: some View {
         ScrollView {
@@ -565,10 +727,71 @@ By using Circl, you agree to these terms. For inquiries, contact join@circlinter
     }
 }
 
-struct HelpCenterPage: View { var body: some View { Text("Help Center Page") } }
-struct ContactSupportPage: View { var body: some View { Text("Contact Support Page") } }
-struct FAQsPage: View { var body: some View { Text("FAQs Page") } }
-struct InviteFriendPage: View { var body: some View { Text("Invite a Friend Page") } }
+struct ContactSupportPage: View {
+    @State private var name = ""
+    @State private var email = ""
+    @State private var question = ""
+    @State private var isSubmitted = false
+    @State private var successMessage = ""
+
+    var body: some View {
+        VStack(spacing: 20) {
+            Text("Contact Support")
+                .font(.title)
+                .bold()
+
+            // Name field
+            TextField("Your Name", text: $name)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .padding()
+
+            // Email field
+            TextField("Your Email", text: $email)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .padding()
+
+            // Question field
+            TextEditor(text: $question)
+                .frame(height: 150)
+                .padding()
+                .border(Color.gray, width: 1)
+                .cornerRadius(8)
+                .padding()
+
+            // Submit Button
+            Button(action: {
+                // Logic to submit the form (to be added later)
+                isSubmitted = true
+                successMessage = "Thank you for your submission!"
+            }) {
+                Text("Submit Request")
+                    .foregroundColor(.white)
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(Color.blue)
+                    .cornerRadius(10)
+            }
+
+            // Success message after submission
+            if isSubmitted {
+                Text(successMessage)
+                    .foregroundColor(.green)
+                    .font(.subheadline)
+            }
+
+            // Link to external contact page
+            Link("Visit our Contact Page", destination: URL(string: "https://www.circlinternational.com/contact-circl")!)
+                .foregroundColor(.blue)
+                .font(.subheadline)
+
+            Spacer()
+        }
+        .padding()
+    }
+}
+
+
+
 
 struct PageSettings_Previews: PreviewProvider {
     static var previews: some View {
