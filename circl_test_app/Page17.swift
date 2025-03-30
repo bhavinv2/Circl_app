@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct Page17: View {
-    @State private var navigateToPage14 = false
+    @State private var navigateToPage18 = false
 
     var body: some View {
         ZStack {
@@ -46,7 +46,7 @@ struct Page17: View {
 
                 // Next Button
                 Button(action: {
-                    navigateToPage14 = true
+                    navigateToPage18 = true
                 }) {
                     Text("Next")
                         .font(.system(size: 24, weight: .bold))
@@ -66,7 +66,7 @@ struct Page17: View {
                 Spacer()
             }
 
-            NavigationLink(destination: Page14(), isActive: $navigateToPage14) {
+            NavigationLink(destination: Page18(), isActive: $navigateToPage18) {
                 EmptyView()
             }
         }

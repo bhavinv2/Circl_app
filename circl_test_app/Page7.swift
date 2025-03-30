@@ -2,7 +2,7 @@ import SwiftUI
 
 struct Page7: View {
     @State private var navigateToPage8 = false
-    @State private var navigateToPage14 = false // ✅ updated target from Page18
+    @State private var navigateToPage18 = false // ✅ updated target from Page18
 
     var body: some View {
         NavigationView {
@@ -75,9 +75,9 @@ struct Page7: View {
                             .padding(.horizontal, 50)
                     }
 
-                    // ✅ Updated to Page14
+                    // ✅ Updated to Page18
                     Button(action: {
-                        navigateToPage14 = true
+                        navigateToPage18 = true
                     }) {
                         Text("Skip - I am not the CEO, they will add me later")
                             .font(.system(size: 15, weight: .bold))
@@ -90,7 +90,7 @@ struct Page7: View {
                         EmptyView()
                     }
 
-                    NavigationLink(destination: Page14(), isActive: $navigateToPage14) {
+                    NavigationLink(destination: Page18(), isActive: $navigateToPage18) {
                         EmptyView()
                     }
 

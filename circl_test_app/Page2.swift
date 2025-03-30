@@ -143,7 +143,7 @@ struct Page2: View {
                     Spacer()
                     
                     // Next Button
-                    NavigationLink(destination: Page3()) { // Navigate to Page2
+                    NavigationLink(destination: Page14()) { // Navigate to Page2
                         Text("Next")
                             .font(.system(size: 24, weight: .bold))
                             .foregroundColor(Color(hexCode: "004aad"))

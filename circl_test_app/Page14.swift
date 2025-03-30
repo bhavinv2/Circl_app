@@ -4,7 +4,7 @@ struct Page14: View {
     @State private var agreedToTerms = false
     @State private var agreedToPrivacyPolicy = false
     @State private var showAlert = false // State to control the alert
-    @State private var navigateToPage18 = false // State to control navigation
+    @State private var navigateToPage3 = false // State to control navigation
 
     var body: some View {
         NavigationStack { // Use NavigationStack for programmatic navigation
@@ -160,7 +160,7 @@ struct Page14: View {
                     // Next Button
                     Button(action: {
                         if agreedToTerms && agreedToPrivacyPolicy {
-                            navigateToPage18 = true // Trigger navigation
+                            navigateToPage3 = true // Trigger navigation
                         } else {
                             showAlert = true // Show alert if conditions are not met
                         }
@@ -190,8 +190,8 @@ struct Page14: View {
                     Spacer()
                 }
             }
-            .navigationDestination(isPresented: $navigateToPage18) {
-                Page18() // Navigate to Page18 when `navigateToPage18` is true
+            .navigationDestination(isPresented: $navigateToPage3) {
+                Page3() // Navigate to Page3 when `navigateToPage3` is true
             }
         }
     }

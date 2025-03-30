@@ -45,14 +45,6 @@ struct ProfilePage: View {
                         Spacer()
 
                         HStack(spacing: 15) {
-                            NavigationLink(destination: PageSettings().navigationBarBackButtonHidden(true)) {
-                                Image(systemName: "gearshape")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 30, height: 30)
-                                    .foregroundColor(Color.customHex("004aad"))
-                            }
-
                             Button(action: {
                                 if isEditing {
                                     saveAllProfileUpdates()
@@ -69,10 +61,18 @@ struct ProfilePage: View {
                                     .foregroundColor(Color.customHex("004aad"))
                                     .fontWeight(.bold)
                             }
+
+                            NavigationLink(destination: PageSettings().navigationBarBackButtonHidden(true)) {
+                                Image(systemName: "gearshape")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 30, height: 30)
+                                    .foregroundColor(Color.customHex("004aad"))
+                            }
                         }
-                        
                         .padding(.top, 25)
                     }
+
 
                     .padding(.horizontal, 20)
                     .padding(.top, 15)
