@@ -51,12 +51,15 @@ struct DynamicProfilePreview: View {
                                                 .resizable()
                                                 .frame(width: 30, height: 30)
                                                 .foregroundColor(.white)
-                                                .padding()
                                         }
-
+                                        .padding(.top, 8)
+                                        .padding(.trailing, 8)
                                     }
                                     Spacer()
                                 }
+                                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+
+
                                 .confirmationDialog("Remove this user from your network?", isPresented: $showRemoveFriendConfirmation) {
                                     Button("Remove user", role: .destructive) {
                                         removeFriend()

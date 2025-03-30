@@ -3,6 +3,9 @@ import SwiftUI
 // MARK: - Main View
 struct PageSettings: View {
     @Environment(\.presentationMode) var presentationMode  // For dismissing the settings page
+    @State private var showLogoutAlert = false
+    @State private var isLogoutConfirmed = false
+
 
 
     var body: some View {
@@ -59,7 +62,9 @@ struct PageSettings: View {
                         settingsOption(title: "FAQs", iconName: "text.bubble.fill", destination: FAQsPage())
 
                         // Logout Button
-                        Button(action: logoutUser) {
+                        Button(action: {
+                            showLogoutAlert = true  // Trigger alert when button is pressed
+                        }) {
                             Text("Logout")
                                 .font(.headline)
                                 .foregroundColor(.white)
@@ -69,6 +74,7 @@ struct PageSettings: View {
                                 .cornerRadius(10)
                         }
                         .padding(.top, 20)
+
                     }
                     .padding(.horizontal, 20)
                     .padding(.top, 5) // ✅ Moved up content spacing
@@ -76,6 +82,16 @@ struct PageSettings: View {
             }
             .edgesIgnoringSafeArea(.bottom)
             .navigationBarHidden(true)
+            .alert(isPresented: $showLogoutAlert) {
+                Alert(
+                    title: Text("Log out of your account?"),
+                    primaryButton: .destructive(Text("Log Out")) {
+                        logoutUser() // Call the logout function when "Log Out" is pressed
+                    },
+                    secondaryButton: .cancel()
+                )
+            }
+
         }
     }
 
@@ -132,11 +148,12 @@ struct PageSettings: View {
         UserDefaults.standard.set(false, forKey: "isLoggedIn")
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             if let window = UIApplication.shared.windows.first {
-                window.rootViewController = UIHostingController(rootView: Page1())
+                window.rootViewController = UIHostingController(rootView: Page1()) // Redirect to login page
                 window.makeKeyAndVisible()
             }
         }
     }
+
 
     // MARK: - Circle Button (Optional, unused)
     struct CustomCircleButton: View {

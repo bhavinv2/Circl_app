@@ -9,6 +9,7 @@ struct Page1: View {
     @State private var isShowingForgotPasswordPopup = false
     @State private var forgotPasswordEmail: String = ""
     @State private var forgotPasswordConfirmationShown = false
+    @State private var showInvalidCredentialsAlert = false
 
 
     var body: some View {
@@ -119,13 +120,6 @@ struct Page1: View {
 
 
                         Spacer()
-
-                        // Show login error message
-                        if !loginMessage.isEmpty {
-                            Text(loginMessage)
-                                .foregroundColor(.red)
-                                .padding()
-                        }
                     }
                     
                 }
@@ -172,6 +166,11 @@ struct Page1: View {
             } message: {
                 Text("We will get back to you soon with a new password.")
             }
+            .alert("Invalid Credentials", isPresented: $showInvalidCredentialsAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("The email or password you entered is incorrect. Please try again.")
+            }
 
             
             .navigationDestination(isPresented: $isLoggedIn) {
@@ -195,13 +194,13 @@ struct Page1: View {
     // 🚀 Function to handle login
     func loginUser() {
         guard let url = URL(string: "https://circlapp.online/api/login/") else {
-            loginMessage = "Invalid login URL"
+            showInvalidCredentialsAlert = true
             return
         }
 
         let loginData: [String: String] = ["email": email, "password": password]
         guard let jsonData = try? JSONSerialization.data(withJSONObject: loginData) else {
-            loginMessage = "Failed to encode login data"
+            showInvalidCredentialsAlert = true
             return
         }
 
@@ -213,7 +212,7 @@ struct Page1: View {
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
             DispatchQueue.main.async {
                 if let error = error {
-                    loginMessage = "Error: \(error.localizedDescription)"
+                    showInvalidCredentialsAlert = true
                     return
                 }
 
@@ -251,9 +250,6 @@ struct Page1: View {
                                     print("✅ user_email saved:", email)
                                 }
 
-
-
-
                                 if let firstName = jsonResponse["first_name"] as? String,
                                    let lastName = jsonResponse["last_name"] as? String {
                                     let fullName = "\(firstName) \(lastName)"
@@ -273,11 +269,11 @@ struct Page1: View {
 
                             }
                         } catch {
-                            loginMessage = "Error parsing response"
+                            showInvalidCredentialsAlert = true
                         }
                     }
                 } else {
-                    loginMessage = "Invalid credentials"
+                    showInvalidCredentialsAlert = true
                 }
             }
         }
@@ -308,12 +304,6 @@ struct Page1: View {
             }
         }.resume()
     }
-
-
-
-
-
-
 }
 
 struct Page1_Previews: PreviewProvider {

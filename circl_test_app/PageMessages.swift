@@ -291,10 +291,26 @@ struct PageMessages: View {
                                         .font(.system(size: 16, weight: .semibold))
                                     
                                     let lastMessage = messages.last
-                                    Text(lastMessage?.content ?? "")
-                                        .font(.system(size: 14, weight: hasUnread ? .bold : .regular))
-                                        .foregroundColor(hasUnread ? .primary : .gray)
-                                        .lineLimit(1)
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(lastMessage?.content ?? "")
+                                            .font(.system(size: 14, weight: hasUnread ? .bold : .regular))
+                                            .foregroundColor(hasUnread ? .primary : .gray)
+                                            .lineLimit(1)
+                                        
+                                        if hasUnread {
+                                            let myId = UserDefaults.standard.integer(forKey: "user_id")
+                                            let unreadCount = messages.filter {
+                                                $0.receiver_id == myId && !$0.is_read && $0.sender_id != myId
+                                            }.count
+
+                                            if unreadCount > 0 {
+                                                Text("\(unreadCount) message\(unreadCount == 1 ? "" : "s") unread")
+                                                    .font(.system(size: 12, weight: .medium))
+                                                    .foregroundColor(.blue)
+                                            }
+                                        }
+                                    }
+
                                 }
                                 
                                 Spacer()

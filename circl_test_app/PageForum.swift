@@ -32,6 +32,7 @@ struct CommentModel: Identifiable, Codable {
     let created_at: String
     let like_count: Int
     let liked_by_user: Bool
+    let profile_image: String?
 }
     
 func timeAgo(from dateString: String) -> String {
@@ -98,37 +99,22 @@ struct ForumPost: View {
                     Button(action: {
                         onTapProfile()
                     }) {
-                        if let url = URL(string: profileImageName),
-                           let encoded = url.absoluteString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
-                           let finalURL = URL(string: encoded) {
-                            AsyncImage(url: finalURL) { phase in
-                                if let image = phase.image {
-                                    image
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fill)
-                                } else {
-                                    Image("default_image")
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fill)
-                                }
+                        AsyncImage(url: URL(string: profileImageName)) { phase in
+                            if let image = phase.image {
+                                image.resizable().aspectRatio(contentMode: .fill)
+                            } else {
+                                Image("default_image").resizable().aspectRatio(contentMode: .fill)
                             }
-                        } else {
-                            Image("default_image")
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
                         }
+                        .frame(width: 40, height: 40)
+                        .clipShape(Circle())
+                        .shadow(radius: 1)
                     }
-                    .frame(width: 40, height: 40)
-                    .clipShape(Circle())
-                    .shadow(radius: 1)
 
                     VStack(alignment: .leading, spacing: 2) {
                         HStack {
-                            Text(author)
-                                .font(.headline)
-                            Text(isMentor ? "Mentor" : "Entrepreneur")
-                                .font(.subheadline)
-                                .foregroundColor(.gray)
+                            Text(author).font(.headline)
+                            Text(isMentor ? "Mentor" : "Entrepreneur").font(.subheadline).foregroundColor(.gray)
                         }
 
                         Text(timeAgo(from: timestamp))
@@ -147,50 +133,34 @@ struct ForumPost: View {
                             .cornerRadius(5)
                             .offset(y: 25)
                     }
-
-
                 }
 
-                Text(content)
-                    .font(.body)
-                    .lineLimit(3)
-                    .foregroundColor(.black)
-                
+                Text(content).font(.body).lineLimit(3).foregroundColor(.black)
+
+                // Buttons (Like, Comment)
                 HStack {
-                    Button(action: {
-                        toggleLike()
-                    }) {
+                    Button(action: { toggleLike() }) {
                         HStack(spacing: 4) {
                             Image(systemName: "hand.thumbsup.fill")
                                 .foregroundColor(likedByUser ? .red : .gray)
                             Text("Like")
-                            Text("(\(likeCount))")
-                                .foregroundColor(.gray)
+                            Text("(\(likeCount))").foregroundColor(.gray)
                         }
                         .font(.subheadline)
                     }
 
                     Spacer()
 
-                    Button(action: {
-                        onComment()
-                    }) {
+                    Button(action: { onComment() }) {
                         HStack(spacing: 4) {
                             Image(systemName: "message")
                             Text("Comment")
-                            Text("(\(commentCount))")
-                                .foregroundColor(.gray)
+                            Text("(\(commentCount))").foregroundColor(.gray)
                         }
                         .font(.subheadline)
                     }
 
                     Spacer()
-
-//                    Button(action: {
-//                    }) {
-//                        Label("Share", systemImage: "square.and.arrow.up")
-//                            .font(.subheadline)
-//                    }
                 }
                 .padding(.top, 10)
             }
@@ -205,7 +175,7 @@ struct ForumPost: View {
                         Color.black.opacity(0.001)
                             .ignoresSafeArea()
                             .onTapGesture {
-                                showOptionsBox = false
+                                showOptionsBox = false // Close options when tapped outside
                             }
                     }
 
@@ -223,7 +193,7 @@ struct ForumPost: View {
                                 VStack(alignment: .trailing, spacing: 8) {
                                     Button("Delete Post") {
                                         showOptionsBox = false
-                                        showDeleteConfirmation = true
+                                        showDeleteConfirmation = true // Show confirmation
                                     }
                                     .font(.system(size: 14))
                                     .foregroundColor(.red)
@@ -248,14 +218,15 @@ struct ForumPost: View {
                             title: Text("Delete Post?"),
                             message: Text("Are you sure you want to delete this post?"),
                             primaryButton: .destructive(Text("Delete")) {
-                                onDelete()
+                                onDelete() // Call the onDelete closure to delete the post
                             },
-                            secondaryButton: .cancel()
+                            secondaryButton: .cancel() // Cancel the delete action
                         )
                     }
                 }
             }
         }
+
     }
 }
 
@@ -569,6 +540,8 @@ struct PageForum: View {
     @State private var showProfileSheet = false
     @State private var isLoading = false
     @State private var showPageLoading = true
+    
+    
 
     var body: some View {
         NavigationView {
@@ -763,6 +736,26 @@ struct PageForum: View {
         let endpoint = post.liked_by_user ? "unlike" : "like"
         guard let url = URL(string: "https://circlapp.online/api/forum/posts/\(post.id)/\(endpoint)/") else { return }
 
+        // 🔁 Immediately update the UI locally
+        if let index = posts.firstIndex(where: { $0.id == post.id }) {
+            posts[index] = ForumPostModel(
+                id: post.id,
+                user: post.user,
+                user_id: post.user_id,
+                profileImage: post.profileImage,
+                content: post.content,
+                category: post.category,
+                privacy: post.privacy,
+                image: post.image,
+                created_at: post.created_at,
+                comment_count: post.comment_count,
+                like_count: post.liked_by_user ? post.like_count - 1 : post.like_count + 1,
+                liked_by_user: !post.liked_by_user,
+                isMentor: post.isMentor
+            )
+        }
+
+        // ✅ Then make the request in the background
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -771,11 +764,7 @@ struct PageForum: View {
             request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
         }
 
-        URLSession.shared.dataTask(with: request) { _, _, _ in
-            DispatchQueue.main.async {
-                fetchPostsWithoutLoading()
-            }
-        }.resume()
+        URLSession.shared.dataTask(with: request).resume()
     }
 
     func deletePost(_ postId: Int) {
@@ -814,12 +803,32 @@ struct CommentSheet: View {
                     VStack(alignment: .leading, spacing: 12) {
                         ForEach(comments) { comment in
                             HStack(alignment: .top, spacing: 12) {
-                                Image("default_image")
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fill)
+                                // Profile Image
+                                if let urlString = comment.profile_image,
+                                   let encoded = urlString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+                                   let url = URL(string: encoded) {
+                                    AsyncImage(url: url) { phase in
+                                        if let image = phase.image {
+                                            image
+                                                .resizable()
+                                                .aspectRatio(contentMode: .fill)
+                                        } else {
+                                            Image("default_image")
+                                                .resizable()
+                                                .aspectRatio(contentMode: .fill)
+                                        }
+                                    }
                                     .frame(width: 34, height: 34)
                                     .clipShape(Circle())
                                     .shadow(radius: 1)
+                                } else {
+                                    Image("default_image")
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fill)
+                                        .frame(width: 34, height: 34)
+                                        .clipShape(Circle())
+                                        .shadow(radius: 1)
+                                }
 
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(comment.user)
@@ -838,6 +847,7 @@ struct CommentSheet: View {
                     }
                     .padding()
                 }
+
                 .dismissKeyboardOnScroll()
 
                 HStack {

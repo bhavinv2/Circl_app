@@ -5,6 +5,10 @@ import Foundation
 // MARK: - InviteProfileTemplate
 struct InviteProfileTemplate: View {
     @State private var requestHandled = false
+    @Binding var friendRequests: [PageInvites.InviteProfileData]
+    @Binding var showAlert: Bool
+    @Binding var alertMessage: String
+
     
     func acceptFriendRequest() {
         guard let receiverId = UserDefaults.standard.value(forKey: "user_id") as? Int else {
@@ -40,9 +44,13 @@ struct InviteProfileTemplate: View {
 
             DispatchQueue.main.async {
                 self.requestHandled = true
+                friendRequests.removeAll { $0.email == self.email }
+                alertMessage = "Friend request accepted"
+                showAlert = true
             }
         }.resume()
     }
+
 
     func declineFriendRequest() {
         guard let receiverId = UserDefaults.standard.value(forKey: "user_id") as? Int else {
@@ -71,11 +79,16 @@ struct InviteProfileTemplate: View {
                 print("❌ Error:", error.localizedDescription)
                 return
             }
+
             DispatchQueue.main.async {
                 self.requestHandled = true
+                friendRequests.removeAll { $0.email == self.email }
+                alertMessage = "Friend request rejected"
+                showAlert = true
             }
         }.resume()
     }
+
 
     var name: String
     var username: String
@@ -259,6 +272,9 @@ struct InviteProfileDetailPage: View {
 
 // MARK: - InviteProfileLink
 struct InviteProfileLink: View {
+    @Binding var friendRequests: [PageInvites.InviteProfileData]
+    @Binding var showAlert: Bool
+    @Binding var alertMessage: String
     var name: String
     var username: String
     var email: String
@@ -267,7 +283,6 @@ struct InviteProfileLink: View {
     var proficiency: String
     var tags: [String]
     var profileImage: String?
-
     var showAcceptDeclineButtons: Bool
     
     var body: some View {
@@ -282,6 +297,9 @@ struct InviteProfileLink: View {
             profileImage: profileImage
         )) {
             InviteProfileTemplate(
+                friendRequests: $friendRequests,
+                showAlert: $showAlert,
+                alertMessage: $alertMessage,
                 name: name,
                 username: username,
                 email: email,
@@ -292,6 +310,7 @@ struct InviteProfileLink: View {
                 profileImage: profileImage,
                 showAcceptDeclineButtons: showAcceptDeclineButtons
             )
+
         }
     }
 }
@@ -305,6 +324,8 @@ struct PageInvites: View {
     @State private var selectedUserForPreview: InviteProfileData?
     @State private var showProfilePreview: Bool = false
     @State private var selectedFullProfile: FullProfile? // Step 2: Added state for detailed profile
+    @State private var showAlert = false
+    @State private var alertMessage = ""
     
     var body: some View {
         NavigationView {
@@ -418,6 +439,9 @@ struct PageInvites: View {
                         if let user = searchedUser {
                             VStack {
                                 InviteProfileLink(
+                                    friendRequests: $friendRequests,
+                                    showAlert: $showAlert,
+                                    alertMessage: $alertMessage,
                                     name: user.name,
                                     username: user.username,
                                     email: user.email,
@@ -428,16 +452,24 @@ struct PageInvites: View {
                                     profileImage: user.profileImage,
                                     showAcceptDeclineButtons: false
                                 )
+
                                 
-                                Button(action: { sendFriendRequest(to: user.email) }) {
+                                Button(action: {
+                                    sendFriendRequest(to: user.email)
+                                    searchedUser = nil // ❌ clear it immediately
+                                    alertMessage = "Friend request sent"
+                                    showAlert = true
+                                }) {
                                     Text("Send Friend Request")
                                         .font(.headline)
                                         .padding()
                                         .frame(maxWidth: .infinity)
-                                        .background(Color.blue)
+                                        .background(Color(hexCode: "004aad"))
                                         .foregroundColor(.white)
                                         .cornerRadius(10)
+                                        .padding(.horizontal)
                                 }
+
                                 .padding(.horizontal)
                             }
                         }
@@ -455,6 +487,9 @@ struct PageInvites: View {
                         } else {
                             ForEach(friendRequests) { profile in
                                 InviteProfileLink(
+                                    friendRequests: $friendRequests,
+                                    showAlert: $showAlert,
+                                    alertMessage: $alertMessage,
                                     name: profile.name,
                                     username: profile.username,
                                     email: profile.email,
@@ -465,6 +500,7 @@ struct PageInvites: View {
                                     profileImage: profile.profileImage,
                                     showAcceptDeclineButtons: true
                                 )
+
                             }
                         }
                         
@@ -478,6 +514,9 @@ struct PageInvites: View {
                         
                         ForEach(myNetwork) { profile in
                             InviteProfileTemplate(
+                                friendRequests: $friendRequests,
+                                showAlert: $showAlert,
+                                alertMessage: $alertMessage,
                                 name: profile.name,
                                 username: profile.username,
                                 email: profile.email,
@@ -488,6 +527,7 @@ struct PageInvites: View {
                                 profileImage: profile.profileImage,
                                 showAcceptDeclineButtons: false
                             )
+
                             .onTapGesture {
                                 self.selectedFullProfile = nil  // Clear old data explicitly
                                 fetchUserProfile(userId: profile.user_id) { profileData in
@@ -547,6 +587,10 @@ struct PageInvites: View {
             }
             .edgesIgnoringSafeArea(.bottom)
             .navigationBarBackButtonHidden(true)
+            .alert(isPresented: $showAlert) {
+                Alert(title: Text(alertMessage))
+            }
+
             .onAppear {
                 fetchFriendRequests()
                 fetchNetwork()
