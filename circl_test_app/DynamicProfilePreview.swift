@@ -32,6 +32,7 @@ struct DynamicProfilePreview: View {
                         ZStack {
                             RoundedRectangle(cornerRadius: 10)
                                 .fill(Color.customHex("004aad"))
+                                .padding(.top, -30)
 
                             
                             if loggedInUserId != profileData.user_id && isInNetwork {
@@ -128,6 +129,7 @@ struct DynamicProfilePreview: View {
 
                             }
                         }
+                     
                         
                         ZStack {
                             RoundedRectangle(cornerRadius: 10)
@@ -164,144 +166,166 @@ struct DynamicProfilePreview: View {
                             .padding()
                         }
                         
-                        ZStack {
+                        // Bio Section
+                        ZStack(alignment: .top) {
                             RoundedRectangle(cornerRadius: 10)
                                 .fill(Color.customHex("004aad"))
-                                .frame(height: 150)
-                            
+
                             VStack(alignment: .leading, spacing: 15) {
                                 Text("Bio")
                                     .font(.system(size: 22, weight: .bold))
                                     .foregroundColor(.white)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                
-//                                Text(profileData.bio ?? "N/A")
-                                    .font(.system(size: 16))
+                                    .frame(maxWidth: .infinity, alignment: .center)
+
+                                Text(profileData.bio?.isEmpty == true ? "Bio not set." : (profileData.bio ?? "Bio not set."))
+                                    .font(.system(size: 16, weight: .bold))
                                     .foregroundColor(.white)
-                                    .multilineTextAlignment(.leading)
-                                    .padding(.horizontal)
+                                    .multilineTextAlignment(.center)
 
                                 if let type = profileData.personality_type, !type.isEmpty {
                                     Text("Personality Type: \(type)")
-                                        .font(.system(size: 16, weight: .semibold))
+                                        .font(.system(size: 16, weight: .bold))
                                         .foregroundColor(.white)
-                                        .padding(.horizontal)
+                                        .multilineTextAlignment(.center)
                                 }
-
                             }
                             .padding()
                         }
-                        
+
+                        // About Section
                         ZStack {
                             RoundedRectangle(cornerRadius: 10)
                                 .fill(Color.customHex("004aad"))
-                                .frame(height: 400)
-                            
+
                             VStack(alignment: .leading, spacing: 15) {
                                 Text("About \(profileData.first_name) \(profileData.last_name)")
                                     .font(.system(size: 22, weight: .bold))
                                     .foregroundColor(.white)
-                                
-                                Text("Age: \(calculateAge(from: profileData.birthday ?? ""))")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
-                                
-                                Text("Education Level: \(profileData.education_level ?? "N/A")")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
-                                
-                                Text("Institution: \(profileData.institution_attended ?? "N/A")")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
-                                
-                                
-                                
-                                Text("Location: \(profileData.locations?.joined(separator: ", ") ?? "N/A")")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
-                                
-                                Text("Achievements: \(profileData.achievements?.joined(separator: ", ") ?? "N/A")")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
+                                    .frame(maxWidth: .infinity, alignment: .center)
+
+                                if let birthday = profileData.birthday {
+                                    Text("Age: \(calculateAge(from: birthday))")
+                                        .foregroundColor(.white)
+                                        .font(.system(size: 16, weight: .bold))
+                                }
+
+                                if let level = profileData.education_level {
+                                    Text("Education Level: \(level)")
+                                        .foregroundColor(.white)
+                                        .font(.system(size: 16, weight: .bold))
+                                }
+
+                                if let institution = profileData.institution_attended {
+                                    Text("Institution: \(institution)")
+                                        .foregroundColor(.white)
+                                        .font(.system(size: 16, weight: .bold))
+                                }
+
+                                if let locations = profileData.locations {
+                                    Text("Location(s): \(locations.joined(separator: ", "))")
+                                        .foregroundColor(.white)
+                                        .font(.system(size: 16, weight: .bold))
+                                }
+
+                                if let achievements = profileData.achievements {
+                                    Text("Achievements: \(achievements.joined(separator: ", "))")
+                                        .foregroundColor(.white)
+                                        .font(.system(size: 16, weight: .bold))
+                                }
+
+                                if let type = profileData.personality_type {
+                                    Text("Personality Type: \(type)")
+                                        .foregroundColor(.white)
+                                        .font(.system(size: 16, weight: .bold))
+                                }
                             }
                             .padding()
                         }
-                        
+
+                        // Technical Side Section
                         ZStack {
                             RoundedRectangle(cornerRadius: 10)
                                 .fill(Color.customHex("004aad"))
-                                .frame(height: 400)
-                            
+
                             VStack(alignment: .leading, spacing: 15) {
                                 Text("Technical Side")
                                     .font(.system(size: 22, weight: .bold))
                                     .foregroundColor(.white)
-                                
-                                Text("Skills: \(profileData.skillsets?.joined(separator: ", ") ?? "N/A")")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
-                                
-                                Text("Certificates: \(profileData.certificates?.joined(separator: ", ") ?? "N/A")")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
-                                
-                                Text("Experience: \(profileData.years_of_experience.map { "\($0) years" } ?? "N/A")")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
-                                    .foregroundColor(.white)
-                                
-//                                Text("Projects/Work Completed: xxx")
-//                                    .font(.system(size: 16, weight: .semibold))
-//                                    .foregroundColor(.white)
-                                
-                                Text("Availability: \(profileData.availability ?? "N/A")")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
+                                    .frame(maxWidth: .infinity, alignment: .center)
+
+                                if let skills = profileData.skillsets {
+                                    Text("Skills: \(skills.joined(separator: ", "))")
+                                        .foregroundColor(.white)
+                                        .font(.system(size: 16, weight: .bold))
+                                }
+
+                                if let certs = profileData.certificates {
+                                    Text("Certificates: \(certs.joined(separator: ", "))")
+                                        .foregroundColor(.white)
+                                        .font(.system(size: 16, weight: .bold))
+                                }
+
+                                if let years = profileData.years_of_experience {
+                                    Text("Experience: \(years) years")
+                                        .foregroundColor(.white)
+                                        .font(.system(size: 16, weight: .bold))
+                                }
+
+                                if let avail = profileData.availability {
+                                    Text("Availability: \(avail)")
+                                        .foregroundColor(.white)
+                                        .font(.system(size: 16, weight: .bold))
+                                }
                             }
                             .padding()
                         }
-                        
+
+                        // Interests Section
                         ZStack {
                             RoundedRectangle(cornerRadius: 10)
                                 .fill(Color.customHex("004aad"))
-                                .frame(height: 300)
-                            
+
                             VStack(alignment: .leading, spacing: 15) {
                                 Text("Interests")
                                     .font(.system(size: 22, weight: .bold))
                                     .foregroundColor(.white)
-                                
-                                Text("Clubs: \(profileData.clubs?.joined(separator: ", ") ?? "N/A")").font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
+                                    .frame(maxWidth: .infinity, alignment: .center)
 
-                                
-                                Text("Hobbies: \(profileData.hobbies?.joined(separator: ", ") ?? "N/A")")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
+                                if let clubs = profileData.clubs {
+                                    Text("Clubs: \(clubs.joined(separator: ", "))")
+                                        .foregroundColor(.white)
+                                        .font(.system(size: 16, weight: .bold))
+                                }
+
+                                if let hobbies = profileData.hobbies {
+                                    Text("Hobbies: \(hobbies.joined(separator: ", "))")
+                                        .foregroundColor(.white)
+                                        .font(.system(size: 16, weight: .bold))
+                                }
                             }
                             .padding()
                         }
-                        
-                        
+
+                        // Entrepreneurial History Section
                         ZStack {
                             RoundedRectangle(cornerRadius: 10)
                                 .fill(Color.customHex("004aad"))
-                                .frame(height: 150)
-                            
+
                             VStack(alignment: .leading, spacing: 15) {
                                 Text("Entrepreneurial History")
                                     .font(.system(size: 22, weight: .bold))
                                     .foregroundColor(.white)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                
-//                                Text("xxx")
-//                                    .font(.system(size: 16))
-//                                    .foregroundColor(.white)
-//                                    .multilineTextAlignment(.leading)
-//                                    .padding(.horizontal)
+                                    .frame(maxWidth: .infinity, alignment: .center)
+
+                                Text(profileData.entrepreneurial_history?.isEmpty == true ? "Enter work experience..." : (profileData.entrepreneurial_history ?? ""))
+                                    .font(.system(size: 16, weight: .bold))
+                                    .foregroundColor(.white)
+                                    .multilineTextAlignment(.center)
+                                    .frame(maxWidth: .infinity)
                             }
                             .padding()
                         }
+
                     }
                     .padding()
                 }
