@@ -768,50 +768,85 @@ struct ChatView: View {
     
     @State private var messageText: String = ""
     @State private var chatMessages: [Message] = []
+    @State private var scrollTarget: Int? = nil
+    @State private var isFirstAppearance = true
 
     var body: some View {
         VStack {
-            ScrollViewReader { scrollViewProxy in
+            ScrollViewReader { proxy in
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 10) {
+                    LazyVStack(alignment: .leading, spacing: 10) {
                         ForEach(chatMessages) { message in
-                            HStack {
-                                if message.sender_id == UserDefaults.standard.integer(forKey: "user_id") {
-                                    Spacer()
-                                    Text(message.content)
-                                        .padding()
-                                        .background(Color.blue)
-                                        .foregroundColor(.white)
-                                        .cornerRadius(10)
-                                        .frame(maxWidth: 250, alignment: .trailing)
-                                } else {
-                                    Text(message.content)
-                                        .padding()
-                                        .background(Color.gray.opacity(0.2))
-                                        .foregroundColor(.black)
-                                        .cornerRadius(10)
-                                        .frame(maxWidth: 250, alignment: .leading)
-                                    Spacer()
-                                }
-                            }
-                            .id(message.id)
+                            messageView(for: message)
+                                .id(message.id)
+                                .transition(.opacity)
                         }
                     }
                     .padding()
+                    .background(
+                        GeometryReader { geometry in
+                            Color.clear
+                                .onAppear {
+                                    // This ensures we scroll after messages are rendered
+                                    if isFirstAppearance {
+                                        scrollToBottom(proxy: proxy, animated: false)
+                                        isFirstAppearance = false
+                                    }
+                                }
+                        }
+                    )
                 }
                 .dismissKeyboardOnScroll()
                 .onAppear {
                     chatMessages = messages
+                    // Double insurance for initial scroll
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        scrollToBottom(proxy: proxy, animated: false)
+                    }
                 }
-                .onChange(of: chatMessages) { _ in
-                    if let last = chatMessages.last {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                            scrollViewProxy.scrollTo(last.id, anchor: .bottom)
-                        }
+                .onChange(of: messages) { newMessages in
+                    chatMessages = newMessages
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        scrollToBottom(proxy: proxy, animated: true)
+                    }
+                }
+                .onChange(of: chatMessages) { newMessages in
+                    guard !newMessages.isEmpty else { return }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        scrollToBottom(proxy: proxy, animated: true)
                     }
                 }
             }
 
+            messageInputView
+        }
+        .navigationBarTitle(user.name, displayMode: .inline)
+    }
+
+    @ViewBuilder
+    private func messageView(for message: Message) -> some View {
+        HStack {
+            if message.sender_id == UserDefaults.standard.integer(forKey: "user_id") {
+                Spacer()
+                Text(message.content)
+                    .padding()
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
+                    .frame(maxWidth: 250, alignment: .trailing)
+            } else {
+                Text(message.content)
+                    .padding()
+                    .background(Color.gray.opacity(0.2))
+                    .foregroundColor(.black)
+                    .cornerRadius(10)
+                    .frame(maxWidth: 250, alignment: .leading)
+                Spacer()
+            }
+        }
+    }
+
+    private var messageInputView: some View {
             HStack(spacing: 10) {
                 TextField("Type a message...", text: $messageText)
                     .padding(.vertical, 12)
@@ -824,12 +859,7 @@ struct ChatView: View {
                     )
                     .font(.system(size: 16))
 
-                Button(action: {
-                    if !messageText.isEmpty {
-                        sendMessage(content: messageText, recipient: user)
-                        messageText = ""
-                    }
-                }) {
+                Button(action: sendMessageAction) {
                     Image(systemName: "arrow.up.circle.fill")
                         .resizable()
                         .frame(width: 30, height: 30)
@@ -839,9 +869,26 @@ struct ChatView: View {
             .padding(.horizontal)
             .padding(.bottom)
         }
-        .navigationBarTitle(user.name, displayMode: .inline)
-        .onAppear {
-            chatMessages = messages
+
+    private func sendMessageAction() {
+            guard !messageText.isEmpty else { return }
+            sendMessage(content: messageText, recipient: user)
+            messageText = ""
+        }
+
+    private func scrollToBottom(proxy: ScrollViewProxy, animated: Bool) {
+        guard !chatMessages.isEmpty else { return }
+        let lastId = chatMessages.last?.id
+        
+        // Debug print to verify we have messages and an ID
+        print("Attempting to scroll to message with ID: \(lastId ?? -1)")
+        
+        if animated {
+            withAnimation {
+                proxy.scrollTo(lastId, anchor: .bottom)
+            }
+        } else {
+            proxy.scrollTo(lastId, anchor: .bottom)
         }
     }
 
@@ -866,9 +913,8 @@ struct ChatView: View {
             "content": content
         ]
 
-        guard let jsonData = try? JSONSerialization.data(withJSONObject: messageData) else { return }
-
-        guard let url = URL(string: "https://circlapp.online/api/users/send_message/") else { return }
+        guard let jsonData = try? JSONSerialization.data(withJSONObject: messageData),
+              let url = URL(string: "https://circlapp.online/api/users/send_message/") else { return }
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"

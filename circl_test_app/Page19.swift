@@ -23,15 +23,7 @@ struct Page19: View {
             
             Spacer() // Centers content vertically by balancing space
             
-            NavigationLink(destination: Page1()) {
-                Text("Back to Login")
-                    .font(.headline)
-                    .fontWeight(.bold)
-                    .foregroundColor(Color.white)
-                    .padding()
-                    .background(Color.yellow) // Changed to regular yellow
-                    .cornerRadius(10)
-            }
+            
             .padding(.bottom, 20)
         }
         .padding()

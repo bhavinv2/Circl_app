@@ -544,63 +544,62 @@ struct PageForum: View {
     
 
     var body: some View {
-        NavigationView {
-            ForumMainContent(
-                selectedFilter: $selectedFilter,
-                selectedCategory: $selectedCategory,
-                selectedPrivacy: $selectedPrivacy,
-                postContent: $postContent,
-                selectedImage: $selectedImage,
-                isImagePickerPresented: $isImagePickerPresented,
-                sourceType: $sourceType,
-                posts: $posts,
-                selectedPostIdForComments: $selectedPostIdForComments,
-                loggedInUserFullName: $loggedInUserFullName,
-                selectedProfile: $selectedProfile,
-                showProfileSheet: $showProfileSheet,
-                showCategoryAlert: $showCategoryAlert,
-                isLoading: $isLoading,
-                showPageLoading: $showPageLoading,
-                fetchPosts: {
-                    fetchPostsWithLoading()
-                },
-                submitPost: submitPost,
-                deletePost: deletePost,
-                toggleLike: toggleLike,
-                fetchUserProfile: fetchUserProfile
-            )
-            .edgesIgnoringSafeArea(.bottom)
-            .navigationBarBackButtonHidden(true)
-            .sheet(isPresented: $isImagePickerPresented) {
-                ImagePicker(image: $selectedImage)
-            }
-            .sheet(item: $selectedPostIdForComments) { post in
-                CommentSheet(
-                    postId: post.id,
-                    isPresented: Binding(
-                        get: { selectedPostIdForComments != nil },
-                        set: { newValue in
-                            if !newValue {
-                                selectedPostIdForComments = nil
-                            }
-                        }
-                    ),
-                    onDismiss: {
-                        fetchPostsWithoutLoading()
-                    }
-                )
-            }
-            .sheet(item: $selectedProfile) { profile in
-                DynamicProfilePreview(profileData: profile, isInNetwork: true)
-            }
-            .onAppear {
-                loggedInUserFullName = UserDefaults.standard.string(forKey: "user_fullname") ?? ""
-                selectedFilter = UserDefaults.standard.string(forKey: "selectedFilter") ?? "public"
+        // Remove NavigationView from here and just use ForumMainContent directly
+        ForumMainContent(
+            selectedFilter: $selectedFilter,
+            selectedCategory: $selectedCategory,
+            selectedPrivacy: $selectedPrivacy,
+            postContent: $postContent,
+            selectedImage: $selectedImage,
+            isImagePickerPresented: $isImagePickerPresented,
+            sourceType: $sourceType,
+            posts: $posts,
+            selectedPostIdForComments: $selectedPostIdForComments,
+            loggedInUserFullName: $loggedInUserFullName,
+            selectedProfile: $selectedProfile,
+            showProfileSheet: $showProfileSheet,
+            showCategoryAlert: $showCategoryAlert,
+            isLoading: $isLoading,
+            showPageLoading: $showPageLoading,
+            fetchPosts: {
                 fetchPostsWithLoading()
-            }
-            .alert("Please select a category to post.", isPresented: $showCategoryAlert) {
-                Button("OK", role: .cancel) { }
-            }
+            },
+            submitPost: submitPost,
+            deletePost: deletePost,
+            toggleLike: toggleLike,
+            fetchUserProfile: fetchUserProfile
+        )
+        .edgesIgnoringSafeArea(.bottom)
+        .navigationBarBackButtonHidden(true)  // Add this line to explicitly hide back button
+        .sheet(isPresented: $isImagePickerPresented) {
+            ImagePicker(image: $selectedImage)
+        }
+        .sheet(item: $selectedPostIdForComments) { post in
+            CommentSheet(
+                postId: post.id,
+                isPresented: Binding(
+                    get: { selectedPostIdForComments != nil },
+                    set: { newValue in
+                        if !newValue {
+                            selectedPostIdForComments = nil
+                        }
+                    }
+                ),
+                onDismiss: {
+                    fetchPostsWithoutLoading()
+                }
+            )
+        }
+        .sheet(item: $selectedProfile) { profile in
+            DynamicProfilePreview(profileData: profile, isInNetwork: true)
+        }
+        .onAppear {
+            loggedInUserFullName = UserDefaults.standard.string(forKey: "user_fullname") ?? ""
+            selectedFilter = UserDefaults.standard.string(forKey: "selectedFilter") ?? "public"
+            fetchPostsWithLoading()
+        }
+        .alert("Please select a category to post.", isPresented: $showCategoryAlert) {
+            Button("OK", role: .cancel) { }
         }
     }
     

@@ -179,7 +179,7 @@ struct Page1: View {
                 PageForum() // Navigate to main page on successful login
             }
             .navigationDestination(isPresented: $isNavigatingToSignup) {
-                Page3() // Navigate to signup page
+                Page2() // Navigate to signup page
             }
             .onAppear {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { // Small delay to ensure consistency

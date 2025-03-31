@@ -80,10 +80,12 @@ struct Page3: View {
                                 submissionMessage: $submissionMessage,
                                 action: {
                                     if firstName.isEmpty || lastName.isEmpty || email.isEmpty || phoneNumber.isEmpty || selectedUsageInterest == nil || selectedIndustryInterest == nil {
+                                        submissionMessage = "Please fill out all fields before continuing."
                                         showAlert = true
                                     } else {
                                         submitUserInfo()
                                     }
+
                                 }
                             )
                             Spacer()
@@ -91,15 +93,17 @@ struct Page3: View {
                         .frame(maxWidth: .infinity) // Add this to ensure full width
                         .padding(.horizontal, 40) // Move padding here from ScrollView
                     }
-                    .dismissKeyboardOnScroll()
                     
+                    .dismissKeyboardOnScroll()
                     .alert(isPresented: $showAlert) {
                         Alert(
-                            title: Text("Missing Fields"),
-                            message: Text("Please fill out all fields before continuing."),
+                            title: Text("Registration Error"),
+                            message: Text(submissionMessage),
                             dismissButton: .default(Text("OK"))
                         )
                     }
+
+                    
                 }
                 .overlay(CloudsOverlay(), alignment: .topLeading)
                 .background(
@@ -129,7 +133,6 @@ struct Page3: View {
             "industry_interest": selectedIndustryInterest ?? ""
         ]
 
-        // ✅ Debugging: Print the JSON payload before sending
         if let jsonData = try? JSONSerialization.data(withJSONObject: userInfo),
            let jsonString = String(data: jsonData, encoding: .utf8) {
             print("🚀 Sending JSON: \(jsonString)")
@@ -147,46 +150,57 @@ struct Page3: View {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = jsonData
 
-        isSubmitting = true // Start submission
+        isSubmitting = true
 
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
             DispatchQueue.main.async {
-                isSubmitting = false // Stop submission
+                isSubmitting = false
 
                 if let error = error {
                     submissionMessage = "Error: \(error.localizedDescription)"
+                    showAlert = true
                     print("❌ Request Error: \(error.localizedDescription)")
                     return
                 }
 
                 if let httpResponse = response as? HTTPURLResponse {
                     print("📡 Response Status Code: \(httpResponse.statusCode)")
+
                     if httpResponse.statusCode == 201 {
                         submissionMessage = "Success! User registered."
                         print("✅ User registered successfully.")
 
-                        // ✅ Extract user_id from response and store it
                         if let data = data,
                            let responseDict = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                            let userId = responseDict["user_id"] as? Int {
-                            DispatchQueue.main.async {
-                                UserDefaults.standard.set(userId, forKey: "user_id")
-                                UserDefaults.standard.synchronize() // ✅ Ensures immediate storage
-                                print("📌 Stored user_id in UserDefaults: \(userId)")
-                            }
+                            UserDefaults.standard.set(userId, forKey: "user_id")
+                            UserDefaults.standard.synchronize()
+                            print("📌 Stored user_id in UserDefaults: \(userId)")
                         } else {
                             print("❌ Failed to extract user_id from response.")
                         }
 
                         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                            navigateToPage4 = true // Navigate to Page4 after success
+                            navigateToPage4 = true
                         }
+
+                    } else if httpResponse.statusCode == 400 {
+                        if let data = data,
+                           let errorDict = try? JSONSerialization.jsonObject(with: data) as? [String: [String]],
+                           let emailErrors = errorDict["email"] {
+                            submissionMessage = emailErrors.first ?? "This email is already taken. Please choose a new one."
+                        } else {
+                            submissionMessage = "This email is already taken. Please choose a new one."
+                        }
+                        showAlert = true
+                        print("❌ Email already in use.")
+
                     } else {
                         submissionMessage = "Failed to register user. Status code: \(httpResponse.statusCode)"
+                        showAlert = true
                         print("❌ Failed to register user. Status code: \(httpResponse.statusCode)")
                     }
                 }
-
 
                 if let data = data, let responseString = String(data: data, encoding: .utf8) {
                     print("📩 Response Body: \(responseString)")
@@ -195,6 +209,7 @@ struct Page3: View {
         }
         task.resume()
     }
+
 
 
 }
@@ -299,11 +314,7 @@ struct NextButton: View {
             }
             .disabled(isSubmitting) // Disable button while submitting
 
-            if !submissionMessage.isEmpty {
-                Text(submissionMessage)
-                    .foregroundColor(submissionMessage.contains("Success") ? .green : .red)
-                    .padding()
-            }
+           
         }
     }
 }
