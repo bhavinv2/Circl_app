@@ -79,6 +79,7 @@ struct ForumPost: View {
     let category: String
     let profileImageName: String
     let company: String
+    let postID: Int
     var onComment: () -> Void
     let commentCount: Int
     let likeCount: Int
@@ -91,6 +92,8 @@ struct ForumPost: View {
 
     @State private var showOptionsBox = false
     @State private var showDeleteConfirmation = false
+    @State private var showReportSheet = false
+
 
     var body: some View {
         ZStack(alignment: .topTrailing) {
@@ -169,66 +172,141 @@ struct ForumPost: View {
             .cornerRadius(10)
             .shadow(radius: 2)
 
-            if isCurrentUser {
-                ZStack(alignment: .topTrailing) {
-                    if showOptionsBox {
-                        Color.black.opacity(0.001)
-                            .ignoresSafeArea()
-                            .onTapGesture {
-                                showOptionsBox = false // Close options when tapped outside
-                            }
-                    }
+            ZStack(alignment: .topTrailing) {
+                if showOptionsBox {
+                    Color.black.opacity(0.001)
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            showOptionsBox = false
+                        }
+                }
 
-                    HStack(spacing: 12) {
-                        ZStack(alignment: .topTrailing) {
-                            Button(action: {
-                                showOptionsBox.toggle()
-                            }) {
-                                Image(systemName: "ellipsis")
-                                    .foregroundColor(.gray)
-                                    .font(.system(size: 25, weight: .regular))
-                            }
+                HStack(spacing: 12) {
+                    ZStack(alignment: .topTrailing) {
+                        Button(action: {
+                            showOptionsBox.toggle()
+                        }) {
+                            Image(systemName: "ellipsis")
+                                .foregroundColor(.gray)
+                                .font(.system(size: 25, weight: .regular))
+                        }
 
-                            if showOptionsBox {
-                                VStack(alignment: .trailing, spacing: 8) {
+                        if showOptionsBox {
+                            VStack(alignment: .trailing, spacing: 8) {
+                                if isCurrentUser {
                                     Button("Delete Post") {
                                         showOptionsBox = false
-                                        showDeleteConfirmation = true // Show confirmation
+                                        showDeleteConfirmation = true
                                     }
-                                    .font(.system(size: 14))
+                                    .foregroundColor(.red)
+                                } else {
+                                    Button("Report Post") {
+                                        showOptionsBox = false
+                                        showReportSheet = true
+                                    }
                                     .foregroundColor(.red)
                                 }
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 10)
-                                .background(Color.white)
-                                .cornerRadius(25)
-                                .shadow(radius: 4)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 25)
-                                        .stroke(Color.gray.opacity(0.2), lineWidth: 0.5)
-                                )
-                                .offset(x: -25, y: 0)
                             }
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 10)
+                            .background(Color.white)
+                            .cornerRadius(25)
+                            .shadow(radius: 4)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 25)
+                                    .stroke(Color.gray.opacity(0.2), lineWidth: 0.5)
+                            )
+                            .offset(x: -25, y: 0)
                         }
                     }
-                    .offset(x: -25, y: 20)
-
-                    .alert(isPresented: $showDeleteConfirmation) {
-                        Alert(
-                            title: Text("Delete Post?"),
-                            message: Text("Are you sure you want to delete this post?"),
-                            primaryButton: .destructive(Text("Delete")) {
-                                onDelete() // Call the onDelete closure to delete the post
-                            },
-                            secondaryButton: .cancel() // Cancel the delete action
-                        )
-                    }
                 }
+                .offset(x: -25, y: 20)
             }
+            .alert(isPresented: $showDeleteConfirmation) {
+                Alert(
+                    title: Text("Delete Post?"),
+                    message: Text("Are you sure you want to delete this post?"),
+                    primaryButton: .destructive(Text("Delete")) {
+                        onDelete()
+                    },
+                    secondaryButton: .cancel()
+                )
+            }
+            .sheet(isPresented: $showReportSheet) {
+                ReportPostView(postID: postID, isPresented: $showReportSheet)
+            }
+
         }
 
     }
 }
+
+
+struct ReportPostView: View {
+    let postID: Int
+    @Binding var isPresented: Bool
+    @State private var selectedReason = ""
+    @State private var submitting = false
+
+    let reasons = [
+        "Spam or misleading",
+        "Harassment or hate speech",
+        "Explicit content",
+        "Violence or harmful behavior",
+        "Other"
+    ]
+
+    var body: some View {
+        NavigationView {
+            Form {
+                Section(header: Text("Why are you reporting this post?")) {
+                    Picker("Select reason", selection: $selectedReason) {
+                        ForEach(reasons, id: \.self) { Text($0) }
+                    }
+                }
+
+                if submitting {
+                    ProgressView("Submitting...")
+                }
+
+                Button("Submit Report") {
+                    submitReport()
+                }
+                .disabled(selectedReason.isEmpty)
+            }
+            .navigationTitle("Report Post")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { isPresented = false }
+                }
+            }
+        }
+    }
+
+    func submitReport() {
+        guard let url = URL(string: "https://circlapp.online/api/report_post/") else { return }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        let data: [String: Any] = [
+            "post_id": postID,
+            "reason": selectedReason
+        ]
+        request.httpBody = try? JSONSerialization.data(withJSONObject: data)
+
+        URLSession.shared.dataTask(with: request) { _, _, _ in
+            DispatchQueue.main.async {
+                isPresented = false
+            }
+        }.resume()
+    }
+}
+
 
 struct ForumMainContent: View {
     @Binding var selectedFilter: String
@@ -459,6 +537,7 @@ struct ForumMainContent: View {
                                                         category: post.category,
                                                         profileImageName: post.profileImage ?? "",
                                                         company: "Circl",
+                                                        postID: post.id,  // ✅ Moved here
                                                         onComment: {
                                                             selectedPostIdForComments = post
                                                         },
@@ -482,6 +561,7 @@ struct ForumMainContent: View {
                                                         },
                                                         isMentor: post.isMentor ?? false
                                                     )
+
                                                     .onAppear {
                                                         print("🧠 profileImage for \(post.user): \(post.profileImage ?? "nil")")
                                                     }
