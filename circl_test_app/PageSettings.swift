@@ -1,5 +1,11 @@
 import SwiftUI
 
+
+struct BlockedUser: Identifiable, Hashable {
+    let id: Int
+    let name: String
+}
+
 // MARK: - Main View
 struct PageSettings: View {
     @Environment(\.presentationMode) var presentationMode  // For dismissing the settings page
@@ -38,6 +44,9 @@ struct PageSettings: View {
                         settingsOption(title: "Become a Mentor", iconName: "graduationcap.fill", destination: BecomeMentorPage())
 
                         settingsOption(title: "Change Password", iconName: "lock.fill", destination: ChangePasswordPage())
+                        
+                        settingsOption(title: "Blocked Users", iconName: "person.crop.circle.badge.xmark", destination: BlockedUsersPage())
+
                         
                         settingsOption(title: "Delete Account", iconName: "trash.fill", destination: DeleteAccountPage())
 
@@ -249,6 +258,96 @@ struct BecomeMentorPage: View {
         }.resume()
     }
 }
+
+struct BlockedUsersPage: View {
+    @State private var blockedUsers: [BlockedUser] = []
+
+    @State private var message: String = ""
+
+    var body: some View {
+        VStack {
+            Text("Blocked Users")
+                .font(.title)
+                .bold()
+                .padding(.top)
+
+            if blockedUsers.isEmpty {
+                Text("You haven’t blocked anyone.")
+                    .foregroundColor(.gray)
+                    .padding()
+            } else {
+                List {
+                    ForEach(blockedUsers) { user in
+                        HStack {
+                            Text(user.name)
+                            Spacer()
+                            Button("Unblock") {
+                                unblock(userId: user.id)
+                            }
+                            .foregroundColor(.red)
+                        }
+                    }
+
+                }
+            }
+
+            if !message.isEmpty {
+                Text(message)
+                    .foregroundColor(.green)
+                    .padding()
+            }
+
+            Spacer()
+        }
+        .onAppear(perform: fetchBlockedUsers)
+        .padding()
+    }
+
+    func fetchBlockedUsers() {
+        guard let url = URL(string: "https://circlapp.online/api/users/get_blocked_users/"),
+              let token = UserDefaults.standard.string(forKey: "auth_token") else { return }
+
+        var request = URLRequest(url: url)
+        request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+
+        URLSession.shared.dataTask(with: request) { data, _, _ in
+            if let data = data,
+               let result = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] {
+                let users = result.compactMap { dict -> BlockedUser? in
+                    guard let id = dict["id"] as? Int,
+                          let name = dict["name"] as? String else { return nil }
+                    return BlockedUser(id: id, name: name)
+                }
+
+                DispatchQueue.main.async {
+                    self.blockedUsers = users
+                }
+            }
+
+        }.resume()
+    }
+
+    func unblock(userId: Int) {
+        guard let url = URL(string: "https://circlapp.online/api/users/unblock_user/"),
+              let token = UserDefaults.standard.string(forKey: "auth_token") else { return }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+
+        let payload = ["blocked_id": userId]
+        request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
+
+        URLSession.shared.dataTask(with: request) { _, _, _ in
+            DispatchQueue.main.async {
+                self.message = "User unblocked!"
+                self.fetchBlockedUsers()
+            }
+        }.resume()
+    }
+}
+
 
 
 struct ChangePasswordPage: View {

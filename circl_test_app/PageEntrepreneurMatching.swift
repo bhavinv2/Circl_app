@@ -202,10 +202,17 @@ struct PageEntrepreneurMatching: View {
         print("🔍 Stored user_email in UserDefaults:", currentUserEmail)
         
         guard let url = URL(string: "https://circlapp.online/api/users/get-entrepreneurs/") else { return }
-        
-        print("🚀 Fetching Entrepreneurs from API...") // Debug Log
-        
-        URLSession.shared.dataTask(with: url) { data, response, error in
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+
             if let error = error {
                 print("❌ Request Error: \(error.localizedDescription)")
                 return

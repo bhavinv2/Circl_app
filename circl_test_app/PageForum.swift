@@ -620,6 +620,8 @@ struct PageForum: View {
     @State private var showProfileSheet = false
     @State private var isLoading = false
     @State private var showPageLoading = true
+    @State private var userNetworkIds: [Int] = []
+
     
     
 
@@ -671,13 +673,19 @@ struct PageForum: View {
             )
         }
         .sheet(item: $selectedProfile) { profile in
-            DynamicProfilePreview(profileData: profile, isInNetwork: true)
+            DynamicProfilePreview(
+                profileData: profile,
+                isInNetwork: userNetworkIds.contains(profile.user_id)
+            )
         }
+
         .onAppear {
             loggedInUserFullName = UserDefaults.standard.string(forKey: "user_fullname") ?? ""
             selectedFilter = UserDefaults.standard.string(forKey: "selectedFilter") ?? "public"
+            fetchUserNetworkIds()
             fetchPostsWithLoading()
         }
+
         .alert("Please select a category to post.", isPresented: $showCategoryAlert) {
             Button("OK", role: .cancel) { }
         }
@@ -810,6 +818,28 @@ struct PageForum: View {
             }
         }.resume()
     }
+    
+    func fetchUserNetworkIds() {
+        let userId = UserDefaults.standard.integer(forKey: "user_id")
+        guard let url = URL(string: "https://circlapp.online/api/users/get_network/\(userId)/") else { return }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            guard let data = data,
+                  let json = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] else { return }
+
+            let ids = json.compactMap { $0["id"] as? Int }
+            DispatchQueue.main.async {
+                userNetworkIds = ids
+            }
+        }.resume()
+    }
+
 
     func toggleLike(_ post: ForumPostModel) {
         let endpoint = post.liked_by_user ? "unlike" : "like"
@@ -1065,4 +1095,3 @@ struct PageForum_Previews: PreviewProvider {
         PageForum()
     }
 }
-

@@ -7,6 +7,8 @@ struct DynamicProfilePreview: View {
     
     @State private var showRemoveFriendConfirmation = false
     @Environment(\.dismiss) var dismiss
+    @State private var showBlockConfirmation = false
+
 
     let loggedInUserId = UserDefaults.standard.integer(forKey: "user_id")
     
@@ -35,17 +37,25 @@ struct DynamicProfilePreview: View {
                                 .padding(.top, -30)
 
                             
-                            if loggedInUserId != profileData.user_id && isInNetwork {
-
+                            if loggedInUserId != profileData.user_id {
                                 VStack {
                                     HStack {
                                         Spacer()
                                         Menu {
-                                            Button(role: .destructive) {
-                                                showRemoveFriendConfirmation = true
-                                            } label: {
-                                                Label("Remove user", systemImage: "person.fill.xmark")
+                                            if isInNetwork {
+                                                Button(role: .destructive) {
+                                                    showRemoveFriendConfirmation = true
+                                                } label: {
+                                                    Label("Remove user", systemImage: "person.fill.xmark")
+                                                }
                                             }
+
+                                            Button(role: .destructive) {
+                                                showBlockConfirmation = true
+                                            } label: {
+                                                Label("Block user", systemImage: "hand.raised.fill")
+                                            }
+
                                         } label: {
                                             Image(systemName: "ellipsis.circle")
                                                 .resizable()
@@ -58,15 +68,20 @@ struct DynamicProfilePreview: View {
                                     Spacer()
                                 }
                                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-
-
                                 .confirmationDialog("Remove this user from your network?", isPresented: $showRemoveFriendConfirmation) {
                                     Button("Remove user", role: .destructive) {
                                         removeFriend()
                                     }
                                     Button("Cancel", role: .cancel) {}
                                 }
+                                .confirmationDialog("Block this user?", isPresented: $showBlockConfirmation) {
+                                    Button("Block user", role: .destructive) {
+                                        blockUser()
+                                    }
+                                    Button("Cancel", role: .cancel) {}
+                                }
                             }
+
 
 
                             
@@ -341,6 +356,41 @@ struct DynamicProfilePreview: View {
         return "\(ageComponents.year ?? 0)"
     }
     
+    func blockUser() {
+        print("🚨 blockUser() called")
+        guard let url = URL(string: "https://circlapp.online/api/users/block_user/") else {
+            print("❌ Invalid block URL")
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        let payload: [String: Any] = [
+            "blocked_id": profileData.user_id
+        ]
+
+        request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("❌ Block user error: \(error)")
+                return
+            }
+
+            print("✅ User blocked successfully")
+            DispatchQueue.main.async {
+                dismiss()
+            }
+        }.resume()
+    }
+
+    
     func removeFriend() {
         print("🚨 removeFriend() called")
         print("🔥 Remove friend called with user_id=\(loggedInUserId), friend_id=\(profileData.user_id)")
@@ -412,4 +462,3 @@ struct DynamicProfilePreview: View {
         }.resume()
     }
 }
-
