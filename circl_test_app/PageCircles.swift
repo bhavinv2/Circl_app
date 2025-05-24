@@ -1,21 +1,24 @@
 import SwiftUI
 
+// MARK: - Main View for Circle Discovery
 struct PageCircles: View {
     @State private var searchText: String = ""
 
+    // Sample data for circles
     let circles = [
-        ("Lean Startup-ists", "Technology", "1.2k+", "leanstartups"),
-        ("Creative Hustlers", "Design", "900+", "creativehustlers"),
-        ("Social Builders", "Community", "2.3k+", "socialbuilders")
+        ("Lean Startup-ists", "Technology", "1.2k+", "leanstartups", "Free"),
+        ("Creative Hustlers", "Design", "900+", "creativehustlers", "$50"),
+        ("Social Builders", "Community", "2.3k+", "socialbuilders", "Free")
     ]
 
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
 
-                // Header Section
+                // MARK: Header Section
                 VStack(spacing: 0) {
                     HStack {
+                        // Left side: App name and filter button
                         VStack(alignment: .leading, spacing: 5) {
                             Text("Circl.")
                                 .font(.largeTitle)
@@ -23,7 +26,7 @@ struct PageCircles: View {
                                 .foregroundColor(.white)
 
                             Button(action: {
-                                // Action for Filter
+                                // TODO: Add filter action
                             }) {
                                 HStack {
                                     Image(systemName: "slider.horizontal.3")
@@ -37,6 +40,7 @@ struct PageCircles: View {
 
                         Spacer()
 
+                        // Right side: Navigation buttons and greeting
                         VStack(alignment: .trailing, spacing: 5) {
                             VStack {
                                 HStack(spacing: 10) {
@@ -67,14 +71,16 @@ struct PageCircles: View {
                     .background(Color.fromHex("004aad"))
                 }
 
-                // Search Bar
+                // MARK: Search Bar
                 HStack {
                     TextField("Search for a Circle (keywords or name)...", text: $searchText)
                         .padding(12)
                         .background(Color(.systemGray5))
                         .cornerRadius(15)
 
-                    Button(action: {}) {
+                    Button(action: {
+                        // TODO: Add search action
+                    }) {
                         Image(systemName: "arrow.right.circle.fill")
                             .resizable()
                             .frame(width: 30, height: 30)
@@ -83,11 +89,17 @@ struct PageCircles: View {
                 }
                 .padding()
 
-                // Circle Cards
+                // MARK: Circle Cards List
                 ScrollView {
                     VStack(spacing: 16) {
                         ForEach(circles, id: \ .0) { circle in
-                            CircleCardView(name: circle.0, industry: circle.1, members: circle.2, imageName: circle.3)
+                            CircleCardView(
+                                name: circle.0,
+                                industry: circle.1,
+                                members: circle.2,
+                                imageName: circle.3,
+                                pricing: circle.4
+                            )
                         }
                     }
                     .padding()
@@ -100,63 +112,78 @@ struct PageCircles: View {
     }
 }
 
+// MARK: - Circle Card View
 struct CircleCardView: View {
     var name: String
     var industry: String
     var members: String
     var imageName: String
+    var pricing: String
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .top) {
-                Image(imageName)
-                    .resizable()
-                    .frame(width: 100, height: 100)
-                    .cornerRadius(8)
+        HStack(spacing: 12) {
+            // Circle logo only
+            Image(imageName)
+                .resizable()
+                .frame(width: 100, height: 80)
+                .cornerRadius(6)
 
-                VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 8) {
+                // Circle information
+                VStack(alignment: .leading, spacing: 6) {
                     Text(name)
-                        .font(.title3)
+                        .font(.headline)
                         .fontWeight(.semibold)
-
-                    Text("Industry: ") + Text(industry).bold()
+                    Text("Industry: \(industry)")
+                        .font(.subheadline)
                     Text("\(members) Members")
-
-                    NavigationLink(destination: AboutCirclePage()) {
-                        Text("About")
-                            .underline()
-                    }
-
-                    HStack(spacing: 20) {
-                        Button(action: {}) {
-                            Image(systemName: "xmark.circle.fill")
-                                .resizable()
-                                .frame(width: 30, height: 30)
-                                .foregroundColor(.red)
+                        .font(.subheadline)
+                    HStack(spacing: 10) {
+                        NavigationLink(destination: AboutCirclePage()) {
+                            Text("About")
+                                .underline()
+                                .font(.subheadline)
                         }
-
-                        Button(action: {}) {
-                            Text("Apply Now")
-                                .fontWeight(.bold)
-                                .padding(.vertical, 8)
-                                .padding(.horizontal, 16)
-                                .background(Color.green)
-                                .foregroundColor(.white)
-                                .cornerRadius(20)
-                        }
+                        Text(pricing)
+                            .font(.subheadline)
                     }
-                    .padding(.top, 4)
+                }
+
+                // Action buttons
+                HStack(spacing: 10) {
+                    Button(action: {
+                        // TODO: Add remove action
+                    }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .resizable()
+                            .frame(width: 24, height: 24)
+                            .foregroundColor(.red)
+                    }
+                    Button(action: {
+                        // TODO: Add apply action
+                    }) {
+                        Text("Apply Now")
+                            .font(.footnote)
+                            .fontWeight(.bold)
+                            .padding(.vertical, 6)
+                            .padding(.horizontal, 12)
+                            .background(Color.green)
+                            .foregroundColor(.white)
+                            .cornerRadius(15)
+                    }
                 }
             }
-            .padding()
-            .background(
-                RoundedRectangle(cornerRadius: 10)
-                    .stroke(Color.blue, lineWidth: 2)
-            )
         }
+        .frame(width: 360, height: 180)
+        .padding(5)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(Color.blue, lineWidth: 1)
+        )
     }
 }
 
+// MARK: - Placeholder About Page
 struct AboutCirclePage: View {
     var body: some View {
         Text("Details about the circle go here.")
@@ -165,7 +192,7 @@ struct AboutCirclePage: View {
     }
 }
 
-// MARK: - Color Extension
+// MARK: - Color Extension Helper
 extension Color {
     static func fromHex9(_ hex: String) -> Color {
         var hexSanitized = hex.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -182,6 +209,7 @@ extension Color {
     }
 }
 
+// MARK: - Preview
 #Preview {
     PageCircles()
 }
