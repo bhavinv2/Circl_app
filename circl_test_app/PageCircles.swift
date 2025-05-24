@@ -173,9 +173,10 @@ struct CircleCardView: View {
                     }
                 }
             }
+            .padding(0) // Reduced spacing further by 5px
         }
         .frame(width: 360, height: 180)
-        .padding(5)
+        .padding(0) // Reduced spacing further by 5px
         .background(
             RoundedRectangle(cornerRadius: 8)
                 .stroke(Color.blue, lineWidth: 1)
