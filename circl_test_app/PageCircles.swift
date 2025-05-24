@@ -3,6 +3,7 @@ import SwiftUI
 // MARK: - Main View for Circle Discovery
 struct PageCircles: View {
     @State private var searchText: String = ""
+    @State private var showMenu = false // State for showing/hiding the menu
 
     // Sample data for circles
     let circles: [CircleData] = [
@@ -14,98 +15,170 @@ struct PageCircles: View {
 
     var body: some View {
         NavigationView {
-            VStack(spacing: 0) {
-
-                // MARK: Header Section
+            ZStack(alignment: .bottomTrailing) {
                 VStack(spacing: 0) {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 5) {
-                            Text("Circl.")
-                                .font(.largeTitle)
-                                .fontWeight(.bold)
-                                .foregroundColor(.white)
-
-                            Button(action: {
-                                // Action for Filter
-                            }) {
-                                HStack {
-                                    Image(systemName: "slider.horizontal.3")
-                                        .foregroundColor(.white)
-                                    Text("Filter")
-                                        .font(.headline)
-                                        .foregroundColor(.white)
-                                }
-                            }
-                        }
-
-                        Spacer()
-
-                        VStack(alignment: .trailing, spacing: 5) {
-                            // Add the Bubble and Person icons above "Hello, Fragne"
-                            VStack {
-                                HStack(spacing: 10) {
-                                    // Navigation Link for Bubble Symbol
-                                    NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
-                                        Image(systemName: "bubble.left.and.bubble.right.fill")
-                                            .resizable()
-                                            .frame(width: 50, height: 40)
-                                            .foregroundColor(.white)
-                                    }
-
-                                    // Person Icon
-                                    NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
-                                        Image(systemName: "person.circle.fill")
-                                            .resizable()
-                                            .frame(width: 50, height: 50)
-                                            .foregroundColor(.white)
-                                    }
-                                }
-
-                                // "Hello, Fragne" text below the icons
-                                Text("Hello, Fragne")
+                    // MARK: Header Section
+                    VStack(spacing: 0) {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 5) {
+                                Text("Circl.")
+                                    .font(.largeTitle)
+                                    .fontWeight(.bold)
                                     .foregroundColor(.white)
-                                    .font(.headline)
+
+                                Button(action: {
+                                    // Action for Filter
+                                }) {
+                                    HStack {
+                                        Image(systemName: "slider.horizontal.3")
+                                            .foregroundColor(.white)
+                                        Text("Filter")
+                                            .font(.headline)
+                                            .foregroundColor(.white)
+                                    }
+                                }
+                            }
+
+                            Spacer()
+
+                            VStack(alignment: .trailing, spacing: 5) {
+                                VStack {
+                                    HStack(spacing: 10) {
+                                        NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
+                                            Image(systemName: "bubble.left.and.bubble.right.fill")
+                                                .resizable()
+                                                .frame(width: 50, height: 40)
+                                                .foregroundColor(.white)
+                                        }
+
+                                        NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
+                                            Image(systemName: "person.circle.fill")
+                                                .resizable()
+                                                .frame(width: 50, height: 50)
+                                                .foregroundColor(.white)
+                                        }
+                                    }
+
+                                    Text("Hello, Fragne")
+                                        .foregroundColor(.white)
+                                        .font(.headline)
+                                }
                             }
                         }
+                        .padding(.horizontal)
+                        .padding(.top, 15)
+                        .padding(.bottom, 10)
+                        .background(Color.fromHex("004aad"))
                     }
-                    .padding(.horizontal)
-                    .padding(.top, 15)
-                    .padding(.bottom, 10)
-                    .background(Color.fromHex("004aad"))
-                }
 
-                // MARK: Search Bar
-                HStack {
-                    TextField("Search for a Circle (keywords or name)...", text: $searchText)
-                        .padding()
-                        .background(Color(.systemGray5))
-                        .cornerRadius(25)
+                    // MARK: Search Bar
+                    HStack {
+                        TextField("Search for a Circle (keywords or name)...", text: $searchText)
+                            .padding()
+                            .background(Color(.systemGray5))
+                            .cornerRadius(25)
 
-                    Button(action: {
-                        // Search logic
-                    }) {
-                        Image(systemName: "arrow.right.circle.fill")
-                            .resizable()
-                            .frame(width: 30, height: 30)
-                            .foregroundColor(.blue)
-                    }
-                }
-                .padding()
-
-                // MARK: Circle Cards List
-                ScrollView {
-                    VStack(spacing: 20) {
-                        ForEach(circles, id: \ .name) { circle in
-                            CircleCardView(circle: circle)
+                        Button(action: {
+                            // Search logic
+                        }) {
+                            Image(systemName: "arrow.right.circle.fill")
+                                .resizable()
+                                .frame(width: 30, height: 30)
+                                .foregroundColor(.blue)
                         }
                     }
                     .padding()
-                }
 
+                    // MARK: Circle Cards List
+                    ScrollView {
+                        VStack(spacing: 20) {
+                            ForEach(circles, id: \.name) { circle in
+                                CircleCardView(circle: circle)
+                            }
+                        }
+                        .padding()
+                    }
+
+                    Spacer()
+                }
+                .navigationBarHidden(true)
+                
+                // Floating Assistive Touch Button with Enhanced Menu
+                VStack(alignment: .trailing, spacing: 8) {
+                    if showMenu {
+                        VStack(alignment: .leading, spacing: 0) {
+                            // Menu Header
+                            Text("Welcome to your resources")
+                                .font(.headline)
+                                .padding()
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(Color(.systemGray5))
+                            
+                            // Menu Items
+                            MenuItem(icon: "person.2.fill", title: "Connect and Network")
+                            MenuItem(icon: "person.crop.square.fill", title: "Your Business Profile")
+                            MenuItem(icon: "text.bubble.fill", title: "The Forum Feed")
+                            MenuItem(icon: "briefcase.fill", title: "Professional Services")
+                            MenuItem(icon: "envelope.fill", title: "Messages")
+                            MenuItem(icon: "newspaper.fill", title: "News & Knowledge")
+                            MenuItem(icon: "dollarsign.circle.fill", title: "Sell a Skill")
+                            
+                            Divider()
+                            
+                            MenuItem(icon: "circle.grid.2x2.fill", title: "Circles")
+                        }
+                        .background(Color(.systemGray6))
+                        .cornerRadius(12)
+                        .shadow(radius: 5)
+                        .frame(width: 250)
+                        .transition(.scale.combined(with: .opacity))
+                    }
+                    
+                    // Main floating button
+                    Button(action: {
+                        withAnimation(.spring()) {
+                            showMenu.toggle()
+                        }
+                    }) {
+                        Image(systemName: "hammer.fill")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 24, height: 24)
+                            .foregroundColor(.white)
+                            .padding(16)
+                            .background(Color.fromHex("004aad"))
+                            .clipShape(Circle())
+                            .shadow(radius: 4)
+                    }
+                }
+                .padding()
+            }
+        }
+    }
+}
+
+// MARK: - Menu Item Component
+struct MenuItem: View {
+    let icon: String
+    let title: String
+    
+    var body: some View {
+        Button(action: {
+            // Action for each menu item
+        }) {
+            HStack {
+                Image(systemName: icon)
+                    .foregroundColor(Color.fromHex("004aad"))
+                    .frame(width: 24)
+                Text(title)
+                    .foregroundColor(.primary)
                 Spacer()
             }
-            .navigationBarHidden(true)
+            .padding(.horizontal)
+            .padding(.vertical, 12)
+            .contentShape(Rectangle())
         }
+        .buttonStyle(PlainButtonStyle())
     }
 }
 
