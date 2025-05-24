@@ -1,9 +1,18 @@
 import SwiftUI
 
 struct PageCircles: View {
+    @State private var searchText: String = ""
+
+    let circles = [
+        ("Lean Startup-ists", "Technology", "1.2k+", "leanstartups"),
+        ("Creative Hustlers", "Design", "900+", "creativehustlers"),
+        ("Social Builders", "Community", "2.3k+", "socialbuilders")
+    ]
+
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
+
                 // Header Section
                 VStack(spacing: 0) {
                     HStack {
@@ -12,35 +21,32 @@ struct PageCircles: View {
                                 .font(.largeTitle)
                                 .fontWeight(.bold)
                                 .foregroundColor(.white)
-                            
-//                            Button(action: {
-//                                // Action for Filter
-//                            }) {
-//                                HStack {
-//                                    Image(systemName: "slider.horizontal.3")
-//                                        .foregroundColor(.white)
-//                                    Text("Filter")
-//                                        .font(.headline)
-//                                        .foregroundColor(.white)
-//                                }
-//                            }
+
+                            Button(action: {
+                                // Action for Filter
+                            }) {
+                                HStack {
+                                    Image(systemName: "slider.horizontal.3")
+                                        .foregroundColor(.white)
+                                    Text("Filter")
+                                        .font(.headline)
+                                        .foregroundColor(.white)
+                                }
+                            }
                         }
-                        
+
                         Spacer()
-                        
+
                         VStack(alignment: .trailing, spacing: 5) {
-                            // Add the Bubble and Person icons above "Hello, Fragne"
                             VStack {
                                 HStack(spacing: 10) {
-                                    // Navigation Link for Bubble Symbol
                                     NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
                                         Image(systemName: "bubble.left.and.bubble.right.fill")
                                             .resizable()
-                                            .frame(width: 50, height: 40)  // Adjust size
+                                            .frame(width: 50, height: 40)
                                             .foregroundColor(.white)
                                     }
 
-                                    // Person Icon
                                     NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
                                         Image(systemName: "person.circle.fill")
                                             .resizable()
@@ -49,129 +55,113 @@ struct PageCircles: View {
                                     }
                                 }
 
-                                // "Hello, Fragne" text below the icons
-//                                Text("Hello, Fragne")
-//                                    .foregroundColor(.white)
-//                                    .font(.headline)
+                                Text("Hello, Fragne")
+                                    .foregroundColor(.white)
+                                    .font(.headline)
                             }
                         }
                     }
                     .padding(.horizontal)
                     .padding(.top, 15)
                     .padding(.bottom, 10)
-                    .background(Color.fromHex("004aad")) // Updated blue color
+                    .background(Color.fromHex("004aad"))
                 }
 
-                // Tab Navigation (Added here)
-                tabNavigation
-                
-                // Scrollable Section
-                ScrollView {
-                    VStack(spacing: 20) {
-                            // Hammer Symbol above the text
-                            Image(systemName: "hammer.circle")
-                                .resizable()
-                                .frame(width: 100, height: 100)  // Frame size 100x100
-                                .foregroundColor(Color.fromHex("004aad"))  // Custom blue color
-                            
-                            // Text below the hammer symbol
-                            Text("Thank you for your patience with Circl! We are currently working on creating the \"circles\" feature - an opportunity for you to create a community with your industry or your network. Keep your notifications on and stay tuned in the discord server to know when we release it!")
-                                .font(.body)
-                                .foregroundColor(Color.fromHex("004aad")) // Custom blue color
-                                .padding()
-                                .background(Color.gray.opacity(0.4)) // System gray 4 background
-                                .cornerRadius(10)
-                                .padding(.top)
-                            
-                            Spacer()
-                        }
-                        .padding()
-                    }
-                
-                
-                // Footer Section (Imported)
-                HStack(spacing: 15) {
-                    NavigationLink(destination: PageEntrepreneurMatching().navigationBarBackButtonHidden(true)) {
-                        CustomCircleButton(iconName: "figure.stand.line.dotted.figure.stand")
-                    }
-                    NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true)) {
-                        CustomCircleButton(iconName: "briefcase.fill")
-                    }
-                    NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
-                        CustomCircleButton(iconName: "captions.bubble.fill")
-                    }
-                    NavigationLink(destination: PageEntrepreneurResources().navigationBarBackButtonHidden(true)) {
-                        CustomCircleButton(iconName: "building.columns.fill")
-                    }
-                    NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
-                        CustomCircleButton(iconName: "newspaper")
+                // Search Bar
+                HStack {
+                    TextField("Search for a Circle (keywords or name)...", text: $searchText)
+                        .padding(12)
+                        .background(Color(.systemGray5))
+                        .cornerRadius(15)
+
+                    Button(action: {}) {
+                        Image(systemName: "arrow.right.circle.fill")
+                            .resizable()
+                            .frame(width: 30, height: 30)
+                            .foregroundColor(.blue)
                     }
                 }
-                .padding(.vertical, 10)
-                .background(Color.white)
+                .padding()
+
+                // Circle Cards
+                ScrollView {
+                    VStack(spacing: 16) {
+                        ForEach(circles, id: \ .0) { circle in
+                            CircleCardView(name: circle.0, industry: circle.1, members: circle.2, imageName: circle.3)
+                        }
+                    }
+                    .padding()
+                }
+
+                Spacer()
             }
-            .edgesIgnoringSafeArea(.bottom)
-            .navigationBarBackButtonHidden(true)
+            .navigationBarHidden(true)
         }
-    }
-    
-    // Tab Navigation Definition (Imported)
-    var tabNavigation: some View {
-        HStack(spacing: 10) {
-            NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
-                Text("Messages")
-                    .font(.system(size: 12))
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(Color.gray)  // Changed from yellow to gray
-                    .foregroundColor(.black)
-                    .cornerRadius(10)
-            }
-            
-            NavigationLink(destination: PageCircles().navigationBarBackButtonHidden(true)) {
-                Text("Circles")
-                    .font(.system(size: 12))
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(Color.yellow)  // Set Circles to yellow
-                    .foregroundColor(.black)
-                    .cornerRadius(10)
-            }
-            
-            NavigationLink(destination: PageInvites().navigationBarBackButtonHidden(true)) {
-                Text("Friends")
-                    .font(.system(size: 12))
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(Color.gray)
-                    .foregroundColor(.black)
-                    .cornerRadius(10)
-            }
-        }
-        .padding(.horizontal)
-        .padding(.vertical, 10)
     }
 }
 
-// MARK: - CustomCircleButton
-struct CustomCircleButton9: View {
-    let iconName: String
+struct CircleCardView: View {
+    var name: String
+    var industry: String
+    var members: String
+    var imageName: String
 
     var body: some View {
-        Button(action: {
-            // Action for button
-        }) {
-            ZStack {
-                Circle()
-                    .fill(Color.fromHex("004aad"))
-                    .frame(width: 60, height: 60)
-                Image(systemName: iconName)
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .top) {
+                Image(imageName)
                     .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 30, height: 30)
-                    .foregroundColor(.white)
+                    .frame(width: 100, height: 100)
+                    .cornerRadius(8)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(name)
+                        .font(.title3)
+                        .fontWeight(.semibold)
+
+                    Text("Industry: ") + Text(industry).bold()
+                    Text("\(members) Members")
+
+                    NavigationLink(destination: AboutCirclePage()) {
+                        Text("About")
+                            .underline()
+                    }
+
+                    HStack(spacing: 20) {
+                        Button(action: {}) {
+                            Image(systemName: "xmark.circle.fill")
+                                .resizable()
+                                .frame(width: 30, height: 30)
+                                .foregroundColor(.red)
+                        }
+
+                        Button(action: {}) {
+                            Text("Apply Now")
+                                .fontWeight(.bold)
+                                .padding(.vertical, 8)
+                                .padding(.horizontal, 16)
+                                .background(Color.green)
+                                .foregroundColor(.white)
+                                .cornerRadius(20)
+                        }
+                    }
+                    .padding(.top, 4)
+                }
             }
+            .padding()
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(Color.blue, lineWidth: 2)
+            )
         }
+    }
+}
+
+struct AboutCirclePage: View {
+    var body: some View {
+        Text("Details about the circle go here.")
+            .font(.title2)
+            .padding()
     }
 }
 
@@ -192,7 +182,6 @@ extension Color {
     }
 }
 
-// MARK: - Preview
 #Preview {
     PageCircles()
 }
