@@ -5,10 +5,10 @@ struct PageCircles: View {
     @State private var searchText: String = ""
 
     // Sample data for circles
-    let circles = [
-        ("Lean Startup-ists", "Technology", "1.2k+", "leanstartups", "Free"),
-        ("Creative Hustlers", "Design", "900+", "creativehustlers", "$50"),
-        ("Social Builders", "Community", "2.3k+", "socialbuilders", "Free")
+    let circles: [CircleData] = [
+        CircleData(name: "Lean Startup-ists", industry: "Technology", members: "1.2k+", imageName: "leanstartups", pricing: "Free", description: "A group for startup enthusiasts following lean principles.", joinType: .applyNow),
+        CircleData(name: "Creative Hustlers", industry: "Design", members: "900+", imageName: "creativehustlers", pricing: "$50", description: "A space for designers to share and grow.", joinType: .inviteOnly),
+        CircleData(name: "Social Builders", industry: "Community", members: "2.3k+", imageName: "socialbuilders", pricing: "Free", description: "Builders of impactful communities unite!", joinType: .joinNow)
     ]
 
     var body: some View {
@@ -18,10 +18,9 @@ struct PageCircles: View {
                 // MARK: Header Section
                 VStack(spacing: 0) {
                     HStack {
-                        // Left side: App name and filter button
                         VStack(alignment: .leading, spacing: 5) {
                             Text("Circl.")
-                                .font(.largeTitle)
+                                .font(.system(size: 39))
                                 .fontWeight(.bold)
                                 .foregroundColor(.white)
 
@@ -32,7 +31,7 @@ struct PageCircles: View {
                                     Image(systemName: "slider.horizontal.3")
                                         .foregroundColor(.white)
                                     Text("Filter")
-                                        .font(.headline)
+                                        .font(.system(size: 22))
                                         .foregroundColor(.white)
                                 }
                             }
@@ -40,7 +39,6 @@ struct PageCircles: View {
 
                         Spacer()
 
-                        // Right side: Navigation buttons and greeting
                         VStack(alignment: .trailing, spacing: 5) {
                             VStack {
                                 HStack(spacing: 10) {
@@ -61,7 +59,7 @@ struct PageCircles: View {
 
                                 Text("Hello, Fragne")
                                     .foregroundColor(.white)
-                                    .font(.headline)
+                                    .font(.system(size: 22))
                             }
                         }
                     }
@@ -92,14 +90,8 @@ struct PageCircles: View {
                 // MARK: Circle Cards List
                 ScrollView {
                     VStack(spacing: 16) {
-                        ForEach(circles, id: \ .0) { circle in
-                            CircleCardView(
-                                name: circle.0,
-                                industry: circle.1,
-                                members: circle.2,
-                                imageName: circle.3,
-                                pricing: circle.4
-                            )
+                        ForEach(circles, id: \ .name) { circle in
+                            CircleCardView(circle: circle)
                         }
                     }
                     .padding()
@@ -112,44 +104,59 @@ struct PageCircles: View {
     }
 }
 
+// MARK: - Circle Data Model
+struct CircleData {
+    let name: String
+    let industry: String
+    let members: String
+    let imageName: String
+    let pricing: String
+    let description: String
+    let joinType: JoinType
+
+    enum JoinType: String {
+        case applyNow = "Apply Now"
+        case inviteOnly = "Invite Only"
+        case joinNow = "Join Now"
+    }
+}
+
 // MARK: - Circle Card View
 struct CircleCardView: View {
-    var name: String
-    var industry: String
-    var members: String
-    var imageName: String
-    var pricing: String
+    var circle: CircleData
 
     var body: some View {
         HStack(spacing: 12) {
-            // Circle logo only
-            Image(imageName)
+            Image(circle.imageName)
                 .resizable()
+                .renderingMode(.template)
+                .foregroundColor(.gray)
                 .frame(width: 100, height: 80)
                 .cornerRadius(6)
 
             VStack(alignment: .leading, spacing: 8) {
-                // Circle information
                 VStack(alignment: .leading, spacing: 6) {
-                    Text(name)
-                        .font(.headline)
+                    Text(circle.name)
+                        .font(.system(size: 22))
                         .fontWeight(.semibold)
-                    Text("Industry: \(industry)")
-                        .font(.subheadline)
-                    Text("\(members) Members")
-                        .font(.subheadline)
+                    Text("Industry: \(circle.industry)")
+                        .font(.system(size: 17))
+                    Text("\(circle.members) Members")
+                        .font(.system(size: 17))
+                    Text(circle.description)
+                        .font(.system(size: 15))
+                        .foregroundColor(.gray)
                     HStack(spacing: 10) {
                         NavigationLink(destination: AboutCirclePage()) {
                             Text("About")
                                 .underline()
-                                .font(.subheadline)
+                                .font(.system(size: 17))
                         }
-                        Text(pricing)
-                            .font(.subheadline)
+                        Text(circle.pricing)
+                            .font(.system(size: 17))
                     }
                 }
 
-                // Action buttons
                 HStack(spacing: 10) {
                     Button(action: {
                         // TODO: Add remove action
@@ -160,10 +167,10 @@ struct CircleCardView: View {
                             .foregroundColor(.red)
                     }
                     Button(action: {
-                        // TODO: Add apply action
+                        // TODO: Add join action
                     }) {
-                        Text("Apply Now")
-                            .font(.footnote)
+                        Text(circle.joinType.rawValue)
+                            .font(.system(size: 15))
                             .fontWeight(.bold)
                             .padding(.vertical, 6)
                             .padding(.horizontal, 12)
@@ -173,10 +180,10 @@ struct CircleCardView: View {
                     }
                 }
             }
-            .padding(0) // Reduced spacing further by 5px
+            .padding(0)
         }
-        .frame(width: 360, height: 180)
-        .padding(0) // Reduced spacing further by 5px
+        .frame(width: 360, height: 200)
+        .padding(0)
         .background(
             RoundedRectangle(cornerRadius: 8)
                 .stroke(Color.blue, lineWidth: 1)
