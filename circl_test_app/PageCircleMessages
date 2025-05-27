@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct PageCircleMessages: View {
+    @Environment(\.presentationMode) var presentationMode
+
     @State private var newMessage: String = ""
     @State private var messages: [ChatMessage] = [
         ChatMessage(id: 1, sender: "Alice", content: "Hey everyone! Excited to be here.", isCurrentUser: false, timestamp: Date()),
@@ -11,81 +13,127 @@ struct PageCircleMessages: View {
 
     @State private var showMenu = false
     @State private var showCircleMenu = false
+    @State private var showCategoryMenu = false
+    @State private var selectedChannel = "#General"
 
     var body: some View {
-        ZStack(alignment: .top) {
-            // Main content
-            VStack(spacing: 0) {
-                header
-                messagesScrollView
-                inputBar
-            }
-            .zIndex(0)
+        NavigationView {
+            ZStack(alignment: .top) {
+                VStack(spacing: 0) {
+                    header
+                    messagesScrollView
+                    inputBar
+                }
+                .zIndex(0)
 
-            // Dimmed background (only between content and menus)
-            if showMenu || showCircleMenu {
-                Color.black.opacity(0.3)
-                    .edgesIgnoringSafeArea(.all)
-                    .onTapGesture {
-                        withAnimation {
-                            showMenu = false
-                            showCircleMenu = false
+                if showMenu || showCircleMenu || showCategoryMenu {
+                    Color.black.opacity(0.3)
+                        .edgesIgnoringSafeArea(.all)
+                        .onTapGesture {
+                            withAnimation {
+                                showMenu = false
+                                showCircleMenu = false
+                                showCategoryMenu = false
+                            }
                         }
+                        .zIndex(1)
+                }
+
+                if showCircleMenu {
+                    circleMenu
+                        .zIndex(2)
+                }
+
+                if showCategoryMenu {
+                    categoryMenu
+                        .zIndex(2)
+                }
+
+                if showMenu {
+                    hammerMenu
+                        .zIndex(2)
+                }
+            }
+            .background(Color.white.edgesIgnoringSafeArea(.all))
+            .navigationBarBackButtonHidden(true)
+            .navigationBarItems(leading: Button(action: {
+                presentationMode.wrappedValue.dismiss()
+            }) {
+                NavigationLink(destination: PageGroupchats()) {
+                    HStack {
+                        Image(systemName: "chevron.left")
+                        Text("Back")
                     }
-                    .zIndex(1)
-            }
-
-            // Circle menu
-            if showCircleMenu {
-                circleMenu
-                    .zIndex(2)
-            }
-
-            // Hammer menu
-            if showMenu {
-                hammerMenu
-                    .zIndex(2)
-            }
+                    .foregroundColor(.white)
+                }
+                .foregroundColor(.white)
+            })
         }
-        .background(Color.white.edgesIgnoringSafeArea(.all))
-        .navigationBarHidden(true)
     }
 
     private var header: some View {
-        HStack {
-            // Left side - Circle name and chevron
-            HStack(spacing: 4) {
-                Text("Lean Startup-ists")
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-
-                Button(action: {
-                    withAnimation(.spring()) {
-                        if showMenu { showMenu = false }
-                        showCircleMenu.toggle()
-                    }
-                }) {
-                    Image(systemName: "chevron.down")
-                        .font(.subheadline)
-                        .foregroundColor(.white)
-                        .rotationEffect(.degrees(showCircleMenu ? 180 : 0))
-                        .animation(.easeInOut, value: showCircleMenu)
-                }
-            }
-
-            Spacer()
-
-            // Right side - Members count and hammer button
+        VStack(alignment: .leading, spacing: 6) {
             HStack {
-                Text("1.2k members • Online now: 120")
-                    .font(.subheadline)
-                    .foregroundColor(.white.opacity(0.85))
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 4) {
+                        Text("Lean Startup-ists")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+
+                        Button(action: {
+                            withAnimation(.spring()) {
+                                closeOtherMenus(except: &showCircleMenu)
+                            }
+                        }) {
+                            Image(systemName: "chevron.down")
+                                .font(.subheadline)
+                                .foregroundColor(.white)
+                                .rotationEffect(.degrees(showCircleMenu ? 180 : 0))
+                        }
+                    }
+
+                    HStack(spacing: 4) {
+                        Text(selectedChannel)
+                            .font(.subheadline)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(Color(.systemGray5))
+                            .foregroundColor(.black)
+                            .cornerRadius(15)
+
+                        Button(action: {
+                            withAnimation(.spring()) {
+                                closeOtherMenus(except: &showCategoryMenu)
+                            }
+                        }) {
+                            Image(systemName: "chevron.down")
+                                .font(.caption)
+                                .foregroundColor(.white)
+                                .rotationEffect(.degrees(showCategoryMenu ? 180 : 0))
+                        }
+                    }
+
+                    HStack(spacing: 6) {
+                        Text("1.2k members • Online now:")
+                            .font(.subheadline)
+                            .foregroundColor(.white.opacity(0.85))
+
+                        Circle()
+                            .fill(Color.green)
+                            .frame(width: 8, height: 8)
+
+                        Text("120")
+                            .font(.subheadline)
+                            .foregroundColor(.white.opacity(0.85))
+                    }
+                }
+
+                Spacer()
 
                 Button(action: {
                     withAnimation(.spring()) {
-                        if showCircleMenu { showCircleMenu = false }
-                        showMenu.toggle()
+                        closeOtherMenus(except: &showMenu)
                     }
                 }) {
                     Image(systemName: "hammer.fill")
@@ -99,10 +147,11 @@ struct PageCircleMessages: View {
                         .shadow(radius: 4)
                 }
             }
+            .padding(.top, 1)             // keep top padding
+            .padding(.horizontal)          // side padding
+            .padding(.bottom, 10)           // reduce bottom padding by ~5px
+            .background(Color.fromHex("004aad"))
         }
-        .padding()
-        .frame(height: 80)
-        .background(Color.fromHex("004aad"))
     }
 
     private var messagesScrollView: some View {
@@ -178,9 +227,85 @@ struct PageCircleMessages: View {
         .frame(maxWidth: .infinity, alignment: .trailing)
     }
 
+    private var categoryMenu: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Group {
+                Text("Community")
+                    .font(.title3)
+                    .fontWeight(.bold)
+                    .padding(.vertical, 4)
+
+                channelRow("#Welcome", notifications: 2)
+                channelRow("#Introductions", notifications: 0)
+                channelRow("#General", notifications: 5)
+
+                Divider()
+            }
+
+            Group {
+                Text("Learn")
+                    .font(.title3)
+                    .fontWeight(.bold)
+                    .padding(.vertical, 4)
+
+                channelRow("#Books-and-Resources", notifications: 1)
+                channelRow("#Lean-Methodology", notifications: 0)
+                channelRow("#Case-Studies", notifications: 3)
+
+                Divider()
+            }
+
+            Group {
+                Text("Founders-Floor")
+                    .font(.title3)
+                    .fontWeight(.bold)
+                    .padding(.vertical, 4)
+
+                channelRow("#Founder-Chat", notifications: 0)
+                channelRow("#Road-to-PMF", notifications: 0)
+            }
+        }
+        .padding()
+        .background(Color(.systemGray6))
+        .cornerRadius(12)
+        .shadow(radius: 5)
+        .frame(width: 250)
+        .padding(.leading, 16)
+        .offset(y: 80)
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func channelRow(_ name: String, notifications: Int) -> some View {
+        Button(action: {
+            withAnimation {
+                selectedChannel = name
+                showCategoryMenu = false
+            }
+        }) {
+            HStack {
+                Text(name)
+                    .foregroundColor(.primary)
+
+                Spacer()
+
+                if notifications > 0 {
+                    Text("\(notifications)")
+                        .font(.caption2)
+                        .padding(6)
+                        .background(Color.red)
+                        .foregroundColor(.white)
+                        .clipShape(Circle())
+                }
+            }
+            .padding(.vertical, 6)
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+
+
     private var inputBar: some View {
         HStack {
-            TextField("Message #general...", text: $newMessage)
+            TextField("Message \(selectedChannel)...", text: $newMessage)
                 .textFieldStyle(.plain)
                 .padding(12)
                 .background(Color(.systemGray6))
@@ -214,7 +339,16 @@ struct PageCircleMessages: View {
         }
         newMessage = ""
     }
+
+    private func closeOtherMenus(except menu: inout Bool) {
+        showMenu = false
+        showCircleMenu = false
+        showCategoryMenu = false
+        menu.toggle()
+    }
 }
+
+// MARK: - Models + Components
 
 struct ChatMessage: Identifiable {
     let id: Int
@@ -343,6 +477,8 @@ struct GroupMenuItem: View {
         .buttonStyle(PlainButtonStyle())
     }
 }
+
+// MARK: - Color Extension
 
 extension Color {
     static func fromHex13(_ hex: String) -> Color {
