@@ -1,0 +1,264 @@
+import SwiftUI
+
+struct PageGroupchats: View {
+    @State private var selectedGroup = "Lean Startup-ists"
+    @State private var showMenu = false
+
+    var body: some View {
+        ZStack(alignment: .bottomTrailing) {
+            // Main Content
+            VStack(spacing: 0) {
+                // Use the custom header section
+                headerSection
+                
+                // Group Selector
+                HStack {
+                    Image(systemName: "arrow.left")
+                        .foregroundColor(.white)
+                        .padding(8)
+                        .background(Circle().fill(Color.blue))
+
+                    Spacer()
+
+                    Menu {
+                        Button("Lean Startup-ists", action: { selectedGroup = "Lean Startup-ists" })
+                        Button("Other Group", action: { selectedGroup = "Other Group" })
+                    } label: {
+                        HStack {
+                            Text(selectedGroup)
+                                .foregroundColor(.black)
+                                .font(.headline)
+                            Image(systemName: "chevron.down")
+                                .foregroundColor(.black)
+                        }
+                        .padding()
+                        .background(Color(.systemGray5))
+                        .cornerRadius(20)
+                    }
+
+                    Spacer()
+                }
+                .padding(.horizontal)
+                .padding(.top, 10)
+
+                // Announcement Banner
+                Text("Announcements: Group Call Tonight 8:00 PM")
+                    .font(.subheadline)
+                    .foregroundColor(.white)
+                    .padding(8)
+                    .frame(maxWidth: .infinity)
+                    .background(Color.fromHex("004aad"))
+                    .cornerRadius(10)
+                    .padding(.horizontal)
+                    .padding(.vertical, 5)
+
+                // Channel Sections
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 25) {
+                        Group {
+                            Text("Community")
+                                .font(.title3)
+                                .fontWeight(.bold)
+
+                            Text("#Welcome")
+                            Text("#Introductions")
+                            Text("#General")
+
+                            Divider()
+                        }
+
+                        Group {
+                            Text("Learn")
+                                .font(.title3)
+                                .fontWeight(.bold)
+
+                            Text("#Books-and-Resources")
+                            Text("#Lean-Methodology")
+                            Text("#Case-Studies")
+
+                            Divider()
+                        }
+
+                        Group {
+                            Text("Founders-Floor")
+                                .font(.title3)
+                                .fontWeight(.bold)
+
+                            Text("#Founder-Chat")
+                            Text("#Road-to-PMF")
+                        }
+                    }
+                    .padding(.horizontal)
+                    .padding(.top)
+                    .font(.system(size: 18))
+                    .foregroundColor(.black)
+                }
+
+                Spacer()
+            }
+
+            // Floating Button (Non-draggable)
+            floatingButton
+        }
+    }
+    
+    var headerSection: some View {
+        // Header Section
+        VStack(spacing: 0) {
+            HStack {
+                VStack(alignment: .leading, spacing: 5) {
+                    Text("Circl.")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                    
+                    Button(action: {
+                        // Action for Filter
+                    }) {
+                        HStack {
+                            Image(systemName: "slider.horizontal.3")
+                                .foregroundColor(.white)
+                            Text("Filter")
+                                .font(.headline)
+                                .foregroundColor(.white)
+                        }
+                    }
+                }
+                
+                Spacer()
+                
+                VStack(alignment: .trailing, spacing: 5) {
+                    // Add the Bubble and Person icons above "Hello, Fragne"
+                    VStack {
+                        HStack(spacing: 10) {
+                            // Navigation Link for Bubble Symbol
+                            NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
+                                Image(systemName: "bubble.left.and.bubble.right.fill")
+                                    .resizable()
+                                    .frame(width: 50, height: 40)
+                                    .foregroundColor(.white)
+                            }
+                            
+                            // Person Icon
+                            NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
+                                Image(systemName: "person.circle.fill")
+                                    .resizable()
+                                    .frame(width: 50, height: 50)
+                                    .foregroundColor(.white)
+                            }
+                        }
+                        
+                        // "Hello, Fragne" text below the icons
+                        Text("Hello, Fragne")
+                            .foregroundColor(.white)
+                            .font(.headline)
+                    }
+                }
+            }
+            .padding(.horizontal)
+            .padding(.top, 15)
+            .padding(.bottom, 10)
+            .background(Color.fromHex("004aad"))
+        }
+    }
+    
+    private var floatingButton: some View {
+        VStack(alignment: .trailing, spacing: 8) {
+            if showMenu {
+                VStack(alignment: .leading, spacing: 0) {
+                    // Menu Header
+                    Text("Welcome to your resources")
+                        .font(.headline)
+                        .padding()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(Color(.systemGray5))
+                    
+                    // Menu Items
+                    MenuItem(icon: "person.2.fill", title: "Connect and Network")
+                    MenuItem(icon: "person.crop.square.fill", title: "Your Business Profile")
+                    MenuItem(icon: "text.bubble.fill", title: "The Forum Feed")
+                    MenuItem(icon: "briefcase.fill", title: "Professional Services")
+                    MenuItem(icon: "envelope.fill", title: "Messages")
+                    MenuItem(icon: "newspaper.fill", title: "News & Knowledge")
+                    MenuItem(icon: "dollarsign.circle.fill", title: "Sell a Skill")
+                    
+                    Divider()
+                    
+                    MenuItem(icon: "circle.grid.2x2.fill", title: "Circles")
+                }
+                .background(Color(.systemGray6))
+                .cornerRadius(12)
+                .shadow(radius: 5)
+                .frame(width: 250)
+                .transition(.scale.combined(with: .opacity))
+            }
+            
+            // Main floating button
+            Button(action: {
+                withAnimation(.spring()) {
+                    showMenu.toggle()
+                }
+            }) {
+                Image(systemName: "hammer.fill")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 24, height: 24)
+                    .foregroundColor(.white)
+                    .padding(16)
+                    .background(Color.fromHex("004aad"))
+                    .clipShape(Circle())
+                    .shadow(radius: 4)
+            }
+        }
+        .padding()
+    }
+}
+
+// MARK: - Menu Item Component
+struct MenuItem2: View {
+    let icon: String
+    let title: String
+    
+    var body: some View {
+        Button(action: {
+            // Action for each menu item
+        }) {
+            HStack {
+                Image(systemName: icon)
+                    .foregroundColor(Color.fromHex("004aad"))
+                    .frame(width: 24)
+                Text(title)
+                    .foregroundColor(.primary)
+                Spacer()
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 12)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+
+// MARK: - Color Extension Helper
+extension Color {
+    static func fromHex12(_ hex: String) -> Color {
+        var hexSanitized = hex.trimmingCharacters(in: .whitespacesAndNewlines)
+        hexSanitized = hexSanitized.hasPrefix("#") ? String(hexSanitized.dropFirst()) : hexSanitized
+
+        var rgb: UInt64 = 0
+        Scanner(string: hexSanitized).scanHexInt64(&rgb)
+
+        let red = Double((rgb >> 16) & 0xFF) / 255.0
+        let green = Double((rgb >> 8) & 0xFF) / 255.0
+        let blue = Double(rgb & 0xFF) / 255.0
+
+        return Color(red: red, green: green, blue: blue)
+    }
+}
+
+// MARK: - Preview
+struct PageGroupchats_Previews: PreviewProvider {
+    static var previews: some View {
+        PageGroupchats()
+    }
+}
