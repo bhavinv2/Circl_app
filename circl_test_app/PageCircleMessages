@@ -1,0 +1,367 @@
+import SwiftUI
+
+struct PageCircleMessages: View {
+    @State private var newMessage: String = ""
+    @State private var messages: [ChatMessage] = [
+        ChatMessage(id: 1, sender: "Alice", content: "Hey everyone! Excited to be here.", isCurrentUser: false, timestamp: Date()),
+        ChatMessage(id: 2, sender: "Fragne", content: "Welcome, Alice! Glad you joined the circle 😊", isCurrentUser: true, timestamp: Date()),
+        ChatMessage(id: 3, sender: "Bob", content: "What's the next meetup plan?", isCurrentUser: false, timestamp: Date()),
+        ChatMessage(id: 4, sender: "Fragne", content: "We're finalizing details for next week.", isCurrentUser: true, timestamp: Date())
+    ]
+
+    @State private var showMenu = false
+    @State private var showCircleMenu = false
+
+    var body: some View {
+        ZStack(alignment: .top) {
+            // Main content
+            VStack(spacing: 0) {
+                header
+                messagesScrollView
+                inputBar
+            }
+            .zIndex(0)
+
+            // Dimmed background (only between content and menus)
+            if showMenu || showCircleMenu {
+                Color.black.opacity(0.3)
+                    .edgesIgnoringSafeArea(.all)
+                    .onTapGesture {
+                        withAnimation {
+                            showMenu = false
+                            showCircleMenu = false
+                        }
+                    }
+                    .zIndex(1)
+            }
+
+            // Circle menu
+            if showCircleMenu {
+                circleMenu
+                    .zIndex(2)
+            }
+
+            // Hammer menu
+            if showMenu {
+                hammerMenu
+                    .zIndex(2)
+            }
+        }
+        .background(Color.white.edgesIgnoringSafeArea(.all))
+        .navigationBarHidden(true)
+    }
+
+    private var header: some View {
+        HStack {
+            // Left side - Circle name and chevron
+            HStack(spacing: 4) {
+                Text("Lean Startup-ists")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+
+                Button(action: {
+                    withAnimation(.spring()) {
+                        if showMenu { showMenu = false }
+                        showCircleMenu.toggle()
+                    }
+                }) {
+                    Image(systemName: "chevron.down")
+                        .font(.subheadline)
+                        .foregroundColor(.white)
+                        .rotationEffect(.degrees(showCircleMenu ? 180 : 0))
+                        .animation(.easeInOut, value: showCircleMenu)
+                }
+            }
+
+            Spacer()
+
+            // Right side - Members count and hammer button
+            HStack {
+                Text("1.2k members • Online now: 120")
+                    .font(.subheadline)
+                    .foregroundColor(.white.opacity(0.85))
+
+                Button(action: {
+                    withAnimation(.spring()) {
+                        if showCircleMenu { showCircleMenu = false }
+                        showMenu.toggle()
+                    }
+                }) {
+                    Image(systemName: "hammer.fill")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 24, height: 24)
+                        .foregroundColor(Color.fromHex("004aad"))
+                        .padding(12)
+                        .background(Color.white)
+                        .clipShape(Circle())
+                        .shadow(radius: 4)
+                }
+            }
+        }
+        .padding()
+        .frame(height: 80)
+        .background(Color.fromHex("004aad"))
+    }
+
+    private var messagesScrollView: some View {
+        ScrollViewReader { proxy in
+            ScrollView {
+                LazyVStack(spacing: 12) {
+                    ForEach(messages) { message in
+                        ChatBubble(message: message)
+                            .padding(.horizontal)
+                    }
+                }
+                .padding(.vertical)
+            }
+            .onChange(of: messages.count) { _ in
+                if let lastMessage = messages.last {
+                    withAnimation {
+                        proxy.scrollTo(lastMessage.id, anchor: .bottom)
+                    }
+                }
+            }
+        }
+        .background(Color.white)
+    }
+
+    private var circleMenu: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            GroupMenuItem(icon: "info.circle.fill", title: "About This Circle")
+            GroupMenuItem(icon: "person.crop.circle.badge.plus", title: "Invite Network")
+            GroupMenuItem(icon: "person.2.fill", title: "Members List")
+            GroupMenuItem(icon: "pin.fill", title: "Pinned Messages")
+            GroupMenuItem(icon: "folder.fill", title: "Group Files")
+            GroupMenuItem(icon: "bell.fill", title: "Notification Settings")
+
+            Divider()
+
+            GroupMenuItem(icon: "rectangle.portrait.and.arrow.right.fill", title: "Leave Circle", isDestructive: true)
+        }
+        .background(Color(.systemGray6))
+        .cornerRadius(12)
+        .shadow(radius: 5)
+        .frame(width: 250)
+        .padding(.leading, 16)
+        .offset(y: 80)
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var hammerMenu: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text("Welcome to your resources")
+                .font(.headline)
+                .padding()
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color(.systemGray5))
+
+            MenuItem(icon: "person.2.fill", title: "Connect and Network")
+            MenuItem(icon: "person.crop.square.fill", title: "Your Business Profile")
+            MenuItem(icon: "text.bubble.fill", title: "The Forum Feed")
+            MenuItem(icon: "briefcase.fill", title: "Professional Services")
+            MenuItem(icon: "envelope.fill", title: "Messages")
+            MenuItem(icon: "newspaper.fill", title: "News & Knowledge")
+            MenuItem(icon: "dollarsign.circle.fill", title: "Sell a Skill")
+
+            Divider()
+
+            MenuItem(icon: "circle.grid.2x2.fill", title: "Circles")
+        }
+        .background(Color(.systemGray6))
+        .cornerRadius(12)
+        .shadow(radius: 5)
+        .frame(width: 250)
+        .padding(.trailing, 16)
+        .offset(y: 80)
+        .frame(maxWidth: .infinity, alignment: .trailing)
+    }
+
+    private var inputBar: some View {
+        HStack {
+            TextField("Message #general...", text: $newMessage)
+                .textFieldStyle(.plain)
+                .padding(12)
+                .background(Color(.systemGray6))
+                .cornerRadius(20)
+
+            Button(action: {
+                sendMessage()
+            }) {
+                Image(systemName: "paperplane.fill")
+                    .rotationEffect(.degrees(45))
+                    .font(.title2)
+                    .foregroundColor(newMessage.isEmpty ? .gray : Color.fromHex("004aad"))
+            }
+            .disabled(newMessage.isEmpty)
+        }
+        .padding()
+        .background(Color.white)
+    }
+
+    private func sendMessage() {
+        guard !newMessage.trimmingCharacters(in: .whitespaces).isEmpty else { return }
+        let new = ChatMessage(
+            id: messages.count + 1,
+            sender: "Fragne",
+            content: newMessage,
+            isCurrentUser: true,
+            timestamp: Date()
+        )
+        withAnimation {
+            messages.append(new)
+        }
+        newMessage = ""
+    }
+}
+
+struct ChatMessage: Identifiable {
+    let id: Int
+    let sender: String
+    let content: String
+    let isCurrentUser: Bool
+    let timestamp: Date
+
+    var timeString: String {
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+        return formatter.string(from: timestamp)
+    }
+}
+
+struct ChatBubble: View {
+    let message: ChatMessage
+
+    var body: some View {
+        HStack(alignment: .top) {
+            if !message.isCurrentUser {
+                profileSection
+            }
+
+            VStack(alignment: message.isCurrentUser ? .trailing : .leading, spacing: 4) {
+                HStack(spacing: 4) {
+                    if message.isCurrentUser { Spacer() }
+
+                    Button(action: {
+                        viewProfile(for: message.sender)
+                    }) {
+                        HStack(spacing: 4) {
+                            Text(message.sender)
+                                .font(.caption)
+                                .foregroundColor(.gray)
+
+                            Image(systemName: "chevron.down")
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                        }
+                    }
+
+                    if !message.isCurrentUser { Spacer() }
+                }
+
+                Text(message.content)
+                    .padding(10)
+                    .background(message.isCurrentUser ? Color.fromHex("004aad") : Color(.systemGray5))
+                    .foregroundColor(message.isCurrentUser ? .white : .black)
+                    .cornerRadius(12)
+
+                Text(message.timeString)
+                    .font(.caption2)
+                    .foregroundColor(.gray)
+            }
+            .frame(maxWidth: UIScreen.main.bounds.width * 0.7, alignment: message.isCurrentUser ? .trailing : .leading)
+
+            if message.isCurrentUser {
+                profileSection
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: message.isCurrentUser ? .trailing : .leading)
+    }
+
+    private var profileSection: some View {
+        Button(action: {
+            viewProfile(for: message.sender)
+        }) {
+            Image(systemName: "person.circle.fill")
+                .resizable()
+                .frame(width: 36, height: 36)
+                .foregroundColor(.gray)
+        }
+    }
+
+    private func viewProfile(for username: String) {
+        print("Viewing profile for \(username)")
+    }
+}
+
+struct MenuItem3: View {
+    let icon: String
+    let title: String
+
+    var body: some View {
+        Button(action: {
+            print("Tapped on \(title)")
+        }) {
+            HStack {
+                Image(systemName: icon)
+                    .foregroundColor(Color.fromHex("004aad"))
+                    .frame(width: 24)
+                Text(title)
+                    .foregroundColor(.primary)
+                Spacer()
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 12)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+
+struct GroupMenuItem: View {
+    let icon: String
+    let title: String
+    var isDestructive: Bool = false
+
+    var body: some View {
+        Button(action: {
+            print("Tapped on \(title)")
+        }) {
+            HStack {
+                Image(systemName: icon)
+                    .foregroundColor(isDestructive ? .red : Color.fromHex("004aad"))
+                    .frame(width: 24)
+                Text(title)
+                    .foregroundColor(isDestructive ? .red : .primary)
+                Spacer()
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 12)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+
+extension Color {
+    static func fromHex13(_ hex: String) -> Color {
+        var hexSanitized = hex.trimmingCharacters(in: .whitespacesAndNewlines)
+        hexSanitized = hexSanitized.hasPrefix("#") ? String(hexSanitized.dropFirst()) : hexSanitized
+
+        var rgb: UInt64 = 0
+        Scanner(string: hexSanitized).scanHexInt64(&rgb)
+
+        let red = Double((rgb >> 16) & 0xFF) / 255.0
+        let green = Double((rgb >> 8) & 0xFF) / 255.0
+        let blue = Double(rgb & 0xFF) / 255.0
+
+        return Color(red: red, green: green, blue: blue)
+    }
+}
+
+struct PageCircleMessages_Previews: PreviewProvider {
+    static var previews: some View {
+        PageCircleMessages()
+    }
+}
