@@ -1,402 +1,413 @@
 import SwiftUI
+import MapKit
 
 struct Page5: View {
     @State private var birthday: String = ""
     @State private var isUnderage: Bool = false
-    @State private var educationLevel: String? = nil
-    @State private var institutionAttended: String = ""
-    @State private var certifications: [String] = [] // Updated to hold multiple selections
-    @State private var yearsOfExperience: String = ""
+    @State private var location: String = ""
+    @State private var gender: String? = nil
+    @State private var availability: String? = nil
     @State private var personalityType: String = ""
     @State private var showInvalidPersonalityAlert: Bool = false
-    @State private var navigateToPage6: Bool = false // Add this line
-    @State private var showMissingFieldsAlert = false
+    @State private var showInvalidLocationAlert: Bool = false
+    @State private var locationValidationMessage: String = ""
+    @State private var isValidLocation: Bool = false
+    @State private var locationSuggestions: [String] = []
+    @State private var showSuggestions: Bool = false
+    @State private var showIncompleteFormAlert: Bool = false
 
     
-    let educationOptions = [
-        "No Formal Education",
-        "Some High School",
-        "High School Graduate or Equivalent",
-        "Some College / Associate Degree",
-        "Bachelor’s Degree",
-        "Master’s Degree",
-        "Doctorate / PhD"
+    let genderOptions = ["Male", "Female", "Prefer not to say"]
+    let availabilityOptions = [
+        "Full-time (40+ hrs/week)",
+        "Part-time (20-40 hrs/week)",
+        "Side project (<20 hrs/week)",
+        "Weekends only",
+        "Flexible hours",
+        "Currently employed - exploring options"
     ]
     
-    let certificationOptions = [
-        "Business and Management": [
-            "Other",
-            "Project Management Professional (PMP)",
-            "Certified ScrumMaster (CSM)",
-            "Six Sigma (Green Belt, Black Belt, etc.)",
-            "Certified Business Analysis Professional (CBAP)",
-            "Certified Management Consultant (CMC)",
-            "Chartered Financial Analyst (CFA)"
-        ],
-        "Technology and IT": [
-            "Certified Information Systems Security Professional (CISSP)",
-            "Certified Ethical Hacker (CEH)",
-            "CompTIA A+",
-            "Cisco Certified Network Associate (CCNA)",
-            "AWS Certified Solutions Architect",
-            "Microsoft Certified Azure Fundamentals",
-            "Certified Information Systems Auditor (CISA)"
-        ],
-        "Healthcare": [
-            "Registered Nurse (RN)",
-            "Certified Medical Assistant (CMA)",
-            "Certified Nursing Assistant (CNA)",
-            "Board Certified Physician (MD, DO)",
-            "Certified Radiologic Technologist (CRT)",
-            "Certified Surgical Technologist (CST)",
-            "Licensed Clinical Social Worker (LCSW)"
-        ],
-        "Legal and Compliance": [
-            "Certified Legal Manager (CLM)",
-            "Certified Paralegal (CP)",
-            "Certified Fraud Examiner (CFE)",
-            "Certified Compliance & Ethics Professional (CCEP)",
-            "Licensed Attorney (JD, LLB)",
-            "Certified Information Privacy Professional (CIPP)"
-        ],
-        "Finance and Accounting": [
-            "Certified Public Accountant (CPA)",
-            "Certified Management Accountant (CMA)",
-            "Chartered Accountant (CA)",
-            "Certified Internal Auditor (CIA)",
-            "Financial Risk Manager (FRM)",
-            "Certified Fraud Examiner (CFE)",
-            "Certified Financial Planner (CFP)"
-        ],
-        "Education and Teaching": [
-            "TESOL/TEFL",
-            "Certified Teacher (varies by state/country)",
-            "National Board Certification (NBC)",
-            "Special Education Certification"
-        ],
-        "Human Resources": [
-            "Professional in Human Resources (PHR)",
-            "Senior Professional in Human Resources (SPHR)",
-            "SHRM Certified Professional (SHRM-CP)",
-            "Certified Employee Benefits Specialist (CEBS)",
-            "Talent Acquisition Specialist (TAS)"
-        ],
-        "Engineering and Architecture": [
-            "Professional Engineer (PE)",
-            "Project Management Professional (PMP)",
-            "Certified Energy Manager (CEM)",
-            "Certified Manufacturing Engineer (CMfgE)",
-            "Architectural Licensing"
-        ],
-        "Construction and Trades": [
-            "Certified Construction Manager (CCM)",
-            "Licensed Electrician",
-            "Certified Welding Inspector (CWI)",
-            "OSHA Safety Certifications"
-        ],
-        "Sales and Marketing": [
-            "Certified Sales Professional (CSP)",
-            "Google Ads Certification",
-            "HubSpot Inbound Marketing Certification",
-            "Certified Digital Marketing Professional (CDMP)",
-            "Salesforce Certified Administrator"
-        ],
-        "Hospitality and Tourism": [
-            "Certified Meeting Professional (CMP)",
-            "Certified Hospitality Administrator (CHA)",
-            "Certified Travel Associate (CTA)"
-        ],
-        "Real Estate": [
-            "Licensed Real Estate Agent/Broker",
-            "Certified Commercial Investment Member (CCIM)",
-            "Accredited Buyer’s Representative (ABR)",
-            "Certified Residential Specialist (CRS)"
-        ],
-        "Environmental and Sustainability": [
-            "Leadership in Energy and Environmental Design (LEED)",
-            "Certified Environmental Professional (CEP)",
-            "Certified Hazardous Materials Manager (CHMM)"
-        ],
-        "Creative Arts and Design": [
-            "Adobe Certified Expert (ACE)",
-            "Certified Graphic Designer (CGD)",
-            "Certified Web Designer",
-            "Certified Fashion Designer"
-        ],
-        "Supply Chain and Logistics": [
-            "Certified Supply Chain Professional (CSCP)",
-            "Certified in Production and Inventory Management (CPIM)",
-            "Certified Logistics Associate (CLA)"
-        ],
-        "Transportation and Aviation": [
-            "Commercial Pilot License (CPL)",
-            "Certified Flight Instructor (CFI)",
-            "Air Traffic Controller Certification",
-            "Certified Transportation Professional (CTP)"
-        ]
-    ]
+    let usStates = ["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA",
+                    "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD",
+                    "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
+                    "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC",
+                    "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"]
     
-    func formatDateString(_ input: String) -> String {
-        let inputFormatter = DateFormatter()
-        inputFormatter.dateFormat = "MMddyy" // Expected input format (e.g., "070496")
-
-        if let date = inputFormatter.date(from: input) {
-            let outputFormatter = DateFormatter()
-            outputFormatter.dateFormat = "yyyy-MM-dd" // Convert to "YYYY-MM-DD"
-            return outputFormatter.string(from: date)
-        }
-
-        return "" // Return empty if the format is invalid
-    }
-
-    func submitPersonalDetails(completion: @escaping (Bool) -> Void) {
-        guard let url = URL(string: "https://circlapp.online/api/users/update-personal-details/") else {
-            print("❌ Invalid API URL")
-            completion(false)
-            return
-        }
-
-        let userId = UserDefaults.standard.integer(forKey: "user_id")
-        
-        // If user_id is missing, show an error and stop
-        if userId == 0 {
-            print("❌ User ID not found. Make sure you completed registration on Page 3.")
-            completion(false)
-            return
-        }
-
-        var personalDetails: [String: Any] = [
-            "user_id": userId,
-            "birthday": formatDateString(birthday),
-            "education_level": educationLevel ?? "",  // Optional field
-            "institution_attended": institutionAttended,  // Optional field
-            "certificates": certifications,  // Optional field
-            "years_of_experience": Int(yearsOfExperience) ?? 0,  // Optional field
-            "personality_type": personalityType  // Optional field
-        ]
-        
-        // Remove empty fields from the dictionary
-        personalDetails = personalDetails.filter { !($0.value is String && ($0.value as! String).isEmpty) }
-        personalDetails = personalDetails.filter { !($0.value is [String] && ($0.value as! [String]).isEmpty) }
-
-        // ✅ Debugging: Print the JSON payload before sending
-        if let jsonData = try? JSONSerialization.data(withJSONObject: personalDetails),
-           let jsonString = String(data: jsonData, encoding: .utf8) {
-            print("🚀 Sending Personal Details JSON: \(jsonString)")
-        } else {
-            print("❌ Failed to encode JSON")
-        }
-
-        guard let jsonData = try? JSONSerialization.data(withJSONObject: personalDetails) else {
-            print("❌ Failed to encode data")
-            completion(false)
-            return
-        }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = jsonData
-
-        let task = URLSession.shared.dataTask(with: request) { data, response, error in
-            DispatchQueue.main.async {
-                if let error = error {
-                    print("❌ Request Error: \(error.localizedDescription)")
-                    completion(false)
-                    return
-                }
-
-                if let httpResponse = response as? HTTPURLResponse {
-                    print("📡 Response Status Code: \(httpResponse.statusCode)")
-                    if httpResponse.statusCode == 200 {
-                        print("✅ Personal Details updated successfully.")
-                        completion(true)
-                    } else {
-                        print("❌ Failed to update personal details. Status code: \(httpResponse.statusCode)")
-                        completion(false)
-                    }
-                }
-
-                if let data = data, let responseString = String(data: data, encoding: .utf8) {
-                    print("📩 Response Body: \(responseString)")
-                }
-            }
-        }
-        task.resume()
-    }
-
-
-
     var body: some View {
-        NavigationView { // Wrap the entire view in a NavigationView
+        ZStack {
+            Color(hexCode: "004aad")
+                .edgesIgnoringSafeArea(.all)
+            
             ZStack {
-                Color(hexCode: "004aad")
-                    .edgesIgnoringSafeArea(.all)
-                ScrollView {
-                    VStack(spacing: 20) {
-                        Spacer()
-                        
-                        Text("Create Your Account")
-                            .font(.system(size: 32, weight: .bold))
-                            .foregroundColor(Color(hexCode: "ffde59"))
-                        
-                        Rectangle()
-                            .frame(height: 2)
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 40)
-                        
-                        HStack {
-                            Text("Personal Information")
-                                .font(.system(size: 24, weight: .bold))
-                                .foregroundColor(.white)
-                            Spacer()
+                        // Top Right Cloud Group
+                        Group {
+                            Circle().fill(Color.white).frame(width: 120, height: 120)
+                                .offset(x: UIScreen.main.bounds.width / 2 - 80, y: -UIScreen.main.bounds.height / 2 + 0)
+                            Circle().fill(Color.white).frame(width: 120, height: 120)
+                                .offset(x: UIScreen.main.bounds.width / 2 - 130, y: -UIScreen.main.bounds.height / 2 + 0)
+                            Circle().fill(Color.white).frame(width: 100, height: 100)
+                                .offset(x: UIScreen.main.bounds.width / 2 - 30, y: -UIScreen.main.bounds.height / 2 + 40)
+                            Circle().fill(Color.white).frame(width: 100, height: 100)
+                                .offset(x: UIScreen.main.bounds.width / 2 - 110, y: -UIScreen.main.bounds.height / 2 + 50)
+                            Circle().fill(Color.white).frame(width: 100, height: 100)
+                                .offset(x: UIScreen.main.bounds.width / 2 + 170, y: -UIScreen.main.bounds.height / 2 + 30)
+                            Circle().fill(Color.white).frame(width: 100, height: 100)
+                                .offset(x: UIScreen.main.bounds.width / 2 + 210, y: -UIScreen.main.bounds.height / 2 + 60)
+                            Circle().fill(Color.white).frame(width: 80, height: 80)
+                                .offset(x: UIScreen.main.bounds.width / 2 + 90, y: -UIScreen.main.bounds.height / 2 + 50)
+                            Circle().fill(Color.white).frame(width: 90, height: 90)
+                                .offset(x: UIScreen.main.bounds.width / 2 + 50, y: -UIScreen.main.bounds.height / 2 + 30)
+                            Circle().fill(Color.white).frame(width: 110, height: 110)
+                                .offset(x: UIScreen.main.bounds.width / 2 + 150, y: -UIScreen.main.bounds.height / 2 + 80)
                         }
-                        .padding(.horizontal, 40)
-                        .padding(.top, 20)
                         
-                        VStack(spacing: 15) {
-                            TextField("Birthday (MM/DD/YY)", text: $birthday)
-                                .onChange(of: birthday) { _ in
-                                    formatBirthday()
-                                    validateBirthday()
-                                }
-                                .textFieldStyle(RoundedTextFieldStyle())
-                                .frame(maxWidth: 300)
-                                .alert("You must be 18 years or older to sign up.", isPresented: $isUnderage) {
-                                    Button("OK", role: .cancel) { }
-                                }
-                            
-                            DropdownField(
-                                placeholder: "Education Level",
-                                options: educationOptions,
-                                selectedOption: $educationLevel
-                            )
-                            .frame(maxWidth: 300, maxHeight: 50)
-                            
-                            TextField("Institution Attended", text: $institutionAttended)
-                                .textFieldStyle(RoundedTextFieldStyle())
-                                .frame(maxWidth: 300)
-                            
-                            MultiSelectDropdownField(
-                                placeholder: "Select Certifications",
-                                options: certificationOptions,
-                                selectedOptions: $certifications
-                            )
-
-                            TextField("Years of Experience", text: $yearsOfExperience)
-                                .textFieldStyle(RoundedTextFieldStyle())
-                                .frame(maxWidth: 300)
-                            
-                            TextField("Personality Type (XXXX-Y)", text: $personalityType)
-                                .autocapitalization(.allCharacters)
-                                .onChange(of: personalityType) { _ in validatePersonalityType() }
-                                .textFieldStyle(RoundedTextFieldStyle())
-                                .frame(maxWidth: 300)
-                                .alert("Invalid Personality Type format. Use XXXX-Y.", isPresented: $showInvalidPersonalityAlert) {
-                                    Button("OK", role: .cancel) { }
-                                }
-                            
-                            Link("Take the 16 personalities test", destination: URL(string: "https://www.16personalities.com")!)
-                                .font(.system(size: 14, weight: .regular))
-                                .foregroundColor(Color(hexCode: "ffde59"))
-                                .underline(true, color: Color(hexCode: "ffde59"))
-                                .padding(.top, 8)
+                        // Bottom Right Cloud Group
+                        Group {
+                            Circle().fill(Color.white).frame(width: 120, height: 120)
+                                .offset(x: UIScreen.main.bounds.width / 2 - 60, y: UIScreen.main.bounds.height / 2 - 60)
+                            Circle().fill(Color.white).frame(width: 100, height: 100)
+                                .offset(x: UIScreen.main.bounds.width / 2 - 30, y: UIScreen.main.bounds.height / 2 - 40)
+                            Circle().fill(Color.white).frame(width: 100, height: 100)
+                                .offset(x: UIScreen.main.bounds.width / 2 - 90, y: UIScreen.main.bounds.height / 2 - 50)
+                            Circle().fill(Color.white).frame(width: 90, height: 90)
+                                .offset(x: UIScreen.main.bounds.width / 2 - 50, y: UIScreen.main.bounds.height / 2 - 30)
+                            Circle().fill(Color.white).frame(width: 90, height: 90)
+                                .offset(x: UIScreen.main.bounds.width / 2 - 30, y: UIScreen.main.bounds.height / 2 - 110)
+                            Circle().fill(Color.white).frame(width: 80, height: 80)
+                                .offset(x: UIScreen.main.bounds.width / 2 - 135, y: UIScreen.main.bounds.height / 2 - 30)
                         }
-                        .padding(.horizontal, 30)
-                        .padding(.top, 10)
                         
-                        Spacer()
+                        // Middle Left Cloud Group
+                        Group {
+                            Circle().fill(Color.white).frame(width: 80, height: 80)
+                                .offset(x: -UIScreen.main.bounds.width / 2 + 60, y: 2 + 50)
+                            Circle().fill(Color.white).frame(width: 90, height: 90)
+                                .offset(x: -UIScreen.main.bounds.width / 2 + 40, y: -20)
+                            Circle().fill(Color.white).frame(width: 80, height: 80)
+                                .offset(x: -UIScreen.main.bounds.width / 2 + 10, y: 40)
+                            Circle().fill(Color.white).frame(width: 90, height: 90)
+                                .offset(x: -UIScreen.main.bounds.width / 2 + 90, y: -30)
+                            Circle().fill(Color.white).frame(width: 120, height: 120)
+                                .offset(x: -UIScreen.main.bounds.width / 2 + 125, y: 20)
+                        }
+                    }
+            
+            VStack(spacing: 20) {
+                Spacer()
+                
+                Text("Create Your Account")
+                    .font(.system(size: 32, weight: .bold))
+                    .foregroundColor(Color(hexCode: "ffde59"))
+                
+                Rectangle()
+                    .frame(height: 2)
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 40)
+                
+                HStack {
+                    Text("Personal Information")
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(.white)
+                    Spacer()
+                }
+                .padding(.horizontal, 40)
+                .padding(.top, 20)
+                
+                VStack(spacing: 15) {
+                    // Birthday Field
+                    TextField("Birthday (MM/DD/YYYY)", text: $birthday)
+                        .onChange(of: birthday) { newValue in
+                            formatBirthday(newValue)
+                            validateAge()
+                        }
+                        .textFieldStyle(RoundedTextFieldStyle())
+                        .frame(maxWidth: 300)
+                        .keyboardType(.numberPad)
+                        .alert("You must be 18 years or older to sign up.", isPresented: $isUnderage) {
+                            Button("OK", role: .cancel) { }
+                        }
+                    
+                    // Location Field
+                    VStack(alignment: .leading) {
+                        TextField("Location (City, ST)", text: $location)
+                            .onChange(of: location) { newValue in
+                                formatLocation(newValue)
+                                validateCityState()
+                            }
+                            .textFieldStyle(RoundedTextFieldStyle())
+                            .frame(maxWidth: 300)
+                            .autocapitalization(.words)
                         
-                        // ✅ Updated Next Button with Proper Navigation
-                        Button(action: {
-                            submitPersonalDetails { success in
-                                if success {
-                                    navigateToPage6 = true
-                                } else {
-                                    showMissingFieldsAlert = true // Show alert only if submission fails
+                        if !locationValidationMessage.isEmpty {
+                            Text(locationValidationMessage)
+                                .font(.caption)
+                                .foregroundColor(isValidLocation ? .green : .red)
+                                .padding(.horizontal, 5)
+                        }
+                        
+                        if showSuggestions && !locationSuggestions.isEmpty {
+                            ScrollView {
+                                VStack(alignment: .leading, spacing: 5) {
+                                    ForEach(locationSuggestions, id: \.self) { suggestion in
+                                        Text(suggestion)
+                                            .padding(8)
+                                            .frame(maxWidth: .infinity, alignment: .leading)
+                                            .background(Color.white.opacity(0.2))
+                                            .cornerRadius(5)
+                                            .onTapGesture {
+                                                location = suggestion
+                                                showSuggestions = false
+                                            }
+                                    }
                                 }
                             }
-                        }) {
-                            Text("Next")
-                                .font(.system(size: 24, weight: .bold))
-                                .foregroundColor(Color(hexCode: "004aad"))
-                                .frame(maxWidth: 300)
-                                .padding(.vertical, 15)
-                                .background(Color(hexCode: "ffde59"))
-                                .cornerRadius(10)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 10)
-                                        .stroke(Color.white, lineWidth: 2)
-                                )
-                                .padding(.horizontal, 50)
+                            .frame(maxHeight: 150)
+                            .background(Color(hexCode: "d9d9d9"))
+                            .cornerRadius(10)
                         }
-
-
-
-
-                        Spacer()
+                    }
+                    .frame(maxWidth: 300)
+                    
+                    DropdownField5(
+                        placeholder: "Gender",
+                        options: genderOptions,
+                        selectedOption: $gender
+                    )
+                    .frame(maxWidth: 300, maxHeight: 50)
+                    
+                    DropdownField5(
+                        placeholder: "Availability",
+                        options: availabilityOptions,
+                        selectedOption: $availability
+                    )
+                    .frame(maxWidth: 300, maxHeight: 50)
+                    
+                    TextField("Personality Type (XXXX-Y)", text: $personalityType)
+                        .autocapitalization(.allCharacters)
+                        .onChange(of: personalityType) { newValue in
+                            personalityType = newValue.filter { !$0.isNumber }
+                            validatePersonalityType()
+                        }
+                        .textFieldStyle(RoundedTextFieldStyle())
+                        .frame(maxWidth: 300)
+                        .alert("Invalid Personality Type format. Use XXXX-Y.", isPresented: $showInvalidPersonalityAlert) {
+                            Button("OK", role: .cancel) { }
+                        }
+                    
+                    Link("Take the 16 personalities test", destination: URL(string: "https://www.16personalities.com/")!)
+                        .font(.system(size: 14, weight: .regular))
+                        .foregroundColor(Color(hexCode: "ffde59"))
+                        .underline(true, color: Color(hexCode: "ffde59"))
+                        .padding(.top, 8)
+                }
+                .padding(.horizontal, 30)
+                .padding(.top, 10)
+                
+                Spacer()
+                
+                NavigationLink(destination: Page10()) {
+                    Text("Next")
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(Color(hexCode: "004aad"))
+                        .frame(maxWidth: 300)
+                        .padding(.vertical, 15)
+                        .background(Color(hexCode: "ffde59"))
+                        .cornerRadius(10)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10)
+                                .stroke(Color.white, lineWidth: 2)
+                        )
+                        .padding(.horizontal, 50)
+                }
+                .disabled(!isFormComplete())
+                .opacity(isFormComplete() ? 1.0 : 0.6)
+                .alert("Please fill out all the fields.", isPresented: $showIncompleteFormAlert) {
+                    Button("OK", role: .cancel) { }
+                }
+                .onTapGesture {
+                    if !isFormComplete() {
+                        showIncompleteFormAlert = true
                     }
                 }
-                .dismissKeyboardOnScroll()
+                .disabled(!isValidLocation)
+                .opacity(isValidLocation ? 1.0 : 0.6)
                 
+                Spacer()
             }
-            .navigationBarHidden(true) // Hide the navigation bar
-            .alert("Missing Fields", isPresented: $showMissingFieldsAlert) {
-                Button("OK", role: .cancel) { }
-            } message: {
-                Text("Please fill out all fields before continuing.")
-            }
-
-            .background(
-                NavigationLink(
-                    destination: Page6(),
-                    isActive: $navigateToPage6,
-                    label: { EmptyView() }
-                )
-            )
         }
     }
-
-
     
-    private func formatBirthday() {
-        // Remove any non-numeric characters and ensure a 6-character MMDDYY string
-        let filtered = birthday.filter { $0.isNumber }
-        let formatted = filtered.prefix(6).enumerated().map { (index, char) -> String in
+    private func isFormComplete() -> Bool {
+        return !birthday.isEmpty &&
+               isValidLocation &&
+               gender != nil &&
+               availability != nil &&
+               !personalityType.isEmpty
+    }
+    
+    private func formatBirthday(_ newValue: String) {
+        let filtered = newValue.filter { $0.isNumber }
+        let limitedInput = String(filtered.prefix(8))
+        
+        var formatted = ""
+        for (index, char) in limitedInput.enumerated() {
             if index == 2 || index == 4 {
-                return "/\(char)"
-            } else {
-                return String(char)
+                formatted.append("/")
             }
-        }.joined()
+            formatted.append(char)
+        }
+        
         birthday = formatted
     }
     
-    private func validateBirthday() {
-        let filtered = birthday.filter { $0.isNumber }
-        let limitedInput = String(filtered.prefix(6))
+    private func validateAge() {
+        let numbersOnly = birthday.filter { $0.isNumber }
         
-        if limitedInput.count < 6 {
-            birthday = limitedInput
+        guard numbersOnly.count == 8 else {
+            isUnderage = false
             return
         }
         
-        let monthString = String(limitedInput.prefix(2))
-        let dayString = String(limitedInput.dropFirst(2).prefix(2))
+        let monthString = String(numbersOnly.prefix(2))
+        let dayString = String(numbersOnly.dropFirst(2).prefix(2))
+        let yearString = String(numbersOnly.dropFirst(4).prefix(4))
         
         if let month = Int(monthString), month > 12 {
-            birthday = String(monthString)
-        } else if let day = Int(dayString), day > 31 {
-            birthday = String(limitedInput.prefix(4))
-        } else {
-            birthday = limitedInput
+            birthday = String(birthday.dropLast())
+            return
         }
+        
+        if let day = Int(dayString), day > 31 {
+            birthday = String(birthday.dropLast())
+            return
+        }
+        
+        if let month = Int(monthString),
+           let day = Int(dayString),
+           let year = Int(yearString) {
+            
+            let calendar = Calendar.current
+            let currentDate = Date()
+            
+            var dateComponents = DateComponents()
+            dateComponents.year = year
+            dateComponents.month = month
+            dateComponents.day = day
+            
+            if let birthdayDate = calendar.date(from: dateComponents) {
+                let ageComponents = calendar.dateComponents([.year], from: birthdayDate, to: currentDate)
+                
+                if let age = ageComponents.year {
+                    isUnderage = age < 18
+                }
+            }
+        }
+    }
+    
+    private func formatLocation(_ newValue: String) {
+        let parts = newValue.components(separatedBy: ",")
+        
+        if parts.count == 1 {
+            let city = parts[0].trimmingCharacters(in: .whitespaces)
+            if !city.isEmpty {
+                let capitalizedCity = city.prefix(1).capitalized + city.dropFirst()
+                location = capitalizedCity
+            }
+        } else if parts.count == 2 {
+            let city = parts[0].trimmingCharacters(in: .whitespaces)
+            var state = parts[1].trimmingCharacters(in: .whitespaces)
+            
+            let capitalizedCity = city.isEmpty ? "" : city.prefix(1).capitalized + city.dropFirst()
+            state = String(state.prefix(2)).uppercased()
+            
+            location = "\(capitalizedCity), \(state)"
+        }
+    }
+    
+    private func validateCityState() {
+        guard !location.isEmpty else {
+            locationValidationMessage = ""
+            isValidLocation = false
+            showSuggestions = false
+            return
+        }
+        
+        let parts = location.components(separatedBy: ",")
+        guard parts.count == 2 else {
+            locationValidationMessage = "Please enter as 'City, ST'"
+            isValidLocation = false
+            showSuggestions = false
+            return
+        }
+        
+        let city = parts[0].trimmingCharacters(in: .whitespaces)
+        let state = parts[1].trimmingCharacters(in: .whitespaces)
+        
+        guard usStates.contains(state.uppercased()) else {
+            locationValidationMessage = "Invalid state abbreviation"
+            isValidLocation = false
+            showSuggestions = false
+            return
+        }
+        
+        validateCityInState(city: city, state: state)
+    }
+    
+    private func validateCityInState(city: String, state: String) {
+        let searchRequest = MKLocalSearch.Request()
+        searchRequest.naturalLanguageQuery = "\(city), \(state), USA"
+        
+        let search = MKLocalSearch(request: searchRequest)
+        search.start { response, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    print("Location validation error: \(error.localizedDescription)")
+                    self.handleInvalidCity(city: city, state: state)
+                    return
+                }
+                
+                guard let mapItems = response?.mapItems, !mapItems.isEmpty else {
+                    self.handleInvalidCity(city: city, state: state)
+                    return
+                }
+                
+                let exactMatches = mapItems.filter { item in
+                    let itemCity = item.placemark.locality?.lowercased() ?? ""
+                    let itemState = item.placemark.administrativeArea ?? ""
+                    
+                    return itemCity == city.lowercased() && itemState == state.uppercased()
+                }
+                
+                if exactMatches.isEmpty {
+                    self.handleInvalidCity(city: city, state: state)
+                    
+                    let suggestions = Array(mapItems.prefix(3)).compactMap { item -> String? in
+                        guard let suggestionCity = item.placemark.locality,
+                              let suggestionState = item.placemark.administrativeArea else {
+                            return nil
+                        }
+                        return "\(suggestionCity), \(suggestionState)"
+                    }
+                    
+                    self.locationSuggestions = suggestions
+                    self.showSuggestions = !suggestions.isEmpty
+                } else {
+                    self.locationValidationMessage = "Valid location"
+                    self.isValidLocation = true
+                    self.showSuggestions = false
+                }
+            }
+        }
+    }
+    
+    private func handleInvalidCity(city: String, state: String) {
+        locationValidationMessage = "\(city) not found in \(state). Did you mean..."
+        isValidLocation = false
     }
     
     private func validatePersonalityType() {
         let sanitizedInput = personalityType.filter { $0.isUppercase }
         
-        // Limit input to exactly 5 characters including the dash
         if sanitizedInput.count == 5 {
             if let dashIndex = personalityType.firstIndex(of: "-"),
                dashIndex == personalityType.index(personalityType.startIndex, offsetBy: 4) {
@@ -424,15 +435,18 @@ struct Page5: View {
     }
 }
 
-// Custom Regex Extension (for matching format)
-extension String {
-    func matches(_ regex: String) -> Bool {
-        return self.range(of: regex, options: .regularExpression) != nil
+struct RoundedTextFieldStyle: TextFieldStyle {
+    func _body(configuration: TextField<Self._Label>) -> some View {
+        configuration
+            .padding(15)
+            .background(Color(hexCode: "d9d9d9"))
+            .cornerRadius(10)
+            .font(.system(size: 20))
+            .foregroundColor(Color(hexCode: "004aad"))
     }
 }
 
-// DropdownField Component
-struct DropdownField2: View {
+struct DropdownField5: View {
     var placeholder: String
     var options: [String]
     @Binding var selectedOption: String?
@@ -447,7 +461,7 @@ struct DropdownField2: View {
         } label: {
             ZStack {
                 RoundedRectangle(cornerRadius: 10)
-                    .fill(Color(.systemGray5))
+                    .fill(Color(hexCode: "d9d9d9"))
                     .frame(height: 50)
 
                 HStack {
@@ -467,82 +481,19 @@ struct DropdownField2: View {
     }
 }
 
-// Multi-Select Dropdown Component
-struct MultiSelectDropdownField: View {
-    var placeholder: String
-    var options: [String: [String]] // Key as category, value as options
-    @Binding var selectedOptions: [String]
-
-    var body: some View {
-        Menu {
-            ForEach(options.keys.sorted(), id: \.self) { category in
-                // Category Header
-                Text(category)
-                    .font(.headline)
-                    .foregroundColor(.gray)
-                    .padding(.vertical, 5)
-
-                // Options under each category
-                ForEach(options[category] ?? [], id: \.self) { option in
-                    Button {
-                        if selectedOptions.contains(option) {
-                            // Remove if already selected
-                            selectedOptions.removeAll { $0 == option }
-                        } else {
-                            // Add if not selected
-                            selectedOptions.append(option)
-                        }
-                    } label: {
-                        HStack {
-                            Text(option)
-                            Spacer()
-                            if selectedOptions.contains(option) {
-                                Image(systemName: "checkmark")
-                                    .foregroundColor(.blue)
-                            }
-                        }
-                    }
-                }
-            }
-        } label: {
-            ZStack {
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(Color(.systemGray5))
-                    .frame(height: 50)
-
-                HStack {
-                    Text(selectedOptions.isEmpty ? placeholder : selectedOptions.joined(separator: ", "))
-                        .foregroundColor(
-                            selectedOptions.isEmpty ?
-                                Color(hexCode: "004aad").opacity(0.6) :
-                                Color(hexCode: "004aad")
-                        )
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-                    Spacer()
-                    Image(systemName: "chevron.down")
-                        .foregroundColor(Color(hexCode: "004aad"))
-                }
-                .padding(.horizontal, 15)
-            }
-        }
-        .frame(maxWidth: 300, maxHeight: 50)
+extension Color {
+    init(hexCode2: String) {
+        let scanner = Scanner(string: hexCode2)
+        _ = scanner.scanString("#")
+        var rgb: UInt64 = 0
+        scanner.scanHexInt64(&rgb)
+        let r = Double((rgb >> 16) & 0xFF) / 255
+        let g = Double((rgb >> 8) & 0xFF) / 255
+        let b = Double(rgb & 0xFF) / 255
+        self.init(red: r, green: g, blue: b)
     }
 }
 
-// Custom TextField Style
-struct RoundedTextFieldStyle: TextFieldStyle {
-    func _body(configuration: TextField<Self._Label>) -> some View {
-        configuration
-            .padding(15)
-            .background(Color(hexCode: "d9d9d9"))
-            .cornerRadius(10)
-            .font(.system(size: 20))
-            .foregroundColor(Color(hexCode: "004aad"))
-    }
-}
-
-// Preview
 struct Page5_Previews: PreviewProvider {
     static var previews: some View {
         Page5()
