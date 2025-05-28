@@ -383,7 +383,7 @@ struct NextButton: View {
     var isEmailValid: Bool
 
     var body: some View {
-        NavigationLink(destination: Page4()) {
+        NavigationLink(destination: Page5()) {
             Text("Next")
                 .font(.system(size: 24, weight: .bold))
                 .foregroundColor(Color(hexCode: "004aad"))
