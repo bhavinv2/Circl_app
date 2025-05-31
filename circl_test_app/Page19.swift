@@ -1,6 +1,9 @@
 import SwiftUI
 
 struct Page19: View {
+    @State private var animateConfetti = false
+    @State private var confettiOpacity: Double = 0.0
+    
     var body: some View {
         NavigationView {
             ZStack {
@@ -58,43 +61,74 @@ struct Page19: View {
                         .offset(x: -UIScreen.main.bounds.width / 2 + 150, y: -UIScreen.main.bounds.height / 2 + 80)
                 }
 
-                // Bottom Left Cloud
+                // Bottom Right Cloud
                 ZStack {
                     Circle()
                         .fill(Color.white)
                         .frame(width: 120, height: 120)
-                        .offset(x: -UIScreen.main.bounds.width / 2 + 30, y: UIScreen.main.bounds.height / 2 - 80)
+                        .offset(x: UIScreen.main.bounds.width / 2 - 60, y: UIScreen.main.bounds.height / 2 - 60)
                     
                     Circle()
                         .fill(Color.white)
                         .frame(width: 100, height: 100)
-                        .offset(x: -UIScreen.main.bounds.width / 2 + 30, y: UIScreen.main.bounds.height / 2 - 40)
+                        .offset(x: UIScreen.main.bounds.width / 2 - 5, y: UIScreen.main.bounds.height / 2 - 40)
                     
                     Circle()
                         .fill(Color.white)
                         .frame(width: 100, height: 100)
-                        .offset(x: -UIScreen.main.bounds.width / 2 + 170, y: UIScreen.main.bounds.height / 2 - 20)
+                        .offset(x: UIScreen.main.bounds.width / 2 - 110, y: UIScreen.main.bounds.height / 2 - 30)
+                    
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 100, height: 100)
+                        .offset(x: UIScreen.main.bounds.width / 2 - 170, y: UIScreen.main.bounds.height / 2 - 30)
                     
                     Circle()
                         .fill(Color.white)
                         .frame(width: 90, height: 90)
-                        .offset(x: -UIScreen.main.bounds.width / 2 + 80, y: UIScreen.main.bounds.height / 2 - 40)
+                        .offset(x: UIScreen.main.bounds.width / 2 - 205, y: UIScreen.main.bounds.height / 2 - 70)
+                    
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 80, height: 80)
+                        .offset(x: UIScreen.main.bounds.width / 2 - 100, y: UIScreen.main.bounds.height / 2 - 50)
+                    
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 90, height: 90)
+                        .offset(x: UIScreen.main.bounds.width / 2 - 50, y: UIScreen.main.bounds.height / 2 - 30)
                     
                     Circle()
                         .fill(Color.white)
                         .frame(width: 110, height: 110)
-                        .offset(x: -UIScreen.main.bounds.width / 2 + 150, y: UIScreen.main.bounds.height / 2 - 80)
+                        .offset(x: UIScreen.main.bounds.width / 2 - 150, y: UIScreen.main.bounds.height / 2 - 80)
                 }
-
                 
-                
-                // Decorative elements
-                ConfettiView()
-                    .opacity(0.3)
+                // Confetti Explosion
+                if animateConfetti {
+                    ConfettiExplosionView()
+                        .opacity(confettiOpacity)
+                        .onAppear {
+                            withAnimation(.easeIn(duration: 0.5)) {
+                                confettiOpacity = 1.0
+                            }
+                            
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                                withAnimation(.easeOut(duration: 1.0)) {
+                                    confettiOpacity = 0.0
+                                }
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                                    animateConfetti = false
+                                }
+                            }
+                        }
+                }
                 
                 VStack(spacing: 0) {
+                    Spacer().frame(height: 110)
+                    
                     // Header Section
-                    VStack(spacing: 30) {
+                    VStack(spacing: 40) {
                         // Logo with subtle shadow
                         Circle()
                             .foregroundColor(.white)
@@ -105,10 +139,15 @@ struct Page19: View {
                                     .foregroundColor(Color.fromHex("004aad"))
                             )
                             .frame(width: 180, height: 180)
-                            .padding(.top, 40)
+                            .padding(.top, 5)
+                            .onAppear {
+                                withAnimation(.spring()) {
+                                    animateConfetti = true
+                                }
+                            }
                         
-                        // Message Section with improved typography
-                        VStack(spacing: 20) {
+                        // Message Section
+                        VStack(spacing: 40) {
                             Text("Congratulations!")
                                 .font(.system(size: 32, weight: .bold))
                                 .foregroundColor(.white)
@@ -133,9 +172,8 @@ struct Page19: View {
                     
                     Spacer()
                     
-                    // Buttons Section with improved styling
+                    // Buttons Section
                     VStack(spacing: 20) {
-                        // Primary Button
                         NavigationLink(destination: Page1().navigationBarBackButtonHidden(true)) {
                             HStack {
                                 Image(systemName: "arrow.left")
@@ -151,7 +189,6 @@ struct Page19: View {
                         }
                         .padding(.horizontal, 30)
                         
-                        // Secondary Button
                         Link(destination: URL(string: "https://youtu.be/-xEFg7Vodco?si=ZVzh9zmjQhe8E4-Q")!) {
                             HStack {
                                 Image(systemName: "play.fill")
@@ -170,57 +207,106 @@ struct Page19: View {
                     .padding(.bottom, 40)
                 }
             }
+            .navigationBarTitle("")
             .navigationBarHidden(true)
+            .navigationBarBackButtonHidden(true)
         }
+        .navigationViewStyle(StackNavigationViewStyle())
+        .navigationBarBackButtonHidden(true)
     }
 }
 
-// Confetti Animation View
-struct ConfettiView: UIViewRepresentable {
-    func makeUIView(context: Context) -> UIView {
-        let view = UIView()
-        view.isUserInteractionEnabled = false
-        
-        let emitter = CAEmitterLayer()
-        emitter.emitterShape = .line
-        emitter.emitterPosition = CGPoint(x: UIScreen.main.bounds.width/2, y: -50)
-        emitter.emitterSize = CGSize(width: UIScreen.main.bounds.width, height: 1)
-        
-        let colors: [UIColor] = [
-            .systemYellow, .systemOrange, .white,
-            .systemTeal, .systemPurple, .systemPink
-        ]
-        
-        var cells = [CAEmitterCell]()
-        for color in colors {
-            let cell = CAEmitterCell()
-            cell.contents = UIImage(systemName: "circle.fill")?.cgImage
-            cell.color = color.cgColor
-            cell.birthRate = 2
-            cell.lifetime = 15
-            cell.velocity = 100
-            cell.velocityRange = 50
-            cell.emissionLongitude = .pi
-            cell.emissionRange = .pi/4
-            cell.spin = 2
-            cell.spinRange = 3
-            cell.scale = 0.3
-            cell.scaleRange = 0.2
-            cell.yAcceleration = 30
-            cells.append(cell)
+struct ConfettiExplosionView: View {
+    @State private var particles: [Particle] = []
+    
+    let colors: [Color] = [
+        .green, .pink, .purple, .yellow,
+        Color(red: 0.4, green: 0.8, blue: 1.0) // Light blue
+    ]
+    
+    var body: some View {
+        ZStack {
+            ForEach(particles.indices, id: \.self) { index in
+                Circle()
+                    .fill(colors[index % colors.count])
+                    .frame(width: particles[index].size, height: particles[index].size)
+                    .offset(x: particles[index].x, y: particles[index].y)
+                    .opacity(particles[index].opacity)
+            }
         }
-        
-        emitter.emitterCells = cells
-        view.layer.addSublayer(emitter)
-        return view
+        .onAppear {
+            createExplosion()
+        }
     }
     
-    func updateUIView(_ uiView: UIView, context: Context) {}
+    func createExplosion() {
+        particles = []
+        
+        // Create 150 particles for a rich explosion
+        for i in 0..<150 {
+            let size = CGFloat.random(in: 6...12)
+            let distance = CGFloat.random(in: 50...UIScreen.main.bounds.width/2)
+            let angle = Angle(degrees: Double.random(in: 0..<360)).radians
+            let duration = Double.random(in: 2.0...4.0)
+            
+            let x = CGFloat(cos(angle)) * distance
+            let y = CGFloat(sin(angle)) * distance
+            
+            let delay = Double.random(in: 0...0.3)
+            let verticalMovement = CGFloat.random(in: -100...100)
+            
+            particles.append(Particle(
+                x: 0, y: 0,
+                size: size,
+                opacity: 0
+            ))
+            
+            let lastIndex = particles.count - 1
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                withAnimation(.easeOut(duration: duration * 0.5)) {
+                    if lastIndex < particles.count {
+                        particles[lastIndex].x = x
+                        particles[lastIndex].y = y + verticalMovement
+                        particles[lastIndex].opacity = 1
+                    }
+                }
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + duration * 0.5) {
+                    withAnimation(.easeIn(duration: duration * 0.5)) {
+                        if lastIndex < particles.count {
+                            particles[lastIndex].opacity = 0
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
-// MARK: - Preview
+struct Particle {
+    var x: CGFloat
+    var y: CGFloat
+    var size: CGFloat
+    var opacity: Double
+}
+
 struct Page19_Previews: PreviewProvider {
     static var previews: some View {
         Page19()
+    }
+}
+
+extension Color {
+    static func fromHex19(_ hex: String) -> Color {
+        let scanner = Scanner(string: hex)
+        var rgbValue: UInt64 = 0
+        scanner.scanHexInt64(&rgbValue)
+        
+        let r = Double((rgbValue & 0xFF0000) >> 16) / 255.0
+        let g = Double((rgbValue & 0x00FF00) >> 8) / 255.0
+        let b = Double(rgbValue & 0x0000FF) / 255.0
+        
+        return Color(red: r, green: g, blue: b)
     }
 }
