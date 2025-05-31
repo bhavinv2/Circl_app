@@ -1,6 +1,10 @@
 import SwiftUI
 
 struct Page10: View {
+    @State private var answer1: String = ""
+    @State private var answer2: String = ""
+    @State private var showAlert = false
+    
     var body: some View {
         ZStack {
             // Background Color
@@ -108,16 +112,16 @@ struct Page10: View {
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 30)
                     .padding(.top, 0)
-                    .padding(.bottom, 12)  // Space before questions
+                    .padding(.bottom, 12)
 
-                // Input Fields Section (SHIFTED DOWN 10px)
+                // Input Fields Section
                 VStack(alignment: .leading, spacing: 20) {
                     VStack(alignment: .leading, spacing: 5) {
                         Text("Describe a business/side hustle you're currently working on or recently completed—what's the biggest challenge you've faced, and how are you handling it?")
                             .font(.system(size: 16, weight: .semibold))
                             .foregroundColor(.white)
                             .fixedSize(horizontal: false, vertical: true)
-                        FreeResponseField(placeholder: "Type your answer here...")
+                        FreeResponseField(placeholder: "Type your answer here...", text: $answer1)
                             .frame(height: 160)
                     }
 
@@ -126,17 +130,21 @@ struct Page10: View {
                             .font(.system(size: 16, weight: .semibold))
                             .foregroundColor(.white)
                             .fixedSize(horizontal: false, vertical: true)
-                        FreeResponseField(placeholder: "Type your answer here...")
+                        FreeResponseField(placeholder: "Type your answer here...", text: $answer2)
                             .frame(height: 160)
                     }
                 }
                 .padding(.horizontal, 30)
-                .padding(.top, 20)  // <-- shifted down 10 extra pixels (was 10, now 20)
+                .padding(.top, 20)
 
                 Spacer()
 
-                // Next Button (SHIFTED DOWN 10px)
-                NavigationLink(destination: Page11()) {
+                // Next Button
+                Button(action: {
+                    if answer1.isEmpty || answer2.isEmpty {
+                        showAlert = true
+                    }
+                }) {
                     Text("Next")
                         .font(.system(size: 24, weight: .bold))
                         .foregroundColor(Color(hexCode: "004aad"))
@@ -149,7 +157,17 @@ struct Page10: View {
                                 .stroke(Color.white, lineWidth: 2)
                         )
                         .padding(.horizontal, 50)
-                        .padding(.bottom, 30)  // <-- shifted down 10 extra pixels (was 20, now 30)
+                        .padding(.bottom, 30)
+                }
+                .background(
+                    NavigationLink(destination: Page19(), isActive: .constant(!answer1.isEmpty && !answer2.isEmpty)) { EmptyView() }
+                )
+                .alert(isPresented: $showAlert) {
+                    Alert(
+                        title: Text("Incomplete Form"),
+                        message: Text("Please fill out all fields before proceeding."),
+                        dismissButton: .default(Text("OK"))
+                    )
                 }
 
                 Spacer()
@@ -160,7 +178,7 @@ struct Page10: View {
 
 struct FreeResponseField: View {
     var placeholder: String
-    @State private var text: String = ""
+    @Binding var text: String
 
     var body: some View {
         ZStack(alignment: .topLeading) {
