@@ -142,7 +142,7 @@ struct Page2: View {
                 Spacer()
                 
                 // Next Button
-                NavigationLink(destination: Page3()) {
+                NavigationLink(destination: Page17()) {
                     // Add navigation action here
                     Text("Next")
                         .font(.system(size: 24, weight: .bold))
