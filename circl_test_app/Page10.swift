@@ -4,6 +4,7 @@ struct Page10: View {
     @State private var answer1: String = ""
     @State private var answer2: String = ""
     @State private var showAlert = false
+    @State private var isNavigating = false
     
     var body: some View {
         ZStack {
@@ -95,7 +96,7 @@ struct Page10: View {
                 Spacer()
 
                 // Title
-                Text("Free Response")
+                Text("One Last Thing")
                     .font(.system(size: 32, weight: .bold))
                     .foregroundColor(Color(hexCode: "ffde59"))
 
@@ -143,6 +144,8 @@ struct Page10: View {
                 Button(action: {
                     if answer1.isEmpty || answer2.isEmpty {
                         showAlert = true
+                    } else {
+                        isNavigating = true
                     }
                 }) {
                     Text("Next")
@@ -160,7 +163,11 @@ struct Page10: View {
                         .padding(.bottom, 30)
                 }
                 .background(
-                    NavigationLink(destination: Page19(), isActive: .constant(!answer1.isEmpty && !answer2.isEmpty)) { EmptyView() }
+                    NavigationLink(
+                        destination: Page18(),
+                        isActive: $isNavigating,
+                        label: { EmptyView() }
+                    )
                 )
                 .alert(isPresented: $showAlert) {
                     Alert(
