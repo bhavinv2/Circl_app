@@ -1,8 +1,6 @@
 import SwiftUI
 
 struct Page18: View {
-    @State private var navigateToPage19 = false
-    
     var body: some View {
         ZStack {
             // Background Color
@@ -58,9 +56,7 @@ struct Page18: View {
                 Spacer()
 
                 // Next Button
-                Button(action: {
-                    navigateToPage19 = true
-                }) {
+                NavigationLink(destination: Page19()) {
                     Text("Next")
                         .font(.system(size: 24, weight: .bold))
                         .foregroundColor(Color(hexCode: "004aad"))
@@ -78,20 +74,12 @@ struct Page18: View {
 
                 Spacer()
             }
-            
-            NavigationLink(destination: Page19(), isActive: $navigateToPage19) {
-                EmptyView()
-            }
         }
     }
 }
 
-
-
 struct Page18_Previews: PreviewProvider {
     static var previews: some View {
-        NavigationView {
-            Page18()
-        }
+        Page18()
     }
 }
