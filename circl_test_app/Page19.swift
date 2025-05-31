@@ -15,6 +15,79 @@ struct Page19: View {
                 )
                 .ignoresSafeArea()
                 
+                // Top Left Cloud
+                ZStack {
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 120, height: 120)
+                        .offset(x: -UIScreen.main.bounds.width / 2 + 60, y: -UIScreen.main.bounds.height / 2 + 60)
+                    
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 100, height: 100)
+                        .offset(x: -UIScreen.main.bounds.width / 2 + 30, y: -UIScreen.main.bounds.height / 2 + 40)
+                    
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 100, height: 100)
+                        .offset(x: -UIScreen.main.bounds.width / 2 + 110, y: -UIScreen.main.bounds.height / 2 + 30)
+                    
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 100, height: 100)
+                        .offset(x: -UIScreen.main.bounds.width / 2 + 170, y: -UIScreen.main.bounds.height / 2 + 30)
+                    
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 100, height: 100)
+                        .offset(x: -UIScreen.main.bounds.width / 2 + 210, y: -UIScreen.main.bounds.height / 2 + 60)
+                    
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 80, height: 80)
+                        .offset(x: -UIScreen.main.bounds.width / 2 + 90, y: -UIScreen.main.bounds.height / 2 + 50)
+                    
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 90, height: 90)
+                        .offset(x: -UIScreen.main.bounds.width / 2 + 50, y: -UIScreen.main.bounds.height / 2 + 30)
+                    
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 110, height: 110)
+                        .offset(x: -UIScreen.main.bounds.width / 2 + 150, y: -UIScreen.main.bounds.height / 2 + 80)
+                }
+
+                // Bottom Left Cloud
+                ZStack {
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 120, height: 120)
+                        .offset(x: -UIScreen.main.bounds.width / 2 + 30, y: UIScreen.main.bounds.height / 2 - 80)
+                    
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 100, height: 100)
+                        .offset(x: -UIScreen.main.bounds.width / 2 + 30, y: UIScreen.main.bounds.height / 2 - 40)
+                    
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 100, height: 100)
+                        .offset(x: -UIScreen.main.bounds.width / 2 + 170, y: UIScreen.main.bounds.height / 2 - 20)
+                    
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 90, height: 90)
+                        .offset(x: -UIScreen.main.bounds.width / 2 + 80, y: UIScreen.main.bounds.height / 2 - 40)
+                    
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 110, height: 110)
+                        .offset(x: -UIScreen.main.bounds.width / 2 + 150, y: UIScreen.main.bounds.height / 2 - 80)
+                }
+
+                
+                
                 // Decorative elements
                 ConfettiView()
                     .opacity(0.3)
