@@ -51,9 +51,7 @@ struct Page13: View {
                 Spacer()
 
                 // Next Button
-                Button(action: {
-                    // Add navigation action here
-                }) {
+                NavigationLink(destination: Page10()) {
                     Text("Next")
                         .font(.system(size: 24, weight: .bold))
                         .foregroundColor(Color(hexCode: "004aad"))
