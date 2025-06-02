@@ -67,7 +67,7 @@ struct Page17: View {
             Circle()
                 .fill(Color.white)
                 .frame(width: 80, height: 80)
-                .offset(x: UIScreen.main.bounds.width / 2 - 90, y: UIScreen.main.bounds.height / 2 - 50)
+                .offset(x: UIScreen.main.bounds.width / 2 - 90, y: UIScreen.main.bounds.height / 2 - 90)
             
             Circle()
                 .fill(Color.white)
@@ -77,18 +77,13 @@ struct Page17: View {
             Circle()
                 .fill(Color.white)
                 .frame(width: 90, height: 90)
-                .offset(x: UIScreen.main.bounds.width / 2 - 30, y: UIScreen.main.bounds.height / 2 - 110)
+                .offset(x: UIScreen.main.bounds.width / 2 - 20, y: UIScreen.main.bounds.height / 2 - 110)
             
             Circle()
                 .fill(Color.white)
                 .frame(width: 110, height: 110)
-                .offset(x: UIScreen.main.bounds.width / 2 - 155, y: UIScreen.main.bounds.height / 2 - 30)
+                .offset(x: UIScreen.main.bounds.width / 2 - 145, y: UIScreen.main.bounds.height / 2 - 50)
             
-            // Additional Cloud
-            Circle()
-                .fill(Color.white)
-                .frame(width: 110, height: 110)
-                .offset(x: UIScreen.main.bounds.width / 2 - 150, y: UIScreen.main.bounds.height / 2 - 80)
         }
 
                 VStack(spacing: 30) {
