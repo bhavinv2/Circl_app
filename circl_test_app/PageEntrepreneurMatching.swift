@@ -335,7 +335,7 @@ struct PageEntrepreneurMatching: View {
                             }
                             
                             NavigationLink(destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true)) {
-                                MenuItem(icon: "dollarsign.circle.fill", title: "Sell a Skill")
+                                MenuItem(icon: "dollarsign.circle.fill", title: "The Circl Exchange")
                             }
                             
                             Divider()
