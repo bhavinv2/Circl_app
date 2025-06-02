@@ -210,7 +210,7 @@ struct PageCircleMessages: View {
             MenuItem(icon: "briefcase.fill", title: "Professional Services")
             MenuItem(icon: "envelope.fill", title: "Messages")
             MenuItem(icon: "newspaper.fill", title: "News & Knowledge")
-            MenuItem(icon: "dollarsign.circle.fill", title: "Sell a Skill")
+            MenuItem(icon: "dollarsign.circle.fill", title: "The Circl Exchange")
 
             Divider()
 
