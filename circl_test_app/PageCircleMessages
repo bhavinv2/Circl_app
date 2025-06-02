@@ -25,6 +25,7 @@ struct PageCircleMessages: View {
             }
             .zIndex(0)
 
+            // Tap-out background
             if showMenu || showCircleMenu || showCategoryMenu {
                 Color.black.opacity(0.3)
                     .edgesIgnoringSafeArea(.all)
@@ -54,9 +55,10 @@ struct PageCircleMessages: View {
             }
         }
         .background(Color.white.edgesIgnoringSafeArea(.all))
-        .navigationBarBackButtonHidden(true) // REMOVE system back button
+        .navigationBarBackButtonHidden(true)
     }
 
+    // MARK: - Header
     private var header: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
@@ -152,6 +154,7 @@ struct PageCircleMessages: View {
         }
     }
 
+    // MARK: - Messages View
     private var messagesScrollView: some View {
         ScrollViewReader { proxy in
             ScrollView {
@@ -174,6 +177,30 @@ struct PageCircleMessages: View {
         .background(Color.white)
     }
 
+    // MARK: - Input Bar
+    private var inputBar: some View {
+        HStack {
+            TextField("Message \(selectedChannel)...", text: $newMessage)
+                .textFieldStyle(.plain)
+                .padding(12)
+                .background(Color(.systemGray6))
+                .cornerRadius(20)
+
+            Button(action: {
+                sendMessage()
+            }) {
+                Image(systemName: "paperplane.fill")
+                    .rotationEffect(.degrees(45))
+                    .font(.title2)
+                    .foregroundColor(newMessage.isEmpty ? .gray : Color.fromHex("004aad"))
+            }
+            .disabled(newMessage.isEmpty)
+        }
+        .padding()
+        .background(Color.white)
+    }
+
+    // MARK: - Circle Menu
     private var circleMenu: some View {
         VStack(alignment: .leading, spacing: 0) {
             GroupMenuItem(icon: "info.circle.fill", title: "About This Circle")
@@ -196,6 +223,7 @@ struct PageCircleMessages: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
+    // MARK: - Hammer Menu with Navigation
     private var hammerMenu: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text("Welcome to your resources")
@@ -203,28 +231,43 @@ struct PageCircleMessages: View {
                 .padding()
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(Color(.systemGray5))
-
-            MenuItem(icon: "person.2.fill", title: "Connect and Network")
-            MenuItem(icon: "person.crop.square.fill", title: "Your Business Profile")
-            MenuItem(icon: "text.bubble.fill", title: "The Forum Feed")
-            MenuItem(icon: "briefcase.fill", title: "Professional Services")
-            MenuItem(icon: "envelope.fill", title: "Messages")
-            MenuItem(icon: "newspaper.fill", title: "News & Knowledge")
-            MenuItem(icon: "dollarsign.circle.fill", title: "The Circl Exchange")
-
+            
+            NavigationLink(destination: PageEntrepreneurMatching().navigationBarBackButtonHidden(true)) {
+                MenuItem(icon: "person.2.fill", title: "Connect and Network")
+            }
+            NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true)) {
+                MenuItem(icon: "person.crop.square.fill", title: "Your Business Profile")
+            }
+            NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
+                MenuItem(icon: "text.bubble.fill", title: "The Forum Feed")
+            }
+            NavigationLink(destination: PageEntrepreneurResources().navigationBarBackButtonHidden(true)) {
+                MenuItem(icon: "briefcase.fill", title: "Professional Services")
+            }
+            NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
+                MenuItem(icon: "envelope.fill", title: "Messages")
+            }
+            NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
+                MenuItem(icon: "newspaper.fill", title: "News & Knowledge")
+            }
+            NavigationLink(destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true)) {
+                MenuItem(icon: "dollarsign.circle.fill", title: "The Circl Exchange")
+            }
             Divider()
-
-            MenuItem(icon: "circle.grid.2x2.fill", title: "Circles")
+            NavigationLink(destination: PageCircles().navigationBarBackButtonHidden(true)) {
+                MenuItem(icon: "circle.grid.2x2.fill", title: "Circles")
+            }
         }
         .background(Color(.systemGray6))
         .cornerRadius(12)
         .shadow(radius: 5)
         .frame(width: 250)
-        .padding(.trailing, 16)
+        .padding(.trailing, 20)
         .offset(y: 80)
         .frame(maxWidth: .infinity, alignment: .trailing)
     }
 
+    // MARK: - Category Menu
     private var categoryMenu: some View {
         VStack(alignment: .leading, spacing: 0) {
             Group {
@@ -273,6 +316,7 @@ struct PageCircleMessages: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
+    // MARK: - Helper Methods
     private func channelRow(_ name: String, notifications: Int) -> some View {
         Button(action: {
             withAnimation {
@@ -300,28 +344,6 @@ struct PageCircleMessages: View {
         .buttonStyle(PlainButtonStyle())
     }
 
-    private var inputBar: some View {
-        HStack {
-            TextField("Message \(selectedChannel)...", text: $newMessage)
-                .textFieldStyle(.plain)
-                .padding(12)
-                .background(Color(.systemGray6))
-                .cornerRadius(20)
-
-            Button(action: {
-                sendMessage()
-            }) {
-                Image(systemName: "paperplane.fill")
-                    .rotationEffect(.degrees(45))
-                    .font(.title2)
-                    .foregroundColor(newMessage.isEmpty ? .gray : Color.fromHex("004aad"))
-            }
-            .disabled(newMessage.isEmpty)
-        }
-        .padding()
-        .background(Color.white)
-    }
-
     private func sendMessage() {
         guard !newMessage.trimmingCharacters(in: .whitespaces).isEmpty else { return }
         let new = ChatMessage(
@@ -345,7 +367,7 @@ struct PageCircleMessages: View {
     }
 }
 
-// MARK: - Models + Components
+// MARK: - Models & Components
 
 struct ChatMessage: Identifiable {
     let id: Int
@@ -431,22 +453,17 @@ struct MenuItem3: View {
     let title: String
 
     var body: some View {
-        Button(action: {
-            print("Tapped on \(title)")
-        }) {
-            HStack {
-                Image(systemName: icon)
-                    .foregroundColor(Color.fromHex("004aad"))
-                    .frame(width: 24)
-                Text(title)
-                    .foregroundColor(.primary)
-                Spacer()
-            }
-            .padding(.horizontal)
-            .padding(.vertical, 12)
-            .contentShape(Rectangle())
+        HStack {
+            Image(systemName: icon)
+                .foregroundColor(Color.fromHex("004aad"))
+                .frame(width: 24)
+            Text(title)
+                .foregroundColor(.primary)
+            Spacer()
         }
-        .buttonStyle(PlainButtonStyle())
+        .padding(.horizontal)
+        .padding(.vertical, 12)
+        .contentShape(Rectangle())
     }
 }
 
