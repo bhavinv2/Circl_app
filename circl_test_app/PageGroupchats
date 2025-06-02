@@ -6,129 +6,147 @@ struct PageGroupchats: View {
 
     let trendingThreads = [
         ThreadPost(id: 1, author: "Alice", content: "Check out this amazing resource for founders! 🚀", likes: 24, comments: 5),
-        ThreadPost(id: 2, author: "Bob", content: "What’s everyone’s biggest challenge this month?", likes: 18, comments: 12),
+        ThreadPost(id: 2, author: "Bob", content: "What's everyone's biggest challenge this month?", likes: 18, comments: 12),
         ThreadPost(id: 3, author: "Charlie", content: "We just closed our seed round! AMA.", likes: 35, comments: 20),
         ThreadPost(id: 4, author: "Diana", content: "Looking for a cofounder! Message me.", likes: 12, comments: 3),
         ThreadPost(id: 5, author: "Eve", content: "Check out my startup's landing page!", likes: 29, comments: 7)
     ]
 
     var body: some View {
-        ZStack(alignment: .bottomTrailing) {
-            VStack(spacing: 0) {
-                headerSection
+        NavigationView {
+            ZStack(alignment: .bottomTrailing) {
+                VStack(spacing: 0) {
+                    headerSection
 
-                // Group Selector
-                HStack {
-                    Image(systemName: "arrow.left")
+                    // Group Selector
+                    HStack {
+                        Image(systemName: "arrow.left")
+                            .foregroundColor(.white)
+                            .padding(8)
+                            .background(Circle().fill(Color.blue))
+
+                        Spacer()
+
+                        Menu {
+                            Button("Lean Startup-ists", action: { selectedGroup = "Lean Startup-ists" })
+                            Button("Other Group", action: { selectedGroup = "Other Group" })
+                        } label: {
+                            HStack {
+                                Text(selectedGroup)
+                                    .foregroundColor(.black)
+                                    .font(.headline)
+                                Image(systemName: "chevron.down")
+                                    .foregroundColor(.black)
+                            }
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Color(.systemGray5))
+                            .cornerRadius(20)
+                        }
+
+                        Spacer()
+                    }
+                    .padding(.horizontal)
+                    .padding(.top, 10)
+
+                    // Announcement Banner
+                    Text("Announcements: Group Call Tonight 8:00 PM")
+                        .font(.subheadline)
                         .foregroundColor(.white)
                         .padding(8)
-                        .background(Circle().fill(Color.blue))
+                        .frame(maxWidth: .infinity)
+                        .background(Color.fromHex("004aad"))
+                        .cornerRadius(10)
+                        .padding(.horizontal)
+                        .padding(.vertical, 5)
 
-                    Spacer()
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 25) {
+                            // Circle Threads (Horizontal Scroll)
+                            VStack(alignment: .leading, spacing: 10) {
+                                Text("Circle Threads")
+                                    .font(.title3)
+                                    .fontWeight(.bold)
+                                    .padding(.horizontal)
 
-                    Menu {
-                        Button("Lean Startup-ists", action: { selectedGroup = "Lean Startup-ists" })
-                        Button("Other Group", action: { selectedGroup = "Other Group" })
-                    } label: {
-                        HStack {
-                            Text(selectedGroup)
-                                .foregroundColor(.black)
-                                .font(.headline)
-                            Image(systemName: "chevron.down")
-                                .foregroundColor(.black)
-                        }
-                        .padding()
-                        .frame(maxWidth: .infinity)  // ⬅️ make it stretch wide
-                        .background(Color(.systemGray5))
-                        .cornerRadius(20)
-                    }
-
-                    Spacer()
-                }
-                .padding(.horizontal)
-                .padding(.top, 10)
-
-                // Announcement Banner
-                Text("Announcements: Group Call Tonight 8:00 PM")
-                    .font(.subheadline)
-                    .foregroundColor(.white)
-                    .padding(8)
-                    .frame(maxWidth: .infinity)
-                    .background(Color.fromHex12("004aad"))
-                    .cornerRadius(10)
-                    .padding(.horizontal)
-                    .padding(.vertical, 5)
-
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 25) {
-                        // 📝 Circle Threads (Horizontal Scroll)
-                        VStack(alignment: .leading, spacing: 10) {
-                            Text("Circle Threads")
-                                .font(.title3)
-                                .fontWeight(.bold)
-                                .padding(.horizontal)
-
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 16) {
-                                    ForEach(trendingThreads) { thread in
-                                        ThreadCard(thread: thread)
-                                            .frame(width: 280)
+                                ScrollView(.horizontal, showsIndicators: false) {
+                                    HStack(spacing: 16) {
+                                        ForEach(trendingThreads) { thread in
+                                            ThreadCard(thread: thread)
+                                                .frame(width: 280)
+                                        }
                                     }
+                                    .padding(.horizontal)
                                 }
+                            }
+                            .padding(.top)
+
+                            Divider()
                                 .padding(.horizontal)
+
+                            // Channel Sections with NavigationLinks
+                            Group {
+                                Text("Community")
+                                    .font(.title3)
+                                    .fontWeight(.bold)
+                                    .padding(.horizontal)
+
+                                NavigationLink(destination: PageCircleMessages()) {
+                                    Text("#Welcome").padding(.horizontal)
+                                }
+                                NavigationLink(destination: PageCircleMessages()) {
+                                    Text("#Introductions").padding(.horizontal)
+                                }
+                                NavigationLink(destination: PageCircleMessages()) {
+                                    Text("#General").padding(.horizontal)
+                                }
+
+                                Divider().padding(.horizontal)
+                            }
+
+                            Group {
+                                Text("Learn")
+                                    .font(.title3)
+                                    .fontWeight(.bold)
+                                    .padding(.horizontal)
+
+                                NavigationLink(destination: PageCircleMessages()) {
+                                    Text("#Books-and-Resources").padding(.horizontal)
+                                }
+                                NavigationLink(destination: PageCircleMessages()) {
+                                    Text("#Lean-Methodology").padding(.horizontal)
+                                }
+                                NavigationLink(destination: PageCircleMessages()) {
+                                    Text("#Case-Studies").padding(.horizontal)
+                                }
+
+                                Divider().padding(.horizontal)
+                            }
+
+                            Group {
+                                Text("Founders-Floor")
+                                    .font(.title3)
+                                    .fontWeight(.bold)
+                                    .padding(.horizontal)
+
+                                NavigationLink(destination: PageCircleMessages()) {
+                                    Text("#Founder-Chat").padding(.horizontal)
+                                }
+                                NavigationLink(destination: PageCircleMessages()) {
+                                    Text("#Road-to-PMF").padding(.horizontal)
+                                }
                             }
                         }
                         .padding(.top)
-
-                        Divider()
-                            .padding(.horizontal)
-
-                        // Channel Sections
-                        Group {
-                            Text("Community")
-                                .font(.title3)
-                                .fontWeight(.bold)
-                                .padding(.horizontal)
-
-                            Text("#Welcome").padding(.horizontal)
-                            Text("#Introductions").padding(.horizontal)
-                            Text("#General").padding(.horizontal)
-
-                            Divider().padding(.horizontal)
-                        }
-
-                        Group {
-                            Text("Learn")
-                                .font(.title3)
-                                .fontWeight(.bold)
-                                .padding(.horizontal)
-
-                            Text("#Books-and-Resources").padding(.horizontal)
-                            Text("#Lean-Methodology").padding(.horizontal)
-                            Text("#Case-Studies").padding(.horizontal)
-
-                            Divider().padding(.horizontal)
-                        }
-
-                        Group {
-                            Text("Founders-Floor")
-                                .font(.title3)
-                                .fontWeight(.bold)
-                                .padding(.horizontal)
-
-                            Text("#Founder-Chat").padding(.horizontal)
-                            Text("#Road-to-PMF").padding(.horizontal)
-                        }
+                        .font(.system(size: 18))
+                        .foregroundColor(.black)
                     }
-                    .padding(.top)
-                    .font(.system(size: 18))
-                    .foregroundColor(.black)
+
+                    Spacer()
                 }
 
-                Spacer()
+                floatingButton
             }
-
-            floatingButton
         }
     }
 
@@ -289,7 +307,7 @@ struct MenuItem2: View {
         }) {
             HStack {
                 Image(systemName: icon)
-                    .foregroundColor(Color.fromHex12("004aad"))
+                    .foregroundColor(Color.fromHex("004aad"))
                     .frame(width: 24)
                 Text(title)
                     .foregroundColor(.primary)
@@ -324,5 +342,24 @@ extension Color {
 struct PageGroupchats_Previews: PreviewProvider {
     static var previews: some View {
         PageGroupchats()
+    }
+}
+
+// Placeholder views for navigation destinations
+struct PageMessages2: View {
+    var body: some View {
+        Text("Messages View")
+    }
+}
+
+struct ProfilePage2: View {
+    var body: some View {
+        Text("Profile View")
+    }
+}
+
+struct PageCircleMessages2: View {
+    var body: some View {
+        Text("Channel Messages View")
     }
 }
