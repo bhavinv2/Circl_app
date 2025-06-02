@@ -1,140 +1,187 @@
 import SwiftUI
 
 struct PageEntrepreneurKnowledge: View {
+    @State private var showMenu = false // State for showing/hiding the hammer menu
+    
     var body: some View {
         NavigationView {
-            VStack(spacing: 0) {
-                // Header Section
+            ZStack(alignment: .bottomTrailing) {
                 VStack(spacing: 0) {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 5) {
-                            Text("Circl.")
-                                .font(.largeTitle)
-                                .fontWeight(.bold)
-                                .foregroundColor(.white)
-                            
-//                            Button(action: {
-//                                // Action for Filter
-//                            }) {
-//                                HStack {
-//                                    Image(systemName: "slider.horizontal.3")
-//                                        .foregroundColor(.white)
-//                                    Text("Filter")
-//                                        .font(.headline)
-//                                        .foregroundColor(.white)
-//                                }
-//                            }
-                        }
-                        
-                        Spacer()
-                        
-                        VStack(alignment: .trailing, spacing: 5) {
-                            // Add the Bubble and Person icons above "Hello, Fragne"
-                            VStack {
-                                HStack(spacing: 10) {
-                                    // Navigation Link for Bubble Symbol
-                                    NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
-                                        Image(systemName: "bubble.left.and.bubble.right.fill")
-                                            .resizable()
-                                            .frame(width: 50, height: 40)  // Adjust size
+                    // Header Section
+                    VStack(spacing: 0) {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 5) {
+                                Text("Circl.")
+                                    .font(.largeTitle)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.white)
+                                
+                                Button(action: {
+                                    // Action for Filter
+                                }) {
+                                    HStack {
+                                        Image(systemName: "slider.horizontal.3")
                                             .foregroundColor(.white)
-                                    }
-                                    
-                                    // Person Icon
-                                    NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
-                                        Image(systemName: "person.circle.fill")
-                                            .resizable()
-                                            .frame(width: 50, height: 50)
+                                        Text("Filter")
+                                            .font(.headline)
                                             .foregroundColor(.white)
                                     }
                                 }
-                                
-                                // "Hello, Fragne" text below the icons
-//                                Text("Hello, Fragne")
-//                                    .foregroundColor(.white)
-//                                    .font(.headline)
+                            }
+                            
+                            Spacer()
+                            
+                            VStack(alignment: .trailing, spacing: 5) {
+                                VStack {
+                                    HStack(spacing: 10) {
+                                        NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
+                                            Image(systemName: "bubble.left.and.bubble.right.fill")
+                                                .resizable()
+                                                .frame(width: 50, height: 40)
+                                                .foregroundColor(.white)
+                                        }
+                                        
+                                        NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
+                                            Image(systemName: "person.circle.fill")
+                                                .resizable()
+                                                .frame(width: 50, height: 50)
+                                                .foregroundColor(.white)
+                                        }
+                                    }
+                                    
+                                    Text("Hello, Fragne")
+                                        .foregroundColor(.white)
+                                        .font(.headline)
+                                }
                             }
                         }
+                        .padding(.horizontal)
+                        .padding(.top, 15)
+                        .padding(.bottom, 10)
+                        .background(Color.fromHex("004aad"))
                     }
-                    .padding(.horizontal)
-                    .padding(.top, 15)
-                    .padding(.bottom, 10)
-                    .background(Color.fromHex("004aad")) // Updated blue color
+                    
+                    // Scrollable Section
+                    ScrollView {
+                        VStack(spacing: 20) {
+                            // Hammer Symbol above the text
+                            Image(systemName: "hammer.circle")
+                                .resizable()
+                                .frame(width: 100, height: 100)
+                                .foregroundColor(Color.fromHex("004aad"))
+                            
+                            // Text below the hammer symbol
+                            Text("Thank you for your patience with Circl! We are currently working on creating the \"News\" feature - an opportunity for you to learn more about general news about your industry from news sources and fellow entrepreneurs in the community. Keep your notifications on and stay tuned in the discord server to know when we release it!")
+                                .font(.body)
+                                .foregroundColor(Color.fromHex("004aad"))
+                                .padding()
+                                .background(Color.gray.opacity(0.4))
+                                .cornerRadius(10)
+                                .padding(.top)
+                            
+                            Spacer()
+                        }
+                        .padding()
+                    }
                 }
+                .navigationBarHidden(true)
                 
-                // Scrollable Section
-                ScrollView {
-                    VStack(spacing: 20) {
-                        // Hammer Symbol above the text
-                        Image(systemName: "hammer.circle")
+                // Hammer Menu (replaces footer)
+                VStack(alignment: .trailing, spacing: 8) {
+                    if showMenu {
+                        VStack(alignment: .leading, spacing: 0) {
+                            // Menu Header
+                            Text("Welcome to your resources")
+                                .font(.headline)
+                                .padding()
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(Color(.systemGray5))
+                            
+                            // Menu Items with Navigation
+                            NavigationLink(destination: PageEntrepreneurMatching().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "person.2.fill", title: "Connect and Network")
+                            }
+                            
+                            NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "person.crop.square.fill", title: "Your Business Profile")
+                            }
+                            
+                            NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "text.bubble.fill", title: "The Forum Feed")
+                            }
+                            
+                            NavigationLink(destination: PageEntrepreneurResources().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "briefcase.fill", title: "Professional Services")
+                            }
+                            
+                            NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "envelope.fill", title: "Messages")
+                            }
+                            
+                            NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "newspaper.fill", title: "News & Knowledge")
+                            }
+                            
+                            NavigationLink(destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "dollarsign.circle.fill", title: "Sell a Skill")
+                            }
+                            
+                            Divider()
+                            
+                            NavigationLink(destination: PageCircles().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "circle.grid.2x2.fill", title: "Circles")
+                            }
+                        }
+                        .background(Color(.systemGray6))
+                        .cornerRadius(12)
+                        .shadow(radius: 5)
+                        .frame(width: 250)
+                        .transition(.scale.combined(with: .opacity))
+                    }
+                    
+                    // Main floating button
+                    Button(action: {
+                        withAnimation(.spring()) {
+                            showMenu.toggle()
+                        }
+                    }) {
+                        Image(systemName: "hammer.fill")
                             .resizable()
-                            .frame(width: 100, height: 100)  // Frame size 100x100
-                            .foregroundColor(Color.fromHex("004aad"))  // Custom blue color
-                        
-                        // Text below the hammer symbol
-                        Text("Thank you for your patience with Circl! We are currently working on creating the \"News\" feature - an opportunity for you to learn more about general news about your industry from news sources and fellow entrepreneurs in the community. Keep your notifications on and stay tuned in the discord server to know when we release it!")
-                            .font(.body)
-                            .foregroundColor(Color.fromHex("004aad")) // Custom blue color
-                            .padding()
-                            .background(Color.gray.opacity(0.4)) // System gray 4 background
-                            .cornerRadius(10)
-                            .padding(.top)
-                        
-                        Spacer()
-                    }
-                    .padding()
-                }
-                
-                
-                // Footer Section (Imported)
-                HStack(spacing: 15) {
-                    NavigationLink(destination: PageEntrepreneurMatching().navigationBarBackButtonHidden(true)) {
-                        CustomCircleButton(iconName: "figure.stand.line.dotted.figure.stand")
-                    }
-                    NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true)) {
-                        CustomCircleButton(iconName: "briefcase.fill")
-                    }
-                    NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
-                        CustomCircleButton(iconName: "captions.bubble.fill")
-                    }
-                    NavigationLink(destination: PageEntrepreneurResources().navigationBarBackButtonHidden(true)) {
-                        CustomCircleButton(iconName: "building.columns.fill")
-                    }
-                    NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
-                        CustomCircleButton(iconName: "newspaper")
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 24, height: 24)
+                            .foregroundColor(.white)
+                            .padding(16)
+                            .background(Color.fromHex("004aad"))
+                            .clipShape(Circle())
+                            .shadow(radius: 4)
                     }
                 }
-                .padding(.vertical, 10)
-                .background(Color.white)
-            }
-            .edgesIgnoringSafeArea(.bottom)
-            .navigationBarBackButtonHidden(true)
-        }
-    }
-    
-    
-    // MARK: - CustomCircleButton
-    struct CustomCircleButton10: View {
-        let iconName: String
-        
-        var body: some View {
-            Button(action: {
-                // Action for button
-            }) {
-                ZStack {
-                    Circle()
-                        .fill(Color.fromHex("004aad"))
-                        .frame(width: 60, height: 60)
-                    Image(systemName: iconName)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 30, height: 30)
-                        .foregroundColor(.white)
-                }
+                .padding()
             }
         }
     }
 }
+
+// MARK: - Menu Item Component
+struct MenuItem10: View {
+    let icon: String
+    let title: String
+    
+    var body: some View {
+        HStack {
+            Image(systemName: icon)
+                .foregroundColor(Color.fromHex("004aad"))
+                .frame(width: 24)
+            Text(title)
+                .foregroundColor(.primary)
+            Spacer()
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 12)
+        .contentShape(Rectangle())
+    }
+}
+
 // MARK: - Color Extension
 extension Color {
     static func fromHex10(_ hex: String) -> Color {
