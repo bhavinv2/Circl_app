@@ -17,63 +17,61 @@ struct PageCircleMessages: View {
     @State private var selectedChannel = "#General"
 
     var body: some View {
-        NavigationView {
-            ZStack(alignment: .top) {
-                VStack(spacing: 0) {
-                    header
-                    messagesScrollView
-                    inputBar
-                }
-                .zIndex(0)
-
-                if showMenu || showCircleMenu || showCategoryMenu {
-                    Color.black.opacity(0.3)
-                        .edgesIgnoringSafeArea(.all)
-                        .onTapGesture {
-                            withAnimation {
-                                showMenu = false
-                                showCircleMenu = false
-                                showCategoryMenu = false
-                            }
-                        }
-                        .zIndex(1)
-                }
-
-                if showCircleMenu {
-                    circleMenu
-                        .zIndex(2)
-                }
-
-                if showCategoryMenu {
-                    categoryMenu
-                        .zIndex(2)
-                }
-
-                if showMenu {
-                    hammerMenu
-                        .zIndex(2)
-                }
+        ZStack(alignment: .top) {
+            VStack(spacing: 0) {
+                header
+                messagesScrollView
+                inputBar
             }
-            .background(Color.white.edgesIgnoringSafeArea(.all))
-            .navigationBarBackButtonHidden(true)
-            .navigationBarItems(leading: Button(action: {
-                presentationMode.wrappedValue.dismiss()
-            }) {
-                NavigationLink(destination: PageGroupchats()) {
-                    HStack {
-                        Image(systemName: "chevron.left")
-                        Text("Back")
+            .zIndex(0)
+
+            if showMenu || showCircleMenu || showCategoryMenu {
+                Color.black.opacity(0.3)
+                    .edgesIgnoringSafeArea(.all)
+                    .onTapGesture {
+                        withAnimation {
+                            showMenu = false
+                            showCircleMenu = false
+                            showCategoryMenu = false
+                        }
                     }
-                    .foregroundColor(.white)
-                }
-                .foregroundColor(.white)
-            })
+                    .zIndex(1)
+            }
+
+            if showCircleMenu {
+                circleMenu
+                    .zIndex(2)
+            }
+
+            if showCategoryMenu {
+                categoryMenu
+                    .zIndex(2)
+            }
+
+            if showMenu {
+                hammerMenu
+                    .zIndex(2)
+            }
         }
+        .background(Color.white.edgesIgnoringSafeArea(.all))
+        .navigationBarBackButtonHidden(true) // REMOVE system back button
     }
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
+                Button(action: {
+                    presentationMode.wrappedValue.dismiss()
+                }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "chevron.left")
+                            .foregroundColor(.white)
+                        Text("Back")
+                            .foregroundColor(.white)
+                            .font(.subheadline)
+                    }
+                }
+
                 VStack(alignment: .leading, spacing: 4) {
                     HStack(spacing: 4) {
                         Text("Lean Startup-ists")
@@ -147,9 +145,9 @@ struct PageCircleMessages: View {
                         .shadow(radius: 4)
                 }
             }
-            .padding(.top, 1)             // keep top padding
-            .padding(.horizontal)          // side padding
-            .padding(.bottom, 10)           // reduce bottom padding by ~5px
+            .padding(.top, 1)
+            .padding(.horizontal)
+            .padding(.bottom, 10)
             .background(Color.fromHex("004aad"))
         }
     }
@@ -301,7 +299,6 @@ struct PageCircleMessages: View {
         }
         .buttonStyle(PlainButtonStyle())
     }
-
 
     private var inputBar: some View {
         HStack {
