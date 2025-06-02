@@ -252,7 +252,7 @@ struct PageSkillSellingMatching: View {
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 15) {
                             // Entrepreneurs Button (Active)
-                            Button(action: {}) {
+                            NavigationLink(destination: PageEntrepreneurMatching().navigationBarBackButtonHidden(true)) {
                                 Text("Entrepreneurs")
                                     .font(.system(size: 16, weight: .semibold))
                                     .padding(.horizontal, 20)
