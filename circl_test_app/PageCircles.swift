@@ -244,7 +244,7 @@ struct PageCircles: View {
                                 MenuItem(icon: "newspaper.fill", title: "News & Knowledge")
                             }
                             NavigationLink(destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true)) {
-                                MenuItem(icon: "dollarsign.circle.fill", title: "Sell a Skill")
+                                MenuItem(icon: "dollarsign.circle.fill", title: "The Circl Exchange")
                             }
                             Divider()
                             NavigationLink(destination: PageCircles().navigationBarBackButtonHidden(true)) {
