@@ -218,7 +218,7 @@ struct PageGroupchats: View {
                     MenuItem2(icon: "briefcase.fill", title: "Professional Services")
                     MenuItem2(icon: "envelope.fill", title: "Messages")
                     MenuItem2(icon: "newspaper.fill", title: "News & Knowledge")
-                    MenuItem2(icon: "dollarsign.circle.fill", title: "Sell a Skill")
+                    MenuItem2(icon: "dollarsign.circle.fill", title: "The Circl Exchange")
 
                     Divider()
 
