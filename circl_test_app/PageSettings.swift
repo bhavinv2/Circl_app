@@ -49,6 +49,8 @@ struct PageSettings: View {
 
                         
                         settingsOption(title: "Delete Account", iconName: "trash.fill", destination: DeleteAccountPage())
+                        
+                        settingsOption(title: "Your Invite Code", iconName: "link.circle.fill", destination: InviteCodeView())
 
                         // Feedback & Suggestions
                         SectionHeader(title: "Feedback & Suggestions")
