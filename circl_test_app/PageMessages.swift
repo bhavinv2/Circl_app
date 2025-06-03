@@ -1,55 +1,103 @@
 import SwiftUI
-import Foundation
 
+// MARK: - Main View
 struct PageMessages: View {
-    
-    @State private var messages: [Message] = [] // Messages array
-    @State private var newMessageText = "" // For message input
-    @State private var searchText: String = "" // Search bar input
-    @State private var suggestedUsers: [NetworkUser] = []
-    @State private var refreshToggle = false // ✅ Forces UI refresh
-    @State private var showChatPopup = false
+    @State private var messages: [Message] // Messages array
+    @State private var isWriteMessagePopupPresented = false
+    @State private var showMenu = false // State for hammer menu
 
-    @State private var selectedUser: NetworkUser? = nil
-    @State private var groupedMessages: [Int: [Message]] = [:]
-    @State private var showChatPage = false
-
-    @State private var timer: Timer?
-    @State private var selectedProfile: FullProfile? = nil
-
-    @State private var myNetwork: [NetworkUser] = [] // ✅ Correct type
-    
     var body: some View {
         NavigationView {
-            VStack(spacing: 0) {
-                headerSection
-                tabNavigation
-                searchBarSection
-                scrollableSection
-                footerSection // ✅ Add the footer section here
+            ZStack(alignment: .bottomTrailing) {
+                VStack(spacing: 0) {
+                    headerSection
+                    tabNavigation
+                    scrollableSection
+                }
+                .navigationBarHidden(true)
+                
+                // Hammer Menu (replaces footer)
+                VStack(alignment: .trailing, spacing: 8) {
+                    if showMenu {
+                        VStack(alignment: .leading, spacing: 0) {
+                            // Menu Header
+                            Text("Welcome to your resources")
+                                .font(.headline)
+                                .padding()
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(Color(.systemGray5))
+                            
+                            // Menu Items with Navigation
+                            NavigationLink(destination: PageEntrepreneurMatching().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "person.2.fill", title: "Connect and Network")
+                            }
+                            
+                            NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "person.crop.square.fill", title: "Your Business Profile")
+                            }
+                            
+                            NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "text.bubble.fill", title: "The Forum Feed")
+                            }
+                            
+                            NavigationLink(destination: PageEntrepreneurResources().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "briefcase.fill", title: "Professional Services")
+                            }
+                            
+                            NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "envelope.fill", title: "Messages")
+                            }
+                            
+                            NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "newspaper.fill", title: "News & Knowledge")
+                            }
+                            
+                            NavigationLink(destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "dollarsign.circle.fill", title: "The Circl Exchange")
+                            }
+                            
+                            Divider()
+                            
+                            NavigationLink(destination: PageCircles().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "circle.grid.2x2.fill", title: "Circles")
+                            }
+                        }
+                        .background(Color(.systemGray6))
+                        .cornerRadius(12)
+                        .shadow(radius: 5)
+                        .frame(width: 250)
+                        .transition(.scale.combined(with: .opacity))
+                    }
+                    
+                    // Main floating button
+                    Button(action: {
+                        withAnimation(.spring()) {
+                            showMenu.toggle()
+                        }
+                    }) {
+                        Image(systemName: "hammer.fill")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 24, height: 24)
+                            .foregroundColor(.white)
+                            .padding(16)
+                            .background(Color.fromHex("004aad"))
+                            .clipShape(Circle())
+                            .shadow(radius: 4)
+                    }
+                }
+                .padding()
             }
             .edgesIgnoringSafeArea(.bottom)
             .navigationBarBackButtonHidden(true)
-            .onAppear {
-                fetchNetworkUsers()
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                    fetchMessages()
-                }
-                self.timer?.invalidate()
-                self.timer = Timer.scheduledTimer(withTimeInterval: 45, repeats: true) { _ in
-                    fetchMessages()
-                }
-            }
-            .onDisappear {
-                DispatchQueue.main.async {
-                    self.timer?.invalidate()
-                    self.timer = nil
-                }
+            .sheet(isPresented: $isWriteMessagePopupPresented) {
+                WriteMessagePopupView(messages: $messages)
             }
         }
     }
-    
+
     var headerSection: some View {
+        // Header Section
         VStack(spacing: 0) {
             HStack {
                 VStack(alignment: .leading, spacing: 5) {
@@ -57,18 +105,33 @@ struct PageMessages: View {
                         .font(.largeTitle)
                         .fontWeight(.bold)
                         .foregroundColor(.white)
+                    
+                    Button(action: {
+                        // Action for Filter
+                    }) {
+                        HStack {
+                            Image(systemName: "slider.horizontal.3")
+                                .foregroundColor(.white)
+                            Text("Filter")
+                                .font(.headline)
+                                .foregroundColor(.white)
+                        }
+                    }
                 }
                 
                 Spacer()
                 
                 VStack(alignment: .trailing, spacing: 5) {
+                    // Add the Bubble and Person icons above "Hello, Fragne"
                     VStack {
                         HStack(spacing: 10) {
-                            Image(systemName: "bubble.left.and.bubble.right.fill")
-                                .resizable()
-                                .frame(width: 50, height: 40)
-                                .foregroundColor(.white)
+                            // Navigation Link for Bubble Symbol
+                                Image(systemName: "bubble.left.and.bubble.right.fill")
+                                    .resizable()
+                                    .frame(width: 50, height: 40)  // Adjust size
+                                    .foregroundColor(.white)
                             
+                            // Person Icon
                             NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
                                 Image(systemName: "person.circle.fill")
                                     .resizable()
@@ -76,16 +139,21 @@ struct PageMessages: View {
                                     .foregroundColor(.white)
                             }
                         }
+                        
+                        // "Hello, Fragne" text below the icons
+                        Text("Hello, Fragne")
+                            .foregroundColor(.white)
+                            .font(.headline)
                     }
                 }
             }
             .padding(.horizontal)
             .padding(.top, 15)
             .padding(.bottom, 10)
-            .background(Color.fromHex("004aad"))
+            .background(Color.fromHex("004aad")) // Updated blue color
         }
     }
-    
+
     var tabNavigation: some View {
         HStack(spacing: 10) {
             NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
@@ -121,826 +189,288 @@ struct PageMessages: View {
         .padding(.horizontal)
         .padding(.vertical, 10)
     }
-    
-    var searchBarSection: some View {
-        VStack {
-            HStack {
-                TextField("Search users in your network...", text: $searchText, onEditingChanged: { isEditing in
-                    if isEditing {
-                        filterUsers()
-                    }
-                })
-                .onChange(of: searchText) { newValue in
-                    if newValue.isEmpty {
-                        suggestedUsers = [] // ✅ Clear dropdown if search text is empty
-                    } else {
-                        filterUsers()
-                    }
-                }
-                .padding(.vertical, 12)
-                .padding(.horizontal, 16)
-                .background(Color.white)
-                .cornerRadius(20)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-                )
-                .font(.system(size: 16))
 
-                NavigationLink(
-                    destination: selectedUser.map { user in
-                        ChatView(
-                            user: user,
-                            messages: groupedMessages[user.id, default: []],
-                            myNetwork: $myNetwork,
-                            onSendMessage: { newMessage in
-                                self.groupedMessages[user.id, default: []].append(newMessage)
-                                self.refreshToggle.toggle()
-                            }
-                        )
-                        .onDisappear {
-                            searchText = "" // ✅ Clears search bar when returning from chat
-                            selectedUser = nil
-                        }
-                    },
-                    isActive: $showChatPage
-                ) {
-                    Button(action: {
-                        if selectedUser != nil {
-                            showChatPage = true // ✅ Trigger Navigation
-                        }
-                    }) {
-                        Image(systemName: "arrow.right.circle.fill")
-                            .resizable()
-                            .frame(width: 30, height: 30)
-                            .foregroundColor(.blue)
-                    }
-                }
-            }
-            .padding(.horizontal)
-            
-            if !suggestedUsers.isEmpty && !searchText.isEmpty {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 5) {
-                        ForEach(suggestedUsers, id: \.id) { user in
-                            Text(user.name)
-                                .font(.headline)
-                                .padding(.vertical, 5)
-                                .padding(.horizontal, 10)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .background(Color.gray.opacity(0.2))
-                                .cornerRadius(5)
-                                .onTapGesture {
-                                    selectedUser = user
-                                    searchText = user.name
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                                        suggestedUsers.removeAll() // ✅ Clears dropdown immediately
-                                    }
-                                }
-                        }
-                    }
-                    
-                    .frame(maxWidth: .infinity)
-                    .background(Color.white)
-                    .cornerRadius(5)
-                    .padding(.horizontal)
-                }
-                .dismissKeyboardOnScroll()
-                
-                .frame(height: 150)
-            }
-            
-        }
-        
-    }
-
-    var scrollableSection: some View {
+    private var scrollableSection: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 10) {
-                // Sort conversations by most recent message timestamp
-                ForEach(Array(groupedMessages.keys).sorted(by: { userId1, userId2 in
-                    let messages1 = groupedMessages[userId1] ?? []
-                    let messages2 = groupedMessages[userId2] ?? []
-                    
-                    let lastMessage1 = messages1.last?.timestamp ?? ""
-                    let lastMessage2 = messages2.last?.timestamp ?? ""
-                    
-                    return lastMessage1 > lastMessage2 // Sort descending (newest first)
-                }), id: \.self) { userId in
-                    if let messages = groupedMessages[userId], let user = myNetwork.first(where: { $0.id == userId }) {
-                        let myId = UserDefaults.standard.integer(forKey: "user_id")
-                        let hasUnread = messages.contains { message in
-                            message.receiver_id == myId &&
-                            !message.is_read &&
-                            message.sender_id != myId
+            VStack(alignment: .leading, spacing: 0) {
+                ForEach(messages.sorted { $0.timeAgoValue < $1.timeAgoValue }) { message in
+                    MessageRow(message: message)
+                }
+            }
+        }
+    }
+
+    struct MessageRow: View {
+        let message: Message
+
+        var body: some View {
+            NavigationLink(destination: ChatView(message: message)) {
+                VStack(alignment: .leading) {
+                    HStack {
+                        Image(systemName: "person.crop.circle.fill")
+                            .resizable()
+                            .frame(width: 50, height: 50)
+                            .foregroundColor(.blue)
+                        VStack(alignment: .leading) {
+                            Text(message.senderName)
+                                .font(.headline)
+                            Text("\(message.senderRole) - \(message.senderCompany)")
+                                .font(.subheadline)
+                                .foregroundColor(.gray)
                         }
-                        
-                        NavigationLink(
-                            destination: ChatView(
-                                user: user,
-                                messages: messages,
-                                myNetwork: $myNetwork,
-                                onSendMessage: { newMessage in
-                                    self.groupedMessages[userId, default: []].append(newMessage)
-                                    self.refreshToggle.toggle()
-                                }
-                            )
-                            .onAppear {
-                                markMessagesAsRead(senderId: user.id)
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                    fetchMessages()
-                                }
-                            }
-                        ) {
-                            HStack(spacing: 15) {
-                                // Profile image code
-                                Button(action: {
-                                    fetchUserProfile(userId: user.id) { profile in
-                                        if let profile = profile,
-                                           let window = UIApplication.shared.windows.first {
-                                            let profileView = DynamicProfilePreview(profileData: profile, isInNetwork: true)
-                                            window.rootViewController?.present(UIHostingController(rootView: profileView), animated: true)
-                                        }
-                                    }
-                                }) {
-                                    if let imageURL = user.profileImage,
-                                       let url = URL(string: imageURL) {
-                                        AsyncImage(url: url) { phase in
-                                            if let image = phase.image {
-                                                image
-                                                    .resizable()
-                                                    .aspectRatio(contentMode: .fill)
-                                            } else {
-                                                Image("default_image")
-                                                    .resizable()
-                                                    .aspectRatio(contentMode: .fill)
-                                            }
-                                        }
-                                        .frame(width: 55, height: 55)
-                                        .clipShape(Circle())
-                                    } else {
-                                        Image("default_image")
-                                            .resizable()
-                                            .frame(width: 55, height: 55)
-                                            .clipShape(Circle())
-                                    }
-                                }
-                                
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(user.name)
-                                        .font(.system(size: 16, weight: .semibold))
-                                    
-                                    let lastMessage = messages.last
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text(lastMessage?.content ?? "")
-                                            .font(.system(size: 14, weight: hasUnread ? .bold : .regular))
-                                            .foregroundColor(hasUnread ? .primary : .gray)
-                                            .lineLimit(1)
-                                        
-                                        if hasUnread {
-                                            let myId = UserDefaults.standard.integer(forKey: "user_id")
-                                            let unreadCount = messages.filter {
-                                                $0.receiver_id == myId && !$0.is_read && $0.sender_id != myId
-                                            }.count
-
-                                            if unreadCount > 0 {
-                                                Text("\(unreadCount) message\(unreadCount == 1 ? "" : "s") unread")
-                                                    .font(.system(size: 12, weight: .medium))
-                                                    .foregroundColor(.blue)
-                                            }
-                                        }
-                                    }
-
-                                }
-                                
-                                Spacer()
-                                
-                                VStack {
-                                    if let lastMessage = messages.last {
-                                        Text(lastMessage.displayTime)
-                                            .font(.system(size: 12))
-                                            .foregroundColor(.gray)
-                                    }
-                                }
-                            }
-                            .padding(.vertical, 10)
-                            .padding(.horizontal)
-                            .background(Color.white)
-                            .cornerRadius(15)
-                            .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
-                        }
+                        Spacer()
+                        Text(message.timeAgo)
+                            .font(.footnote)
+                            .foregroundColor(.gray)
                     }
+                    Text(message.previewText)
+                        .font(.body)
+                        .foregroundColor(.black)
+                    Divider()
                 }
-            }
-            .padding()
-        }
-        .dismissKeyboardOnScroll()
-    }
-
-    private var footerSection: some View {
-        HStack(spacing: 15) {
-            NavigationLink(destination: PageEntrepreneurMatching().navigationBarBackButtonHidden(true)) {
-                CustomCircleButton(iconName: "figure.stand.line.dotted.figure.stand")
-            }
-
-            NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true)) {
-                CustomCircleButton(iconName: "briefcase.fill")
-            }
-
-            NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
-                CustomCircleButton(iconName: "captions.bubble.fill")
-            }
-
-            NavigationLink(destination: PageEntrepreneurResources().navigationBarBackButtonHidden(true)) {
-                CustomCircleButton(iconName: "building.columns.fill")
-            }
-
-            NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
-                CustomCircleButton(iconName: "newspaper")
+                .padding(.vertical, 8)
+                .padding(.horizontal, 16)
             }
         }
-        .padding(.vertical, 10)
-        .background(Color.white)
     }
 
-    private func filterUsers() {
-        print("🔍 Searching for: \(searchText)")
+    struct Message: Identifiable {
+        let id = UUID()
+        let senderName: String
+        let senderRole: String
+        let senderCompany: String
+        let previewText: String
+        let timeAgo: String
 
-        if searchText.isEmpty {
-            suggestedUsers = []
-        } else {
-            suggestedUsers = myNetwork.filter { user in
-                let isMatch = user.name.lowercased().contains(searchText.lowercased())
-                return isMatch
+        var timeAgoValue: TimeInterval {
+            switch timeAgo {
+            case "Just Now": return 0
+            case "1 hour": return 3600
+            case "1 day": return 86400
+            case "2 days": return 172800
+            case "1 week": return 604800
+            default: return Double.greatestFiniteMagnitude
             }
-        }
-        
-        refreshToggle.toggle() // ✅ Forces UI update
-    }
-
-    private func navigateToChat(user: NetworkUser) {
-        if let existingMessages = groupedMessages[user.id] {
-            let chatView = ChatView(
-                user: user,
-                messages: existingMessages,
-                myNetwork: $myNetwork,
-                onSendMessage: { newMessage in
-                    self.groupedMessages[user.id, default: []].append(newMessage)
-                    self.refreshToggle.toggle()
-                }
-            )
-            navigateTo(chatView)
-        } else {
-            let chatView = ChatView(
-                user: user,
-                messages: [],
-                myNetwork: $myNetwork,
-                onSendMessage: { newMessage in
-                    self.groupedMessages[user.id, default: []].append(newMessage)
-                    self.refreshToggle.toggle()
-                }
-            )
-            navigateTo(chatView)
         }
     }
 
-    func navigateTo<Destination: View>(_ destination: Destination) {
-        let keyWindow = UIApplication.shared.connectedScenes
-            .compactMap { $0 as? UIWindowScene }
-            .flatMap { $0.windows }
-            .first { $0.isKeyWindow }
-        
-        keyWindow?.rootViewController?
-            .present(UIHostingController(rootView: destination), animated: true, completion: nil)
-    }
-
-    func fetchNetworkUsers() {
-        guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else {
-            print("❌ No user_id found in UserDefaults")
-            return
-        }
-
-        guard let url = URL(string: "https://circlapp.online/api/users/get_network/\(userId)/") else {
-            print("❌ Invalid URL")
-            return
-        }
-
-        print("📡 Fetching network from: \(url)")
-
-        URLSession.shared.dataTask(with: url) { data, response, error in
-            if let error = error {
-                print("❌ Network error:", error.localizedDescription)
-                return
-            }
-
-            if let data = data {
-                do {
-                    let friends = try JSONDecoder().decode([NetworkUser].self, from: data)
-                    
-                    DispatchQueue.main.async {
-                        self.myNetwork = friends
-                        print("✅ Network Updated: \(self.myNetwork.map { "\($0.name) (\($0.id))" })")
-                    }
-                } catch {
-                    print("❌ JSON Decoding Error:", error)
-                }
-            }
-        }.resume()
-    }
-
-    func fetchMessages() {
-        guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else { return }
-
-        guard let url = URL(string: "https://circlapp.online/api/users/get_messages/\(userId)/") else { return }
-
-        URLSession.shared.dataTask(with: url) { data, _, error in
-            if let data = data {
-                do {
-                    let response = try JSONDecoder().decode([String: [Message]].self, from: data)
-                    DispatchQueue.main.async {
-                        let allMessages = response["messages"] ?? []
-                        print("=== MESSAGES DEBUG ===")
-                        allMessages.forEach { message in
-                            print("Message \(message.id): From \(message.sender_id) to \(message.receiver_id), Read: \(message.is_read), Content: \(message.content)")
-                        }
-                        print("=====================")
-                        self.groupedMessages = Dictionary(grouping: allMessages) { $0.sender_id == userId ? $0.receiver_id : $0.sender_id }
-                    }
-                } catch {
-                    print("Error decoding messages:", error)
-                }
-            }
-        }.resume()
-    }
+    static let mockMessages = [
+        Message(senderName: "Howard Brown", senderRole: "District Manager", senderCompany: "Ross", previewText: "Morning Fragne, wanted to reach out...", timeAgo: "Just Now"),
+        Message(senderName: "Ayaan Patel", senderRole: "VP of Human Resources", senderCompany: "Target", previewText: "Hey Fragne, how's the business doin...", timeAgo: "1 hour"),
+        Message(senderName: "John Clark III", senderRole: "CTO", senderCompany: "The Clark Group", previewText: "Have you looked into the sales of th...", timeAgo: "1 day"),
+        Message(senderName: "Sophia Johnson", senderRole: "Marketing Manager", senderCompany: "TechCorp", previewText: "We need to talk about the campaign...", timeAgo: "2 days"),
+        Message(senderName: "Ella Smith", senderRole: "Founder", senderCompany: "Green Ventures", previewText: "I sent the latest pitch deck...", timeAgo: "1 week")
+    ]
     
-    func fetchUserProfile(userId: Int, completion: @escaping (FullProfile?) -> Void) {
-        let urlString = "https://circlapp.online/api/users/profile/\(userId)/"
-        guard let url = URL(string: urlString) else {
-            print("❌ Invalid URL")
-            completion(nil)
-            return
-        }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        if let token = UserDefaults.standard.string(forKey: "auth_token") {
-            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
-        }
-
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            if let error = error {
-                print("❌ Request failed:", error)
-                completion(nil)
-                return
-            }
-
-            if let data = data {
-                if let decoded = try? JSONDecoder().decode(FullProfile.self, from: data) {
-                    DispatchQueue.main.async {
-                        completion(decoded)
-                    }
-                    return
-                } else {
-                    print("❌ Failed to decode JSON")
-                }
-            }
-            completion(nil)
-        }.resume()
-    }
-
-    private func sendMessage(content: String, recipient: NetworkUser) {
-        guard let senderId = UserDefaults.standard.value(forKey: "user_id") as? Int else { return }
-
-        let newMessage = Message(
-            id: UUID().hashValue,
-            sender_id: senderId,
-            receiver_id: recipient.id,
-            content: content,
-            timestamp: ISO8601DateFormatter().string(from: Date()),
-            is_read: false
-        )
-
-        DispatchQueue.main.async {
-            if self.groupedMessages[recipient.id] == nil {
-                self.groupedMessages[recipient.id] = []
-            }
-            self.groupedMessages[recipient.id]?.append(newMessage)
-            self.refreshToggle.toggle()
-        }
-
-        let messageData: [String: Any] = [
-            "sender_id": senderId,
-            "receiver_id": recipient.id,
-            "content": content
-        ]
-
-        guard let jsonData = try? JSONSerialization.data(withJSONObject: messageData) else { return }
-
-        guard let url = URL(string: "https://circlapp.online/api/users/send_message/") else { return }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = jsonData
-
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            if let httpResponse = response as? HTTPURLResponse {
-                print("📡 Response Code: \(httpResponse.statusCode)")
-                if httpResponse.statusCode != 201 {
-                    print("❌ Failed to send message")
-                }
-            }
-        }.resume()
-    }
-    
-    func markMessagesAsRead(senderId: Int) {
-        guard let myId = UserDefaults.standard.value(forKey: "user_id") as? Int else { return }
-        print("Marking messages as read from \(senderId) to \(myId)")
-
-        guard let url = URL(string: "https://circlapp.online/api/users/mark_messages_read/") else { return }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        let payload: [String: Any] = ["sender_id": senderId, "receiver_id": myId]
-        request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
-
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            if let httpResponse = response as? HTTPURLResponse {
-                print("Mark as read response: \(httpResponse.statusCode)")
-            }
-            if let error = error {
-                print("Mark as read error: \(error)")
-            }
-        }.resume()
+    // Custom init method
+    init() {
+        // Initialize messages with static mockMessages
+        _messages = State(initialValue: PageMessages.mockMessages)
     }
 }
 
-struct ChatPopup: View {
-    let user: NetworkUser
-    @Binding var isPresented: Bool
-    @State private var messageText: String = ""
+// MARK: - Menu Item Component
+struct MenuItem12: View {
+    let icon: String
+    let title: String
+    
+    var body: some View {
+        HStack {
+            Image(systemName: icon)
+                .foregroundColor(Color.fromHex("004aad"))
+                .frame(width: 24)
+            Text(title)
+                .foregroundColor(.primary)
+            Spacer()
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 12)
+        .contentShape(Rectangle())
+    }
+}
 
-    var onSendMessage: (String) -> Void
+// MARK: - Color Extension
+extension Color {
+    static func fromHex7(_ hex: String) -> Color {
+        var hexSanitized = hex.trimmingCharacters(in: .whitespacesAndNewlines)
+        hexSanitized = hexSanitized.hasPrefix("#") ? String(hexSanitized.dropFirst()) : hexSanitized
+
+        var rgb: UInt64 = 0
+        Scanner(string: hexSanitized).scanHexInt64(&rgb)
+
+        let red = Double((rgb >> 16) & 0xFF) / 255.0
+        let green = Double((rgb >> 8) & 0xFF) / 255.0
+        let blue = Double(rgb & 0xFF) / 255.0
+
+        return Color(red: red, green: green, blue: blue)
+    }
+}
+
+// MARK: - Write Message Popup View
+struct WriteMessagePopupView: View {
+    @Binding var messages: [PageMessages.Message] // Binding to messages
+    @State private var searchText: String = ""
+    @State private var messageText: String = ""
+    @State private var suggestedUsers: [String] = []
+    @State private var selectedUser: String? = nil
+    let allUsers: [String] = ["Alice Johnson", "Bob Smith", "Charlie Davis", "David Lee", "Emma White"]
+    let myNetwork: [String] = ["Alice Johnson", "David Lee"]
 
     var body: some View {
-        VStack(spacing: 10) {
-            HStack {
-                Text("Chat with \(user.name)")
-                    .font(.headline)
-                    .padding()
-                
-                Spacer()
-
-                Button(action: {
-                    isPresented = false
-                }) {
-                    Image(systemName: "xmark.circle.fill")
-                        .resizable()
-                        .frame(width: 30, height: 30)
-                        .foregroundColor(.gray)
+        VStack(spacing: 16) {
+            // Search Bar
+            TextField("Search users...", text: $searchText, onEditingChanged: { _ in
+                filterUsers()
+            })
+            .textFieldStyle(RoundedBorderTextFieldStyle())
+            .padding()
+            
+            // Suggested Users List
+            if !suggestedUsers.isEmpty {
+                List(suggestedUsers, id: \.self) { user in
+                    Text(user)
+                        .font(myNetwork.contains(user) ? .headline : .body)
+                        .onTapGesture {
+                            selectedUser = user
+                            searchText = user
+                            suggestedUsers = []
+                        }
                 }
-                .padding()
+                .frame(height: 150)
             }
-
-            Spacer()
-
-            TextField("Type a message...", text: $messageText)
+            
+            // Message Input
+            TextField("Write your message here...", text: $messageText, axis: .vertical)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
+                .frame()
                 .padding()
-
+            
+            // Send Button
             Button(action: {
-                if !messageText.isEmpty {
-                    onSendMessage(messageText)
-                    messageText = ""
-                    isPresented = false
-                }
+                sendMessage()
             }) {
                 Text("Send")
                     .font(.headline)
                     .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
                     .padding()
                     .background(Color.blue)
                     .cornerRadius(12)
             }
             .padding()
+            .disabled(selectedUser == nil || messageText.isEmpty)
         }
-        .frame(width: 300, height: 250)
-        .background(Color.white)
-        .cornerRadius(12)
+        .padding()
+        .background(Color(.systemBackground))
+        .cornerRadius(16)
         .shadow(radius: 10)
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.gray, lineWidth: 1)
+        .padding()
+    }
+
+    private func filterUsers() {
+        suggestedUsers = allUsers.filter { user in
+            user.lowercased().contains(searchText.lowercased())
+        }.sorted { (myNetwork.contains($0) ? 0 : 1) < (myNetwork.contains($1) ? 0 : 1) }
+    }
+
+    private func sendMessage() {
+        guard let recipient = selectedUser else { return }
+        
+        // Create a new message
+        let newMessage = PageMessages.Message(
+            senderName: recipient,
+            senderRole: "User Role",
+            senderCompany: "User Company",
+            previewText: messageText,
+            timeAgo: "Just Now"
         )
+        
+        // Add the new message to the messages array
+        messages.append(newMessage)
+        
+        print("Message sent to \(recipient): \(messageText)")
+        
+        // Clear the input fields
+        messageText = ""
+        selectedUser = nil
+        searchText = ""
     }
 }
 
-struct Message: Identifiable, Codable, Equatable {
-    let id: Int
-    let sender_id: Int
-    let receiver_id: Int
-    let content: String
-    let timestamp: String
-    let is_read: Bool
-    
-    var displayTime: String {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds] // for full precision
-
-        // Try parsing timestamp string
-        guard let date = formatter.date(from: timestamp) ??
-                         ISO8601DateFormatter().date(from: timestamp.components(separatedBy: ".").first ?? "") else {
-            return "just now"
-        }
-
-        let secondsAgo = Int(Date().timeIntervalSince(date))
-
-        switch secondsAgo {
-        case ..<10: return "just now"
-        case 10..<60: return "\(secondsAgo) seconds"
-        case 60..<3600:
-            let minutes = secondsAgo / 60
-            return minutes == 1 ? "1 minute" : "\(minutes) minutes"
-        case 3600..<86400:
-            let hours = secondsAgo / 3600
-            return hours == 1 ? "1 hour" : "\(hours) hours"
-        case 86400..<2592000:
-            let days = secondsAgo / 86400
-            return days == 1 ? "1 day" : "\(days) days"
-        default:
-            let months = secondsAgo / 2592000
-            return months == 1 ? "1 month" : "\(months) months"
-        }
-    }
-}
-
-struct NetworkUser: Codable, Identifiable, Hashable {
-    let id: Int
-    let name: String
-    let email: String
-    let profileImage: String?
-
-    enum CodingKeys: String, CodingKey {
-        case id, name, email
-        case profileImage = "profileImage" // 👈 match backend key
-    }
-}
-
-struct ChatBox: View {
-    let user: NetworkUser
-    let messages: [Message]
+// MARK: - Chat View
+struct ChatView: View {
+    let message: PageMessages.Message
+    @State private var messageText: String = ""
+    @State private var messages: [(String, Bool)] = [] // Store messages along with a flag for sent-by-user
 
     var body: some View {
         VStack {
+            // Profile Header
             HStack {
-                Button(action: {
-                    if let window = UIApplication.shared.windows.first {
-                        let profileView = DynamicProfilePreview(
-                            profileData: FullProfile(
-                                user_id: user.id,
-                                profile_image: nil,
-                                first_name: user.name.components(separatedBy: " ").first ?? "",
-                                last_name: user.name.components(separatedBy: " ").last ?? "",
-                                email: "",
-                                main_usage: nil,
-                                industry_interest: nil,
-                                title: nil,
-                                bio: nil,
-                                birthday: nil,
-                                education_level: nil,
-                                institution_attended: nil,
-                                certificates: nil,
-                                years_of_experience: nil,
-                                personality_type: nil,
-                                locations: nil,
-                                achievements: nil,
-                                skillsets: nil,
-                                availability: nil,
-                                clubs: nil,
-                                hobbies: nil,
-                                connections_count: nil,
-                                circs: nil,
-                                entrepreneurial_history: ""
-
-                            ),
-                            isInNetwork: true
-                        )
-
-                        window.rootViewController?.present(UIHostingController(rootView: profileView), animated: true)
-                    }
-                }) {
-                    Image(systemName: "person.crop.circle.fill")
-                        .resizable()
-                        .frame(width: 50, height: 50)
-                        .foregroundColor(.blue)
-                }
+                // Profile Picture
+                Image(systemName: "person.circle.fill") // Placeholder, replace with an actual profile image
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 80, height: 80)
+                    .foregroundColor(.blue) // Or set a specific color
 
                 VStack(alignment: .leading) {
-                    Text(user.name)
+                    Text(message.senderName)
                         .font(.headline)
-                    Text(messages.last?.content ?? "")
+                    
+                    Text(message.senderRole) // Sender's position
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
+                    
+                    Text(message.senderCompany) // Sender's company
                         .font(.subheadline)
                         .foregroundColor(.gray)
                 }
-                Spacer()
-                Text(messages.last?.timestamp ?? "")
-                    .font(.footnote)
-                    .foregroundColor(.gray)
             }
             .padding()
-            .background(Color.white)
-            .cornerRadius(8)
-            .shadow(radius: 2)
-        }
-        .padding(.bottom, 10)
-    }
-}
 
-struct ChatView: View {
-    let user: NetworkUser
-    let messages: [Message]
-    @Binding var myNetwork: [NetworkUser]
-    var onSendMessage: (Message) -> Void
-    
-    @State private var messageText: String = ""
-    @State private var chatMessages: [Message] = []
-    @State private var scrollTarget: Int? = nil
-    @State private var isFirstAppearance = true
-
-    var body: some View {
-        VStack {
-            ScrollViewReader { proxy in
-                ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 10) {
-                        ForEach(chatMessages) { message in
-                            messageView(for: message)
-                                .id(message.id)
-                                .transition(.opacity)
-                        }
-                    }
-                    .padding()
-                    .background(
-                        GeometryReader { geometry in
-                            Color.clear
-                                .onAppear {
-                                    // This ensures we scroll after messages are rendered
-                                    if isFirstAppearance {
-                                        scrollToBottom(proxy: proxy, animated: false)
-                                        isFirstAppearance = false
-                                    }
-                                }
-                        }
-                    )
-                }
-                .dismissKeyboardOnScroll()
-                .onAppear {
-                    chatMessages = messages
-                    // Double insurance for initial scroll
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                        scrollToBottom(proxy: proxy, animated: false)
+            // Message List
+            ScrollView {
+                VStack(alignment: .leading) {
+                    // Display the current conversation
+                    ForEach(messages, id: \.0) { message in
+                        Text(message.0) // The message text
+                            .padding()
+                            .background(message.1 ? Color(hex: "004aad") : Color.gray.opacity(0.2)) // Custom blue if sent by the user
+                            .foregroundColor(message.1 ? .white : .black) // White text for sent messages
+                            .cornerRadius(10)
+                            .frame(maxWidth: .infinity, alignment: message.1 ? .trailing : .leading) // Align to the right for user messages
                     }
                 }
-                .onChange(of: messages) { newMessages in
-                    chatMessages = newMessages
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        scrollToBottom(proxy: proxy, animated: true)
-                    }
-                }
-                .onChange(of: chatMessages) { newMessages in
-                    guard !newMessages.isEmpty else { return }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        scrollToBottom(proxy: proxy, animated: true)
-                    }
-                }
+                .padding()
             }
 
-            messageInputView
-        }
-        .navigationBarTitle(user.name, displayMode: .inline)
-    }
-
-    @ViewBuilder
-    private func messageView(for message: Message) -> some View {
-        HStack {
-            if message.sender_id == UserDefaults.standard.integer(forKey: "user_id") {
-                Spacer()
-                Text(message.content)
-                    .padding()
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
-                    .frame(maxWidth: 250, alignment: .trailing)
-            } else {
-                Text(message.content)
-                    .padding()
-                    .background(Color.gray.opacity(0.2))
-                    .foregroundColor(.black)
-                    .cornerRadius(10)
-                    .frame(maxWidth: 250, alignment: .leading)
-                Spacer()
-            }
-        }
-    }
-
-    private var messageInputView: some View {
-            HStack(spacing: 10) {
+            // Message Input
+            HStack {
                 TextField("Type a message...", text: $messageText)
-                    .padding(.vertical, 12)
-                    .padding(.horizontal, 16)
-                    .background(Color.white)
-                    .cornerRadius(25)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 25)
-                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-                    )
-                    .font(.system(size: 16))
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .padding(.leading)
 
-                Button(action: sendMessageAction) {
-                    Image(systemName: "arrow.up.circle.fill")
-                        .resizable()
-                        .frame(width: 30, height: 30)
-                        .foregroundColor(.blue)
+                Button("Send") {
+                    if !messageText.isEmpty {
+                        // Add the new message to the conversation (true means it is sent by the user)
+                        messages.append((messageText, true))
+                        messageText = ""
+                    }
                 }
+                .padding()
             }
-            .padding(.horizontal)
-            .padding(.bottom)
+            .padding()
         }
-
-    private func sendMessageAction() {
-            guard !messageText.isEmpty else { return }
-            sendMessage(content: messageText, recipient: user)
-            messageText = ""
+        .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            // Initialize the conversation with the first message (or a mockup for now)
+            messages.append((message.previewText, false)) // Initially, we assume it's not sent by the user
         }
-
-    private func scrollToBottom(proxy: ScrollViewProxy, animated: Bool) {
-        guard !chatMessages.isEmpty else { return }
-        let lastId = chatMessages.last?.id
-        
-        // Debug print to verify we have messages and an ID
-        print("Attempting to scroll to message with ID: \(lastId ?? -1)")
-        
-        if animated {
-            withAnimation {
-                proxy.scrollTo(lastId, anchor: .bottom)
-            }
-        } else {
-            proxy.scrollTo(lastId, anchor: .bottom)
-        }
-    }
-
-    private func sendMessage(content: String, recipient: NetworkUser) {
-        guard let senderId = UserDefaults.standard.value(forKey: "user_id") as? Int else { return }
-
-        let newMessage = Message(
-            id: UUID().hashValue,
-            sender_id: senderId,
-            receiver_id: recipient.id,
-            content: content,
-            timestamp: ISO8601DateFormatter().string(from: Date()),
-            is_read: false
-        )
-
-        chatMessages.append(newMessage)
-        onSendMessage(newMessage)
-
-        let messageData: [String: Any] = [
-            "sender_id": senderId,
-            "receiver_id": recipient.id,
-            "content": content
-        ]
-
-        guard let jsonData = try? JSONSerialization.data(withJSONObject: messageData),
-              let url = URL(string: "https://circlapp.online/api/users/send_message/") else { return }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = jsonData
-
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            if let httpResponse = response as? HTTPURLResponse {
-                print("📡 Response Code: \(httpResponse.statusCode)")
-                if httpResponse.statusCode != 201 {
-                    print("❌ Failed to send message")
-                }
-            }
-        }.resume()
     }
 }
 
-extension Color {
-    static func fromHex(_ hex: String) -> Color {
-        var hexSanitized = hex.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: "#", with: "")
-        var rgb: UInt64 = 0
-        Scanner(string: hexSanitized).scanHexInt64(&rgb)
-        return Color(red: Double((rgb >> 16) & 0xFF) / 255.0, green: Double((rgb >> 8) & 0xFF) / 255.0, blue: Double(rgb & 0xFF) / 255.0)
-    }
-}
-
+// MARK: - Preview
 #Preview {
     PageMessages()
 }

@@ -1,106 +1,140 @@
 import SwiftUI
 
-
-struct BlockedUser: Identifiable, Hashable {
-    let id: Int
-    let name: String
-}
-
 // MARK: - Main View
 struct PageSettings: View {
-    @Environment(\.presentationMode) var presentationMode  // For dismissing the settings page
-    @State private var showLogoutAlert = false
-    @State private var isLogoutConfirmed = false
-
-
+    @State private var showMenu = false // State for hammer menu
 
     var body: some View {
         NavigationView {
-            VStack(spacing: 0) {
-                // ✅ Back Arrow - aligned to system height
-                HStack {
-                    Button(action: {
-                        presentationMode.wrappedValue.dismiss()
-                    }) {
-                        Image(systemName: "chevron.left")
-                            .resizable()
-                            .frame(width: 12, height: 20)
-                            .foregroundColor(.blue)
-                            .padding(.leading, 5)
-                    }
-                    Spacer()
-                }
-                .padding(.top, 15) // ✅ Standard iOS nav top spacing
-                .padding(.leading, 15)
-                .padding(.bottom, 5)
+            ZStack(alignment: .bottomTrailing) {
+                VStack(spacing: 0) {
+                    // Header Section
+                    headerSection
 
-                // ✅ Settings Content (moved up slightly)
-                ScrollView {
-                    VStack(spacing: 20) {
+                    // Middle Section: Settings Options
+                    ScrollView {
+                        VStack(spacing: 20) {
+                            // Invite a Friend
+                            SectionHeader(title: "Invite a Friend")
+                            settingsOption(title: "Invite a Friend", iconName: "person.badge.plus.fill", destination: InviteFriendPage())
 
+                            // Account Settings
+                            SectionHeader(title: "Account Settings")
+                            settingsOption(title: "Change Password", iconName: "lock.fill", destination: ChangePasswordPage())
+                            settingsOption(title: "Two-Factor Authentication", iconName: "shield.fill", destination: TwoFactorAuthPage())
+                            settingsOption(title: "Delete Account", iconName: "trash.fill", destination: DeleteAccountPage())
+                            settingsOption(title: "Your Invite Code", iconName: "link.circle.fill", destination: InviteCodeView())
 
-                        // Account Settings
-                        SectionHeader(title: "Account Settings")
-                        settingsOption(title: "Become a Mentor", iconName: "graduationcap.fill", destination: BecomeMentorPage())
+                            // Feedback & Suggestions
+                            SectionHeader(title: "Feedback & Suggestions")
+                            settingsOption(title: "Rate the App", iconName: "star.fill", destination: RateAppPage())
+                            settingsOption(title: "Suggest a Feature", iconName: "lightbulb.fill", destination: SuggestFeaturePage())
+                            settingsOption(title: "Report a Problem", iconName: "exclamationmark.triangle.fill", destination: ReportProblemPage())
 
-                        settingsOption(title: "Change Password", iconName: "lock.fill", destination: ChangePasswordPage())
-                        
-                        settingsOption(title: "Blocked Users", iconName: "person.crop.circle.badge.xmark", destination: BlockedUsersPage())
+                            // Legal & Policies
+                            SectionHeader(title: "Legal & Policies")
+                            settingsOption(title: "Terms of Service", iconName: "doc.text.fill", destination: TermsOfServicePage())
+                            settingsOption(title: "Privacy Policy", iconName: "hand.raised.fill", destination: PrivacyPolicyPage())
+                            settingsOption(title: "Community Guidelines", iconName: "person.2.fill", destination: CommunityGuidelinesPage())
 
-                        
-                        settingsOption(title: "Delete Account", iconName: "trash.fill", destination: DeleteAccountPage())
-                        
-                        settingsOption(title: "Your Invite Code", iconName: "link.circle.fill", destination: InviteCodeView())
-
-                        // Feedback & Suggestions
-                        SectionHeader(title: "Feedback & Suggestions")
-                       
-                        settingsOption(title: "Suggest a Feature", iconName: "lightbulb.fill", destination: SuggestFeaturePage())
-                        settingsOption(title: "Report a Problem", iconName: "exclamationmark.triangle.fill", destination: ReportProblemPage())
-
-                        // Legal & Policies
-                        SectionHeader(title: "Legal & Policies")
-                        settingsOption(title: "Terms of Service", iconName: "doc.text.fill", destination: TermsOfServicePage())
-                        settingsOption(title: "Privacy Policy", iconName: "hand.raised.fill", destination: PrivacyPolicyPage())
-                        settingsOption(title: "Community Guidelines", iconName: "person.2.fill", destination: CommunityGuidelinesPage())
-
-                        // Help & Support
-                        SectionHeader(title: "Help & Support")
-                        
-                        settingsOption(title: "Contact Support", iconName: "headphones", destination: ContactSupportPage())
-
-
-                        // Logout Button
-                        Button(action: {
-                            showLogoutAlert = true  // Trigger alert when button is pressed
-                        }) {
-                            Text("Logout")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                                .padding()
-                                .frame(maxWidth: .infinity)
-                                .background(Color.red)
-                                .cornerRadius(10)
+                            // Help & Support
+                            SectionHeader(title: "Help & Support")
+                            settingsOption(title: "Help Center", iconName: "questionmark.circle.fill", destination: HelpCenterPage())
+                            settingsOption(title: "Contact Support", iconName: "headphones", destination: ContactSupportPage())
+                            settingsOption(title: "FAQs", iconName: "text.bubble.fill", destination: FAQsPage())
                         }
+                        .padding(.horizontal, 20)
                         .padding(.top, 20)
-
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 5) // ✅ Moved up content spacingg
                 }
+                .navigationBarHidden(true)
+
+                // Hammer Menu
+                VStack(alignment: .trailing, spacing: 8) {
+                    if showMenu {
+                        VStack(alignment: .leading, spacing: 0) {
+                            Text("Welcome to your resources")
+                                .font(.headline)
+                                .padding()
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(Color(.systemGray5))
+
+                            NavigationLink(destination: PageEntrepreneurMatching().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "person.2.fill", title: "Connect and Network")
+                            }
+                            NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "person.crop.square.fill", title: "Your Business Profile")
+                            }
+                            NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "text.bubble.fill", title: "The Forum Feed")
+                            }
+                            NavigationLink(destination: PageEntrepreneurResources().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "briefcase.fill", title: "Professional Services")
+                            }
+                            NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "envelope.fill", title: "Messages")
+                            }
+                            NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "newspaper.fill", title: "News & Knowledge")
+                            }
+                            NavigationLink(destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "dollarsign.circle.fill", title: "The Circl Exchange")
+                            }
+                            Divider()
+                            NavigationLink(destination: PageCircles().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "circle.grid.2x2.fill", title: "Circles")
+                            }
+                        }
+                        .background(Color(.systemGray6))
+                        .cornerRadius(12)
+                        .shadow(radius: 5)
+                        .frame(width: 250)
+                        .transition(.scale.combined(with: .opacity))
+                    }
+
+                    Button(action: {
+                        withAnimation(.spring()) {
+                            showMenu.toggle()
+                        }
+                    }) {
+                        Image(systemName: "hammer.fill")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 24, height: 24)
+                            .foregroundColor(.white)
+                            .padding(16)
+                            .background(Color.fromHex("004aad"))
+                            .clipShape(Circle())
+                            .shadow(radius: 4)
+                    }
+                }
+                .padding()
             }
             .edgesIgnoringSafeArea(.bottom)
-            .navigationBarHidden(true)
-            .alert(isPresented: $showLogoutAlert) {
-                Alert(
-                    title: Text("Log out of your account?"),
-                    primaryButton: .destructive(Text("Log Out")) {
-                        logoutUser() // Call the logout function when "Log Out" is pressed
-                    },
-                    secondaryButton: .cancel()
-                )
-            }
+            .navigationBarBackButtonHidden(true)
+        }
+    }
 
+    // MARK: - Header Section
+    var headerSection: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Text("Circl.")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                Spacer()
+                NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
+                    Image(systemName: "bubble.left.and.bubble.right.fill")
+                        .resizable()
+                        .frame(width: 50, height: 40)
+                        .foregroundColor(.white)
+                }
+            }
+            .padding(.horizontal)
+            .padding(.top, 15)
+            .padding(.bottom, 10)
+            .background(Color.fromHex("004aad"))
         }
     }
 
@@ -117,11 +151,7 @@ struct PageSettings: View {
 
     // MARK: - Settings Option
     private func settingsOption(title: String, iconName: String, destination: some View) -> some View {
-        NavigationLink(destination:
-            destination
-                .navigationBarTitleDisplayMode(.inline)
-                .navigationBarBackButtonHidden(false)
-        ) {
+        NavigationLink(destination: destination.navigationBarBackButtonHidden(true)) {
             HStack {
                 Image(systemName: iconName)
                     .resizable()
@@ -150,752 +180,73 @@ struct PageSettings: View {
             )
         }
     }
-
-    // MARK: - Logout Functionality
-    func logoutUser() {
-        UserDefaults.standard.removeObject(forKey: "user_id")
-        UserDefaults.standard.set(false, forKey: "isLoggedIn")
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            if let window = UIApplication.shared.windows.first {
-                window.rootViewController = UIHostingController(rootView: Page1()) // Redirect to login page
-                window.makeKeyAndVisible()
-            }
-        }
-    }
-
-
-    // MARK: - Circle Button (Optional, unused)
-    struct CustomCircleButton: View {
-        let iconName: String
-        var body: some View {
-            ZStack {
-                Circle()
-                    .fill(Color.fromHex("004aad"))
-                    .frame(width: 60, height: 60)
-                Image(systemName: iconName)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 30, height: 30)
-                    .foregroundColor(.white)
-            }
-        }
-    }
 }
 
-// MARK: - Placeholder Pages for Navigation
-struct BecomeMentorPage: View {
-    @State private var name = ""
-    @State private var industry = ""
-    @State private var reason = ""
-    @State private var isSubmitted = false
+// MARK: - Menu Item Component
+struct MenuItem: View {
+    let icon: String
+    let title: String
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            Text("Mentor Application")
-                .font(.title)
-                .bold()
-
-            TextField("Your Name", text: $name)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-
-            TextField("Industry", text: $industry)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-
-            Text("Why do you want to become a mentor?")
-                .font(.headline)
-
-            TextEditor(text: $reason)
-                .frame(height: 120)
-                .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.gray.opacity(0.5)))
-
-            Button(action: {
-                submitMentorApplication()
-            }) {
-                Text("Submit Application")
-                    .foregroundColor(.white)
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(Color.blue)
-                    .cornerRadius(10)
-            }
-
-            if isSubmitted {
-                Text("Application submitted! We'll review it shortly.")
-                    .foregroundColor(.green)
-            }
-
+        HStack {
+            Image(systemName: icon)
+                .foregroundColor(Color.fromHex("004aad"))
+                .frame(width: 24)
+            Text(title)
+                .foregroundColor(.primary)
             Spacer()
         }
-        .padding()
-    }
-
-    func submitMentorApplication() {
-        guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else { return }
-
-        let payload: [String: Any] = [
-            "user_id": userId,
-            "name": name,
-            "industry": industry,
-            "reason": reason
-        ]
-
-        guard let url = URL(string: "https://circlapp.online/api/users/apply_mentor/") else { return }
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        if let token = UserDefaults.standard.string(forKey: "auth_token") {
-            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
-        }
-
-        request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
-
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            DispatchQueue.main.async {
-                isSubmitted = true
-                name = ""
-                industry = ""
-                reason = ""
-            }
-        }.resume()
+        .padding(.horizontal)
+        .padding(.vertical, 12)
+        .contentShape(Rectangle())
     }
 }
 
-struct BlockedUsersPage: View {
-    @State private var blockedUsers: [BlockedUser] = []
+// MARK: - Color Extension
+extension Color {
+    static func fromHex(_ hex: String) -> Color {
+        var hexSanitized = hex.trimmingCharacters(in: .whitespacesAndNewlines)
+        hexSanitized = hexSanitized.hasPrefix("#") ? String(hexSanitized.dropFirst()) : hexSanitized
 
-    @State private var message: String = ""
+        var rgb: UInt64 = 0
+        Scanner(string: hexSanitized).scanHexInt64(&rgb)
 
-    var body: some View {
-        VStack {
-            Text("Blocked Users")
-                .font(.title)
-                .bold()
-                .padding(.top)
+        let red = Double((rgb >> 16) & 0xFF) / 255.0
+        let green = Double((rgb >> 8) & 0xFF) / 255.0
+        let blue = Double(rgb & 0xFF) / 255.0
 
-            if blockedUsers.isEmpty {
-                Text("You haven’t blocked anyone.")
-                    .foregroundColor(.gray)
-                    .padding()
-            } else {
-                List {
-                    ForEach(blockedUsers) { user in
-                        HStack {
-                            Text(user.name)
-                            Spacer()
-                            Button("Unblock") {
-                                unblock(userId: user.id)
-                            }
-                            .foregroundColor(.red)
-                        }
-                    }
-
-                }
-            }
-
-            if !message.isEmpty {
-                Text(message)
-                    .foregroundColor(.green)
-                    .padding()
-            }
-
-            Spacer()
-        }
-        .onAppear(perform: fetchBlockedUsers)
-        .padding()
-    }
-
-    func fetchBlockedUsers() {
-        guard let url = URL(string: "https://circlapp.online/api/users/get_blocked_users/"),
-              let token = UserDefaults.standard.string(forKey: "auth_token") else { return }
-
-        var request = URLRequest(url: url)
-        request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
-
-        URLSession.shared.dataTask(with: request) { data, _, _ in
-            if let data = data,
-               let result = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] {
-                let users = result.compactMap { dict -> BlockedUser? in
-                    guard let id = dict["id"] as? Int,
-                          let name = dict["name"] as? String else { return nil }
-                    return BlockedUser(id: id, name: name)
-                }
-
-                DispatchQueue.main.async {
-                    self.blockedUsers = users
-                }
-            }
-
-        }.resume()
-    }
-
-    func unblock(userId: Int) {
-        guard let url = URL(string: "https://circlapp.online/api/users/unblock_user/"),
-              let token = UserDefaults.standard.string(forKey: "auth_token") else { return }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
-
-        let payload = ["blocked_id": userId]
-        request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
-
-        URLSession.shared.dataTask(with: request) { _, _, _ in
-            DispatchQueue.main.async {
-                self.message = "User unblocked!"
-                self.fetchBlockedUsers()
-            }
-        }.resume()
+        return Color(red: red, green: green, blue: blue)
     }
 }
 
-
-
-struct ChangePasswordPage: View {
-    @State private var oldPassword = ""
-    @State private var newPassword = ""
-    @State private var confirmPassword = ""
-    @State private var message = ""
-    @State private var isSuccess = false
-
-    var body: some View {
-        VStack(spacing: 20) {
-            Text("Change Password")
-                .font(.title)
-                .bold()
-
-            SecureField("Current Password", text: $oldPassword)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-
-            SecureField("New Password", text: $newPassword)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-
-            SecureField("Confirm New Password", text: $confirmPassword)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-
-            Button(action: changePassword) {
-                Text("Update Password")
-                    .foregroundColor(.white)
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(Color.blue)
-                    .cornerRadius(10)
-            }
-
-            if !message.isEmpty {
-                Text(message)
-                    .foregroundColor(isSuccess ? .green : .red)
-            }
-
-            Spacer()
-        }
-        .padding()
-    }
-
-    func changePassword() {
-        guard !oldPassword.isEmpty, !newPassword.isEmpty, newPassword == confirmPassword else {
-            message = "Please fill all fields and make sure new passwords match."
-            isSuccess = false
-            return
-        }
-
-        guard let url = URL(string: "https://circlapp.online/api/users/change_password/") else { return }
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        if let token = UserDefaults.standard.string(forKey: "auth_token") {
-            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
-        }
-
-        let payload = [
-            "old_password": oldPassword,
-            "new_password": newPassword
-        ]
-
-        request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
-
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            DispatchQueue.main.async {
-                if let data = data,
-                   let response = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
-                    if let status = response["status"] as? String {
-                        message = status
-                        isSuccess = true
-                        oldPassword = ""
-                        newPassword = ""
-                        confirmPassword = ""
-                    } else if let errorMsg = response["error"] as? String {
-                        message = errorMsg
-                        isSuccess = false
-                    }
-                } else {
-                    message = "Unexpected error occurred."
-                    isSuccess = false
-                }
-            }
-        }.resume()
-    }
-}
-
-
-struct DeleteAccountPage: View {
-    @State private var reason = ""
-    @State private var message = ""
-    @State private var isSubmitted = false
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            Text("Why do you want to delete your account?")
-                .font(.headline)
-
-            TextEditor(text: $reason)
-                .frame(height: 150)
-                .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.gray.opacity(0.5)))
-
-            Button(action: submitDeleteRequest) {
-                Text("Request to Delete Account")
-                    .foregroundColor(.white)
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(Color.red)
-                    .cornerRadius(10)
-            }
-
-            if isSubmitted {
-                Text(message)
-                    .foregroundColor(.green)
-            }
-
-            Spacer()
-        }
-        .padding()
-    }
-
-    func submitDeleteRequest() {
-        guard let url = URL(string: "https://circlapp.online/api/users/request_delete_account/") else { return }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        if let token = UserDefaults.standard.string(forKey: "auth_token") {
-            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
-        }
-
-        let payload = ["reason": reason]
-        request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
-
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            DispatchQueue.main.async {
-                isSubmitted = true
-                message = "Your request has been submitted."
-                reason = ""
-            }
-        }.resume()
-    }
-}
-
-
-struct SuggestFeaturePage: View {
-    @State private var featureSuggestion = ""
-    @State private var isSubmitted = false
-    @State private var successMessage = ""
-
-    var body: some View {
-        VStack(spacing: 20) {
-            Text("Suggest a Feature")
-                .font(.title)
-                .bold()
-
-            Text("We value your suggestions! Please provide details of the feature you'd like to see.")
-                .font(.body)
-                .foregroundColor(.gray)
-
-            TextEditor(text: $featureSuggestion)
-                .frame(height: 150)
-                .padding()
-                .border(Color.gray, width: 1)
-                .cornerRadius(8)
-
-            Button(action: submitFeatureSuggestion) {
-                Text("Submit Suggestion")
-                    .foregroundColor(.white)
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(Color.blue)
-                    .cornerRadius(10)
-            }
-
-            if isSubmitted {
-                Text(successMessage)
-                    .foregroundColor(.green)
-                    .font(.subheadline)
-            }
-
-            Spacer()
-        }
-        .padding()
-    }
-
-    func submitFeatureSuggestion() {
-        // Ensure feature suggestion is not empty
-        guard !featureSuggestion.isEmpty else {
-            successMessage = "Please provide a suggestion before submitting."
-            return
-        }
-
-        // Prepare the data to send
-        guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else { return }
-
-        let payload: [String: Any] = [
-            "user_id": userId,
-            "feedback_type": "feature_suggestion",
-            "feedback_content": featureSuggestion
-        ]
-
-        // Send to backend (create a new table `app_feedback`)
-        guard let url = URL(string: "https://circlapp.online/api/users/submit_feedback/") else { return }
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        if let token = UserDefaults.standard.string(forKey: "auth_token") {
-            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
-        }
-
-        request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
-
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            DispatchQueue.main.async {
-                if let error = error {
-                    successMessage = "Error: \(error.localizedDescription)"
-                } else {
-                    successMessage = "Thank you for your suggestion!"
-                    isSubmitted = true
-                    featureSuggestion = ""  // Clear the field
-                }
-            }
-        }.resume()
-    }
-}
-
-struct ReportProblemPage: View {
-    @State private var problemReport = ""
-    @State private var isSubmitted = false
-    @State private var successMessage = ""
-
-    var body: some View {
-        VStack(spacing: 20) {
-            Text("Report a Problem")
-                .font(.title)
-                .bold()
-
-            Text("Please describe the issue you encountered.")
-                .font(.body)
-                .foregroundColor(.gray)
-
-            TextEditor(text: $problemReport)
-                .frame(height: 150)
-                .padding()
-                .border(Color.gray, width: 1)
-                .cornerRadius(8)
-
-            Button(action: submitProblemReport) {
-                Text("Submit Report")
-                    .foregroundColor(.white)
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(Color.red)
-                    .cornerRadius(10)
-            }
-
-            if isSubmitted {
-                Text(successMessage)
-                    .foregroundColor(.green)
-                    .font(.subheadline)
-            }
-
-            Spacer()
-        }
-        .padding()
-    }
-
-    func submitProblemReport() {
-        // Ensure problem report is not empty
-        guard !problemReport.isEmpty else {
-            successMessage = "Please provide a description of the problem."
-            return
-        }
-
-        // Prepare the data to send
-        guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else { return }
-
-        let payload: [String: Any] = [
-            "user_id": userId,
-            "feedback_type": "problem_report",
-            "feedback_content": problemReport
-        ]
-
-        // Send to backend (create a new table `app_feedback`)
-        guard let url = URL(string: "https://circlapp.online/api/users/submit_feedback/") else { return }
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        if let token = UserDefaults.standard.string(forKey: "auth_token") {
-            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
-        }
-
-        request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
-
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            DispatchQueue.main.async {
-                if let error = error {
-                    successMessage = "Error: \(error.localizedDescription)"
-                } else {
-                    successMessage = "Thank you for reporting the problem!"
-                    isSubmitted = true
-                    problemReport = ""  // Clear the field
-                }
-            }
-        }.resume()
-    }
-}
-
-struct TermsOfServicePage: View {
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 15) {
-                Text("A. Terms & Conditions")
-                    .font(.title)
-                    .foregroundColor(Color(hexCode: "004aad"))
-
-                Text("Effective Date: March 30, 2025")
-                    .font(.subheadline)
-                    .foregroundColor(.gray)
-
-                Text("""
-Welcome to Circl International Inc. (“Circl,” “we,” “us,” or “our”). By accessing or using our platform, you agree to abide by these Terms & Conditions. If you do not agree, please do not use our platform.
-
-1. Use of the Platform
-You must be at least 18 years old to use Circl.
-You are responsible for all activity under your account.
-Misuse of the platform, including spamming, harassment, or unauthorized access, will result in suspension or termination.
-
-2. Intellectual Property
-Circl owns all platform content, trademarks, and proprietary materials.
-Users retain ownership of their content but grant Circl a license to use it for platform functionality.
-
-3. Modification of Terms
-Circl reserves the right to update these Terms & Conditions at any time. Users will be notified of significant changes.
-
-4. Limitation of Liability
-Circl is not responsible for business outcomes, financial losses, or damages resulting from platform use.
-We provide the platform “as is” without warranties of any kind.
-
-5. Governing Law
-These Terms & Conditions are governed by the laws of the State of Texas, USA.
-
-6. Termination
-We reserve the right to terminate accounts violating these terms.
-""")
-                    .foregroundColor(.black)
-                    .multilineTextAlignment(.leading)
-            }
-            .padding()
-        }
-        .background(Color.white)
-        .navigationTitle("Terms & Conditions")
-        .navigationBarTitleDisplayMode(.inline)
-    }
-}
-
-struct PrivacyPolicyPage: View {
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 15) {
-                Text("B. Privacy Policy")
-                    .font(.title)
-                    .foregroundColor(Color(hexCode: "004aad"))
-
-                Text("Effective Date: March 30, 2025")
-                    .font(.subheadline)
-                    .foregroundColor(.gray)
-
-                Text("""
-Circl International Inc. values your privacy. This Privacy Policy explains how we collect, use, and protect your data.
-
-1. Information We Collect
-Personal data (e.g., name, email, business details).
-Usage data (e.g., interactions with the platform).
-
-2. How We Use Your Data
-To provide and improve our platform.
-To personalize user experience and offer relevant business connections.
-
-3. Data Sharing & Security
-We do not sell user data.
-Third-party service providers may access data for platform functionality.
-We implement security measures but cannot guarantee absolute protection.
-
-4. Data Retention Policy
-User data is retained for as long as necessary to provide services and comply with legal obligations.
-
-5. User Rights
-You may request data access, modification, or deletion.
-
-C. Competition Clause
-Effective Date: March 30, 2025
-Circl International Inc. fosters a collaborative entrepreneurial environment. We support businesses on our platform, including those that may compete with each other.
-
-1. Fair Use Policy
-Users may engage in competition but must not engage in unethical practices such as data scraping, user poaching, or misleading promotions.
-
-2. Platform Protection
-Users may not use Circl to undermine the platform’s integrity or to create a directly competing service using Circl’s proprietary features.
-
-3. Reporting & Enforcement
-Violations may result in suspension or legal action.
-""")
-                    .foregroundColor(.black)
-                    .multilineTextAlignment(.leading)
-            }
-            .padding()
-        }
-        .background(Color.white)
-        .navigationTitle("Privacy Policy")
-        .navigationBarTitleDisplayMode(.inline)
-    }
-}
-
-struct CommunityGuidelinesPage: View {
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 15) {
-                Text("D. Community Guidelines")
-                    .font(.title)
-                    .foregroundColor(Color(hexCode: "004aad"))
-
-                Text("Effective Date: March 30, 2025")
-                    .font(.subheadline)
-                    .foregroundColor(.gray)
-
-                Text("""
-To maintain a productive environment, Circl International Inc. enforces the following guidelines:
-
-1. Respectful Communication
-No harassment, discrimination, or hate speech.
-Constructive discussions are encouraged.
-
-2. Business Ethics
-No fraudulent activities, scams, or misinformation.
-Respect confidentiality and intellectual property.
-
-3. User-Generated Content Policy
-Users are responsible for the content they post.
-Circl reserves the right to remove content that violates policies.
-Users grant Circl a non-exclusive license to use content posted on the platform for operational purposes.
-
-4. Enforcement
-Violations may result in content removal, account suspension, or permanent bans.
-
-5. Dispute Resolution & Liability Disclaimer
-Effective Date: March 30, 2025
-
-E. Dispute Resolution
-Disputes will be resolved through arbitration in the State of Texas, USA.
-Users waive the right to class-action lawsuits.
-
-2. Limitation of Liability
-Circl is not responsible for user interactions, business decisions, or losses.
-Users agree to indemnify Circl against legal claims arising from platform use.
-
-3. Refund & Subscription Policy
-If paid services are introduced, refund policies will be clearly stated at the time of purchase.
-
-By using Circl, you agree to these terms. For inquiries, contact join@circlinternational.com.
-""")
-                    .foregroundColor(.black)
-                    .multilineTextAlignment(.leading)
-            }
-            .padding()
-        }
-        .background(Color.white)
-        .navigationTitle("Community Guidelines")
-        .navigationBarTitleDisplayMode(.inline)
-    }
-}
-
-struct ContactSupportPage: View {
-    @State private var name = ""
-    @State private var email = ""
-    @State private var question = ""
-    @State private var isSubmitted = false
-    @State private var successMessage = ""
-
-    var body: some View {
-        VStack(spacing: 20) {
-            Text("Contact Support")
-                .font(.title)
-                .bold()
-
-            // Name field
-            TextField("Your Name", text: $name)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .padding()
-
-            // Email field
-            TextField("Your Email", text: $email)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .padding()
-
-            // Question field
-            TextEditor(text: $question)
-                .frame(height: 150)
-                .padding()
-                .border(Color.gray, width: 1)
-                .cornerRadius(8)
-                .padding()
-
-            // Submit Button
-            Button(action: {
-                // Logic to submit the form (to be added later)
-                isSubmitted = true
-                successMessage = "Thank you for your submission!"
-            }) {
-                Text("Submit Request")
-                    .foregroundColor(.white)
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(Color.blue)
-                    .cornerRadius(10)
-            }
-
-            // Success message after submission
-            if isSubmitted {
-                Text(successMessage)
-                    .foregroundColor(.green)
-                    .font(.subheadline)
-            }
-
-            // Link to external contact page
-            Link("Visit our Contact Page", destination: URL(string: "https://www.circlinternational.com/contact-circl")!)
-                .foregroundColor(.blue)
-                .font(.subheadline)
-
-            Spacer()
-        }
-        .padding()
-    }
-}
-
-
-
-
+// MARK: - Placeholder Pages
+struct ChangePasswordPage: View { var body: some View { Text("Change Password Page") } }
+struct TwoFactorAuthPage: View { var body: some View { Text("Two-Factor Authentication Page") } }
+struct DeleteAccountPage: View { var body: some View { Text("Delete Account Page") } }
+struct RateAppPage: View { var body: some View { Text("Rate the App Page") } }
+struct SuggestFeaturePage: View { var body: some View { Text("Suggest a Feature Page") } }
+struct ReportProblemPage: View { var body: some View { Text("Report a Problem Page") } }
+struct TermsOfServicePage: View { var body: some View { Text("Terms of Service Page") } }
+struct PrivacyPolicyPage: View { var body: some View { Text("Privacy Policy Page") } }
+struct CommunityGuidelinesPage: View { var body: some View { Text("Community Guidelines Page") } }
+struct HelpCenterPage: View { var body: some View { Text("Help Center Page") } }
+struct ContactSupportPage: View { var body: some View { Text("Contact Support Page") } }
+struct FAQsPage: View { var body: some View { Text("FAQs Page") } }
+struct InviteFriendPage: View { var body: some View { Text("Invite a Friend Page") } }
+struct PageMessages: View { var body: some View { Text("Messages Page") } }
+struct PageEntrepreneurMatching: View { var body: some View { Text("Entrepreneur Matching Page") } }
+struct PageBusinessProfile: View { var body: some View { Text("Business Profile Page") } }
+struct PageForum: View { var body: some View { Text("Forum Feed Page") } }
+struct PageEntrepreneurResources: View { var body: some View { Text("Professional Services Page") } }
+struct PageEntrepreneurKnowledge: View { var body: some View { Text("News & Knowledge Page") } }
+struct PageSkillSellingMatching: View { var body: some View { Text("Skill Selling Page") } }
+struct PageCircles: View { var body: some View { Text("Circles Page") } }
+struct InviteCodeView: View { var body: some View { Text("Invite Code View") } }
+
+// MARK: - Preview
 struct PageSettings_Previews: PreviewProvider {
     static var previews: some View {
         PageSettings()
     }
 }
+
