@@ -16,32 +16,18 @@ struct PageSettings: View {
                         VStack(spacing: 20) {
                             // Invite a Friend
                             SectionHeader(title: "Invite a Friend")
-                            settingsOption(title: "Invite a Friend", iconName: "person.badge.plus.fill", destination: InviteFriendPage())
 
                             // Account Settings
                             SectionHeader(title: "Account Settings")
-                            settingsOption(title: "Change Password", iconName: "lock.fill", destination: ChangePasswordPage())
-                            settingsOption(title: "Two-Factor Authentication", iconName: "shield.fill", destination: TwoFactorAuthPage())
-                            settingsOption(title: "Delete Account", iconName: "trash.fill", destination: DeleteAccountPage())
-                            settingsOption(title: "Your Invite Code", iconName: "link.circle.fill", destination: InviteCodeView())
 
                             // Feedback & Suggestions
                             SectionHeader(title: "Feedback & Suggestions")
-                            settingsOption(title: "Rate the App", iconName: "star.fill", destination: RateAppPage())
-                            settingsOption(title: "Suggest a Feature", iconName: "lightbulb.fill", destination: SuggestFeaturePage())
-                            settingsOption(title: "Report a Problem", iconName: "exclamationmark.triangle.fill", destination: ReportProblemPage())
 
                             // Legal & Policies
                             SectionHeader(title: "Legal & Policies")
-                            settingsOption(title: "Terms of Service", iconName: "doc.text.fill", destination: TermsOfServicePage())
-                            settingsOption(title: "Privacy Policy", iconName: "hand.raised.fill", destination: PrivacyPolicyPage())
-                            settingsOption(title: "Community Guidelines", iconName: "person.2.fill", destination: CommunityGuidelinesPage())
 
                             // Help & Support
                             SectionHeader(title: "Help & Support")
-                            settingsOption(title: "Help Center", iconName: "questionmark.circle.fill", destination: HelpCenterPage())
-                            settingsOption(title: "Contact Support", iconName: "headphones", destination: ContactSupportPage())
-                            settingsOption(title: "FAQs", iconName: "text.bubble.fill", destination: FAQsPage())
                         }
                         .padding(.horizontal, 20)
                         .padding(.top, 20)
@@ -59,31 +45,7 @@ struct PageSettings: View {
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .background(Color(.systemGray5))
 
-                            NavigationLink(destination: PageEntrepreneurMatching().navigationBarBackButtonHidden(true)) {
-                                MenuItem(icon: "person.2.fill", title: "Connect and Network")
-                            }
-                            NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true)) {
-                                MenuItem(icon: "person.crop.square.fill", title: "Your Business Profile")
-                            }
-                            NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
-                                MenuItem(icon: "text.bubble.fill", title: "The Forum Feed")
-                            }
-                            NavigationLink(destination: PageEntrepreneurResources().navigationBarBackButtonHidden(true)) {
-                                MenuItem(icon: "briefcase.fill", title: "Professional Services")
-                            }
-                            NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
-                                MenuItem(icon: "envelope.fill", title: "Messages")
-                            }
-                            NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
-                                MenuItem(icon: "newspaper.fill", title: "News & Knowledge")
-                            }
-                            NavigationLink(destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true)) {
-                                MenuItem(icon: "dollarsign.circle.fill", title: "The Circl Exchange")
-                            }
                             Divider()
-                            NavigationLink(destination: PageCircles().navigationBarBackButtonHidden(true)) {
-                                MenuItem(icon: "circle.grid.2x2.fill", title: "Circles")
-                            }
                         }
                         .background(Color(.systemGray6))
                         .cornerRadius(12)
@@ -124,12 +86,10 @@ struct PageSettings: View {
                     .fontWeight(.bold)
                     .foregroundColor(.white)
                 Spacer()
-                NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
-                    Image(systemName: "bubble.left.and.bubble.right.fill")
-                        .resizable()
-                        .frame(width: 50, height: 40)
-                        .foregroundColor(.white)
-                }
+                Image(systemName: "bubble.left.and.bubble.right.fill")
+                    .resizable()
+                    .frame(width: 50, height: 40)
+                    .foregroundColor(.white)
             }
             .padding(.horizontal)
             .padding(.top, 15)
@@ -150,75 +110,35 @@ struct PageSettings: View {
     }
 
     // MARK: - Settings Option
-    private func settingsOption(title: String, iconName: String, destination: some View) -> some View {
-        NavigationLink(destination: destination.navigationBarBackButtonHidden(true)) {
-            HStack {
-                Image(systemName: iconName)
-                    .resizable()
-                    .frame(width: 24, height: 24)
-                    .foregroundColor(.white)
-                    .padding(12)
-                    .background(Color.fromHex("004aad"))
-                    .cornerRadius(8)
-
-                Text(title)
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundColor(.black)
-                    .padding(.leading, 10)
-
-                Spacer()
-
-                Image(systemName: "chevron.right")
-                    .foregroundColor(.gray)
-            }
-            .padding()
-            .background(Color.white)
-            .cornerRadius(10)
-            .overlay(
-                RoundedRectangle(cornerRadius: 10)
-                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-            )
-        }
-    }
-}
-
-// MARK: - Menu Item Component
-struct MenuItem: View {
-    let icon: String
-    let title: String
-
-    var body: some View {
+    private func settingsOption(title: String, iconName: String) -> some View {
         HStack {
-            Image(systemName: icon)
-                .foregroundColor(Color.fromHex("004aad"))
-                .frame(width: 24)
+            Image(systemName: iconName)
+                .resizable()
+                .frame(width: 24, height: 24)
+                .foregroundColor(.white)
+                .padding(12)
+                .background(Color.fromHex("004aad"))
+                .cornerRadius(8)
+
             Text(title)
-                .foregroundColor(.primary)
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(.black)
+                .padding(.leading, 10)
+
             Spacer()
+
+            Image(systemName: "chevron.right")
+                .foregroundColor(.gray)
         }
-        .padding(.horizontal)
-        .padding(.vertical, 12)
-        .contentShape(Rectangle())
+        .padding()
+        .background(Color.white)
+        .cornerRadius(10)
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+        )
     }
 }
-
-// MARK: - Color Extension
-extension Color {
-    static func fromHex(_ hex: String) -> Color {
-        var hexSanitized = hex.trimmingCharacters(in: .whitespacesAndNewlines)
-        hexSanitized = hexSanitized.hasPrefix("#") ? String(hexSanitized.dropFirst()) : hexSanitized
-
-        var rgb: UInt64 = 0
-        Scanner(string: hexSanitized).scanHexInt64(&rgb)
-
-        let red = Double((rgb >> 16) & 0xFF) / 255.0
-        let green = Double((rgb >> 8) & 0xFF) / 255.0
-        let blue = Double(rgb & 0xFF) / 255.0
-
-        return Color(red: red, green: green, blue: blue)
-    }
-}
-
 
 // MARK: - Preview
 struct PageSettings_Previews: PreviewProvider {
