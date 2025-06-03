@@ -219,29 +219,6 @@ extension Color {
     }
 }
 
-// MARK: - Placeholder Pages
-struct ChangePasswordPage: View { var body: some View { Text("Change Password Page") } }
-struct TwoFactorAuthPage: View { var body: some View { Text("Two-Factor Authentication Page") } }
-struct DeleteAccountPage: View { var body: some View { Text("Delete Account Page") } }
-struct RateAppPage: View { var body: some View { Text("Rate the App Page") } }
-struct SuggestFeaturePage: View { var body: some View { Text("Suggest a Feature Page") } }
-struct ReportProblemPage: View { var body: some View { Text("Report a Problem Page") } }
-struct TermsOfServicePage: View { var body: some View { Text("Terms of Service Page") } }
-struct PrivacyPolicyPage: View { var body: some View { Text("Privacy Policy Page") } }
-struct CommunityGuidelinesPage: View { var body: some View { Text("Community Guidelines Page") } }
-struct HelpCenterPage: View { var body: some View { Text("Help Center Page") } }
-struct ContactSupportPage: View { var body: some View { Text("Contact Support Page") } }
-struct FAQsPage: View { var body: some View { Text("FAQs Page") } }
-struct InviteFriendPage: View { var body: some View { Text("Invite a Friend Page") } }
-struct PageMessages: View { var body: some View { Text("Messages Page") } }
-struct PageEntrepreneurMatching: View { var body: some View { Text("Entrepreneur Matching Page") } }
-struct PageBusinessProfile: View { var body: some View { Text("Business Profile Page") } }
-struct PageForum: View { var body: some View { Text("Forum Feed Page") } }
-struct PageEntrepreneurResources: View { var body: some View { Text("Professional Services Page") } }
-struct PageEntrepreneurKnowledge: View { var body: some View { Text("News & Knowledge Page") } }
-struct PageSkillSellingMatching: View { var body: some View { Text("Skill Selling Page") } }
-struct PageCircles: View { var body: some View { Text("Circles Page") } }
-struct InviteCodeView: View { var body: some View { Text("Invite Code View") } }
 
 // MARK: - Preview
 struct PageSettings_Previews: PreviewProvider {
