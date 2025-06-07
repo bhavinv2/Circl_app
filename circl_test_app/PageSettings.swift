@@ -46,7 +46,8 @@ struct PageSettings: View {
                         settingsOption(title: "Change Password", iconName: "lock.fill", destination: ChangePasswordPage())
                         
                         settingsOption(title: "Blocked Users", iconName: "person.crop.circle.badge.xmark", destination: BlockedUsersPage())
-
+                        
+                        settingsOption(title: "Notification Settings", iconName: "bell.badge.fill", destination: NotificationSettingPage())
                         
                         settingsOption(title: "Delete Account", iconName: "trash.fill", destination: DeleteAccountPage())
 
@@ -258,6 +259,48 @@ struct BecomeMentorPage: View {
         }.resume()
     }
 }
+
+struct NotificationSettingPage: View {
+    @State private var directMessages = true
+    @State private var friendRequestAccepted = false
+    @State private var forumPosts = true
+    @State private var showSavedAlert = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            Text("Notification Preferences")
+                .font(.title)
+                .bold()
+
+            VStack(alignment: .leading, spacing: 15) {
+                Toggle("Direct Messages", isOn: $directMessages)
+                Toggle("Friend Request Accepted", isOn: $friendRequestAccepted)
+                Toggle("Forum Posts", isOn: $forumPosts)
+            }
+            .toggleStyle(SwitchToggleStyle(tint: .blue))
+
+            Button(action: {
+                showSavedAlert = true
+            }) {
+                Text("Save")
+                    .foregroundColor(.white)
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(Color.blue)
+                    .cornerRadius(10)
+            }
+
+            Spacer()
+        }
+        .padding()
+        .background(Color.white)
+        .alert(isPresented: $showSavedAlert) {
+            Alert(title: Text("Preferences saved"))
+        }
+    }
+}
+
+
 
 struct BlockedUsersPage: View {
     @State private var blockedUsers: [BlockedUser] = []
@@ -553,7 +596,7 @@ struct SuggestFeaturePage: View {
             "feedback_content": featureSuggestion
         ]
 
-        // Send to backend (create a new table `app_feedback`)
+        // Send to backend (create a new table app_feedback)
         guard let url = URL(string: "https://circlapp.online/api/users/submit_feedback/") else { return }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -636,7 +679,7 @@ struct ReportProblemPage: View {
             "feedback_content": problemReport
         ]
 
-        // Send to backend (create a new table `app_feedback`)
+        // Send to backend (create a new table app_feedback)
         guard let url = URL(string: "https://circlapp.online/api/users/submit_feedback/") else { return }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
