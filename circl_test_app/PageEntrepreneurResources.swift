@@ -2,14 +2,14 @@ import SwiftUI
 
 struct PageEntrepreneurResources: View {
     @State private var showMenu = false
-    
+
     var body: some View {
         NavigationView {
             ZStack(alignment: .bottomTrailing) {
                 VStack(spacing: 0) {
-                    // Header
+                    // Header Section
                     headerSection
-                    
+
                     // Main Content
                     ScrollView {
                         VStack(spacing: 20) {
@@ -21,24 +21,47 @@ struct PageEntrepreneurResources: View {
                                 .background(Color.yellow)
                                 .cornerRadius(10)
                                 .padding(.horizontal)
-                            
+
                             VStack(spacing: 15) {
-                                EntrepreneurResourceItem(title: "Investors")
-                                EntrepreneurResourceItem(title: "Accountants/Tax Advisors")
-                                EntrepreneurResourceItem(title: "Legal Team")
-                                EntrepreneurResourceItem(title: "Bank Business Loans")
-                                EntrepreneurResourceItem(title: "Business Consultants")
-                                EntrepreneurResourceItem(title: "Business Insurance")
-                                EntrepreneurResourceItem(title: "Marketing/Branding/PR Company")
-                                EntrepreneurResourceItem(title: "Real Estate Team")
-                                EntrepreneurResourceItem(title: "Human Resources")
-                                EntrepreneurResourceItem(title: "Operations and Supply Chain")
-                                EntrepreneurResourceItem(title: "Customer Service and Support Team")
-                                EntrepreneurResourceItem(title: "Data Analytics and Business Intelligence")
-                                EntrepreneurResourceItem(title: "Sales Team")
-                                EntrepreneurResourceItem(title: "Social Media Team")
-                                EntrepreneurResourceItem(title: "Corporate Social Responsibility Advisors")
-                                EntrepreneurResourceItem(title: "Mental Health")
+                                NavigationLink(destination: AccountantsQuizView()) {
+                                    EntrepreneurResourceItem(title: "Accountants/Tax Advisors")
+                                }
+                                NavigationLink(destination: LegalQuizView()) {
+                                    EntrepreneurResourceItem(title: "Legal Team")
+                                }
+                                NavigationLink(destination: BankLoanQuizView()) {
+                                    EntrepreneurResourceItem(title: "Bank Loans")
+                                }
+                                NavigationLink(destination: ConsultantQuizView()) {
+                                    EntrepreneurResourceItem(title: "Business Consultants")
+                                }
+                                NavigationLink(destination: InsuranceQuizView()) {
+                                    EntrepreneurResourceItem(title: "Business Insurance")
+                                }
+                                NavigationLink(destination: MarketingQuizView()) {
+                                    EntrepreneurResourceItem(title: "Marketing Companies")
+                                }
+                                NavigationLink(destination: RealEstateQuizView()) {
+                                    EntrepreneurResourceItem(title: "Real Estate Teams")
+                                }
+                                NavigationLink(destination: HRQuizView()) {
+                                    EntrepreneurResourceItem(title: "HR Teams")
+                                }
+                                NavigationLink(destination: ManufacturingQuizView()) {
+                                    EntrepreneurResourceItem(title: "Manufacturing Firms")
+                                }
+                                NavigationLink(destination: CustomerServiceQuizView()) {
+                                    EntrepreneurResourceItem(title: "Customer Service Teams")
+                                }
+                                NavigationLink(destination: SalesQuizView()) {
+                                    EntrepreneurResourceItem(title: "Sales Teams")
+                                }
+                                NavigationLink(destination: CSRQuizView()) {
+                                    EntrepreneurResourceItem(title: "CSR Teams")
+                                }
+                                NavigationLink(destination: MentalHealthQuizView()) {
+                                    EntrepreneurResourceItem(title: "Mental Health Teams")
+                                }
                             }
                             .padding(.horizontal)
                             .foregroundColor(.fromHex("004aad"))
@@ -48,7 +71,8 @@ struct PageEntrepreneurResources: View {
                         .background(Color(UIColor.systemGray4))
                     }
                 }
-                .navigationBarHidden(true)
+                .edgesIgnoringSafeArea(.bottom)
+                .navigationBarBackButtonHidden(true)
 
                 // Floating Hammer Menu
                 VStack(alignment: .trailing, spacing: 8) {
@@ -59,7 +83,7 @@ struct PageEntrepreneurResources: View {
                                 .padding()
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .background(Color(.systemGray5))
-                            
+
                             NavigationLink(destination: PageEntrepreneurMatching().navigationBarBackButtonHidden(true)) {
                                 MenuItem(icon: "person.2.fill", title: "Connect and Network")
                             }
@@ -81,9 +105,9 @@ struct PageEntrepreneurResources: View {
                             NavigationLink(destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true)) {
                                 MenuItem(icon: "dollarsign.circle.fill", title: "The Circl Exchange")
                             }
-                            
+
                             Divider()
-                            
+
                             NavigationLink(destination: PageCircles().navigationBarBackButtonHidden(true)) {
                                 MenuItem(icon: "circle.grid.2x2.fill", title: "Circles")
                             }
@@ -94,7 +118,7 @@ struct PageEntrepreneurResources: View {
                         .frame(width: 250)
                         .transition(.scale.combined(with: .opacity))
                     }
-                    
+
                     Button(action: {
                         withAnimation(.spring()) {
                             showMenu.toggle()
@@ -125,16 +149,6 @@ struct PageEntrepreneurResources: View {
                         .font(.largeTitle)
                         .fontWeight(.bold)
                         .foregroundColor(.white)
-
-                    Button(action: {}) {
-                        HStack {
-                            Image(systemName: "slider.horizontal.3")
-                                .foregroundColor(.white)
-                            Text("Filter")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                        }
-                    }
                 }
 
                 Spacer()
@@ -156,10 +170,6 @@ struct PageEntrepreneurResources: View {
                                     .foregroundColor(.white)
                             }
                         }
-
-                        Text("Hello, Fragne")
-                            .foregroundColor(.white)
-                            .font(.headline)
                     }
                 }
             }
@@ -175,25 +185,21 @@ struct PageEntrepreneurResources: View {
         let title: String
 
         var body: some View {
-            Button(action: {
-                // Action
-            }) {
-                Text(title)
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.white)
-                    .cornerRadius(10)
-                    .shadow(color: Color.gray.opacity(0.2), radius: 4, x: 0, y: 2)
-            }
+            Text(title)
+                .font(.headline)
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Color.white)
+                .cornerRadius(10)
+                .shadow(color: Color.gray.opacity(0.2), radius: 4, x: 0, y: 2)
         }
     }
 
-    // MARK: - Menu Item Component
+    // MARK: - Floating Menu Item
     private struct MenuItem: View {
         let icon: String
         let title: String
-        
+
         var body: some View {
             HStack {
                 Image(systemName: icon)
@@ -210,24 +216,9 @@ struct PageEntrepreneurResources: View {
     }
 }
 
-// MARK: - Color Extension
-extension Color {
-    static func fromHex11(_ hex: String) -> Color {
-        var hexSanitized = hex.trimmingCharacters(in: .whitespacesAndNewlines)
-        hexSanitized = hexSanitized.hasPrefix("#") ? String(hexSanitized.dropFirst()) : hexSanitized
+// MARK: - Color from Hex
 
-        var rgb: UInt64 = 0
-        Scanner(string: hexSanitized).scanHexInt64(&rgb)
 
-        let red = Double((rgb >> 16) & 0xFF) / 255.0
-        let green = Double((rgb >> 8) & 0xFF) / 255.0
-        let blue = Double(rgb & 0xFF) / 255.0
-
-        return Color(red: red, green: green, blue: blue)
-    }
-}
-
-// MARK: - Preview
 struct PageEntrepreneurResources_Previews: PreviewProvider {
     static var previews: some View {
         PageEntrepreneurResources()

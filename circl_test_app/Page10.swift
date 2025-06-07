@@ -5,108 +5,48 @@ struct Page10: View {
     @State private var answer2: String = ""
     @State private var showAlert = false
     @State private var isNavigating = false
-    
+
     var body: some View {
         ZStack {
             // Background Color
             Color(hexCode: "004aad")
                 .edgesIgnoringSafeArea(.all)
-            
+
+            // Cloud background (same as before)
             ZStack {
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 120, height: 120)
-                    .offset(x: -(UIScreen.main.bounds.width / 2 - 80), y: -UIScreen.main.bounds.height / 2 + 0)
-                
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 120, height: 120)
-                    .offset(x: -(UIScreen.main.bounds.width / 2 - 130), y: -UIScreen.main.bounds.height / 2 + 0)
-                
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 100, height: 100)
-                    .offset(x: -(UIScreen.main.bounds.width / 2 - 30), y: -UIScreen.main.bounds.height / 2 + 40)
-                
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 100, height: 100)
-                    .offset(x: -(UIScreen.main.bounds.width / 2 - 110), y: -UIScreen.main.bounds.height / 2 + 50)
-                
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 100, height: 100)
-                    .offset(x: -(UIScreen.main.bounds.width / 2 + 170), y: -UIScreen.main.bounds.height / 2 + 30)
-                
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 100, height: 100)
-                    .offset(x: -(UIScreen.main.bounds.width / 2 + 210), y: -UIScreen.main.bounds.height / 2 + 60)
-                
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 80, height: 80)
-                    .offset(x: -(UIScreen.main.bounds.width / 2 + 90), y: -UIScreen.main.bounds.height / 2 + 50)
-                
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 90, height: 90)
-                    .offset(x: -(UIScreen.main.bounds.width / 2 + 50), y: -UIScreen.main.bounds.height / 2 + 30)
-                
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 110, height: 110)
-                    .offset(x: -(UIScreen.main.bounds.width / 2 + 150), y: -UIScreen.main.bounds.height / 2 + 80)
+                Circle().fill(Color.white).frame(width: 120, height: 120).offset(x: -(UIScreen.main.bounds.width / 2 - 80), y: -UIScreen.main.bounds.height / 2 + 0)
+                Circle().fill(Color.white).frame(width: 120, height: 120).offset(x: -(UIScreen.main.bounds.width / 2 - 130), y: -UIScreen.main.bounds.height / 2 + 0)
+                Circle().fill(Color.white).frame(width: 100, height: 100).offset(x: -(UIScreen.main.bounds.width / 2 - 30), y: -UIScreen.main.bounds.height / 2 + 40)
+                Circle().fill(Color.white).frame(width: 100, height: 100).offset(x: -(UIScreen.main.bounds.width / 2 - 110), y: -UIScreen.main.bounds.height / 2 + 50)
+                Circle().fill(Color.white).frame(width: 100, height: 100).offset(x: -(UIScreen.main.bounds.width / 2 + 170), y: -UIScreen.main.bounds.height / 2 + 30)
+                Circle().fill(Color.white).frame(width: 100, height: 100).offset(x: -(UIScreen.main.bounds.width / 2 + 210), y: -UIScreen.main.bounds.height / 2 + 60)
+                Circle().fill(Color.white).frame(width: 80, height: 80).offset(x: -(UIScreen.main.bounds.width / 2 + 90), y: -UIScreen.main.bounds.height / 2 + 50)
+                Circle().fill(Color.white).frame(width: 90, height: 90).offset(x: -(UIScreen.main.bounds.width / 2 + 50), y: -UIScreen.main.bounds.height / 2 + 30)
+                Circle().fill(Color.white).frame(width: 110, height: 110).offset(x: -(UIScreen.main.bounds.width / 2 + 150), y: -UIScreen.main.bounds.height / 2 + 80)
             }
 
-            // Bottom Left Cloud (Flipped from Bottom Right Cloud)
+            // Bottom cloud
             ZStack {
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 120, height: 120)
-                    .offset(x: -(UIScreen.main.bounds.width / 2 - 60), y: UIScreen.main.bounds.height / 2 - 60)
-                
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 100, height: 100)
-                    .offset(x: -(UIScreen.main.bounds.width / 2 - 30), y: UIScreen.main.bounds.height / 2 - 40)
-                
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 100, height: 100)
-                    .offset(x: -(UIScreen.main.bounds.width / 2 - 90), y: UIScreen.main.bounds.height / 2 - 50)
-                
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 90, height: 90)
-                    .offset(x: -(UIScreen.main.bounds.width / 2 - 50), y: UIScreen.main.bounds.height / 2 - 30)
-                
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 90, height: 90)
-                    .offset(x: -(UIScreen.main.bounds.width / 2 - 30), y: UIScreen.main.bounds.height / 2 - 110)
-                
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 80, height: 80)
-                    .offset(x: -(UIScreen.main.bounds.width / 2 - 135), y: UIScreen.main.bounds.height / 2 - 30)
+                Circle().fill(Color.white).frame(width: 120, height: 120).offset(x: -(UIScreen.main.bounds.width / 2 - 60), y: UIScreen.main.bounds.height / 2 - 60)
+                Circle().fill(Color.white).frame(width: 100, height: 100).offset(x: -(UIScreen.main.bounds.width / 2 - 30), y: UIScreen.main.bounds.height / 2 - 40)
+                Circle().fill(Color.white).frame(width: 100, height: 100).offset(x: -(UIScreen.main.bounds.width / 2 - 90), y: UIScreen.main.bounds.height / 2 - 50)
+                Circle().fill(Color.white).frame(width: 90, height: 90).offset(x: -(UIScreen.main.bounds.width / 2 - 50), y: UIScreen.main.bounds.height / 2 - 30)
+                Circle().fill(Color.white).frame(width: 90, height: 90).offset(x: -(UIScreen.main.bounds.width / 2 - 30), y: UIScreen.main.bounds.height / 2 - 110)
+                Circle().fill(Color.white).frame(width: 80, height: 80).offset(x: -(UIScreen.main.bounds.width / 2 - 135), y: UIScreen.main.bounds.height / 2 - 30)
             }
 
             VStack(spacing: 10) {
                 Spacer()
 
-                // Title
                 Text("One Last Thing")
                     .font(.system(size: 32, weight: .bold))
                     .foregroundColor(Color(hexCode: "ffde59"))
 
-                // Separator
                 Rectangle()
                     .frame(height: 2)
                     .foregroundColor(.white)
                     .padding(.horizontal, 40)
 
-                // Main Prompt
                 Text("Why should we accept you?")
                     .font(.system(size: 20, weight: .semibold))
                     .foregroundColor(.white)
@@ -115,7 +55,6 @@ struct Page10: View {
                     .padding(.top, 0)
                     .padding(.bottom, 12)
 
-                // Input Fields Section
                 VStack(alignment: .leading, spacing: 20) {
                     VStack(alignment: .leading, spacing: 5) {
                         Text("Describe a business/side hustle you're currently working on or recently completed—what's the biggest challenge you've faced, and how are you handling it?")
@@ -140,12 +79,11 @@ struct Page10: View {
 
                 Spacer()
 
-                // Next Button
                 Button(action: {
                     if answer1.isEmpty || answer2.isEmpty {
                         showAlert = true
                     } else {
-                        isNavigating = true
+                        submitAnswers()
                     }
                 }) {
                     Text("Next")
@@ -162,13 +100,6 @@ struct Page10: View {
                         .padding(.horizontal, 50)
                         .padding(.bottom, 30)
                 }
-                .background(
-                    NavigationLink(
-                        destination: Page18(),
-                        isActive: $isNavigating,
-                        label: { EmptyView() }
-                    )
-                )
                 .alert(isPresented: $showAlert) {
                     Alert(
                         title: Text("Incomplete Form"),
@@ -177,10 +108,68 @@ struct Page10: View {
                     )
                 }
 
+                NavigationLink(destination: Page18(), isActive: $isNavigating) {
+                    EmptyView()
+                }
+
                 Spacer()
             }
         }
     }
+
+    // ✅ Backend save functionality
+    func submitAnswers() {
+        guard let url = URL(string: "https://circlapp.online/api/users/update-business-details/") else {
+            print("❌ Invalid URL")
+            return
+        }
+
+        let userId = UserDefaults.standard.integer(forKey: "user_id")
+        if userId == 0 {
+            print("❌ User ID not found")
+            return
+        }
+
+        let payload: [String: Any] = [
+            "user_id": userId,
+            "business_goals": answer1,
+            "business_challenges": answer2
+        ]
+
+        guard let jsonData = try? JSONSerialization.data(withJSONObject: payload) else {
+            print("❌ Failed to encode JSON")
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = jsonData
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    print("❌ Request failed: \(error.localizedDescription)")
+                    return
+                }
+
+                if let httpResponse = response as? HTTPURLResponse {
+                    print("📡 Status Code: \(httpResponse.statusCode)")
+                    if httpResponse.statusCode == 200 {
+                        // ✅ Now trigger navigation
+                        isNavigating = true
+                    } else {
+                        print("❌ Error saving: Status code \(httpResponse.statusCode)")
+                    }
+                }
+
+                if let data = data, let responseString = String(data: data, encoding: .utf8) {
+                    print("📩 Response: \(responseString)")
+                }
+            }
+        }.resume()
+    }
+
 }
 
 struct FreeResponseField: View {

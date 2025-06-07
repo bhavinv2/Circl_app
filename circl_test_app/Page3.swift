@@ -8,6 +8,12 @@ struct Page3: View {
     @State private var email: String = ""
     @State private var phoneNumber: String = ""
     @State private var isEmailValid: Bool = true
+    
+    // State for submission handling
+    @State private var isSubmitting: Bool = false
+    @State private var submissionMessage: String = ""
+    @State private var navigateToPage5: Bool = false
+    @State private var showAlert = false
 
     let usageInterestOptions = [
         "Sell a Skill", "Make Investments", "Share Knowledge", "Be Part of the Community",
@@ -65,139 +71,265 @@ struct Page3: View {
     ]
 
     var body: some View {
-        ZStack {
-            Color(hexCode: "004aad").edgesIgnoringSafeArea(.all)
-            
-            // Top Left Cloud
+        NavigationView {
             ZStack {
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 120, height: 120)
-                    .offset(x: -UIScreen.main.bounds.width / 2 + 60, y: -UIScreen.main.bounds.height / 2 + 60)
+                Color(hexCode: "004aad").edgesIgnoringSafeArea(.all)
                 
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 100, height: 100)
-                    .offset(x: -UIScreen.main.bounds.width / 2 + 30, y: -UIScreen.main.bounds.height / 2 + 40)
-                
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 100, height: 100)
-                    .offset(x: -UIScreen.main.bounds.width / 2 + 110, y: -UIScreen.main.bounds.height / 2 + 30)
-                
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 100, height: 100)
-                    .offset(x: -UIScreen.main.bounds.width / 2 + 170, y: -UIScreen.main.bounds.height / 2 + 30)
-                
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 100, height: 100)
-                    .offset(x: -UIScreen.main.bounds.width / 2 + 210, y: -UIScreen.main.bounds.height / 2 + 60)
-                
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 80, height: 80)
-                    .offset(x: -UIScreen.main.bounds.width / 2 + 90, y: -UIScreen.main.bounds.height / 2 + 50)
-                
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 90, height: 90)
-                    .offset(x: -UIScreen.main.bounds.width / 2 + 50, y: -UIScreen.main.bounds.height / 2 + 30)
-                
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 110, height: 110)
-                    .offset(x: -UIScreen.main.bounds.width / 2 + 150, y: -UIScreen.main.bounds.height / 2 + 80)
-            }
+                // Top Left Cloud
+                ZStack {
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 120, height: 120)
+                        .offset(x: -UIScreen.main.bounds.width / 2 + 60, y: -UIScreen.main.bounds.height / 2 + 60)
+                    
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 100, height: 100)
+                        .offset(x: -UIScreen.main.bounds.width / 2 + 30, y: -UIScreen.main.bounds.height / 2 + 40)
+                    
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 100, height: 100)
+                        .offset(x: -UIScreen.main.bounds.width / 2 + 110, y: -UIScreen.main.bounds.height / 2 + 30)
+                    
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 100, height: 100)
+                        .offset(x: -UIScreen.main.bounds.width / 2 + 170, y: -UIScreen.main.bounds.height / 2 + 30)
+                    
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 100, height: 100)
+                        .offset(x: -UIScreen.main.bounds.width / 2 + 210, y: -UIScreen.main.bounds.height / 2 + 60)
+                    
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 80, height: 80)
+                        .offset(x: -UIScreen.main.bounds.width / 2 + 90, y: -UIScreen.main.bounds.height / 2 + 50)
+                    
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 90, height: 90)
+                        .offset(x: -UIScreen.main.bounds.width / 2 + 50, y: -UIScreen.main.bounds.height / 2 + 30)
+                    
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 110, height: 110)
+                        .offset(x: -UIScreen.main.bounds.width / 2 + 150, y: -UIScreen.main.bounds.height / 2 + 80)
+                }
 
-            // Bottom Left Cloud
-            ZStack {
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 120, height: 120)
-                    .offset(x: -UIScreen.main.bounds.width / 2 + 30, y: UIScreen.main.bounds.height / 2 - 80)
-                
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 100, height: 100)
-                    .offset(x: -UIScreen.main.bounds.width / 2 + 30, y: UIScreen.main.bounds.height / 2 - 40)
-                
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 100, height: 100)
-                    .offset(x: -UIScreen.main.bounds.width / 2 + 170, y: UIScreen.main.bounds.height / 2 - 20)
-                
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 90, height: 90)
-                    .offset(x: -UIScreen.main.bounds.width / 2 + 80, y: UIScreen.main.bounds.height / 2 - 40)
-                
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 110, height: 110)
-                    .offset(x: -UIScreen.main.bounds.width / 2 + 150, y: UIScreen.main.bounds.height / 2 - 80)
-            }
+                // Bottom Left Cloud
+                ZStack {
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 120, height: 120)
+                        .offset(x: -UIScreen.main.bounds.width / 2 + 30, y: UIScreen.main.bounds.height / 2 - 80)
+                    
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 100, height: 100)
+                        .offset(x: -UIScreen.main.bounds.width / 2 + 30, y: UIScreen.main.bounds.height / 2 - 40)
+                    
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 100, height: 100)
+                        .offset(x: -UIScreen.main.bounds.width / 2 + 170, y: UIScreen.main.bounds.height / 2 - 20)
+                    
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 90, height: 90)
+                        .offset(x: -UIScreen.main.bounds.width / 2 + 80, y: UIScreen.main.bounds.height / 2 - 40)
+                    
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 110, height: 110)
+                        .offset(x: -UIScreen.main.bounds.width / 2 + 150, y: UIScreen.main.bounds.height / 2 - 80)
+                }
 
-            // Middle Right Cloud
-            ZStack {
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 120, height: 120)
-                    .offset(x: UIScreen.main.bounds.width / 2 - 60, y: 0)
-                
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 80, height: 100)
-                    .offset(x: UIScreen.main.bounds.width / 2 - 30, y: -20)
-                
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 80, height: 80)
-                    .offset(x: UIScreen.main.bounds.width / 2 - 0, y: 20)
-                
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 90, height: 90)
-                    .offset(x: UIScreen.main.bounds.width / 2 - 100, y: -40)
-                
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 90, height: 90)
-                    .offset(x: UIScreen.main.bounds.width / 2 - 115, y: 10)
-            }
+                // Middle Right Cloud
+                ZStack {
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 120, height: 120)
+                        .offset(x: UIScreen.main.bounds.width / 2 - 60, y: 0)
+                    
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 80, height: 100)
+                        .offset(x: UIScreen.main.bounds.width / 2 - 30, y: -20)
+                    
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 80, height: 80)
+                        .offset(x: UIScreen.main.bounds.width / 2 - 0, y: 20)
+                    
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 90, height: 90)
+                        .offset(x: UIScreen.main.bounds.width / 2 - 100, y: -40)
+                    
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 90, height: 90)
+                        .offset(x: UIScreen.main.bounds.width / 2 - 115, y: 10)
+                }
 
-            VStack(spacing: 20) {
-                TitleSection()
-                Spacer()
-                PersonalInformationSection(
-                    firstName: $firstName,
-                    lastName: $lastName,
-                    email: $email,
-                    phoneNumber: $phoneNumber,
-                    isEmailValid: $isEmailValid
+                ScrollView {
+                    VStack(spacing: 20) {
+                        TitleSection()
+                        Spacer()
+                        PersonalInformationSection(
+                            firstName: $firstName,
+                            lastName: $lastName,
+                            email: $email,
+                            phoneNumber: $phoneNumber,
+                            isEmailValid: $isEmailValid
+                        )
+                        Spacer()
+                        ExperienceSetupSection(
+                            usageInterestOptions: usageInterestOptions,
+                            industryCategories: industryCategories,
+                            selectedUsageInterest: $selectedUsageInterest,
+                            selectedIndustryInterest: $selectedIndustryInterest
+                        )
+                        Spacer()
+                        NextButton(
+                            isSubmitting: $isSubmitting,
+                            action: {
+                                if !isFormValid() {
+                                    submissionMessage = "Please fill out all fields correctly before continuing."
+                                    showAlert = true
+                                } else {
+                                    submitUserInfo()
+                                }
+                            },
+                            isFormValid: isFormValid()
+                        )
+                        Spacer()
+                    }
+                    .padding(.horizontal, 40)
+                }
+                .dismissKeyboardOnScroll()
+                .alert(isPresented: $showAlert) {
+                    Alert(
+                        title: Text("Registration Error"),
+                        message: Text(submissionMessage),
+                        dismissButton: .default(Text("OK"))
+                    )
+                }
+                .background(
+                    NavigationLink(
+                        destination: Page5(),
+                        isActive: $navigateToPage5,
+                        label: { EmptyView() }
+                    )
                 )
-                Spacer()
-                ExperienceSetupSection(
-                    usageInterestOptions: usageInterestOptions,
-                    industryCategories: industryCategories,
-                    selectedUsageInterest: $selectedUsageInterest,
-                    selectedIndustryInterest: $selectedIndustryInterest
-                )
-                Spacer()
-                NextButton(
-                    firstName: firstName,
-                    lastName: lastName,
-                    email: email,
-                    phoneNumber: phoneNumber,
-                    selectedUsageInterest: selectedUsageInterest,
-                    selectedIndustryInterest: selectedIndustryInterest,
-                    isEmailValid: isEmailValid
-                )
-                Spacer()
             }
-            .padding(.horizontal, 40)
         }
+    }
+    
+    private func isFormValid() -> Bool {
+        return !firstName.isEmpty &&
+               !lastName.isEmpty &&
+               isEmailValid &&
+               !email.isEmpty &&
+               phoneNumber.filter { $0.isNumber }.count == 10 &&
+               selectedUsageInterest != nil &&
+               selectedIndustryInterest != nil
+    }
+    
+    // 🚀 This function ties SwiftUI to PostgreSQL via Django API
+    func submitUserInfo() {
+        guard let url = URL(string: "https://circlapp.online/api/users/register/") else {
+            submissionMessage = "Invalid API URL"
+            print("❌ Invalid API URL")
+            return
+        }
+
+        let userInfo: [String: Any] = [
+            "first_name": firstName,
+            "last_name": lastName,
+            "email": email,
+            "phone": phoneNumber,
+            "main_usage": selectedUsageInterest ?? "",
+            "industry_interest": selectedIndustryInterest ?? ""
+        ]
+
+        if let jsonData = try? JSONSerialization.data(withJSONObject: userInfo),
+           let jsonString = String(data: jsonData, encoding: .utf8) {
+            print("🚀 Sending JSON: \(jsonString)")
+        } else {
+            print("❌ Failed to encode JSON")
+        }
+
+        guard let jsonData = try? JSONSerialization.data(withJSONObject: userInfo) else {
+            submissionMessage = "Failed to encode data"
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = jsonData
+
+        isSubmitting = true
+
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                isSubmitting = false
+
+                if let error = error {
+                    submissionMessage = "Error: \(error.localizedDescription)"
+                    showAlert = true
+                    print("❌ Request Error: \(error.localizedDescription)")
+                    return
+                }
+
+                if let httpResponse = response as? HTTPURLResponse {
+                    print("📡 Response Status Code: \(httpResponse.statusCode)")
+
+                    if httpResponse.statusCode == 201 {
+                        submissionMessage = "Success! User registered."
+                        print("✅ User registered successfully.")
+
+                        if let data = data,
+                           let responseDict = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                           let userId = responseDict["user_id"] as? Int {
+                            UserDefaults.standard.set(userId, forKey: "user_id")
+                            UserDefaults.standard.synchronize()
+                            print("📌 Stored user_id in UserDefaults: \(userId)")
+                        } else {
+                            print("❌ Failed to extract user_id from response.")
+                        }
+
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                            navigateToPage5 = true
+                        }
+
+                    } else if httpResponse.statusCode == 400 {
+                        if let data = data,
+                           let errorDict = try? JSONSerialization.jsonObject(with: data) as? [String: [String]],
+                           let emailErrors = errorDict["email"] {
+                            submissionMessage = emailErrors.first ?? "This email is already taken. Please choose a new one."
+                        } else {
+                            submissionMessage = "This email is already taken. Please choose a new one."
+                        }
+                        showAlert = true
+                        print("❌ Email already in use.")
+
+                    } else {
+                        submissionMessage = "Failed to register user. Status code: \(httpResponse.statusCode)"
+                        showAlert = true
+                        print("❌ Failed to register user. Status code: \(httpResponse.statusCode)")
+                    }
+                }
+
+                if let data = data, let responseString = String(data: data, encoding: .utf8) {
+                    print("📩 Response Body: \(responseString)")
+                }
+            }
+        }
+        task.resume()
     }
 }
 
@@ -372,42 +504,30 @@ struct ExperienceSetupSection: View {
     }
 }
 
-
 struct NextButton: View {
-    var firstName: String
-    var lastName: String
-    var email: String
-    var phoneNumber: String
-    var selectedUsageInterest: String?
-    var selectedIndustryInterest: String?
-    var isEmailValid: Bool
-
+    @Binding var isSubmitting: Bool
+    var action: () -> Void
+    var isFormValid: Bool
+    
     var body: some View {
-        NavigationLink(destination: Page5()) {
-            Text("Next")
+        Button(action: {
+            if !isSubmitting {
+                action()
+            }
+        }) {
+            Text(isSubmitting ? "Submitting..." : "Next")
                 .font(.system(size: 24, weight: .bold))
                 .foregroundColor(Color(hexCode: "004aad"))
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 15)
-                .background(Color(hexCode: "ffde59"))
+                .background(isSubmitting ? Color.gray : (isFormValid ? Color(hexCode: "ffde59") : Color.gray))
                 .cornerRadius(10)
                 .overlay(
                     RoundedRectangle(cornerRadius: 10)
                         .stroke(Color.white, lineWidth: 2)
                 )
         }
-        .disabled(!isFormValid())
-        .opacity(isFormValid() ? 1.0 : 0.6)
-    }
-
-    private func isFormValid() -> Bool {
-        return !firstName.isEmpty &&
-               !lastName.isEmpty &&
-               isEmailValid &&
-               !email.isEmpty &&
-               phoneNumber.filter { $0.isNumber }.count == 10 &&
-               selectedUsageInterest != nil &&
-               selectedIndustryInterest != nil
+        .disabled(!isFormValid || isSubmitting)
     }
 }
 

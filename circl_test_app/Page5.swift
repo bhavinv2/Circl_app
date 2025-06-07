@@ -15,8 +15,9 @@ struct Page5: View {
     @State private var locationSuggestions: [String] = []
     @State private var showSuggestions: Bool = false
     @State private var showIncompleteFormAlert: Bool = false
+    @State private var navigateToPage13 = false
+    @State private var isSubmitting: Bool = false
 
-    
     let genderOptions = ["Male", "Female", "Prefer not to say"]
     let availabilityOptions = [
         "Full-time (40+ hrs/week)",
@@ -34,207 +35,234 @@ struct Page5: View {
                     "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"]
     
     var body: some View {
-        ZStack {
-            Color(hexCode: "004aad")
-                .edgesIgnoringSafeArea(.all)
-            
+        NavigationView {
             ZStack {
-                        // Top Right Cloud Group
-                        Group {
-                            Circle().fill(Color.white).frame(width: 120, height: 120)
-                                .offset(x: UIScreen.main.bounds.width / 2 - 80, y: -UIScreen.main.bounds.height / 2 + 0)
-                            Circle().fill(Color.white).frame(width: 120, height: 120)
-                                .offset(x: UIScreen.main.bounds.width / 2 - 130, y: -UIScreen.main.bounds.height / 2 + 0)
-                            Circle().fill(Color.white).frame(width: 100, height: 100)
-                                .offset(x: UIScreen.main.bounds.width / 2 - 30, y: -UIScreen.main.bounds.height / 2 + 40)
-                            Circle().fill(Color.white).frame(width: 100, height: 100)
-                                .offset(x: UIScreen.main.bounds.width / 2 - 110, y: -UIScreen.main.bounds.height / 2 + 50)
-                            Circle().fill(Color.white).frame(width: 100, height: 100)
-                                .offset(x: UIScreen.main.bounds.width / 2 + 170, y: -UIScreen.main.bounds.height / 2 + 30)
-                            Circle().fill(Color.white).frame(width: 100, height: 100)
-                                .offset(x: UIScreen.main.bounds.width / 2 + 210, y: -UIScreen.main.bounds.height / 2 + 60)
-                            Circle().fill(Color.white).frame(width: 80, height: 80)
-                                .offset(x: UIScreen.main.bounds.width / 2 + 90, y: -UIScreen.main.bounds.height / 2 + 50)
-                            Circle().fill(Color.white).frame(width: 90, height: 90)
-                                .offset(x: UIScreen.main.bounds.width / 2 + 50, y: -UIScreen.main.bounds.height / 2 + 30)
-                            Circle().fill(Color.white).frame(width: 110, height: 110)
-                                .offset(x: UIScreen.main.bounds.width / 2 + 150, y: -UIScreen.main.bounds.height / 2 + 80)
-                        }
-                        
-                        // Bottom Right Cloud Group
-                        Group {
-                            Circle().fill(Color.white).frame(width: 120, height: 120)
-                                .offset(x: UIScreen.main.bounds.width / 2 - 60, y: UIScreen.main.bounds.height / 2 - 60)
-                            Circle().fill(Color.white).frame(width: 100, height: 100)
-                                .offset(x: UIScreen.main.bounds.width / 2 - 30, y: UIScreen.main.bounds.height / 2 - 40)
-                            Circle().fill(Color.white).frame(width: 100, height: 100)
-                                .offset(x: UIScreen.main.bounds.width / 2 - 90, y: UIScreen.main.bounds.height / 2 - 50)
-                            Circle().fill(Color.white).frame(width: 90, height: 90)
-                                .offset(x: UIScreen.main.bounds.width / 2 - 50, y: UIScreen.main.bounds.height / 2 - 30)
-                            Circle().fill(Color.white).frame(width: 90, height: 90)
-                                .offset(x: UIScreen.main.bounds.width / 2 - 30, y: UIScreen.main.bounds.height / 2 - 110)
-                            Circle().fill(Color.white).frame(width: 80, height: 80)
-                                .offset(x: UIScreen.main.bounds.width / 2 - 135, y: UIScreen.main.bounds.height / 2 - 30)
-                        }
-                        
-                        // Middle Left Cloud Group
-                        Group {
-                            Circle().fill(Color.white).frame(width: 80, height: 80)
-                                .offset(x: -UIScreen.main.bounds.width / 2 + 60, y: 2 + 50)
-                            Circle().fill(Color.white).frame(width: 90, height: 90)
-                                .offset(x: -UIScreen.main.bounds.width / 2 + 40, y: -20)
-                            Circle().fill(Color.white).frame(width: 80, height: 80)
-                                .offset(x: -UIScreen.main.bounds.width / 2 + 10, y: 40)
-                            Circle().fill(Color.white).frame(width: 90, height: 90)
-                                .offset(x: -UIScreen.main.bounds.width / 2 + 90, y: -30)
-                            Circle().fill(Color.white).frame(width: 120, height: 120)
-                                .offset(x: -UIScreen.main.bounds.width / 2 + 125, y: 20)
-                        }
+                Color(hexCode: "004aad")
+                    .edgesIgnoringSafeArea(.all)
+                
+                // Cloud background code remains the same...
+                ZStack {
+                    // Top Right Cloud Group
+                    Group {
+                        Circle().fill(Color.white).frame(width: 120, height: 120)
+                            .offset(x: UIScreen.main.bounds.width / 2 - 80, y: -UIScreen.main.bounds.height / 2 + 0)
+                        Circle().fill(Color.white).frame(width: 120, height: 120)
+                            .offset(x: UIScreen.main.bounds.width / 2 - 130, y: -UIScreen.main.bounds.height / 2 + 0)
+                        Circle().fill(Color.white).frame(width: 100, height: 100)
+                            .offset(x: UIScreen.main.bounds.width / 2 - 30, y: -UIScreen.main.bounds.height / 2 + 40)
+                        Circle().fill(Color.white).frame(width: 100, height: 100)
+                            .offset(x: UIScreen.main.bounds.width / 2 - 110, y: -UIScreen.main.bounds.height / 2 + 50)
+                        Circle().fill(Color.white).frame(width: 100, height: 100)
+                            .offset(x: UIScreen.main.bounds.width / 2 + 170, y: -UIScreen.main.bounds.height / 2 + 30)
+                        Circle().fill(Color.white).frame(width: 100, height: 100)
+                            .offset(x: UIScreen.main.bounds.width / 2 + 210, y: -UIScreen.main.bounds.height / 2 + 60)
+                        Circle().fill(Color.white).frame(width: 80, height: 80)
+                            .offset(x: UIScreen.main.bounds.width / 2 + 90, y: -UIScreen.main.bounds.height / 2 + 50)
+                        Circle().fill(Color.white).frame(width: 90, height: 90)
+                            .offset(x: UIScreen.main.bounds.width / 2 + 50, y: -UIScreen.main.bounds.height / 2 + 30)
+                        Circle().fill(Color.white).frame(width: 110, height: 110)
+                            .offset(x: UIScreen.main.bounds.width / 2 + 150, y: -UIScreen.main.bounds.height / 2 + 80)
                     }
-            
-            VStack(spacing: 20) {
-                Spacer()
-                
-                Text("Create Your Account")
-                    .font(.system(size: 32, weight: .bold))
-                    .foregroundColor(Color(hexCode: "ffde59"))
-                
-                Rectangle()
-                    .frame(height: 2)
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 40)
-                
-                HStack {
-                    Text("Personal Information")
-                        .font(.system(size: 24, weight: .bold))
-                        .foregroundColor(.white)
-                    Spacer()
-                }
-                .padding(.horizontal, 40)
-                .padding(.top, 20)
-                
-                VStack(spacing: 15) {
-                    // Birthday Field
-                    TextField("Birthday (MM/DD/YYYY)", text: $birthday)
-                        .onChange(of: birthday) { newValue in
-                            formatBirthday(newValue)
-                            validateAge()
-                        }
-                        .textFieldStyle(RoundedTextFieldStyle())
-                        .frame(maxWidth: 300)
-                        .keyboardType(.numberPad)
-                        .alert("You must be 18 years or older to sign up.", isPresented: $isUnderage) {
-                            Button("OK", role: .cancel) { }
-                        }
                     
-                    // Location Field
-                    VStack(alignment: .leading) {
-                        TextField("Location (City, ST)", text: $location)
-                            .onChange(of: location) { newValue in
-                                formatLocation(newValue)
-                                validateCityState()
+                    // Bottom Right Cloud Group
+                    Group {
+                        Circle().fill(Color.white).frame(width: 120, height: 120)
+                            .offset(x: UIScreen.main.bounds.width / 2 - 60, y: UIScreen.main.bounds.height / 2 - 60)
+                        Circle().fill(Color.white).frame(width: 100, height: 100)
+                            .offset(x: UIScreen.main.bounds.width / 2 - 30, y: UIScreen.main.bounds.height / 2 - 40)
+                        Circle().fill(Color.white).frame(width: 100, height: 100)
+                            .offset(x: UIScreen.main.bounds.width / 2 - 90, y: UIScreen.main.bounds.height / 2 - 50)
+                        Circle().fill(Color.white).frame(width: 90, height: 90)
+                            .offset(x: UIScreen.main.bounds.width / 2 - 50, y: UIScreen.main.bounds.height / 2 - 30)
+                        Circle().fill(Color.white).frame(width: 90, height: 90)
+                            .offset(x: UIScreen.main.bounds.width / 2 - 30, y: UIScreen.main.bounds.height / 2 - 110)
+                        Circle().fill(Color.white).frame(width: 80, height: 80)
+                            .offset(x: UIScreen.main.bounds.width / 2 - 135, y: UIScreen.main.bounds.height / 2 - 30)
+                    }
+                    
+                    // Middle Left Cloud Group
+                    Group {
+                        Circle().fill(Color.white).frame(width: 80, height: 80)
+                            .offset(x: -UIScreen.main.bounds.width / 2 + 60, y: 2 + 50)
+                        Circle().fill(Color.white).frame(width: 90, height: 90)
+                            .offset(x: -UIScreen.main.bounds.width / 2 + 40, y: -20)
+                        Circle().fill(Color.white).frame(width: 80, height: 80)
+                            .offset(x: -UIScreen.main.bounds.width / 2 + 10, y: 40)
+                        Circle().fill(Color.white).frame(width: 90, height: 90)
+                            .offset(x: -UIScreen.main.bounds.width / 2 + 90, y: -30)
+                        Circle().fill(Color.white).frame(width: 120, height: 120)
+                            .offset(x: -UIScreen.main.bounds.width / 2 + 125, y: 20)
+                    }
+                }
+                
+                VStack(spacing: 20) {
+                    Spacer()
+                    
+                    Text("Create Your Account")
+                        .font(.system(size: 32, weight: .bold))
+                        .foregroundColor(Color(hexCode: "ffde59"))
+                    
+                    Rectangle()
+                        .frame(height: 2)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 40)
+                    
+                    HStack {
+                        Text("Personal Information")
+                            .font(.system(size: 24, weight: .bold))
+                            .foregroundColor(.white)
+                        Spacer()
+                    }
+                    .padding(.horizontal, 40)
+                    .padding(.top, 20)
+                    
+                    VStack(spacing: 15) {
+                        // Birthday Field
+                        TextField("Birthday (MM/DD/YYYY)", text: $birthday)
+                            .onChange(of: birthday) { newValue in
+                                formatBirthday(newValue)
+                                validateAge()
                             }
                             .textFieldStyle(RoundedTextFieldStyle())
                             .frame(maxWidth: 300)
-                            .autocapitalization(.words)
+                            .keyboardType(.numberPad)
+                            .alert("You must be 18 years or older to sign up.", isPresented: $isUnderage) {
+                                Button("OK", role: .cancel) { }
+                            }
                         
-                        if !locationValidationMessage.isEmpty {
-                            Text(locationValidationMessage)
-                                .font(.caption)
-                                .foregroundColor(isValidLocation ? .green : .red)
-                                .padding(.horizontal, 5)
-                        }
-                        
-                        if showSuggestions && !locationSuggestions.isEmpty {
-                            ScrollView {
-                                VStack(alignment: .leading, spacing: 5) {
-                                    ForEach(locationSuggestions, id: \.self) { suggestion in
-                                        Text(suggestion)
-                                            .padding(8)
-                                            .frame(maxWidth: .infinity, alignment: .leading)
-                                            .background(Color.white.opacity(0.2))
-                                            .cornerRadius(5)
-                                            .onTapGesture {
-                                                location = suggestion
-                                                showSuggestions = false
-                                            }
+                        // Location Field - Updated to handle spaces in city names
+                        VStack(alignment: .leading) {
+                            TextField("Location (City, ST)", text: $location)
+                                .onChange(of: location) { newValue in
+                                    validateCityState()
+                                }
+                                .textFieldStyle(RoundedTextFieldStyle())
+                                .frame(maxWidth: 300)
+                                .autocapitalization(.words)
+                            
+                            if !locationValidationMessage.isEmpty {
+                                Text(locationValidationMessage)
+                                    .font(.caption)
+                                    .foregroundColor(isValidLocation ? .green : .red)
+                                    .padding(.horizontal, 5)
+                            }
+                            
+                            if showSuggestions && !locationSuggestions.isEmpty {
+                                ScrollView {
+                                    VStack(alignment: .leading, spacing: 5) {
+                                        ForEach(locationSuggestions, id: \.self) { suggestion in
+                                            Text(suggestion)
+                                                .padding(8)
+                                                .frame(maxWidth: .infinity, alignment: .leading)
+                                                .background(Color.white.opacity(0.2))
+                                                .cornerRadius(5)
+                                                .onTapGesture {
+                                                    location = suggestion
+                                                    showSuggestions = false
+                                                    validateCityState()
+                                                }
+                                        }
                                     }
                                 }
+                                .frame(maxHeight: 150)
+                                .background(Color(hexCode: "d9d9d9"))
+                                .cornerRadius(10)
                             }
-                            .frame(maxHeight: 150)
-                            .background(Color(hexCode: "d9d9d9"))
-                            .cornerRadius(10)
                         }
-                    }
-                    .frame(maxWidth: 300)
-                    
-                    DropdownField5(
-                        placeholder: "Gender",
-                        options: genderOptions,
-                        selectedOption: $gender
-                    )
-                    .frame(maxWidth: 300, maxHeight: 50)
-                    
-                    DropdownField5(
-                        placeholder: "Availability",
-                        options: availabilityOptions,
-                        selectedOption: $availability
-                    )
-                    .frame(maxWidth: 300, maxHeight: 50)
-                    
-                    TextField("Personality Type (XXXX-Y)", text: $personalityType)
-                        .autocapitalization(.allCharacters)
-                        .onChange(of: personalityType) { newValue in
-                            personalityType = newValue.filter { !$0.isNumber }
-                            validatePersonalityType()
-                        }
-                        .textFieldStyle(RoundedTextFieldStyle())
                         .frame(maxWidth: 300)
-                        .alert("Invalid Personality Type format. Use XXXX-Y.", isPresented: $showInvalidPersonalityAlert) {
-                            Button("OK", role: .cancel) { }
-                        }
-                    
-                    Link("Take the 16 personalities test", destination: URL(string: "https://www.16personalities.com/")!)
-                        .font(.system(size: 14, weight: .regular))
-                        .foregroundColor(Color(hexCode: "ffde59"))
-                        .underline(true, color: Color(hexCode: "ffde59"))
-                        .padding(.top, 8)
-                }
-                .padding(.horizontal, 30)
-                .padding(.top, 10)
-                
-                Spacer()
-                
-                NavigationLink(destination: Page13()) {
-                    Text("Next")
-                        .font(.system(size: 24, weight: .bold))
-                        .foregroundColor(Color(hexCode: "004aad"))
-                        .frame(maxWidth: 300)
-                        .padding(.vertical, 15)
-                        .background(Color(hexCode: "ffde59"))
-                        .cornerRadius(10)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10)
-                                .stroke(Color.white, lineWidth: 2)
+                        
+                        DropdownField5(
+                            placeholder: "Gender",
+                            options: genderOptions,
+                            selectedOption: $gender
                         )
-                        .padding(.horizontal, 50)
-                }
-                .disabled(!isFormComplete())
-                .opacity(isFormComplete() ? 1.0 : 0.6)
-                .alert("Please fill out all the fields.", isPresented: $showIncompleteFormAlert) {
-                    Button("OK", role: .cancel) { }
-                }
-                .onTapGesture {
-                    if !isFormComplete() {
-                        showIncompleteFormAlert = true
+                        .frame(maxWidth: 300, maxHeight: 50)
+                        
+                        DropdownField5(
+                            placeholder: "Availability",
+                            options: availabilityOptions,
+                            selectedOption: $availability
+                        )
+                        .frame(maxWidth: 300, maxHeight: 50)
+                        
+                        TextField("Personality Type (XXXX-Y)", text: $personalityType)
+                            .autocapitalization(.allCharacters)
+                            .onChange(of: personalityType) { newValue in
+                                personalityType = newValue.filter { !$0.isNumber }
+                                validatePersonalityType()
+                            }
+                            .textFieldStyle(RoundedTextFieldStyle())
+                            .frame(maxWidth: 300)
+                            .alert("Invalid Personality Type format. Use XXXX-Y.", isPresented: $showInvalidPersonalityAlert) {
+                                Button("OK", role: .cancel) { }
+                            }
+                        
+                        Link("Take the 16 personalities test", destination: URL(string: "https://www.16personalities.com/")!)
+                            .font(.system(size: 14, weight: .regular))
+                            .foregroundColor(Color(hexCode: "ffde59"))
+                            .underline(true, color: Color(hexCode: "ffde59"))
+                            .padding(.top, 8)
                     }
+                    .padding(.horizontal, 30)
+                    .padding(.top, 10)
+                    
+                    Spacer()
+                    
+                    Button(action: {
+                        if isFormComplete() && isValidLocation {
+                            isSubmitting = true
+                            submitPersonalDetails { success in
+                                if success {
+                                    submitLocationToSkillsEndpoint { locationSuccess in
+                                        isSubmitting = false
+                                        if locationSuccess {
+                                            print("✅ Birthday, personality, and location all submitted.")
+                                            navigateToPage13 = true
+                                        } else {
+                                            showIncompleteFormAlert = true
+                                        }
+                                    }
+                                } else {
+                                    isSubmitting = false
+                                    showIncompleteFormAlert = true
+                                }
+                            }
+                        } else {
+                            showIncompleteFormAlert = true
+                        }
+                    }) {
+                        Text(isSubmitting ? "Submitting..." : "Next")
+                            .font(.system(size: 24, weight: .bold))
+                            .foregroundColor(Color(hexCode: "004aad"))
+                            .frame(maxWidth: 300)
+                            .padding(.vertical, 15)
+                            .background(isSubmitting ? Color.gray : Color(hexCode: "ffde59"))
+                            .cornerRadius(10)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(Color.white, lineWidth: 2)
+                            )
+                            .padding(.horizontal, 50)
+                    }
+                    .disabled(!isFormComplete() || !isValidLocation || isSubmitting)
+                    .opacity((isFormComplete() && isValidLocation && !isSubmitting) ? 1.0 : 0.6)
+                    .alert("Please fill out all the fields.", isPresented: $showIncompleteFormAlert) {
+                        Button("OK", role: .cancel) { }
+                    }
+                    
+                    Spacer()
                 }
-                .disabled(!isValidLocation)
-                .opacity(isValidLocation ? 1.0 : 0.6)
-                
-                Spacer()
+                .navigationBarHidden(true)
             }
+            .background(
+                NavigationLink(
+                    destination: Page13(),
+                    isActive: $navigateToPage13,
+                    label: { EmptyView() }
+                )
+            )
         }
+        .navigationViewStyle(StackNavigationViewStyle())
     }
     
     private func isFormComplete() -> Bool {
@@ -304,26 +332,6 @@ struct Page5: View {
         }
     }
     
-    private func formatLocation(_ newValue: String) {
-        let parts = newValue.components(separatedBy: ",")
-        
-        if parts.count == 1 {
-            let city = parts[0].trimmingCharacters(in: .whitespaces)
-            if !city.isEmpty {
-                let capitalizedCity = city.prefix(1).capitalized + city.dropFirst()
-                location = capitalizedCity
-            }
-        } else if parts.count == 2 {
-            let city = parts[0].trimmingCharacters(in: .whitespaces)
-            var state = parts[1].trimmingCharacters(in: .whitespaces)
-            
-            let capitalizedCity = city.isEmpty ? "" : city.prefix(1).capitalized + city.dropFirst()
-            state = String(state.prefix(2)).uppercased()
-            
-            location = "\(capitalizedCity), \(state)"
-        }
-    }
-    
     private func validateCityState() {
         guard !location.isEmpty else {
             locationValidationMessage = ""
@@ -371,11 +379,12 @@ struct Page5: View {
                     return
                 }
                 
+                // More flexible city name matching
                 let exactMatches = mapItems.filter { item in
                     let itemCity = item.placemark.locality?.lowercased() ?? ""
                     let itemState = item.placemark.administrativeArea ?? ""
                     
-                    return itemCity == city.lowercased() && itemState == state.uppercased()
+                    return itemCity.contains(city.lowercased()) && itemState == state.uppercased()
                 }
                 
                 if exactMatches.isEmpty {
@@ -433,6 +442,114 @@ struct Page5: View {
             showInvalidPersonalityAlert = false
         }
     }
+    
+    func submitPersonalDetails(completion: @escaping (Bool) -> Void) {
+        guard let url = URL(string: "https://circlapp.online/api/users/update-personal-details/") else {
+            print("❌ Invalid API URL")
+            completion(false)
+            return
+        }
+
+        let userId = UserDefaults.standard.integer(forKey: "user_id")
+
+        if userId == 0 {
+            print("❌ User ID not found. Make sure you completed registration on Page 3.")
+            completion(false)
+            return
+        }
+
+        let payload: [String: Any] = [
+            "user_id": userId,
+            "birthday": formatDateString(birthday),
+            "personality_type": personalityType
+        ]
+
+        guard let jsonData = try? JSONSerialization.data(withJSONObject: payload) else {
+            print("❌ Failed to encode data")
+            completion(false)
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = jsonData
+
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    print("❌ Request Error: \(error.localizedDescription)")
+                    completion(false)
+                    return
+                }
+
+                if let httpResponse = response as? HTTPURLResponse {
+                    print("📡 Response Status Code: \(httpResponse.statusCode)")
+                    completion(httpResponse.statusCode == 200)
+                }
+
+                if let data = data, let responseString = String(data: data, encoding: .utf8) {
+                    print("📩 Response Body: \(responseString)")
+                }
+            }
+        }
+        task.resume()
+    }
+    
+    func submitLocationToSkillsEndpoint(completion: @escaping (Bool) -> Void) {
+        guard let url = URL(string: "https://circlapp.online/api/users/update-skills-interests/") else {
+            print("❌ Invalid API URL for skills/interests")
+            completion(false)
+            return
+        }
+
+        let userId = UserDefaults.standard.integer(forKey: "user_id")
+        if userId == 0 {
+            print("❌ User ID not found.")
+            completion(false)
+            return
+        }
+
+        let payload: [String: Any] = [
+            "user_id": userId,
+            "locations": [location.trimmingCharacters(in: .whitespaces)]
+        ]
+
+        if let jsonData = try? JSONSerialization.data(withJSONObject: payload),
+           let jsonString = String(data: jsonData, encoding: .utf8) {
+            print("🚀 Sending location to skills endpoint: \(jsonString)")
+        }
+
+        guard let jsonData = try? JSONSerialization.data(withJSONObject: payload) else {
+            print("❌ Failed to encode location payload")
+            completion(false)
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = jsonData
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    print("❌ Location POST Error: \(error.localizedDescription)")
+                    completion(false)
+                    return
+                }
+
+                if let httpResponse = response as? HTTPURLResponse {
+                    print("📡 Location POST Status: \(httpResponse.statusCode)")
+                    completion(httpResponse.statusCode == 200)
+                }
+
+                if let data = data, let responseString = String(data: data, encoding: .utf8) {
+                    print("📩 Location Response Body: \(responseString)")
+                }
+            }
+        }.resume()
+    }
 }
 
 struct RoundedTextFieldStyle: TextFieldStyle {
@@ -481,18 +598,21 @@ struct DropdownField5: View {
     }
 }
 
-extension Color {
-    init(hexCode2: String) {
-        let scanner = Scanner(string: hexCode2)
-        _ = scanner.scanString("#")
-        var rgb: UInt64 = 0
-        scanner.scanHexInt64(&rgb)
-        let r = Double((rgb >> 16) & 0xFF) / 255
-        let g = Double((rgb >> 8) & 0xFF) / 255
-        let b = Double(rgb & 0xFF) / 255
-        self.init(red: r, green: g, blue: b)
+func formatDateString(_ input: String) -> String {
+    let inputFormatter = DateFormatter()
+    inputFormatter.dateFormat = "MMddyyyy" // input format: MM/DD/YYYY (numbers only)
+
+    let raw = input.filter { $0.isNumber }
+    if let date = inputFormatter.date(from: raw) {
+        let outputFormatter = DateFormatter()
+        outputFormatter.dateFormat = "yyyy-MM-dd"
+        return outputFormatter.string(from: date)
     }
+
+    return ""
 }
+
+
 
 struct Page5_Previews: PreviewProvider {
     static var previews: some View {
