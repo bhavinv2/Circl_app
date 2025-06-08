@@ -9,168 +9,217 @@ struct PageMentorMatching: View {
     @State private var selectedEmailToAdd: String? = nil
     @State private var selectedFullProfile: FullProfile? = nil
     @State private var showProfilePreview = false
+    @State private var showMenu = false
+
 
     var body: some View {
         NavigationView {
-            VStack(spacing: 0) {
-                // Header
+            ZStack(alignment: .bottomTrailing) {
                 VStack(spacing: 0) {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 5) {
-                            Text("Circl.")
-                                .font(.largeTitle)
-                                .fontWeight(.bold)
-                                .foregroundColor(.white)
-//                            Button(action: {}) {
-//                                HStack {
-//                                    Image(systemName: "slider.horizontal.3")
-//                                        .foregroundColor(.white)
-//                                    Text("Filter")
-//                                        .font(.headline)
-//                                        .foregroundColor(.white)
-//                                }
-//                            }
-                        }
-                        Spacer()
-                        HStack(spacing: 10) {
-                            NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
-                                Image(systemName: "bubble.left.and.bubble.right.fill")
-                                    .resizable()
-                                    .frame(width: 50, height: 40)
-                                    .foregroundColor(.white)
-                            }
-                            NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
-                                Image(systemName: "person.circle.fill")
-                                    .resizable()
-                                    .frame(width: 50, height: 50)
-                                    .foregroundColor(.white)
-                            }
-                        }
-                    }
-                    .padding(.horizontal)
-                    .padding(.top, 15)
-                    .padding(.bottom, 10)
-                    .background(Color.fromHex("004aad"))
-                }
-
-                // Tabs
-                HStack(spacing: 10) {
-                    NavigationLink(destination: PageEntrepreneurMatching().navigationBarBackButtonHidden(true)) {
-                        Text("Entrepreneurs")
-                            .font(.system(size: 12))
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Color.gray)
-                            .foregroundColor(.black)
-                            .cornerRadius(10)
-                    }
-                    NavigationLink(destination: PageMentorMatching().navigationBarBackButtonHidden(true)) {
-                        Text("Mentors")
-                            .font(.system(size: 12))
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Color.yellow)
-                            .foregroundColor(.black)
-                            .cornerRadius(10)
-                    }
-                    NavigationLink(destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true)) {
-                        Text("Skill Selling")
-                            .font(.system(size: 12))
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Color.gray)
-                            .foregroundColor(.black)
-                            .cornerRadius(10)
-                    }
-                }
-                .padding(.horizontal)
-                .padding(.vertical, 10)
-
-                // Feed
-                ScrollView {
-                    VStack(spacing: 20) {
-                        ForEach(mentors, id: \.email) { mentor in
-                            Button(action: {
-                                fetchUserProfile(userId: mentor.user_id) { profile in
-                                    if let profile = profile {
-                                        selectedFullProfile = profile
-                                        showProfilePreview = true
+                    // Header
+                                    VStack(spacing: 0) {
+                                        HStack {
+                                            VStack(alignment: .leading, spacing: 5) {
+                                                Text("Circl.")
+                                                    .font(.largeTitle)
+                                                    .fontWeight(.bold)
+                                                    .foregroundColor(.white)
+                    //                            Button(action: {}) {
+                    //                                HStack {
+                    //                                    Image(systemName: "slider.horizontal.3")
+                    //                                        .foregroundColor(.white)
+                    //                                    Text("Filter")
+                    //                                        .font(.headline)
+                    //                                        .foregroundColor(.white)
+                    //                                }
+                    //                            }
+                                            }
+                                            Spacer()
+                                            HStack(spacing: 10) {
+                                                NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
+                                                    Image(systemName: "bubble.left.and.bubble.right.fill")
+                                                        .resizable()
+                                                        .frame(width: 50, height: 40)
+                                                        .foregroundColor(.white)
+                                                }
+                                                NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
+                                                    Image(systemName: "person.circle.fill")
+                                                        .resizable()
+                                                        .frame(width: 50, height: 50)
+                                                        .foregroundColor(.white)
+                                                }
+                                            }
+                                        }
+                                        .padding(.horizontal)
+                                        .padding(.top, 15)
+                                        .padding(.bottom, 10)
+                                        .background(Color.fromHex("004aad"))
                                     }
-                                }
-                            }) {
-                                MentorProfileTemplate(
-                                    name: mentor.name,
-                                    title: "Mentor",
-                                    company: mentor.company,
-                                    proficiency: mentor.proficiency,
-                                    tags: mentor.tags,
-                                    profileImage: mentor.profileImage,
-                                    onAccept: {
-                                        selectedEmailToAdd = mentor.email
-                                        showConfirmation = true
-                                    },
-                                    onDecline: {
-                                        declinedEmails.insert(mentor.email)
-                                        mentors.removeAll { $0.email == mentor.email }
-                                    },
-                                    isMentor: true
-                                )
-                            }
-                            .buttonStyle(PlainButtonStyle())
-                        }
-                    }
-                    .padding()
-                    .alert(isPresented: $showConfirmation) {
-                        Alert(
-                            title: Text("Send Friend Request?"),
-                            message: Text("Are you sure you want to send a friend request to this user?"),
-                            primaryButton: .default(Text("Yes")) {
-                                if let email = selectedEmailToAdd {
-                                    addToNetwork(email: email)
-                                }
-                            },
-                            secondaryButton: .cancel()
-                        )
-                    }
-                }
-                .onAppear {
-                    fetchUserNetwork {
-                        fetchMentors()
-                    }
-                }
-                .sheet(isPresented: Binding(
-                    get: { showProfilePreview && selectedFullProfile != nil },
-                    set: { newValue in showProfilePreview = newValue }
-                )) {
-                    if let profile = selectedFullProfile {
-                        DynamicProfilePreview(profileData: profile, isInNetwork: false)
-                    }
+
+                                    // Tabs
+                                    HStack(spacing: 10) {
+                                        NavigationLink(destination: PageEntrepreneurMatching().navigationBarBackButtonHidden(true)) {
+                                            Text("Entrepreneurs")
+                                                .font(.system(size: 12))
+                                                .padding()
+                                                .frame(maxWidth: .infinity)
+                                                .background(Color.gray)
+                                                .foregroundColor(.black)
+                                                .cornerRadius(10)
+                                        }
+                                        NavigationLink(destination: PageMentorMatching().navigationBarBackButtonHidden(true)) {
+                                            Text("Mentors")
+                                                .font(.system(size: 12))
+                                                .padding()
+                                                .frame(maxWidth: .infinity)
+                                                .background(Color.yellow)
+                                                .foregroundColor(.black)
+                                                .cornerRadius(10)
+                                        }
+                                        NavigationLink(destination: PageInvites().navigationBarBackButtonHidden(true)) {
+                                            Text("My Network")
+                                                .font(.system(size: 12))
+                                                .padding()
+                                                .frame(maxWidth: .infinity)
+                                                .background(Color.gray)
+                                                .foregroundColor(.black)
+                                                .cornerRadius(10)
+                                        }
+
+                                    }
+                                    .padding(.horizontal)
+                                    .padding(.vertical, 10)
+
+                                    // Feed
+                                    ScrollView {
+                                        VStack(spacing: 20) {
+                                            ForEach(mentors, id: \.email) { mentor in
+                                                Button(action: {
+                                                    fetchUserProfile(userId: mentor.user_id) { profile in
+                                                        if let profile = profile {
+                                                            selectedFullProfile = profile
+                                                            showProfilePreview = true
+                                                        }
+                                                    }
+                                                }) {
+                                                    MentorProfileTemplate(
+                                                        name: mentor.name,
+                                                        title: "Mentor",
+                                                        company: mentor.company,
+                                                        proficiency: mentor.proficiency,
+                                                        tags: mentor.tags,
+                                                        profileImage: mentor.profileImage,
+                                                        onAccept: {
+                                                            selectedEmailToAdd = mentor.email
+                                                            showConfirmation = true
+                                                        },
+                                                        onDecline: {
+                                                            declinedEmails.insert(mentor.email)
+                                                            mentors.removeAll { $0.email == mentor.email }
+                                                        },
+                                                        isMentor: true
+                                                    )
+                                                }
+                                                .buttonStyle(PlainButtonStyle())
+                                            }
+                                        }
+                                        .padding()
+                                        .alert(isPresented: $showConfirmation) {
+                                            Alert(
+                                                title: Text("Send Friend Request?"),
+                                                message: Text("Are you sure you want to send a friend request to this user?"),
+                                                primaryButton: .default(Text("Yes")) {
+                                                    if let email = selectedEmailToAdd {
+                                                        addToNetwork(email: email)
+                                                    }
+                                                },
+                                                secondaryButton: .cancel()
+                                            )
+                                        }
+                                    }
+                                    .onAppear {
+                                        fetchUserNetwork {
+                                            fetchMentors()
+                                        }
+                                    }
+                                    .sheet(isPresented: Binding(
+                                        get: { showProfilePreview && selectedFullProfile != nil },
+                                        set: { newValue in showProfilePreview = newValue }
+                                    )) {
+                                        if let profile = selectedFullProfile {
+                                            DynamicProfilePreview(profileData: profile, isInNetwork: false)
+                                        }
+                                    }
                 }
 
-                // Footer
-                HStack(spacing: 15) {
-                    NavigationLink(destination: PageEntrepreneurMatching().navigationBarBackButtonHidden(true)) {
-                        CustomCircleButton(iconName: "figure.stand.line.dotted.figure.stand")
+                // ✅ Footer: Floating Hammer Menu in the correct ZStack
+                VStack(alignment: .trailing, spacing: 8) {
+                    if showMenu {
+                        VStack(alignment: .leading, spacing: 0) {
+                            Text("Welcome to your resources")
+                                .font(.headline)
+                                .padding()
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(Color(.systemGray5))
+
+                            NavigationLink(destination: PageEntrepreneurMatching().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "person.2.fill", title: "Connect and Network")
+                            }
+                            NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "person.crop.square.fill", title: "Your Business Profile")
+                            }
+                            NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "text.bubble.fill", title: "The Forum Feed")
+                            }
+                            NavigationLink(destination: PageEntrepreneurResources().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "briefcase.fill", title: "Professional Services")
+                            }
+                            NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "envelope.fill", title: "Messages")
+                            }
+                            NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "newspaper.fill", title: "News & Knowledge")
+                            }
+                            NavigationLink(destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "dollarsign.circle.fill", title: "The Circl Exchange")
+                            }
+
+                            Divider()
+
+                            NavigationLink(destination: PageCircles().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "circle.grid.2x2.fill", title: "Circles")
+                            }
+                        }
+                        .background(Color(.systemGray6))
+                        .cornerRadius(12)
+                        .shadow(radius: 5)
+                        .frame(width: 250)
+                        .transition(.scale.combined(with: .opacity))
                     }
-                    NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true)) {
-                        CustomCircleButton(iconName: "briefcase.fill")
-                    }
-                    NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
-                        CustomCircleButton(iconName: "captions.bubble.fill")
-                    }
-                    NavigationLink(destination: PageEntrepreneurResources().navigationBarBackButtonHidden(true)) {
-                        CustomCircleButton(iconName: "building.columns.fill")
-                    }
-                    NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
-                        CustomCircleButton(iconName: "newspaper")
+
+                    Button(action: {
+                        withAnimation(.spring()) {
+                            showMenu.toggle()
+                        }
+                    }) {
+                        Image(systemName: "hammer.fill")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 24, height: 24)
+                            .foregroundColor(.white)
+                            .padding(16)
+                            .background(Color.fromHex("004aad"))
+                            .clipShape(Circle())
+                            .shadow(radius: 4)
                     }
                 }
-                .padding(.vertical, 10)
-                .background(Color.white)
+                .padding(.trailing, 20)
+                                .padding(.bottom, 50)
             }
             .edgesIgnoringSafeArea(.bottom)
             .navigationBarBackButtonHidden(true)
         }
+
     }
 
     func fetchMentors() {

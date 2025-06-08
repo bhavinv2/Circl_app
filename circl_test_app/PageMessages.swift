@@ -16,18 +16,85 @@ struct PageMessages: View {
 
     @State private var timer: Timer?
     @State private var selectedProfile: FullProfile? = nil
-
+    @State private var showMenu = false
     @State private var myNetwork: [NetworkUser] = [] // ✅ Correct type
     
     var body: some View {
         NavigationView {
-            VStack(spacing: 0) {
-                headerSection
-                tabNavigation
-                searchBarSection
-                scrollableSection
-                footerSection // ✅ Add the footer section here
+            ZStack(alignment: .bottomTrailing) {
+                VStack(spacing: 0) {
+                    headerSection
+             
+                    searchBarSection
+                    scrollableSection
+                }
+
+                ZStack(alignment: .bottomTrailing) {
+                    if showMenu {
+                        VStack(alignment: .leading, spacing: 0) {
+                            Text("Welcome to your resources")
+                                .font(.headline)
+                                .padding()
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(Color(.systemGray5))
+
+                            NavigationLink(destination: PageEntrepreneurMatching().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "person.2.fill", title: "Connect and Network")
+                            }
+                            NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "person.crop.square.fill", title: "Your Business Profile")
+                            }
+                            NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "text.bubble.fill", title: "The Forum Feed")
+                            }
+                            NavigationLink(destination: PageEntrepreneurResources().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "briefcase.fill", title: "Professional Services")
+                            }
+                            NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "envelope.fill", title: "Messages")
+                            }
+                            NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "newspaper.fill", title: "News & Knowledge")
+                            }
+                            NavigationLink(destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "dollarsign.circle.fill", title: "The Circl Exchange")
+                            }
+
+                            Divider()
+
+                            NavigationLink(destination: PageCircles().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "circle.grid.2x2.fill", title: "Circles")
+                            }
+                        }
+                        .background(Color(.systemGray6))
+                        .cornerRadius(12)
+                        .shadow(radius: 5)
+                        .frame(width: 250)
+                        .padding(.bottom, 80) // moves it above hammer
+                        .transition(.scale.combined(with: .opacity))
+                    }
+
+                    Button(action: {
+                        withAnimation(.spring()) {
+                            showMenu.toggle()
+                        }
+                    }) {
+                        Image(systemName: "hammer.fill")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 24, height: 24)
+                            .foregroundColor(.white)
+                            .padding(16)
+                            .background(Color.fromHex("004aad"))
+                            .clipShape(Circle())
+                            .shadow(radius: 4)
+                    }
+                    .padding(.bottom, 50)
+                    .padding(.trailing, 20)
+                }
+
             }
+
             .edgesIgnoringSafeArea(.bottom)
             .navigationBarBackButtonHidden(true)
             .onAppear {
@@ -86,46 +153,12 @@ struct PageMessages: View {
         }
     }
     
-    var tabNavigation: some View {
-        HStack(spacing: 10) {
-            NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
-                Text("Messages")
-                    .font(.system(size: 12))
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(Color.yellow)
-                    .foregroundColor(.black)
-                    .cornerRadius(10)
-            }
-            
-            NavigationLink(destination: PageCircles().navigationBarBackButtonHidden(true)) {
-                Text("Circles")
-                    .font(.system(size: 12))
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(Color.gray)
-                    .foregroundColor(.black)
-                    .cornerRadius(10)
-            }
-            
-            NavigationLink(destination: PageInvites().navigationBarBackButtonHidden(true)) {
-                Text("Friends")
-                    .font(.system(size: 12))
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(Color.gray)
-                    .foregroundColor(.black)
-                    .cornerRadius(10)
-            }
-        }
-        .padding(.horizontal)
-        .padding(.vertical, 10)
-    }
+    
     
     var searchBarSection: some View {
         VStack {
             HStack {
-                TextField("Search users in your network...", text: $searchText, onEditingChanged: { isEditing in
+                TextField("Search for users in your network...", text: $searchText, onEditingChanged: { isEditing in
                     if isEditing {
                         filterUsers()
                     }
@@ -211,6 +244,7 @@ struct PageMessages: View {
             }
             
         }
+        .padding(.top, 15)
         
     }
 
@@ -337,31 +371,7 @@ struct PageMessages: View {
         .dismissKeyboardOnScroll()
     }
 
-    private var footerSection: some View {
-        HStack(spacing: 15) {
-            NavigationLink(destination: PageEntrepreneurMatching().navigationBarBackButtonHidden(true)) {
-                CustomCircleButton(iconName: "figure.stand.line.dotted.figure.stand")
-            }
 
-            NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true)) {
-                CustomCircleButton(iconName: "briefcase.fill")
-            }
-
-            NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
-                CustomCircleButton(iconName: "captions.bubble.fill")
-            }
-
-            NavigationLink(destination: PageEntrepreneurResources().navigationBarBackButtonHidden(true)) {
-                CustomCircleButton(iconName: "building.columns.fill")
-            }
-
-            NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
-                CustomCircleButton(iconName: "newspaper")
-            }
-        }
-        .padding(.vertical, 10)
-        .background(Color.white)
-    }
 
     private func filterUsers() {
         print("🔍 Searching for: \(searchText)")

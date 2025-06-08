@@ -37,7 +37,8 @@ struct PageBusinessProfile: View {
     // MARK: - Placeholder Data
     @State private var isEditing: Bool = false
     @State private var showBusinessOwnerMessage = false
-    
+    @State private var showMenu = false
+
     @State private var companyName: String = "Company Name"
     @State private var companyLogo: String = "companyLogo"
     @State private var companyWebsiteURL: URL? = nil
@@ -86,13 +87,74 @@ struct PageBusinessProfile: View {
 
     var body: some View {
         NavigationView {
-            ZStack {
-                // Main content
+            ZStack(alignment: .bottomTrailing) {
                 VStack(spacing: 0) {
                     headerSection
                     scrollableSection
-                    footerSection
                 }
+                VStack(alignment: .trailing, spacing: 8) {
+                    if showMenu {
+                        VStack(alignment: .leading, spacing: 0) {
+                            Text("Welcome to your resources")
+                                .font(.headline)
+                                .padding()
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(Color(.systemGray5))
+
+                            NavigationLink(destination: PageEntrepreneurMatching().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "person.2.fill", title: "Connect and Network")
+                            }
+                            NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "person.crop.square.fill", title: "Your Business Profile")
+                            }
+                            NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "text.bubble.fill", title: "The Forum Feed")
+                            }
+                            NavigationLink(destination: PageEntrepreneurResources().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "briefcase.fill", title: "Professional Services")
+                            }
+                            NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "envelope.fill", title: "Messages")
+                            }
+                            NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "newspaper.fill", title: "News & Knowledge")
+                            }
+                            NavigationLink(destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "dollarsign.circle.fill", title: "The Circl Exchange")
+                            }
+
+                            Divider()
+
+                            NavigationLink(destination: PageCircles().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "circle.grid.2x2.fill", title: "Circles")
+                            }
+                        }
+                        .background(Color(.systemGray6))
+                        .cornerRadius(12)
+                        .shadow(radius: 5)
+                        .frame(width: 250)
+                        .transition(.scale.combined(with: .opacity))
+                    }
+
+                    Button(action: {
+                        withAnimation(.spring()) {
+                            showMenu.toggle()
+                        }
+                    }) {
+                        Image(systemName: "hammer.fill")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 24, height: 24)
+                            .foregroundColor(.white)
+                            .padding(16)
+                            .background(Color.fromHex("004aad"))
+                            .clipShape(Circle())
+                            .shadow(radius: 4)
+                    }
+                }
+                .padding()
+
+
                 .edgesIgnoringSafeArea(.bottom)
                 .navigationBarBackButtonHidden(true)
                 .onAppear {
@@ -105,7 +167,7 @@ struct PageBusinessProfile: View {
                 .onReceive(viewModel.$profile) { profile in
                     guard let profile = profile, !isEditing else { return }
                     
-                    showBusinessOwnerMessage = !hasBusinessInfo(profile: profile)
+           
                     
                     companyName = profile.business_name ?? ""
                     aboutText = profile.about ?? ""
@@ -157,41 +219,13 @@ struct PageBusinessProfile: View {
                     ]
                 }
                 
-                // Overlay for non-business owners
-                if showBusinessOwnerMessage {
-                    VStack {
-                        // Dark overlay background
-                        Color.gray.opacity(0.7)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity) // Covers the content
-                            .onTapGesture {}
-
-                        // Add some padding and set a max width/height for the overlay message
-                        VStack {
-                            Spacer() // Push message towards top
-                            Text("Business owners only")
-                                .font(.headline)
-                                .foregroundColor(.black)
-                                .padding()
-                                .background(Color.white)
-                                .cornerRadius(10)
-                                .shadow(radius: 10)
-                                .frame(maxWidth: 300) // Adjust the max width
-                                .padding(.bottom, 700) // Add padding to push message away from footer
-                        }
-                        .frame(maxHeight: 40) // Adjust the height to prevent overlaying footer
-                    }
-                }
+               
 
             }
         }
     }
     
-    private func hasBusinessInfo(profile: BusinessProfile) -> Bool {
-        return profile.industry != nil ||
-               profile.location != nil ||
-               profile.business_name != nil ||
-               profile.about != nil
-    }
+    
     
     var headerSection: some View {
         VStack(spacing: 0) {
@@ -659,27 +693,7 @@ struct PageBusinessProfile: View {
 //        .cornerRadius(10)
 //    }
     
-    private var footerSection: some View {
-        HStack(spacing: 15) {
-            NavigationLink(destination: PageEntrepreneurMatching().navigationBarBackButtonHidden(true)) {
-                CustomCircleButton(iconName: "figure.stand.line.dotted.figure.stand")
-            }
-            NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true)) {
-                CustomCircleButton(iconName: "briefcase.fill")
-            }
-            NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
-                CustomCircleButton(iconName: "captions.bubble.fill")
-            }
-            NavigationLink(destination: PageEntrepreneurResources().navigationBarBackButtonHidden(true)) {
-                CustomCircleButton(iconName: "building.columns.fill")
-            }
-            NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
-                CustomCircleButton(iconName: "newspaper")
-            }
-        }
-        .padding(.vertical, 10)
-        .background(Color.white)
-    }
+    
     
     struct CustomCircleButton: View {
         let iconName: String

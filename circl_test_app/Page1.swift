@@ -175,9 +175,10 @@ struct Page1: View {
             }
 
             
-            .navigationDestination(isPresented: $isLoggedIn) {
-                PageForum() // Navigate to main page on successful login
+            .fullScreenCover(isPresented: $isLoggedIn) {
+                PageForum()
             }
+
             .navigationDestination(isPresented: $isNavigatingToSignup) {
                 Page2() // Navigate to signup page
             }

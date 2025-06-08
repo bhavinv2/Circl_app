@@ -2,12 +2,17 @@ import SwiftUI
 import Foundation
 
 
-// MARK: - InviteProfileTemplate
+// MARK: - (InviteProfileTemplate)
 struct InviteProfileTemplate: View {
     @State private var requestHandled = false
     @Binding var friendRequests: [PageInvites.InviteProfileData]
     @Binding var showAlert: Bool
     @Binding var alertMessage: String
+    @State private var groupedMessages: [Int: [Message]] = [:]
+    @State private var showChatPage = false
+    @State private var selectedUser: NetworkUser? = nil
+
+
 
     
     func acceptFriendRequest() {
@@ -326,36 +331,28 @@ struct PageInvites: View {
     @State private var selectedFullProfile: FullProfile? // Step 2: Added state for detailed profile
     @State private var showAlert = false
     @State private var alertMessage = ""
+    @State private var showMenu = false
+    @State private var groupedMessages: [Int: [Message]] = [:]
+    @State private var showChatPage: Bool = false
+    @State private var selectedUser: NetworkUser? = nil
+
+
     
     var body: some View {
         NavigationView {
-            VStack(spacing: 0) {
-                // Header Section
+            ZStack(alignment: .bottomTrailing) {
                 VStack(spacing: 0) {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 5) {
-                            Text("Circl.")
-                                .font(.largeTitle)
-                                .fontWeight(.bold)
-                                .foregroundColor(.white)
-
-//                            Button(action: {
-//                                // Action for Filter
-//                            }) {
-//                                HStack {
-//                                    Image(systemName: "slider.horizontal.3")
-//                                        .foregroundColor(.white)
-//                                    Text("Filter")
-//                                        .font(.headline)
-//                                        .foregroundColor(.white)
-//                                }
-//                            }
-                        }
-
-                        Spacer()
-
-                        VStack(alignment: .trailing, spacing: 5) {
-                            VStack {
+                    // Header Section
+                    VStack(spacing: 0) {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 5) {
+                                Text("Circl.")
+                                    .font(.largeTitle)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.white)
+                            }
+                            Spacer()
+                            VStack(alignment: .trailing, spacing: 5) {
                                 HStack(spacing: 10) {
                                     NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
                                         Image(systemName: "bubble.left.and.bubble.right.fill")
@@ -363,7 +360,6 @@ struct PageInvites: View {
                                             .frame(width: 50, height: 40)
                                             .foregroundColor(.white)
                                     }
-
                                     NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
                                         Image(systemName: "person.circle.fill")
                                             .resizable()
@@ -373,229 +369,308 @@ struct PageInvites: View {
                                 }
                             }
                         }
-                    }
-                    .padding(.horizontal)
-                    .padding(.top, 15)
-                    .padding(.bottom, 10)
-                    .background(Color.fromHex("004aad"))
-                }
-                
-                // Navigation Bar (tabNavigation)
-                HStack(spacing: 10) {
-                    NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
-                        Text("Messages")
-                            .font(.system(size: 12))
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Color.gray)
-                            .foregroundColor(.black)
-                            .cornerRadius(10)
-                    }
-                    
-                    NavigationLink(destination: PageCircles().navigationBarBackButtonHidden(true)) {
-                        Text("Circles")
-                            .font(.system(size: 12))
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Color.gray)
-                            .foregroundColor(.black)
-                            .cornerRadius(10)
-                    }
-                    
-                    NavigationLink(destination: PageInvites().navigationBarBackButtonHidden(true)) {
-                        Text("Friends")
-                            .font(.system(size: 12))
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Color.fromHex("ffde59"))
-                            .foregroundColor(.black)
-                            .cornerRadius(10)
-                    }
-                }
-                .padding(.horizontal)
-                .padding(.vertical, 10)
-                
-                // Scrollable Section
-                ScrollView {
-                    VStack(spacing: 20) {
-                        // Search Bar with Search Button
-                        HStack {
-                            TextField("Enter unique username...", text: $searchText)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                            
-                            Button(action: searchUserByUsername) {
-                                Image(systemName: "magnifyingglass")
-                                    .foregroundColor(.blue)
-                            }
-                        }
                         .padding(.horizontal)
-                        .padding(.vertical, 10)
-                        .background(Color.white)
-                        .cornerRadius(10)
-                        .shadow(radius: 2)
-                        .padding(.horizontal)
-                        
-                        // Display Searched User
-                        if let user = searchedUser {
-                            VStack {
-                                InviteProfileLink(
-                                    friendRequests: $friendRequests,
-                                    showAlert: $showAlert,
-                                    alertMessage: $alertMessage,
-                                    name: user.name,
-                                    username: user.username,
-                                    email: user.email,
-                                    title: user.title,
-                                    company: user.company,
-                                    proficiency: user.proficiency,
-                                    tags: user.tags,
-                                    profileImage: user.profileImage,
-                                    showAcceptDeclineButtons: false
-                                )
+                        .padding(.top, 15)
+                        .padding(.bottom, 10)
+                        .background(Color.fromHex("004aad"))
+                    }
 
-                                
-                                Button(action: {
-                                    sendFriendRequest(to: user.email)
-                                    searchedUser = nil // ❌ clear it immediately
-                                    alertMessage = "Friend request sent"
-                                    showAlert = true
-                                }) {
-                                    Text("Send Friend Request")
-                                        .font(.headline)
-                                        .padding()
-                                        .frame(maxWidth: .infinity)
-                                        .background(Color(hexCode: "004aad"))
-                                        .foregroundColor(.white)
-                                        .cornerRadius(10)
-                                        .padding(.horizontal)
-                                }
-
-                                .padding(.horizontal)
-                            }
-                        }
-                        
-                        // Networking Requests Section
-                        Text("Networking Requests")
-                            .font(.headline)
-                            .padding(.top)
-
-                        if friendRequests.isEmpty {
-                            Text("You have no new networking requests.")
-                                .font(.subheadline)
-                                .foregroundColor(.gray)
+                    // Navigation Bar (tabNavigation)
+                    HStack(spacing: 10) {
+                        NavigationLink(destination: PageEntrepreneurMatching().navigationBarBackButtonHidden(true)) {
+                            Text("Entrepreneurs")
+                                .font(.system(size: 12))
                                 .padding()
-                        } else {
-                            ForEach(friendRequests) { profile in
-                                InviteProfileLink(
-                                    friendRequests: $friendRequests,
-                                    showAlert: $showAlert,
-                                    alertMessage: $alertMessage,
-                                    name: profile.name,
-                                    username: profile.username,
-                                    email: profile.email,
-                                    title: profile.title,
-                                    company: profile.company,
-                                    proficiency: profile.proficiency,
-                                    tags: profile.tags,
-                                    profileImage: profile.profileImage,
-                                    showAcceptDeclineButtons: true
-                                )
-
-                            }
+                                .frame(maxWidth: .infinity)
+                                .background(Color.gray)
+                                .foregroundColor(.black)
+                                .cornerRadius(10)
                         }
-                        
-                        Divider()
-                            .padding(.vertical)
-                        
-                        // My Network Section (Step 2: Updated with fetchUserProfile)
-                        Text("My Network")
-                            .font(.headline)
-                            .padding(.top)
-                        
-                        ForEach(myNetwork) { profile in
-                            InviteProfileTemplate(
-                                friendRequests: $friendRequests,
-                                showAlert: $showAlert,
-                                alertMessage: $alertMessage,
-                                name: profile.name,
-                                username: profile.username,
-                                email: profile.email,
-                                title: profile.title,
-                                company: profile.company,
-                                proficiency: profile.proficiency,
-                                tags: profile.tags,
-                                profileImage: profile.profileImage,
-                                showAcceptDeclineButtons: false
-                            )
+                        NavigationLink(destination: PageMentorMatching().navigationBarBackButtonHidden(true)) {
+                            Text("Mentors")
+                                .font(.system(size: 12))
+                                .padding()
+                                .frame(maxWidth: .infinity)
+                                .background(Color.gray)
+                                .foregroundColor(.black)
+                                .cornerRadius(10)
+                        }
+                        NavigationLink(destination: PageInvites().navigationBarBackButtonHidden(true)) {
+                            Text("My network")
+                                .font(.system(size: 12))
+                                .padding()
+                                .frame(maxWidth: .infinity)
+                                .background(Color.fromHex("ffde59"))
+                                .foregroundColor(.black)
+                                .cornerRadius(10)
+                        }
+                    }
 
-                            .onTapGesture {
-                                self.selectedFullProfile = nil  // Clear old data explicitly
-                                fetchUserProfile(userId: profile.user_id) { profileData in
-                                    DispatchQueue.main.async {
-                                        if let profileData = profileData {
-                                            self.selectedFullProfile = profileData
-                                            self.showProfilePreview = true
+                    .padding(.horizontal)
+                    .padding(.vertical, 10)
+
+                    // Scrollable Section
+                    ScrollView {
+                        VStack(spacing: 20) {
+                                                // Search Bar with Search Button
+                                                HStack {
+                                                    TextField("Enter unique username...", text: $searchText)
+                                                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                                                    
+                                                    Button(action: searchUserByUsername) {
+                                                        Image(systemName: "magnifyingglass")
+                                                            .foregroundColor(.blue)
+                                                    }
+                                                }
+                                                .padding(.horizontal)
+                                                .padding(.vertical, 10)
+                                                .background(Color.white)
+                                                .cornerRadius(10)
+                                                .shadow(radius: 2)
+                                                .padding(.horizontal)
+                                                
+                                                // Display Searched User
+                                                if let user = searchedUser {
+                                                    VStack {
+                                                        InviteProfileLink(
+                                                            friendRequests: $friendRequests,
+                                                            showAlert: $showAlert,
+                                                            alertMessage: $alertMessage,
+                                                            name: user.name,
+                                                            username: user.username,
+                                                            email: user.email,
+                                                            title: user.title,
+                                                            company: user.company,
+                                                            proficiency: user.proficiency,
+                                                            tags: user.tags,
+                                                            profileImage: user.profileImage,
+                                                            showAcceptDeclineButtons: false
+                                                        )
+
+                                                        
+                                                        Button(action: {
+                                                            sendFriendRequest(to: user.email)
+                                                            searchedUser = nil // ❌ clear it immediately
+                                                            alertMessage = "Friend request sent"
+                                                            showAlert = true
+                                                        }) {
+                                                            Text("Send Friend Request")
+                                                                .font(.headline)
+                                                                .padding()
+                                                                .frame(maxWidth: .infinity)
+                                                                .background(Color(hexCode: "004aad"))
+                                                                .foregroundColor(.white)
+                                                                .cornerRadius(10)
+                                                                .padding(.horizontal)
+                                                        }
+
+                                                        .padding(.horizontal)
+                                                    }
+                                                }
+                                                
+                                                // Networking Requests Section
+                                                Text("Networking Requests")
+                                                    .font(.headline)
+                                                    .padding(.top)
+
+                                                if friendRequests.isEmpty {
+                                                    Text("You have no new networking requests.")
+                                                        .font(.subheadline)
+                                                        .foregroundColor(.gray)
+                                                        .padding()
+                                                } else {
+                                                    ForEach(friendRequests) { profile in
+                                                        InviteProfileLink(
+                                                            friendRequests: $friendRequests,
+                                                            showAlert: $showAlert,
+                                                            alertMessage: $alertMessage,
+                                                            name: profile.name,
+                                                            username: profile.username,
+                                                            email: profile.email,
+                                                            title: profile.title,
+                                                            company: profile.company,
+                                                            proficiency: profile.proficiency,
+                                                            tags: profile.tags,
+                                                            profileImage: profile.profileImage,
+                                                            showAcceptDeclineButtons: true
+                                                        )
+
+                                                    }
+                                                }
+                                                
+                                                Divider()
+                                                    .padding(.vertical)
+                                                
+                                                // My Network Section (Step 2: Updated with fetchUserProfile)
+                                                Text("My Network")
+                                                    .font(.headline)
+                                                    .padding(.top)
+                                                
+                            ForEach(myNetwork) { profile in
+                                ZStack(alignment: .topTrailing) {
+                                    InviteProfileTemplate(
+                                        friendRequests: $friendRequests,
+                                        showAlert: $showAlert,
+                                        alertMessage: $alertMessage,
+                                        name: profile.name,
+                                        username: profile.username,
+                                        email: profile.email,
+                                        title: profile.title,
+                                        company: profile.company,
+                                        proficiency: profile.proficiency,
+                                        tags: profile.tags,
+                                        profileImage: profile.profileImage,
+                                        showAcceptDeclineButtons: false
+                                    )
+                                    .onTapGesture {
+                                        self.selectedFullProfile = nil
+                                        fetchUserProfile(userId: profile.user_id) { profileData in
+                                            DispatchQueue.main.async {
+                                                if let profileData = profileData {
+                                                    self.selectedFullProfile = profileData
+                                                    self.showProfilePreview = true
+                                                }
+                                            }
                                         }
                                     }
+
+                                    Button(action: {
+                                        selectedUser = NetworkUser(
+                                            id: profile.user_id,
+                                            name: profile.name,
+                                            email: profile.email,
+                                            profileImage: profile.profileImage
+                                        )
+                                        showChatPage = true
+                                    }) {
+                                        Image(systemName: "bubble.left.and.bubble.right.fill")
+                                            .resizable()
+                                            .frame(width: 20, height: 20)
+                                            .padding(6)
+                                            .foregroundColor(.white)
+                                            .background(Color.blue)
+                                            .clipShape(Circle())
+                                            .shadow(radius: 2)
+                                    }
+                                    .padding(10)
                                 }
+
+                                .frame(maxWidth: .infinity)
+
+
                             }
 
 
-
-
+                                            }
+                                            .padding()
+                    }
+                    .dismissKeyboardOnScroll()
+                    .sheet(isPresented: Binding(
+                        get: { showProfilePreview && selectedFullProfile != nil },
+                        set: { newValue in showProfilePreview = newValue }
+                    )) {
+                        if let profile = selectedFullProfile {
+                            DynamicProfilePreview(profileData: profile, isInNetwork: true)
                         }
-
-                    }
-                    .padding()
-                }
-                .dismissKeyboardOnScroll()
-                .dismissKeyboardOnScroll()
-                .sheet(isPresented: Binding(
-                    get: { showProfilePreview && selectedFullProfile != nil },
-                    set: { newValue in showProfilePreview = newValue }
-                )) {
-                    if let profile = selectedFullProfile {
-                        DynamicProfilePreview(profileData: profile, isInNetwork: true)
                     }
                 }
 
+                // ✅ Floating Hammer Menu
+                VStack(alignment: .trailing, spacing: 8) {
+                    if showMenu {
+                        VStack(alignment: .leading, spacing: 0) {
+                            Text("Welcome to your resources")
+                                .font(.headline)
+                                .padding()
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(Color(.systemGray5))
 
+                            NavigationLink(destination: PageEntrepreneurMatching().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "person.2.fill", title: "Connect and Network")
+                            }
+                            NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "person.crop.square.fill", title: "Your Business Profile")
+                            }
+                            NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "text.bubble.fill", title: "The Forum Feed")
+                            }
+                            NavigationLink(destination: PageEntrepreneurResources().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "briefcase.fill", title: "Professional Services")
+                            }
+                            NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "envelope.fill", title: "Messages")
+                            }
+                            NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "newspaper.fill", title: "News & Knowledge")
+                            }
+                            NavigationLink(destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "dollarsign.circle.fill", title: "The Circl Exchange")
+                            }
 
+                            Divider()
 
+                            NavigationLink(destination: PageCircles().navigationBarBackButtonHidden(true)) {
+                                MenuItem(icon: "circle.grid.2x2.fill", title: "Circles")
+                            }
+                        }
+                        .background(Color(.systemGray6))
+                        .cornerRadius(12)
+                        .shadow(radius: 5)
+                        .frame(width: 250)
+                        .transition(.scale.combined(with: .opacity))
+                    }
 
-                
-                // Footer Section
-                HStack(spacing: 15) {
-                    NavigationLink(destination: PageEntrepreneurMatching().navigationBarBackButtonHidden(true)) {
-                        CustomCircleButton(iconName: "figure.stand.line.dotted.figure.stand")
-                    }
-                    NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true)) {
-                        CustomCircleButton(iconName: "briefcase.fill")
-                    }
-                    NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
-                        CustomCircleButton(iconName: "captions.bubble.fill")
-                    }
-                    NavigationLink(destination: PageEntrepreneurResources().navigationBarBackButtonHidden(true)) {
-                        CustomCircleButton(iconName: "building.columns.fill")
-                    }
-                    NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
-                        CustomCircleButton(iconName: "newspaper")
+                    Button(action: {
+                        withAnimation(.spring()) {
+                            showMenu.toggle()
+                        }
+                    }) {
+                        Image(systemName: "hammer.fill")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 24, height: 24)
+                            .foregroundColor(.white)
+                            .padding(16)
+                            .background(Color.fromHex("004aad"))
+                            .clipShape(Circle())
+                            .shadow(radius: 4)
                     }
                 }
-                .padding(.vertical, 10)
-                .background(Color.white)
+                .padding(.trailing, 20)
+                .padding(.bottom, 50)
+                NavigationLink(
+                    destination: selectedUser.map { user in
+                        ChatView(
+                            user: user,
+                            messages: groupedMessages[user.id, default: []],
+                            myNetwork: .constant(myNetwork.map {
+                                NetworkUser(id: $0.user_id, name: $0.name, email: $0.email, profileImage: $0.profileImage)
+                            }),
+                            onSendMessage: { newMessage in
+                                self.groupedMessages[user.id, default: []].append(newMessage)
+                            }
+                        )
+                    },
+                    isActive: $showChatPage
+                ) {
+                    EmptyView()
+                }
+                .hidden()
+
+
             }
             .edgesIgnoringSafeArea(.bottom)
             .navigationBarBackButtonHidden(true)
             .alert(isPresented: $showAlert) {
                 Alert(title: Text(alertMessage))
             }
-
             .onAppear {
                 fetchFriendRequests()
                 fetchNetwork()
+                fetchMessages()
             }
         }
+
     }
     
     // MARK: - Functions
@@ -630,6 +705,27 @@ struct PageInvites: View {
             }
         }.resume()
     }
+    
+    func fetchMessages() {
+        guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else { return }
+
+        guard let url = URL(string: "https://circlapp.online/api/users/get_messages/\(userId)/") else { return }
+
+        URLSession.shared.dataTask(with: url) { data, _, error in
+            if let data = data {
+                do {
+                    let response = try JSONDecoder().decode([String: [Message]].self, from: data)
+                    DispatchQueue.main.async {
+                        let allMessages = response["messages"] ?? []
+                        self.groupedMessages = Dictionary(grouping: allMessages) { $0.sender_id == userId ? $0.receiver_id : $0.sender_id }
+                    }
+                } catch {
+                    print("❌ Error decoding messages:", error)
+                }
+            }
+        }.resume()
+    }
+
     
     func searchUserByUsername() {
         guard !searchText.isEmpty else { return }
@@ -721,6 +817,33 @@ struct PageInvites: View {
             }
         }.resume()
     }
+    func showChatPageWith(_ profile: InviteProfileData) {
+        guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else { return }
+        
+        let chatUser = NetworkUser(
+            id: profile.user_id,
+            name: profile.name,
+            email: profile.email,
+            profileImage: profile.profileImage
+        )
+        
+        // Navigate to chat page (similar to PageMessages logic)
+        let chatView = ChatView(
+            user: chatUser,
+            messages: groupedMessages[chatUser.id, default: []],
+            myNetwork: .constant(myNetwork.map {
+                NetworkUser(id: $0.user_id, name: $0.name, email: $0.email, profileImage: $0.profileImage)
+            }),
+            onSendMessage: { newMessage in
+                self.groupedMessages[chatUser.id, default: []].append(newMessage)
+            }
+        )
+
+        
+        let hostingController = UIHostingController(rootView: chatView)
+        UIApplication.shared.windows.first?.rootViewController?.present(hostingController, animated: true)
+    }
+
     
     func fetchFriendRequests() {
         guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else { return }

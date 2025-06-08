@@ -71,10 +71,10 @@ struct PageEntrepreneurResources: View {
                         .background(Color(UIColor.systemGray4))
                     }
                 }
-                .edgesIgnoringSafeArea(.bottom)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .navigationBarBackButtonHidden(true)
 
-                // Floating Hammer Menu
+                // ✅ Floating Hammer Menu
                 VStack(alignment: .trailing, spacing: 8) {
                     if showMenu {
                         VStack(alignment: .leading, spacing: 0) {
@@ -137,6 +137,7 @@ struct PageEntrepreneurResources: View {
                 }
                 .padding()
             }
+
         }
     }
 
@@ -195,25 +196,6 @@ struct PageEntrepreneurResources: View {
         }
     }
 
-    // MARK: - Floating Menu Item
-    private struct MenuItem: View {
-        let icon: String
-        let title: String
-
-        var body: some View {
-            HStack {
-                Image(systemName: icon)
-                    .foregroundColor(Color.fromHex("004aad"))
-                    .frame(width: 24)
-                Text(title)
-                    .foregroundColor(.primary)
-                Spacer()
-            }
-            .padding(.horizontal)
-            .padding(.vertical, 12)
-            .contentShape(Rectangle())
-        }
-    }
 }
 
 // MARK: - Color from Hex
