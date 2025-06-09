@@ -1,17 +1,13 @@
-//
-//  CirclApp.swift
-//  Circl
-//
-//  Created by Bhavin Vulli on 1/3/25.
-//
-
 import SwiftUI
 
 @main
 struct CirclApp: App {
+    // 👇 This line wires in the delegate
+    @UIApplicationDelegateAdaptor(PushNotificationManager.self) var pushManager
+
     var body: some Scene {
         WindowGroup {
-            Page1() // Change ContentView() to Page1()
+            Page1()
         }
     }
 }

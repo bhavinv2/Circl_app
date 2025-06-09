@@ -40,6 +40,8 @@ struct Page1: View {
                             .font(.system(size: 24, weight: .bold))
                             .foregroundColor(.white)
                             .offset(y: -30)
+                        
+               
 
                         Spacer()
 

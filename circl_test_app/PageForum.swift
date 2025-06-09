@@ -704,6 +704,16 @@ struct PageForum: View {
             }
             .padding()
         }
+        .sheet(item: $selectedPostIdForComments) { selectedPost in
+            CommentSheet(
+                postId: selectedPost.id,
+                isPresented: Binding(
+                    get: { selectedPostIdForComments != nil },
+                    set: { if !$0 { selectedPostIdForComments = nil } }
+                )
+            )
+        }
+
 
             
 
