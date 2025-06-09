@@ -44,26 +44,21 @@ struct Page1: View {
                         Spacer()
 
                         // Join Circl Button Inside a White Section
-                        ZStack {
-                            Rectangle()
-                                .fill(Color.white)
-                                .frame(width: UIScreen.main.bounds.width, height: 100)
-                                .offset(y: -40)
-
-                            Button(action: {
-                                isNavigatingToSignup = true
-                            }) {
-                                Text("Join Circl")
-                                    .font(.system(size: 24, weight: .bold))
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 15)
-                                    .background(Color(hexCode: "ffde59"))
-                                    .foregroundColor(Color(hexCode: "004aad"))
-                                    .cornerRadius(10)
-                            }
-                            .padding(.horizontal, 50)
-                            .offset(y: -40)
+                        Button(action: {
+                            isNavigatingToSignup = true
+                        }) {
+                            Text("Join Circl")
+                                .font(.system(size: 24, weight: .bold))
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 15)
+                                .background(Color(hexCode: "ffde59"))
+                                .foregroundColor(Color(hexCode: "004aad"))
+                                .cornerRadius(10)
                         }
+                        .padding(.horizontal, 50)
+                        .padding(.top, 10) // Optional: adds breathing room below tagline
+                        .offset(y: -50)
+
 
                         // Login Fields Below Join Circl
                         VStack(spacing: 15) {
@@ -123,6 +118,7 @@ struct Page1: View {
 
                         Spacer()
                     }
+                    .padding(.top, 50)
                     
                 }
                 .dismissKeyboardOnScroll()
@@ -175,8 +171,9 @@ struct Page1: View {
             }
 
             
-            .fullScreenCover(isPresented: $isLoggedIn) {
+            .navigationDestination(isPresented: $isLoggedIn) {
                 PageForum()
+                    .navigationBarBackButtonHidden(true)
             }
 
             .navigationDestination(isPresented: $isNavigatingToSignup) {
