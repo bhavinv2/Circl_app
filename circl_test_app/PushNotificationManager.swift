@@ -33,25 +33,17 @@ class PushNotificationManager: NSObject, UIApplicationDelegate, UNUserNotificati
         let token = deviceToken.map { String(format: "%02.2hhx", $0) }.joined()
         print("📲 Device Token: \(token)")
 
+        // ✅ Always save the token locally
+        UserDefaults.standard.set(token, forKey: "pending_push_token")
+
         let userId = UserDefaults.standard.integer(forKey: "user_id")
         if userId != 0 {
             sendDeviceTokenToBackend(token: token)
         } else {
-            print("⚠️ user_id not yet available. Will try again shortly...")
-
-            // Retry sending the token after a short delay
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                let delayedUserId = UserDefaults.standard.integer(forKey: "user_id")
-                if delayedUserId != 0 {
-                    sendDeviceTokenToBackend(token: token)
-                    print("✅ Token sent after delay with user_id: \(delayedUserId)")
-                } else {
-                    print("❌ Still no user_id. Token not sent.")
-                }
-            }
+            print("⚠️ user_id not available, will retry later.")
         }
-
     }
+
 
     
     func application(_ application: UIApplication,

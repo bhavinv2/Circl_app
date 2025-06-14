@@ -81,6 +81,7 @@ struct PageSettings: View {
                                 .cornerRadius(10)
                         }
                         .padding(.top, 20)
+                        .padding(.bottom, 40)
 
                     }
                     .padding(.horizontal, 20)

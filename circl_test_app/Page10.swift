@@ -115,6 +115,20 @@ struct Page10: View {
                 Spacer()
             }
         }
+        .onTapGesture {
+                    UIApplication.shared.sendAction(
+                        #selector(UIResponder.resignFirstResponder),
+                        to: nil, from: nil, for: nil
+                    )
+                }
+        // Add these modifiers to hide navigation elements
+        .navigationBarHidden(true)
+        .navigationBarBackButtonHidden(true)
+        .statusBarHidden(false) // Change to true if you want to hide the status bar completely
+        .onAppear {
+            // Additional way to hide navigation bar
+            UINavigationBar.appearance().isHidden = true
+        }
     }
 
     // ✅ Backend save functionality
@@ -169,7 +183,6 @@ struct Page10: View {
             }
         }.resume()
     }
-
 }
 
 struct FreeResponseField: View {

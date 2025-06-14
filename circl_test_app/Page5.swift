@@ -269,8 +269,8 @@ struct Page5: View {
         return !birthday.isEmpty &&
                isValidLocation &&
                gender != nil &&
-               availability != nil &&
-               !personalityType.isEmpty
+               availability != nil
+               //!personalityType.isEmpty
     }
     
     private func formatBirthday(_ newValue: String) {

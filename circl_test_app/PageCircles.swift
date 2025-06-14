@@ -6,16 +6,32 @@ struct PageCircles: View {
     var body: some View {
         NavigationView {
             ZStack(alignment: .bottomTrailing) {
+                
+                // Tap-to-close overlay
+                if showMenu {
+                    Color.clear
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            withAnimation {
+                                showMenu = false
+                            }
+                        }
+                        .zIndex(0)
+                }
+
                 VStack(spacing: 0) {
                     // Header
                     VStack(spacing: 0) {
                         HStack {
                             VStack(alignment: .leading, spacing: 5) {
-                                Text("Circl.")
-                                    .font(.largeTitle)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.white)
-                                
+                                NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
+                                    Text("Circl.")
+                                        .font(.largeTitle)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(.white)
+                                }
+
+
                                 Button(action: {}) {
                                     HStack {
                                         Image(systemName: "slider.horizontal.3")
@@ -26,9 +42,9 @@ struct PageCircles: View {
                                     }
                                 }
                             }
-                            
+
                             Spacer()
-                            
+
                             VStack(alignment: .trailing, spacing: 5) {
                                 HStack(spacing: 10) {
                                     NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
@@ -37,7 +53,7 @@ struct PageCircles: View {
                                             .frame(width: 50, height: 40)
                                             .foregroundColor(.white)
                                     }
-                                    
+
                                     NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
                                         Image(systemName: "person.circle.fill")
                                             .resizable()
@@ -55,7 +71,7 @@ struct PageCircles: View {
                         .padding(.bottom, 10)
                         .background(Color.fromHex("004aad"))
                     }
-                    
+
                     // Main Content
                     ScrollView {
                         VStack(spacing: 20) {
@@ -63,7 +79,7 @@ struct PageCircles: View {
                                 .resizable()
                                 .frame(width: 100, height: 100)
                                 .foregroundColor(Color.fromHex("004aad"))
-                            
+
                             Text("Releasing on June 15! We can't wait to release our \"Circles\" feature, where you can create communities. From doing business to getting your first beta users to potentially monetizing your expertise, you can do it all. We also want to have the capability for different Circles to communicate with each other. A tutorial video is coming soon, right before we release. The sky is the limit with this feature. See y'all soon!")
                                 .font(.body)
                                 .foregroundColor(Color.fromHex("004aad"))
@@ -75,69 +91,89 @@ struct PageCircles: View {
                     }
                 }
                 .navigationBarHidden(true)
-                
-                // Hammer Menu
-                VStack(alignment: .trailing, spacing: 8) {
+
+                // Menu + Button
+                ZStack(alignment: .bottomTrailing) {
                     if showMenu {
-                        VStack(alignment: .leading, spacing: 0) {
-                            Text("Welcome to your resources")
-                                .font(.headline)
-                                .padding()
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .background(Color(.systemGray5))
-                            
-                            NavigationLink(destination: PageEntrepreneurMatching().navigationBarBackButtonHidden(true)) {
-                                MenuItem(icon: "person.2.fill", title: "Connect and Network")
+                        // 🧼 Tap-to-dismiss layer
+                        Color.clear
+                            .ignoresSafeArea()
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                withAnimation {
+                                    showMenu = false
+                                }
                             }
-                            NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true)) {
-                                MenuItem(icon: "person.crop.square.fill", title: "Your Business Profile")
-                            }
-                            NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
-                                MenuItem(icon: "text.bubble.fill", title: "The Forum Feed")
-                            }
-                            NavigationLink(destination: PageEntrepreneurResources().navigationBarBackButtonHidden(true)) {
-                                MenuItem(icon: "briefcase.fill", title: "Professional Services")
-                            }
-                            NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
-                                MenuItem(icon: "envelope.fill", title: "Messages")
-                            }
-                            NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
-                                MenuItem(icon: "newspaper.fill", title: "News & Knowledge")
-                            }
-                            NavigationLink(destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true)) {
-                                MenuItem(icon: "dollarsign.circle.fill", title: "The Circl Exchange")
-                            }
-
-                            Divider()
-                            
-                            NavigationLink(destination: PageCircles().navigationBarBackButtonHidden(true)) {
-                                MenuItem(icon: "circle.grid.2x2.fill", title: "Circles")
-                            }
-                        }
-                        .background(Color(.systemGray6))
-                        .cornerRadius(12)
-                        .shadow(radius: 5)
-                        .frame(width: 250)
-                        .transition(.scale.combined(with: .opacity))
+                            .zIndex(0)
                     }
 
-                    Button(action: {
-                        withAnimation(.spring()) {
-                            showMenu.toggle()
+                    VStack(alignment: .trailing, spacing: 8) {
+                        if showMenu {
+                            VStack(alignment: .leading, spacing: 0) {
+                                Text("Welcome to your resources")
+                                    .font(.headline)
+                                    .padding()
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .background(Color(.systemGray5))
+
+                                NavigationLink(destination: PageEntrepreneurMatching().navigationBarBackButtonHidden(true)) {
+                                    MenuItem(icon: "person.2.fill", title: "Connect and Network")
+                                }
+                                NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true)) {
+                                    MenuItem(icon: "person.crop.square.fill", title: "Your Business Profile")
+                                }
+                                NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
+                                    MenuItem(icon: "text.bubble.fill", title: "The Forum Feed")
+                                }
+                                NavigationLink(destination: PageEntrepreneurResources().navigationBarBackButtonHidden(true)) {
+                                    MenuItem(icon: "briefcase.fill", title: "Professional Services")
+                                }
+                                NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
+                                    MenuItem(icon: "envelope.fill", title: "Messages")
+                                }
+                                NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
+                                    MenuItem(icon: "newspaper.fill", title: "News & Knowledge")
+                                }
+                                NavigationLink(destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true)) {
+                                    MenuItem(icon: "person.3.fill", title: "The Circl Exchange")
+                                }
+
+                                Divider()
+
+                                NavigationLink(destination: PageCircles().navigationBarBackButtonHidden(true)) {
+                                    MenuItem(icon: "circle.grid.2x2.fill", title: "Circles")
+                                }
+                            }
+                            .background(Color(.systemGray6))
+                            .cornerRadius(12)
+                            .shadow(radius: 5)
+                            .frame(width: 250)
+                            .transition(.scale.combined(with: .opacity))
                         }
-                    }) {
-                        Image(systemName: "hammer.fill")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 24, height: 24)
-                            .foregroundColor(.white)
-                            .padding(16)
-                            .background(Color.fromHex("004aad"))
-                            .clipShape(Circle())
-                            .shadow(radius: 4)
+
+                        Button(action: {
+                            withAnimation(.spring()) {
+                                showMenu.toggle()
+                            }
+                        }) {
+                            ZStack {
+                                Circle()
+                                    .fill(Color.fromHex("004aad"))
+                                    .frame(width: 60, height: 60)
+
+                                Image(systemName: "ellipsis")
+                                    .rotationEffect(.degrees(90))
+                                    .font(.system(size: 24, weight: .bold))
+                                    .foregroundColor(.white)
+                            }
+                        }
+                        .shadow(radius: 4)
+                        .padding(.bottom, 4)
                     }
+                    .padding(.trailing, 20)
+                    .zIndex(1)
                 }
-                .padding()
+
             }
         }
     }

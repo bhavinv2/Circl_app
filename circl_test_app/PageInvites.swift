@@ -346,10 +346,13 @@ struct PageInvites: View {
                     VStack(spacing: 0) {
                         HStack {
                             VStack(alignment: .leading, spacing: 5) {
-                                Text("Circl.")
-                                    .font(.largeTitle)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.white)
+                                NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
+                                    Text("Circl.")
+                                        .font(.largeTitle)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(.white)
+                                }
+
                             }
                             Spacer()
                             VStack(alignment: .trailing, spacing: 5) {
@@ -576,6 +579,18 @@ struct PageInvites: View {
                 }
 
                 // ✅ Floating Hammer Menu
+                // Tap outside to close menu
+                if showMenu {
+                    Color.black.opacity(0.001)
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            withAnimation {
+                                showMenu = false
+                            }
+                        }
+                        .zIndex(1)
+                }
+
                 VStack(alignment: .trailing, spacing: 8) {
                     if showMenu {
                         VStack(alignment: .leading, spacing: 0) {
@@ -625,19 +640,24 @@ struct PageInvites: View {
                             showMenu.toggle()
                         }
                     }) {
-                        Image(systemName: "hammer.fill")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 24, height: 24)
-                            .foregroundColor(.white)
-                            .padding(16)
-                            .background(Color.fromHex("004aad"))
-                            .clipShape(Circle())
-                            .shadow(radius: 4)
+                        ZStack {
+                            Circle()
+                                .fill(Color.fromHex("004aad"))
+                                .frame(width: 60, height: 60)
+
+                            Image(systemName: "ellipsis")
+                                .rotationEffect(.degrees(90))
+                                .font(.system(size: 24, weight: .bold))
+                                .foregroundColor(.white)
+                        }
                     }
+                    .shadow(radius: 4)
+                    .padding(.bottom, 18)
+                    .zIndex(2)
                 }
-                .padding(.trailing, 20)
-                .padding(.bottom, 50)
+                .padding()
+                .zIndex(2)
+
                 NavigationLink(
                     destination: selectedUser.map { user in
                         ChatView(
@@ -656,6 +676,7 @@ struct PageInvites: View {
                     EmptyView()
                 }
                 .hidden()
+
 
 
             }

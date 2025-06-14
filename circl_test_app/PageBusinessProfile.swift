@@ -88,10 +88,14 @@ struct PageBusinessProfile: View {
     var body: some View {
         NavigationView {
             ZStack(alignment: .bottomTrailing) {
+
+                // 🔥 Scrollable app content (base layer)
                 VStack(spacing: 0) {
                     headerSection
                     scrollableSection
                 }
+
+                // 🔨 Floating hammer button + menu
                 VStack(alignment: .trailing, spacing: 8) {
                     if showMenu {
                         VStack(alignment: .leading, spacing: 0) {
@@ -141,87 +145,106 @@ struct PageBusinessProfile: View {
                             showMenu.toggle()
                         }
                     }) {
-                        Image(systemName: "hammer.fill")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 24, height: 24)
-                            .foregroundColor(.white)
-                            .padding(16)
-                            .background(Color.fromHex("004aad"))
-                            .clipShape(Circle())
-                            .shadow(radius: 4)
+                        ZStack {
+                            Circle()
+                                .fill(Color.fromHex("004aad"))
+                                .frame(width: 60, height: 60)
+                            
+                            Image(systemName: "ellipsis")
+                                .rotationEffect(.degrees(90))
+                                .font(.system(size: 24, weight: .bold)) // bold and centered
+                                .foregroundColor(.white)
+                        }
                     }
+                
+                    .shadow(radius: 4)
+                   
+                    .padding(.bottom, 19)
+
+
+
                 }
                 .padding()
+                .zIndex(3) // Top layer for hammer button/menu
 
-
-                .edgesIgnoringSafeArea(.bottom)
-                .navigationBarBackButtonHidden(true)
-                .onAppear {
-                    if let userId = UserDefaults.standard.value(forKey: "user_id") as? Int {
-                        viewModel.fetchProfile(for: userId)
-                    } else {
-                        print("⚠️ User ID not found in UserDefaults")
-                    }
+                // 🧼 Tap-out-to-dismiss layer
+                if showMenu {
+                    Color.black.opacity(0.001)
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            withAnimation {
+                                showMenu = false
+                            }
+                        }
+                        .zIndex(2) // Above main content, below hammer button
                 }
-                .onReceive(viewModel.$profile) { profile in
-                    guard let profile = profile, !isEditing else { return }
-                    
-           
-                    
-                    companyName = profile.business_name ?? ""
-                    aboutText = profile.about ?? ""
-                    
-                    companyDetails = [
-                        "Industry": profile.industry ?? "",
-                        "Type": profile.type ?? "",
-                        "Stage": profile.stage ?? "",
-                        "Revenue": profile.revenue ?? "",
-                        "Location": profile.location ?? "",
-                        "Looking for": profile.looking_for ?? ""
-                    ]
-                    
-                    values = [
-                        "Vision": profile.vision ?? "",
-                        //"Mission": profile.mission ?? "",
-                        "Company Culture": profile.company_culture ?? ""
-                    ]
-                    
-                    solutionDetails = [
-                        "Product/Service": profile.product_service ?? "",
-                        "Unique Selling Proposition": profile.unique_selling_proposition ?? "",
-                        "Traction/Progress": profile.traction ?? ""
-                    ]
-                    
-                    businessModelDetails = [
-                        "Revenue Streams": profile.revenue_streams ?? "",
-                        "Pricing Strategy": profile.pricing_strategy ?? ""
-                    ]
-                    
-                    teamDetails = [
-                        "CoFounders": profile.cofounders ?? "",
-                        "Key Hires": profile.key_hires ?? "",
-                        "Advisors/Mentors": profile.advisors_mentors ?? ""
-                    ]
-                    
-                    financialsDetails = [
-                        "Funding Stage": profile.funding_stage ?? "",
-                        "Amount Raised": profile.amount_raised ?? "",
-                        "Use of Funds": profile.use_of_funds ?? "",
-                        "Financial Projections": profile.financial_projections ?? ""
-                    ]
-                    
-                    lookingForDetails = [
-                        "Roles Needed": profile.roles_needed ?? "",
-                        "Mentorship": profile.mentorship ?? "",
-                        "Investment": profile.investment ?? "",
-                        "Other": profile.other ?? ""
-                    ]
-                }
-                
-               
-
             }
+            .edgesIgnoringSafeArea(.bottom)
+            .navigationBarBackButtonHidden(true)
+            .onAppear {
+                if let userId = UserDefaults.standard.value(forKey: "user_id") as? Int {
+                    viewModel.fetchProfile(for: userId)
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        if let profile = viewModel.profile {
+                            companyDetails = [
+                                "Industry": profile.industry ?? "",
+                                "Type": profile.type ?? "",
+                                "Stage": profile.stage ?? "",
+                                "Revenue": profile.revenue ?? "",
+                                "Location": profile.location ?? "",
+                                "Looking for": profile.looking_for ?? ""
+                            ]
+                        }
+                    }
+                } else {
+                    print("⚠️ User ID not found in UserDefaults")
+                }
+            }
+            .onReceive(viewModel.$profile) { profile in
+                guard let profile = profile, !isEditing else { return }
+                companyName = profile.business_name ?? ""
+                aboutText = profile.about ?? ""
+                companyDetails = [
+                    "Industry": profile.industry ?? "",
+                    "Type": profile.type ?? "",
+                    "Stage": profile.stage ?? "",
+                    "Revenue": profile.revenue ?? "",
+                    "Location": profile.location ?? "",
+                    "Looking for": profile.looking_for ?? ""
+                ]
+                values = [
+                    "Vision": profile.vision ?? "",
+                    "Company Culture": profile.company_culture ?? ""
+                ]
+                solutionDetails = [
+                    "Product/Service": profile.product_service ?? "",
+                    "Unique Selling Proposition": profile.unique_selling_proposition ?? "",
+                    "Traction/Progress": profile.traction ?? ""
+                ]
+                businessModelDetails = [
+                    "Revenue Streams": profile.revenue_streams ?? "",
+                    "Pricing Strategy": profile.pricing_strategy ?? ""
+                ]
+                teamDetails = [
+                    "CoFounders": profile.cofounders ?? "",
+                    "Key Hires": profile.key_hires ?? "",
+                    "Advisors/Mentors": profile.advisors_mentors ?? ""
+                ]
+                financialsDetails = [
+                    "Funding Stage": profile.funding_stage ?? "",
+                    "Amount Raised": profile.amount_raised ?? "",
+                    "Use of Funds": profile.use_of_funds ?? "",
+                    "Financial Projections": profile.financial_projections ?? ""
+                ]
+                lookingForDetails = [
+                    "Roles Needed": profile.roles_needed ?? "",
+                    "Mentorship": profile.mentorship ?? "",
+                    "Investment": profile.investment ?? "",
+                    "Other": profile.other ?? ""
+                ]
+            }
+
+
         }
     }
     
@@ -231,10 +254,13 @@ struct PageBusinessProfile: View {
         VStack(spacing: 0) {
             HStack {
                 VStack(alignment: .leading, spacing: 5) {
-                    Text("Circl.")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
+                    NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
+                        Text("Circl.")
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                    }
+
                 }
 
                 Spacer() // Moves the "Edit" button towards the center
@@ -314,17 +340,28 @@ struct PageBusinessProfile: View {
                     )
                     .cornerRadius(10)
                 
-                if let companyWebsiteURL = companyWebsiteURL {
-                    Link(companyName, destination: companyWebsiteURL)
+                if isEditing {
+                    TextField("Enter Company Name", text: $companyName)
                         .font(.title2)
                         .fontWeight(.semibold)
-                        .foregroundColor(.white)
-                        .underline()
+                        .padding(8)
+                        .background(Color.white.opacity(0.9))
+                        .cornerRadius(8)
+                        .foregroundColor(.black)
+                        .padding(.horizontal, 16)
                 } else {
-                    Text(companyName)
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.white)
+                    if let companyWebsiteURL = companyWebsiteURL {
+                        Link(companyName, destination: companyWebsiteURL)
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.white)
+                            .underline()
+                    } else {
+                        Text(companyName)
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.white)
+                    }
                 }
             }
             .padding()
@@ -332,6 +369,7 @@ struct PageBusinessProfile: View {
             .cornerRadius(10)
         }
     }
+
     
     private var aboutSection: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -365,18 +403,25 @@ struct PageBusinessProfile: View {
                 .font(.headline)
                 .fontWeight(.bold)
                 .foregroundColor(.black)
-            
-            VStack(alignment: .leading, spacing: 8) {
+
+            VStack(alignment: .leading, spacing: 12) {
                 ForEach(companyDetails.keys.sorted(), id: \.self) { key in
                     VStack(alignment: .leading, spacing: 4) {
                         Text(key)
                             .font(.subheadline)
                             .fontWeight(.semibold)
                             .foregroundColor(.gray)
-                        
-                        Text(companyDetails[key] ?? "")
-                            .font(.body)
-                            .foregroundColor(.primary)
+
+                        if isEditing {
+                            TextField("Enter \(key)", text: Binding(
+                                get: { companyDetails[key, default: ""] },
+                                set: { companyDetails[key] = $0 }
+                            ))
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                        } else {
+                            Text(companyDetails[key, default: ""])
+                                .foregroundColor(.primary)
+                        }
                     }
                 }
             }
@@ -393,6 +438,7 @@ struct PageBusinessProfile: View {
         .background(Color.white)
         .cornerRadius(10)
     }
+
     
     private var valuesSection: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -734,27 +780,31 @@ struct PageBusinessProfile: View {
         var request = URLRequest(url: url)
         request.httpMethod = "PATCH"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
         let payload: [String: Any] = [
-            "about": aboutText,
-            "vision": values["Vision", default: ""],
-            "mission": values["Mission", default: ""],
-            "company_culture": values["Company Culture", default: ""],
-            "product_service": solutionDetails["Product/Service", default: ""],
-            "unique_selling_proposition": solutionDetails["Unique Selling Proposition", default: ""],
-            "traction": solutionDetails["Traction/Progress", default: ""],
-            "revenue_streams": businessModelDetails["Revenue Streams", default: ""],
-            "pricing_strategy": businessModelDetails["Pricing Strategy", default: ""],
-            "advisors_mentors": teamDetails["Advisors/Mentors", default: ""],
-            "cofounders": teamDetails["CoFounders", default: ""],
-            "key_hires": teamDetails["Key Hires", default: ""],
-            "industry": companyDetails["Industry", default: ""],  // Add industry field
-            "location": companyDetails["Location", default: ""],  // Add location field
-            "revenue": companyDetails["Revenue", default: ""],  // Add revenue field
-            "stage": companyDetails["Stage", default: ""],  // Add stage field
-            "type": companyDetails["Type", default: ""],  // Add type field
-            "looking_for": companyDetails["Looking for", default: ""],  // Add looking_for field
+            "about": aboutText.trimmingCharacters(in: .whitespacesAndNewlines),
+            "vision": values["Vision"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "",
+            "mission": values["Mission"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "",
+            "company_culture": values["Company Culture"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "",
+            "product_service": solutionDetails["Product/Service"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "",
+            "unique_selling_proposition": solutionDetails["Unique Selling Proposition"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "",
+            "traction": solutionDetails["Traction/Progress"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "",
+            "revenue_streams": businessModelDetails["Revenue Streams"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "",
+            "pricing_strategy": businessModelDetails["Pricing Strategy"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "",
+            "advisors_mentors": teamDetails["Advisors/Mentors"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "",
+            "cofounders": teamDetails["CoFounders"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "",
+            "key_hires": teamDetails["Key Hires"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "",
+            "industry": companyDetails["Industry"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "",
+            "location": companyDetails["Location"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "",
+            "business_name": companyName.trimmingCharacters(in: .whitespacesAndNewlines),
+            "revenue": companyDetails["Revenue"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "",
+            "stage": companyDetails["Stage"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "",
+            "type": companyDetails["Type"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "",
+            "looking_for": companyDetails["Looking for"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         ]
+
+        // 🔍 Log the payload for debugging
+        print("📤 Sending payload: \(payload)")
+
 
         do {
             request.httpBody = try JSONSerialization.data(withJSONObject: payload, options: [])
@@ -775,9 +825,21 @@ struct PageBusinessProfile: View {
                     do {
                         DispatchQueue.main.async {
                             isEditing = false
-                            // Refresh profile after successful update
                             viewModel.fetchProfile(for: userId)
+                            
+                            // Small delay to ensure fetch finishes
+                            viewModel.fetchProfile(for: userId)
+
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
+                                if let profile = viewModel.profile {
+                                    self.applyProfileToUI(profile)
+                                } else {
+                                    print("⚠️ No profile returned yet — might need longer delay")
+                                }
+                            }
+
                         }
+
                     } catch {
                         print("❌ JSON decode failed: \(error)")
                     }
@@ -791,6 +853,58 @@ struct PageBusinessProfile: View {
             }
         }.resume()
     }
+    
+    func applyProfileToUI(_ profile: BusinessProfile) {
+        companyName = profile.business_name ?? ""
+        aboutText = profile.about ?? ""
+
+        companyDetails = [
+            "Industry": profile.industry ?? "",
+            "Type": profile.type ?? "",
+            "Stage": profile.stage ?? "",
+            "Revenue": profile.revenue ?? "",
+            "Location": profile.location ?? "",
+            "Looking for": profile.looking_for ?? ""
+        ]
+
+        values = [
+            "Vision": profile.vision ?? "",
+            "Mission": profile.mission ?? "",
+            "Company Culture": profile.company_culture ?? ""
+        ]
+
+        solutionDetails = [
+            "Product/Service": profile.product_service ?? "",
+            "Unique Selling Proposition": profile.unique_selling_proposition ?? "",
+            "Traction/Progress": profile.traction ?? ""
+        ]
+
+        businessModelDetails = [
+            "Revenue Streams": profile.revenue_streams ?? "",
+            "Pricing Strategy": profile.pricing_strategy ?? ""
+        ]
+
+        teamDetails = [
+            "CoFounders": profile.cofounders ?? "",
+            "Key Hires": profile.key_hires ?? "",
+            "Advisors/Mentors": profile.advisors_mentors ?? ""
+        ]
+
+        financialsDetails = [
+            "Funding Stage": profile.funding_stage ?? "",
+            "Amount Raised": profile.amount_raised ?? "",
+            "Use of Funds": profile.use_of_funds ?? "",
+            "Financial Projections": profile.financial_projections ?? ""
+        ]
+
+        lookingForDetails = [
+            "Roles Needed": profile.roles_needed ?? "",
+            "Mentorship": profile.mentorship ?? "",
+            "Investment": profile.investment ?? "",
+            "Other": profile.other ?? ""
+        ]
+    }
+
 
 }
 

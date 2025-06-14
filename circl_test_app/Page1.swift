@@ -240,6 +240,13 @@ struct Page1: View {
                                     print("✅ user_id stored: \(userID)")
                                     hasUserID = true
                                 }
+                                
+                                if let savedToken = UserDefaults.standard.string(forKey: "pending_push_token") {
+                                    print("📤 Sending saved push token after login: \(savedToken)")
+                                    sendDeviceTokenToBackend(token: savedToken)
+                                    UserDefaults.standard.removeObject(forKey: "pending_push_token")
+                                }
+
 
                                 if let token = jsonResponse["token"] as? String {
                                     UserDefaults.standard.set(token, forKey: "auth_token")

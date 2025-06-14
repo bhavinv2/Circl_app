@@ -1,0 +1,24 @@
+GeometryReader { geometry in
+    ZStack {
+        Circle()
+            .fill(Color.white)
+            .frame(width: 120, height: 120)
+            .position(x: 80, y: geometry.safeAreaInsets.top + 40)
+
+        Circle()
+            .fill(Color.white)
+            .frame(width: 100, height: 100)
+            .position(x: 150, y: geometry.safeAreaInsets.top + 20)
+
+        Circle()
+            .fill(Color.white)
+            .frame(width: 90, height: 90)
+            .position(x: 230, y: geometry.safeAreaInsets.top + 55)
+
+        Circle()
+            .fill(Color.white)
+            .frame(width: 110, height: 110)
+            .position(x: 310, y: geometry.safeAreaInsets.top + 35)
+    }
+    .ignoresSafeArea(edges: .top)
+}

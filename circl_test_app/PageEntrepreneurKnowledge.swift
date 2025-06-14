@@ -1,21 +1,39 @@
 import SwiftUI
 
 struct PageEntrepreneurKnowledge: View {
-    @State private var showMenu = false // State for showing/hiding the hammer menu
-    
+    @State private var showMenu = false // State for showing/hiding the menu
+
     var body: some View {
         NavigationView {
             ZStack(alignment: .bottomTrailing) {
+
+                // Tap outside to close menu
+                if showMenu {
+                    Color.clear
+                        .ignoresSafeArea()
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            withAnimation {
+                                showMenu = false
+                            }
+                        }
+                        .zIndex(1) // Ensure it's above content
+                }
+
+
                 VStack(spacing: 0) {
                     // Header Section
                     VStack(spacing: 0) {
                         HStack {
                             VStack(alignment: .leading, spacing: 5) {
-                                Text("Circl.")
-                                    .font(.largeTitle)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.white)
-                                
+                                NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
+                                    Text("Circl.")
+                                        .font(.largeTitle)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(.white)
+                                }
+
+
                                 Button(action: {
                                     // Action for Filter
                                 }) {
@@ -28,9 +46,9 @@ struct PageEntrepreneurKnowledge: View {
                                     }
                                 }
                             }
-                            
+
                             Spacer()
-                            
+
                             VStack(alignment: .trailing, spacing: 5) {
                                 VStack {
                                     HStack(spacing: 10) {
@@ -40,7 +58,7 @@ struct PageEntrepreneurKnowledge: View {
                                                 .frame(width: 50, height: 40)
                                                 .foregroundColor(.white)
                                         }
-                                        
+
                                         NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
                                             Image(systemName: "person.circle.fill")
                                                 .resizable()
@@ -48,7 +66,7 @@ struct PageEntrepreneurKnowledge: View {
                                                 .foregroundColor(.white)
                                         }
                                     }
-                                    
+
                                     Text("Hello, Fragne")
                                         .foregroundColor(.white)
                                         .font(.headline)
@@ -60,17 +78,15 @@ struct PageEntrepreneurKnowledge: View {
                         .padding(.bottom, 10)
                         .background(Color.fromHex("004aad"))
                     }
-                    
+
                     // Scrollable Section
                     ScrollView {
                         VStack(spacing: 20) {
-                            // Hammer Symbol above the text
                             Image(systemName: "hammer.circle")
                                 .resizable()
                                 .frame(width: 100, height: 100)
                                 .foregroundColor(Color.fromHex("004aad"))
-                            
-                            // Text below the hammer symbol
+
                             Text("Thank you for your patience with Circl! We are currently working on creating the \"News\" feature - an opportunity for you to learn more about general news about your industry from news sources and fellow entrepreneurs in the community. Keep your notifications on and stay tuned in the discord server to know when we release it!")
                                 .font(.body)
                                 .foregroundColor(Color.fromHex("004aad"))
@@ -78,56 +94,54 @@ struct PageEntrepreneurKnowledge: View {
                                 .background(Color.gray.opacity(0.4))
                                 .cornerRadius(10)
                                 .padding(.top)
-                            
+
                             Spacer()
                         }
                         .padding()
                     }
                 }
                 .navigationBarHidden(true)
-                
-                // Hammer Menu (replaces footer)
+
+                // Floating Ellipsis Menu
                 VStack(alignment: .trailing, spacing: 8) {
                     if showMenu {
                         VStack(alignment: .leading, spacing: 0) {
-                            // Menu Header
                             Text("Welcome to your resources")
                                 .font(.headline)
                                 .padding()
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .background(Color(.systemGray5))
-                            
-                            // Menu Items with Navigation
+
                             NavigationLink(destination: PageEntrepreneurMatching().navigationBarBackButtonHidden(true)) {
                                 MenuItem(icon: "person.2.fill", title: "Connect and Network")
                             }
-                            
+
                             NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true)) {
                                 MenuItem(icon: "person.crop.square.fill", title: "Your Business Profile")
                             }
-                            
+
                             NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
                                 MenuItem(icon: "text.bubble.fill", title: "The Forum Feed")
                             }
-                            
+
                             NavigationLink(destination: PageEntrepreneurResources().navigationBarBackButtonHidden(true)) {
                                 MenuItem(icon: "briefcase.fill", title: "Professional Services")
                             }
-                            
+
                             NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
                                 MenuItem(icon: "envelope.fill", title: "Messages")
                             }
-                            
+
                             NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
                                 MenuItem(icon: "newspaper.fill", title: "News & Knowledge")
                             }
-                            
+
                             NavigationLink(destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true)) {
                                 MenuItem(icon: "dollarsign.circle.fill", title: "The Circl Exchange")
                             }
-                            
+
                             Divider()
-                            
+
                             NavigationLink(destination: PageCircles().navigationBarBackButtonHidden(true)) {
                                 MenuItem(icon: "circle.grid.2x2.fill", title: "Circles")
                             }
@@ -138,25 +152,29 @@ struct PageEntrepreneurKnowledge: View {
                         .frame(width: 250)
                         .transition(.scale.combined(with: .opacity))
                     }
-                    
-                    // Main floating button
+
                     Button(action: {
                         withAnimation(.spring()) {
                             showMenu.toggle()
                         }
                     }) {
-                        Image(systemName: "hammer.fill")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 24, height: 24)
-                            .foregroundColor(.white)
-                            .padding(16)
-                            .background(Color.fromHex("004aad"))
-                            .clipShape(Circle())
-                            .shadow(radius: 4)
+                        ZStack {
+                            Circle()
+                                .fill(Color.fromHex("004aad"))
+                                .frame(width: 60, height: 60)
+
+                            Image(systemName: "ellipsis")
+                                .rotationEffect(.degrees(90))
+                                .font(.system(size: 24, weight: .bold))
+                                .foregroundColor(.white)
+                        }
                     }
+                    .shadow(radius: 4)
+                    .padding(.bottom, -7) // 🔽 increase to move it lower
+
                 }
                 .padding()
+                .zIndex(1)
             }
         }
     }
@@ -166,7 +184,7 @@ struct PageEntrepreneurKnowledge: View {
 struct MenuItem10: View {
     let icon: String
     let title: String
-    
+
     var body: some View {
         HStack {
             Image(systemName: icon)

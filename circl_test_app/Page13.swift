@@ -148,12 +148,16 @@ struct Page13: View {
                         .padding(.top, 50) // Push text and toggle down by 50 pixels
 
                     Toggle(isOn: $notificationsEnabled) {
-                        EmptyView() // Empty view for label-less toggle
+                        EmptyView()
+                    }
+                    .onChange(of: notificationsEnabled) { newValue in
+                        toggleNotifications(enabled: newValue)
                     }
                     .toggleStyle(SwitchToggleStyle(tint: notificationsEnabled ? Color(hexCode: "00bf63") : Color(hexCode: "ffde59")))
-                    .frame(width: 80) // Expanded width by 80 pixels
+                    .frame(width: 80)
                     .padding(.horizontal, 40)
-                    .padding(.top, 10) // Align toggle properly
+                    .padding(.top, 10)
+
                 }
 
                 Spacer()
@@ -179,6 +183,29 @@ struct Page13: View {
             }
         }
     }
+    
+    func toggleNotifications(enabled: Bool) {
+        if enabled {
+            // Turn ON
+            UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
+                if granted {
+                    DispatchQueue.main.async {
+                        UIApplication.shared.registerForRemoteNotifications()
+                        print("✅ Notifications enabled by user toggle")
+                    }
+                } else {
+                    print("❌ Notification permission not granted: \(String(describing: error))")
+                }
+            }
+        } else {
+            // Turn OFF
+            DispatchQueue.main.async {
+                UIApplication.shared.unregisterForRemoteNotifications()
+                print("🔕 Notifications disabled by user toggle")
+            }
+        }
+    }
+
 }
 
 struct Page13View_Previews: PreviewProvider {

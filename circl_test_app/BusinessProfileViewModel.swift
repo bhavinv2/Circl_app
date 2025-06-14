@@ -35,7 +35,7 @@ class BusinessProfileViewModel: ObservableObject {
     @Published var hasBusinessInfo: Bool = false
     
     func fetchProfile(for userId: Int) {
-        guard let url = URL(string: "https://circlapp.online/api/users/full-business-profile/\(userId)/") else { return }
+        guard let url = URL(string: "https://circlapp.online/api/users/business-profile/\(userId)/") else { return }
         
         URLSession.shared.dataTask(with: url) { data, _, error in
             if let data = data {

@@ -6,7 +6,6 @@ struct Page3: View {
     @State private var firstName: String = ""
     @State private var lastName: String = ""
     @State private var email: String = ""
-    @State private var phoneNumber: String = ""
     @State private var isEmailValid: Bool = true
     
     // State for submission handling
@@ -182,7 +181,6 @@ struct Page3: View {
                             firstName: $firstName,
                             lastName: $lastName,
                             email: $email,
-                            phoneNumber: $phoneNumber,
                             isEmailValid: $isEmailValid
                         )
                         Spacer()
@@ -233,7 +231,7 @@ struct Page3: View {
                !lastName.isEmpty &&
                isEmailValid &&
                !email.isEmpty &&
-               phoneNumber.filter { $0.isNumber }.count == 10 &&
+             
                selectedUsageInterest != nil &&
                selectedIndustryInterest != nil
     }
@@ -250,7 +248,7 @@ struct Page3: View {
             "first_name": firstName,
             "last_name": lastName,
             "email": email,
-            "phone": phoneNumber,
+           
             "main_usage": selectedUsageInterest ?? "",
             "industry_interest": selectedIndustryInterest ?? ""
         ]
@@ -354,7 +352,6 @@ struct PersonalInformationSection: View {
     @Binding var firstName: String
     @Binding var lastName: String
     @Binding var email: String
-    @Binding var phoneNumber: String
     @Binding var isEmailValid: Bool
 
     var body: some View {
@@ -397,7 +394,7 @@ struct PersonalInformationSection: View {
                     }
                 }
 
-                PhoneNumberField(phoneNumber: $phoneNumber)
+               
             }
         }
     }
@@ -409,65 +406,6 @@ struct PersonalInformationSection: View {
     }
 }
 
-struct PhoneNumberField: View {
-    @Binding var phoneNumber: String
-    @State private var displayedPhoneNumber = ""
-
-    var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 10)
-                .fill(Color(.systemGray5))
-                .frame(height: 50)
-
-            TextField("Phone Number (XXX) XXX-XXXX", text: $displayedPhoneNumber)
-                .keyboardType(.numberPad)
-                .foregroundColor(Color(hexCode: "004aad"))
-                .padding(.horizontal, 15)
-                .onChange(of: displayedPhoneNumber) { newValue in
-                    let formatted = formatPhoneNumber(newValue)
-                    displayedPhoneNumber = formatted.display
-                    phoneNumber = formatted.raw
-                }
-                .onAppear {
-                    if !phoneNumber.isEmpty {
-                        displayedPhoneNumber = formatPhoneNumber(phoneNumber).display
-                    } else {
-                        displayedPhoneNumber = ""
-                    }
-                }
-        }
-    }
-
-    private func formatPhoneNumber(_ input: String) -> (display: String, raw: String) {
-        let numbers = input.filter { $0.isNumber }
-        var result = ""
-
-        for (index, char) in numbers.enumerated() {
-            switch index {
-            case 0:
-                result = "(" + String(char)
-            case 1...2:
-                result += String(char)
-            case 3:
-                result += ") " + String(char)
-            case 4...5:
-                result += String(char)
-            case 6:
-                result += "-" + String(char)
-            case 7...9:
-                result += String(char)
-            default:
-                break
-            }
-        }
-
-        if result == "(" {
-            return ("", "")
-        }
-
-        return (result, numbers)
-    }
-}
 
 struct ExperienceSetupSection: View {
     let usageInterestOptions: [String]
