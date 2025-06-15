@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct PageCircleMessages: View {
+    let channel: Channel
     @Environment(\.presentationMode) var presentationMode
 
     @State private var newMessage: String = ""
@@ -14,7 +15,13 @@ struct PageCircleMessages: View {
     @State private var showMenu = false
     @State private var showCircleMenu = false
     @State private var showCategoryMenu = false
-    @State private var selectedChannel = "#General"
+    @State private var selectedChannel: String
+
+    init(channel: Channel) {
+        self.channel = channel
+        _selectedChannel = State(initialValue: channel.name)
+    }
+
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -512,6 +519,10 @@ extension Color {
 
 struct PageCircleMessages_Previews: PreviewProvider {
     static var previews: some View {
-        PageCircleMessages()
+        PageCircleMessages(channel: Channel(
+            id: 1,
+            name: "#Welcome",
+            category: "Community"
+        ))
     }
 }

@@ -52,9 +52,7 @@ struct PageSkillSellingMatching: View {
                                         }
                                     }
                                     
-                                    Text("Hello, Fragne")
-                                        .foregroundColor(.white)
-                                        .font(.headline)
+                                   
                                 }
                             }
                         }

@@ -67,9 +67,7 @@ struct PageEntrepreneurKnowledge: View {
                                         }
                                     }
 
-                                    Text("Hello, Fragne")
-                                        .foregroundColor(.white)
-                                        .font(.headline)
+                                   
                                 }
                             }
                         }
