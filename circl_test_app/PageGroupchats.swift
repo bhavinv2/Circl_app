@@ -1,24 +1,32 @@
 import SwiftUI
 struct Channel: Identifiable, Decodable,Hashable {
     
-  
-
 
     let id: Int
     let name: String
     let category: String? // example: "Community", "Learn", etc.
+    let circleId: Int
 }
 
 struct PageGroupchats: View {
+    let circle: CircleData
+    
+   
+    @State private var myCircles: [CircleData] = []
+
     @Environment(\.presentationMode) var presentationMode
+    @AppStorage("user_id") private var userId: Int = 0
+
     @State private var channels: [Channel] = []
     var groupedChannels: [String: [Channel]] {
         Dictionary(grouping: channels) { $0.category ?? "Other" }
     }
 
 
-    let circle: CircleData  // 🧠 gets passed in from NavigationLink
+   
     @State private var selectedGroup: String
+   
+
     
   
     @State private var showMenu = false
@@ -43,9 +51,7 @@ struct PageGroupchats: View {
 
                     // Group Selector
                     HStack {
-                        Button(action: {
-                            presentationMode.wrappedValue.dismiss()
-                        }) {
+                        NavigationLink(destination: PageCircles().navigationBarBackButtonHidden(true)) {
                             Image(systemName: "arrow.left")
                                 .foregroundColor(.white)
                                 .padding(8)
@@ -53,14 +59,18 @@ struct PageGroupchats: View {
                         }
 
 
+
                         Spacer()
 
                         Menu {
-                            Button(selectedGroup, action: { selectedGroup = selectedGroup })
-                            Button("Other Group", action: { selectedGroup = "Other Group" })
+                            ForEach(myCircles, id: \.id) { circl in
+                                NavigationLink(destination: PageGroupchats(circle: circl).navigationBarBackButtonHidden(true)) {
+                                    Text(circl.name)
+                                }
+                            }
                         } label: {
                             HStack {
-                                Text(selectedGroup)
+                                Text(circle.name)
                                     .foregroundColor(.black)
                                     .font(.headline)
                                 Image(systemName: "chevron.down")
@@ -71,6 +81,7 @@ struct PageGroupchats: View {
                             .background(Color(.systemGray5))
                             .cornerRadius(20)
                         }
+
 
                         Spacer()
                     }
@@ -89,11 +100,23 @@ struct PageGroupchats: View {
                         .padding(.vertical, 5)
                     // 🟨 2. Then Circle Threads
                     VStack(alignment: .leading, spacing: 10) {
-                        Text("Circle Threads")
-                            .font(.title3)
-                            .fontWeight(.bold)
-                            .padding(.horizontal)
+                        HStack {
+                            Text("Circle Threads")
+                                .font(.title3)
+                                .fontWeight(.bold)
 
+                            if userId == circle.creatorId {
+                                Text("Moderator")
+                                    .font(.caption)
+                                    .fontWeight(.bold)
+                                    .padding(6)
+                                    .background(Color.red)
+                                    .foregroundColor(.white)
+                                    .clipShape(Circle())
+                            }
+                        }
+                        .padding(.horizontal)
+                        
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 16) {
                                 ForEach(trendingThreads) { thread in
@@ -104,6 +127,7 @@ struct PageGroupchats: View {
                             .padding(.horizontal)
                         }
                     }
+
                     Divider().padding(.horizontal)
                     // ✅ Show grouped + tappable channels
                     ScrollView {
@@ -156,6 +180,36 @@ struct PageGroupchats: View {
         }
         .onAppear {
             fetchChannels(for: circle.id)
+            fetchMyCircles(userId: userId)
+            func fetchMyCircles(userId: Int) {
+                guard let url = URL(string: "https://circlapp.online/api/circles/my_circles/\(userId)/") else { return }
+
+                URLSession.shared.dataTask(with: url) { data, _, _ in
+                    if let data = data {
+                        if let decoded = try? JSONDecoder().decode([APICircle].self, from: data) {
+                            DispatchQueue.main.async {
+                                self.myCircles = decoded.map {
+                                    CircleData(
+                                        id: $0.id,
+                                        name: $0.name,
+                                        industry: $0.industry,
+                                        members: "1k+", // Or fetch real member data later
+                                        imageName: "uhmarketing", // Or map image later
+                                        pricing: $0.pricing,
+                                        description: $0.description,
+                                        joinType: $0.join_type == "apply_now" ? .applyNow : .joinNow,
+                                        channels: $0.channels ?? [],
+                                        creatorId: $0.creator_id
+                                    )
+                                }
+                            }
+                        } else {
+                            print("❌ Failed to decode my_circles")
+                        }
+                    }
+                }.resume()
+            }
+
         }
     }
 
@@ -401,7 +455,9 @@ struct PageGroupchats_Previews: PreviewProvider {
             pricing: "Free",
             description: "A community of founders",
             joinType: .joinNow,
-            channels: ["#Welcome", "#Founder-Chat", "#Introductions"] // ✅ Add this line
+            channels: ["#Welcome", "#Founder-Chat", "#Introductions"],
+            creatorId: 999 // 🔧 TEMPORARY just for SwiftUI preview
+// ✅ Add this line
         ))
     }
 }

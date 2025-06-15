@@ -3,14 +3,13 @@ import SwiftUI
 struct PageCircleMessages: View {
     let channel: Channel
     @Environment(\.presentationMode) var presentationMode
+    @State private var allChannelsInCircle: [Channel] = []
+
 
     @State private var newMessage: String = ""
-    @State private var messages: [ChatMessage] = [
-        ChatMessage(id: 1, sender: "Alice", content: "Hey everyone! Excited to be here.", isCurrentUser: false, timestamp: Date()),
-        ChatMessage(id: 2, sender: "Fragne", content: "Welcome, Alice! Glad you joined the circle 😊", isCurrentUser: true, timestamp: Date()),
-        ChatMessage(id: 3, sender: "Bob", content: "What's the next meetup plan?", isCurrentUser: false, timestamp: Date()),
-        ChatMessage(id: 4, sender: "Fragne", content: "We're finalizing details for next week.", isCurrentUser: true, timestamp: Date())
-    ]
+    @AppStorage("user_id") private var userId: Int = 0
+    @State private var messages: [ChatMessage] = []
+
 
     @State private var showMenu = false
     @State private var showCircleMenu = false
@@ -63,7 +62,16 @@ struct PageCircleMessages: View {
         }
         .background(Color.white.edgesIgnoringSafeArea(.all))
         .navigationBarBackButtonHidden(true)
+        .onAppear {
+            fetchMessages()
+            fetchChannelsInCircle()
+
+            
+
+        }
+
     }
+    
 
     // MARK: - Header
     private var header: some View {
@@ -101,25 +109,29 @@ struct PageCircleMessages: View {
                     }
 
                     HStack(spacing: 4) {
-                        Text(selectedChannel)
-                            .font(.subheadline)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 6)
-                            .background(Color(.systemGray5))
-                            .foregroundColor(.black)
-                            .cornerRadius(15)
-
                         Button(action: {
                             withAnimation(.spring()) {
                                 closeOtherMenus(except: &showCategoryMenu)
                             }
                         }) {
-                            Image(systemName: "chevron.down")
-                                .font(.caption)
-                                .foregroundColor(.white)
-                                .rotationEffect(.degrees(showCategoryMenu ? 180 : 0))
+                            HStack(spacing: 6) {
+                                Text(selectedChannel)
+                                    .font(.subheadline)
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 6)
+                                    .background(Color(.systemGray5))
+                                    .foregroundColor(.black)
+                                    .cornerRadius(15)
+
+                                Image(systemName: "chevron.down")
+                                    .font(.caption)
+                                    .foregroundColor(.white)
+                                    .rotationEffect(.degrees(showCategoryMenu ? 180 : 0))
+                            }
                         }
+                        .buttonStyle(PlainButtonStyle()) // ✅ Optional: prevent highlight
                     }
+
 
                     HStack(spacing: 6) {
                         Text("1.2k members • Online now:")
@@ -183,6 +195,56 @@ struct PageCircleMessages: View {
         }
         .background(Color.white)
     }
+    
+    func fetchMessages() {
+        guard let url = URL(string: "https://circlapp.online/api/get_messages/\(channel.id)/?user_id=\(userId)") else { return }
+
+        URLSession.shared.dataTask(with: url) { data, _, error in
+            guard let data = data, error == nil else {
+                print("❌ Failed to load messages:", error?.localizedDescription ?? "unknown")
+                return
+            }
+
+            do {
+                let decoded = try JSONDecoder().decode([RawChatMessage].self, from: data)
+                DispatchQueue.main.async {
+                    messages = decoded.map { raw in
+                        ChatMessage(
+                            id: raw.id,
+                            sender: raw.sender,
+                            content: raw.content,
+                            isCurrentUser: raw.isCurrentUser,
+                            timestamp: Self.dateFormatter.date(from: raw.timestamp) ?? Date()
+                        )
+                        
+                    }
+                }
+            } catch {
+                print("❌ Failed to decode messages:", error)
+            }
+        }.resume()
+    }
+    
+    func fetchChannelsInCircle() {
+        guard let url = URL(string: "https://circlapp.online/api/circles/get_channels/\(channel.circleId)/") else { return }
+
+        URLSession.shared.dataTask(with: url) { data, _, error in
+            guard let data = data, error == nil else {
+                print("❌ Failed to load channels:", error?.localizedDescription ?? "unknown")
+                return
+            }
+
+            do {
+                let decoded = try JSONDecoder().decode([Channel].self, from: data)
+                DispatchQueue.main.async {
+                    allChannelsInCircle = decoded
+                }
+            } catch {
+                print("❌ Failed to decode channels for this circle:", error)
+            }
+        }.resume()
+    }
+
 
     // MARK: - Input Bar
     private var inputBar: some View {
@@ -277,41 +339,16 @@ struct PageCircleMessages: View {
     // MARK: - Category Menu
     private var categoryMenu: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Group {
-                Text("Community")
-                    .font(.title3)
-                    .fontWeight(.bold)
-                    .padding(.vertical, 4)
+            Text("Channels")
+                .font(.title3)
+                .fontWeight(.bold)
+                .padding(.vertical, 4)
 
-                channelRow("#Welcome", notifications: 2)
-                channelRow("#Introductions", notifications: 0)
-                channelRow("#General", notifications: 5)
-
-                Divider()
+            ForEach(allChannelsInCircle) { ch in
+                channelRow(ch.name, notifications: 0)  // notifications = optional
             }
 
-            Group {
-                Text("Learn")
-                    .font(.title3)
-                    .fontWeight(.bold)
-                    .padding(.vertical, 4)
-
-                channelRow("#Books-and-Resources", notifications: 1)
-                channelRow("#Lean-Methodology", notifications: 0)
-                channelRow("#Case-Studies", notifications: 3)
-
-                Divider()
-            }
-
-            Group {
-                Text("Founders-Floor")
-                    .font(.title3)
-                    .fontWeight(.bold)
-                    .padding(.vertical, 4)
-
-                channelRow("#Founder-Chat", notifications: 0)
-                channelRow("#Road-to-PMF", notifications: 0)
-            }
+            Divider()
         }
         .padding()
         .background(Color(.systemGray6))
@@ -323,12 +360,14 @@ struct PageCircleMessages: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
+
     // MARK: - Helper Methods
     private func channelRow(_ name: String, notifications: Int) -> some View {
         Button(action: {
             withAnimation {
                 selectedChannel = name
                 showCategoryMenu = false
+                // You could also use NavigationLink if you want to truly switch Channel ID too
             }
         }) {
             HStack {
@@ -351,20 +390,34 @@ struct PageCircleMessages: View {
         .buttonStyle(PlainButtonStyle())
     }
 
+
     private func sendMessage() {
         guard !newMessage.trimmingCharacters(in: .whitespaces).isEmpty else { return }
-        let new = ChatMessage(
-            id: messages.count + 1,
-            sender: "Fragne",
-            content: newMessage,
-            isCurrentUser: true,
-            timestamp: Date()
-        )
-        withAnimation {
-            messages.append(new)
-        }
-        newMessage = ""
+
+        let messageData: [String: Any] = [
+            "user_id": userId,
+            "channel_id": channel.id,
+            "content": newMessage
+        ]
+
+        guard let url = URL(string: "https://circlapp.online/api/send_message/") else { return }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try? JSONSerialization.data(withJSONObject: messageData)
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            guard error == nil else {
+                print("❌ Failed to send message:", error?.localizedDescription ?? "unknown")
+                return
+            }
+            DispatchQueue.main.async {
+                fetchMessages()
+                newMessage = ""
+            }
+        }.resume()
     }
+
 
     private func closeOtherMenus(except menu: inout Bool) {
         showMenu = false
@@ -389,6 +442,23 @@ struct ChatMessage: Identifiable {
         return formatter.string(from: timestamp)
     }
 }
+
+struct RawChatMessage: Decodable {
+    let id: Int
+    let sender: String
+    let content: String
+    let isCurrentUser: Bool
+    let timestamp: String
+}
+
+extension PageCircleMessages {
+    static let dateFormatter: DateFormatter = {
+        let df = DateFormatter()
+        df.dateFormat = "yyyy-MM-dd HH:mm" // match your backend format
+        return df
+    }()
+}
+
 
 struct ChatBubble: View {
     let message: ChatMessage
@@ -522,7 +592,8 @@ struct PageCircleMessages_Previews: PreviewProvider {
         PageCircleMessages(channel: Channel(
             id: 1,
             name: "#Welcome",
-            category: "Community"
+            category: "Community",
+            circleId: 1
         ))
     }
 }

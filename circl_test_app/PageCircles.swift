@@ -8,7 +8,8 @@ struct APICircle: Identifiable, Decodable {
     let pricing: String
     let description: String
     let join_type: String
-    let channels: [String]? // ✅ now optional
+    let channels: [String]?
+    let creator_id: Int// ✅ now optional
 }
 
 
@@ -296,17 +297,24 @@ struct PageCircles: View {
                             .font(.headline)
 
                         ForEach(allChannelOptions, id: \.self) { channel in
-                            Toggle(channel, isOn: Binding(
-                                get: { selectedChannels.contains(channel) },
-                                set: { isSelected in
-                                    if isSelected {
-                                        selectedChannels.append(channel)
-                                    } else {
-                                        selectedChannels.removeAll { $0 == channel }
+                            if channel == "#Welcome" {
+                                Toggle(channel, isOn: .constant(true))
+                                    .disabled(true) // 🔒 Always selected
+                                    .foregroundColor(.gray)
+                            } else {
+                                Toggle(channel, isOn: Binding(
+                                    get: { selectedChannels.contains(channel) },
+                                    set: { isSelected in
+                                        if isSelected {
+                                            selectedChannels.append(channel)
+                                        } else {
+                                            selectedChannels.removeAll { $0 == channel }
+                                        }
                                     }
-                                }
-                            ))
+                                ))
+                            }
                         }
+
 
                         Spacer()
 
@@ -451,7 +459,8 @@ struct PageCircles: View {
                     pricing: $0.pricing,
                     description: $0.description,
                     joinType: $0.join_type == "apply_now" ? .applyNow : .joinNow,
-                    channels: $0.channels ?? [] // ✅ Fallback to empty
+                    channels: $0.channels ?? [],
+                    creatorId: $0.creator_id // 👈 Add this// ✅ Fallback to empty
  // 🆕 Add this
                 )
             }
@@ -527,6 +536,7 @@ struct CircleData: Identifiable {
     let description: String
     let joinType: JoinType
     let channels: [String]
+    let creatorId: Int // 👈 Add this
 }
 
     
