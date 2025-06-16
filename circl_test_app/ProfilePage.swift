@@ -12,6 +12,8 @@ struct ProfilePage: View {
     @State private var selectedImage: UIImage?
     @State private var isImagePickerPresented = false
     @State private var showMenu = false
+    @State private var rotationAngle: Double = 0
+
 
     @State private var isEditing = false
     @State private var updatedBio = ""
@@ -557,22 +559,27 @@ struct ProfilePage: View {
                     }
 
                     Button(action: {
-                        withAnimation(.spring()) {
+                        withAnimation(.easeInOut(duration: 0.4)) {
                             showMenu.toggle()
+                            rotationAngle += 360 // spin the logo
                         }
                     }) {
                         ZStack {
                             Circle()
-                                .fill(Color.white)                                .frame(width: 60, height: 60)
+                                .fill(Color.fromHex("004aad"))
+                                .frame(width: 60, height: 60)
 
-                            Image(systemName: "ellipsis")
-                                .rotationEffect(.degrees(90))
-                                .font(.system(size: 24, weight: .bold))
-                                .foregroundColor(Color.fromHex("004aad"))
+                            Image("CirclLogoButton")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 32, height: 32)
+                                .clipShape(Circle())
+                                .rotationEffect(.degrees(rotationAngle))
                         }
                     }
                     .shadow(radius: 4)
-                    .padding(.bottom, 35)
+                    .padding(.bottom, 28)
+
                 }
                 .padding(.trailing, 20)
                 .zIndex(1)

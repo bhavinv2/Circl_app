@@ -2,6 +2,7 @@ import SwiftUI
 
 struct PageEntrepreneurKnowledge: View {
     @State private var showMenu = false // State for showing/hiding the menu
+    @State private var rotationAngle: Double = 0
 
     var body: some View {
         NavigationView {
@@ -152,8 +153,9 @@ struct PageEntrepreneurKnowledge: View {
                     }
 
                     Button(action: {
-                        withAnimation(.spring()) {
+                        withAnimation(.easeInOut(duration: 0.4)) {
                             showMenu.toggle()
+                            rotationAngle += 360 // spin the logo
                         }
                     }) {
                         ZStack {
@@ -161,14 +163,16 @@ struct PageEntrepreneurKnowledge: View {
                                 .fill(Color.fromHex("004aad"))
                                 .frame(width: 60, height: 60)
 
-                            Image(systemName: "ellipsis")
-                                .rotationEffect(.degrees(90))
-                                .font(.system(size: 24, weight: .bold))
-                                .foregroundColor(.white)
+                            Image("CirclLogoButton")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 32, height: 32)
+                                .clipShape(Circle())
+                                .rotationEffect(.degrees(rotationAngle))
                         }
                     }
                     .shadow(radius: 4)
-                    .padding(.bottom, -7) // 🔽 increase to move it lower
+                    .padding(.bottom, -10)
 
                 }
                 .padding()

@@ -2,8 +2,24 @@ import SwiftUI
 
 struct PageCircleMessages: View {
     let channel: Channel
+    let circleName: String
     @Environment(\.presentationMode) var presentationMode
     @State private var allChannelsInCircle: [Channel] = []
+    @State private var showMembersPopup = false
+    struct Member: Identifiable, Decodable, Hashable {
+        let id: Int
+        let full_name: String
+        let profile_image: String?
+        let user_id: Int
+    }
+    @State private var navigateToMembers = false
+    @State private var navigateBackToCircles = false
+
+    @State private var members: [Member] = []
+    @State private var selectedMember: Member?
+    @State private var showProfilePreview = false
+
+    @State private var showLeaveConfirmation = false
 
 
     @State private var newMessage: String = ""
@@ -12,14 +28,21 @@ struct PageCircleMessages: View {
 
 
     @State private var showMenu = false
+    @State private var rotationAngle: Double = 0
+
     @State private var showCircleMenu = false
     @State private var showCategoryMenu = false
-    @State private var selectedChannel: String
+    @State private var currentChannel: Channel
 
-    init(channel: Channel) {
+
+    init(channel: Channel, circleName: String) {
         self.channel = channel
-        _selectedChannel = State(initialValue: channel.name)
+        self.circleName = circleName
+        _currentChannel = State(initialValue: channel)
     }
+
+
+
 
 
     var body: some View {
@@ -60,17 +83,44 @@ struct PageCircleMessages: View {
                     .zIndex(2)
             }
         }
+        NavigationLink(
+            destination: MemberListPage(circleName: circleName, circleId: channel.circleId),
+            isActive: $navigateToMembers
+        ) {
+            EmptyView()
+        }
+        
+        NavigationLink(
+            destination: PageCircles().navigationBarBackButtonHidden(true),
+            isActive: $navigateBackToCircles
+        ) {
+            EmptyView()
+        }
+
+
         .background(Color.white.edgesIgnoringSafeArea(.all))
         .navigationBarBackButtonHidden(true)
         .onAppear {
             fetchMessages()
             fetchChannelsInCircle()
-
-            
-
+            fetchMembers()
         }
 
+        
+        
+        .alert("Leave Circle?", isPresented: $showLeaveConfirmation) {
+            Button("Leave", role: .destructive) {
+                leaveCircle()
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("Are you sure you want to leave this circle? You will be removed from all its channels.")
+        }
+
+        
+
     }
+    
     
 
     // MARK: - Header
@@ -91,7 +141,10 @@ struct PageCircleMessages: View {
 
                 VStack(alignment: .leading, spacing: 4) {
                     HStack(spacing: 4) {
-                        Text("Lean Startup-ists")
+                        Text(circleName)
+
+
+
                             .font(.title2)
                             .fontWeight(.bold)
                             .foregroundColor(.white)
@@ -115,7 +168,8 @@ struct PageCircleMessages: View {
                             }
                         }) {
                             HStack(spacing: 6) {
-                                Text(selectedChannel)
+                                Text(currentChannel.name)
+
                                     .font(.subheadline)
                                     .padding(.horizontal, 10)
                                     .padding(.vertical, 6)
@@ -134,15 +188,16 @@ struct PageCircleMessages: View {
 
 
                     HStack(spacing: 6) {
-                        Text("1.2k members • Online now:")
+                        Text("\(members.count) members • Online now:")
                             .font(.subheadline)
                             .foregroundColor(.white.opacity(0.85))
+
 
                         Circle()
                             .fill(Color.green)
                             .frame(width: 8, height: 8)
 
-                        Text("120")
+                        Text("status otw")
                             .font(.subheadline)
                             .foregroundColor(.white.opacity(0.85))
                     }
@@ -195,9 +250,33 @@ struct PageCircleMessages: View {
         }
         .background(Color.white)
     }
-    
+    func fetchMembers() {
+        guard let url = URL(string: "https://circlapp.online/api/circles/members/\(channel.circleId)/") else { return }
+
+
+        URLSession.shared.dataTask(with: url) { data, _, error in
+            guard let data = data, error == nil else {
+                print("❌ Failed to load members:", error?.localizedDescription ?? "unknown")
+                return
+            }
+
+            do {
+                let decoded = try JSONDecoder().decode([Member].self, from: data)
+                DispatchQueue.main.async {
+                    self.members = decoded
+                }
+            } catch {
+                print("❌ Failed to decode members:", error)
+            }
+        }.resume()
+    }
+
     func fetchMessages() {
-        guard let url = URL(string: "https://circlapp.online/api/get_messages/\(channel.id)/?user_id=\(userId)") else { return }
+        let urlString = "https://circlapp.online/api/circles/get_messages/\(currentChannel.id)/?user_id=\(userId)"
+
+        print("📡 Fetching from: \(urlString)")
+
+        guard let url = URL(string: urlString) else { return }
 
         URLSession.shared.dataTask(with: url) { data, _, error in
             guard let data = data, error == nil else {
@@ -216,7 +295,6 @@ struct PageCircleMessages: View {
                             isCurrentUser: raw.isCurrentUser,
                             timestamp: Self.dateFormatter.date(from: raw.timestamp) ?? Date()
                         )
-                        
                     }
                 }
             } catch {
@@ -224,6 +302,7 @@ struct PageCircleMessages: View {
             }
         }.resume()
     }
+
     
     func fetchChannelsInCircle() {
         guard let url = URL(string: "https://circlapp.online/api/circles/get_channels/\(channel.circleId)/") else { return }
@@ -246,10 +325,12 @@ struct PageCircleMessages: View {
     }
 
 
+
     // MARK: - Input Bar
     private var inputBar: some View {
         HStack {
-            TextField("Message \(selectedChannel)...", text: $newMessage)
+            TextField("Message \(currentChannel.name)...", text: $newMessage)
+
                 .textFieldStyle(.plain)
                 .padding(12)
                 .background(Color(.systemGray6))
@@ -274,14 +355,50 @@ struct PageCircleMessages: View {
         VStack(alignment: .leading, spacing: 0) {
             GroupMenuItem(icon: "info.circle.fill", title: "About This Circle")
             GroupMenuItem(icon: "person.crop.circle.badge.plus", title: "Invite Network")
-            GroupMenuItem(icon: "person.2.fill", title: "Members List")
+            Button(action: {
+                navigateToMembers = true
+            }) {
+
+                HStack {
+                    Image(systemName: "person.2.fill")
+                        .foregroundColor(Color.fromHex("004aad"))
+                        .frame(width: 24)
+                    Text("Members List")
+                        .foregroundColor(.primary)
+                    Spacer()
+                }
+                .padding(.horizontal)
+                .padding(.vertical, 12)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(PlainButtonStyle())
+
+
             GroupMenuItem(icon: "pin.fill", title: "Pinned Messages")
             GroupMenuItem(icon: "folder.fill", title: "Group Files")
             GroupMenuItem(icon: "bell.fill", title: "Notification Settings")
 
             Divider()
 
-            GroupMenuItem(icon: "rectangle.portrait.and.arrow.right.fill", title: "Leave Circle", isDestructive: true)
+            Button(action: {
+                leaveCircle()
+            }) {
+                Button(action: {
+                    leaveCircle()
+                }) {
+                    Button(action: {
+                        showLeaveConfirmation = true
+                    }) {
+                        GroupMenuItem(icon: "rectangle.portrait.and.arrow.right.fill", title: "Leave Circle", isDestructive: true)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+
+                }
+                .buttonStyle(PlainButtonStyle())
+
+            }
+            .buttonStyle(PlainButtonStyle())
+
         }
         .background(Color(.systemGray6))
         .cornerRadius(12)
@@ -345,7 +462,7 @@ struct PageCircleMessages: View {
                 .padding(.vertical, 4)
 
             ForEach(allChannelsInCircle) { ch in
-                channelRow(ch.name, notifications: 0)  // notifications = optional
+                channelRow(ch, notifications: 0)
             }
 
             Divider()
@@ -362,16 +479,18 @@ struct PageCircleMessages: View {
 
 
     // MARK: - Helper Methods
-    private func channelRow(_ name: String, notifications: Int) -> some View {
+    private func channelRow(_ channel: Channel, notifications: Int) -> some View {
         Button(action: {
             withAnimation {
-                selectedChannel = name
+                currentChannel = channel
                 showCategoryMenu = false
-                // You could also use NavigationLink if you want to truly switch Channel ID too
+                fetchMessages()
+                fetchMembers() // ✅ add this line to refresh member count
             }
         }) {
+
             HStack {
-                Text(name)
+                Text(channel.name)
                     .foregroundColor(.primary)
 
                 Spacer()
@@ -389,34 +508,70 @@ struct PageCircleMessages: View {
         }
         .buttonStyle(PlainButtonStyle())
     }
+    
+    func leaveCircle() {
+        guard let url = URL(string: "https://circlapp.online/api/circles/leave_circle/") else { return }
+
+        let payload: [String: Any] = [
+            "user_id": userId,
+            "circle_id": channel.circleId
+        ]
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                navigateBackToCircles = true
+            }
+        }.resume()
+    }
+
+
+    
+    
 
 
     private func sendMessage() {
+        print("🚀 sendMessage called with:", newMessage)
+
         guard !newMessage.trimmingCharacters(in: .whitespaces).isEmpty else { return }
 
         let messageData: [String: Any] = [
             "user_id": userId,
-            "channel_id": channel.id,
+            "channel_id": currentChannel.id,
+
             "content": newMessage
         ]
 
-        guard let url = URL(string: "https://circlapp.online/api/send_message/") else { return }
+        let urlString = "https://circlapp.online/api/circles/send_message/"
+        print("📤 Sending POST to:", urlString)
+        print("📦 Payload:", messageData)
+
+        guard let url = URL(string: urlString) else { return }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try? JSONSerialization.data(withJSONObject: messageData)
 
         URLSession.shared.dataTask(with: request) { data, response, error in
-            guard error == nil else {
-                print("❌ Failed to send message:", error?.localizedDescription ?? "unknown")
-                return
+            print("📝 POST response error:", error as Any)
+            if let http = response as? HTTPURLResponse {
+                print("📶 HTTP status code:", http.statusCode)
             }
+            if let data = data, let str = String(data: data, encoding: .utf8) {
+                print("📬 Response body:", str)
+            }
+
             DispatchQueue.main.async {
                 fetchMessages()
                 newMessage = ""
             }
         }.resume()
     }
+
 
 
     private func closeOtherMenus(except menu: inout Bool) {
@@ -490,11 +645,20 @@ struct ChatBubble: View {
                     if !message.isCurrentUser { Spacer() }
                 }
 
-                Text(message.content)
-                    .padding(10)
-                    .background(message.isCurrentUser ? Color.fromHex("004aad") : Color(.systemGray5))
-                    .foregroundColor(message.isCurrentUser ? .white : .black)
-                    .cornerRadius(12)
+                if let attributed = try? AttributedString(markdown: message.content) {
+                    Text(attributed)
+                        .padding(10)
+                        .background(message.isCurrentUser ? Color.fromHex("004aad") : Color(.systemGray5))
+                        .foregroundColor(message.isCurrentUser ? .white : .black)
+                        .cornerRadius(12)
+                } else {
+                    Text(message.content)
+                        .padding(10)
+                        .background(message.isCurrentUser ? Color.fromHex("004aad") : Color(.systemGray5))
+                        .foregroundColor(message.isCurrentUser ? .white : .black)
+                        .cornerRadius(12)
+                }
+
 
                 Text(message.timeString)
                     .font(.caption2)
@@ -550,24 +714,20 @@ struct GroupMenuItem: View {
     var isDestructive: Bool = false
 
     var body: some View {
-        Button(action: {
-            print("Tapped on \(title)")
-        }) {
-            HStack {
-                Image(systemName: icon)
-                    .foregroundColor(isDestructive ? .red : Color.fromHex("004aad"))
-                    .frame(width: 24)
-                Text(title)
-                    .foregroundColor(isDestructive ? .red : .primary)
-                Spacer()
-            }
-            .padding(.horizontal)
-            .padding(.vertical, 12)
-            .contentShape(Rectangle())
+        HStack {
+            Image(systemName: icon)
+                .foregroundColor(isDestructive ? .red : Color.fromHex("004aad"))
+                .frame(width: 24)
+            Text(title)
+                .foregroundColor(isDestructive ? .red : .primary)
+            Spacer()
         }
-        .buttonStyle(PlainButtonStyle())
+        .padding(.horizontal)
+        .padding(.vertical, 12)
+        .contentShape(Rectangle())
     }
 }
+
 
 // MARK: - Color Extension
 
@@ -589,11 +749,14 @@ extension Color {
 
 struct PageCircleMessages_Previews: PreviewProvider {
     static var previews: some View {
-        PageCircleMessages(channel: Channel(
-            id: 1,
-            name: "#Welcome",
-            category: "Community",
-            circleId: 1
-        ))
+        PageCircleMessages(
+            channel: Channel(
+                id: 1,
+                name: "#Welcome",
+                category: "Community",
+                circleId: 1
+            ),
+            circleName: "Lean Startup-ists" // ✅ Just add this line
+        )
     }
 }

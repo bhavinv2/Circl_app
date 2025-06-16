@@ -10,6 +10,8 @@ struct PageMentorMatching: View {
     @State private var selectedFullProfile: FullProfile? = nil
     @State private var showProfilePreview = false
     @State private var showMenu = false
+    @State private var rotationAngle: Double = 0
+
 
 
     var body: some View {
@@ -216,8 +218,9 @@ struct PageMentorMatching: View {
                         }
 
                         Button(action: {
-                            withAnimation(.spring()) {
+                            withAnimation(.easeInOut(duration: 0.4)) {
                                 showMenu.toggle()
+                                rotationAngle += 360 // spin the logo
                             }
                         }) {
                             ZStack {
@@ -225,14 +228,17 @@ struct PageMentorMatching: View {
                                     .fill(Color.fromHex("004aad"))
                                     .frame(width: 60, height: 60)
 
-                                Image(systemName: "ellipsis")
-                                    .rotationEffect(.degrees(90))
-                                    .font(.system(size: 24, weight: .bold))
-                                    .foregroundColor(.white)
+                                Image("CirclLogoButton")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 32, height: 32)
+                                    .clipShape(Circle())
+                                    .rotationEffect(.degrees(rotationAngle))
                             }
                         }
                         .shadow(radius: 4)
-                        .padding(.bottom, 34)
+                        .padding(.bottom, 19)
+
                     }
                     .padding(.trailing, 20)
                     .zIndex(1)

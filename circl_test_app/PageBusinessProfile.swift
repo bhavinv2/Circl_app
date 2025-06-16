@@ -38,6 +38,8 @@ struct PageBusinessProfile: View {
     @State private var isEditing: Bool = false
     @State private var showBusinessOwnerMessage = false
     @State private var showMenu = false
+    @State private var rotationAngle: Double = 0
+
 
     @State private var companyName: String = "Company Name"
     @State private var companyLogo: String = "companyLogo"
@@ -141,25 +143,27 @@ struct PageBusinessProfile: View {
                     }
 
                     Button(action: {
-                        withAnimation(.spring()) {
+                        withAnimation(.easeInOut(duration: 0.4)) {
                             showMenu.toggle()
+                            rotationAngle += 360 // spin the logo
                         }
                     }) {
                         ZStack {
                             Circle()
                                 .fill(Color.fromHex("004aad"))
                                 .frame(width: 60, height: 60)
-                            
-                            Image(systemName: "ellipsis")
-                                .rotationEffect(.degrees(90))
-                                .font(.system(size: 24, weight: .bold)) // bold and centered
-                                .foregroundColor(.white)
+
+                            Image("CirclLogoButton")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 32, height: 32)
+                                .clipShape(Circle())
+                                .rotationEffect(.degrees(rotationAngle))
                         }
                     }
-                
                     .shadow(radius: 4)
-                   
                     .padding(.bottom, 19)
+
 
 
 

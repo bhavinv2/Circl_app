@@ -325,6 +325,11 @@ struct ForumMainContent: View {
     @Binding var isLoading: Bool
     @Binding var showPageLoading: Bool
     @State private var showMenu = false
+    @State private var rotationAngle: Double = 0
+
+    @AppStorage("hasSeenForumTutorial") private var hasSeenTutorial = false
+    @State private var showTutorial = false
+
 
 
 
@@ -606,11 +611,17 @@ struct PageForum: View {
     @State private var showPageLoading = true
     @State private var userNetworkIds: [Int] = []
     @State private var showMenu = false
+    @State private var rotationAngle: Double = 0
+
     @State private var profileUserId: Int? = nil
     @State private var showProfile: Bool = false
     @State private var postToShowComments: Int? = nil
     @State private var showCommentSheet: Bool = false
     @State private var showKeyboard: Bool = false
+    @AppStorage("hasSeenForumTutorial") private var hasSeenTutorial = false
+    @State private var showTutorial = false
+
+    @State private var animateArrow = false
 
 
 
@@ -704,8 +715,9 @@ struct PageForum: View {
                     }
 
                     Button(action: {
-                        withAnimation(.spring()) {
+                        withAnimation(.easeInOut(duration: 0.4)) {
                             showMenu.toggle()
+                            rotationAngle += 360 // spin the logo
                         }
                     }) {
                         ZStack {
@@ -713,25 +725,90 @@ struct PageForum: View {
                                 .fill(Color.fromHex("004aad"))
                                 .frame(width: 60, height: 60)
 
-                            Image(systemName: "ellipsis")
-                                .rotationEffect(.degrees(90))
-                                .font(.system(size: 24, weight: .bold))
-                                .foregroundColor(.white)
+                            Image("CirclLogoButton")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 32, height: 32)
+                                .clipShape(Circle())
+                                .rotationEffect(.degrees(rotationAngle))
                         }
                     }
                     .shadow(radius: 4)
-                    .padding(.bottom, -12)
+                    .padding(.bottom, -10)
+
+
                     
                 }
                 .padding()
                 .zIndex(2)
+                
+                
             }
+            
+            if showTutorial {
+                // Dim background only behind the tutorial content
+                ZStack {
+                    Rectangle()
+                        .fill(Color.black.opacity(0.6))
+                        .ignoresSafeArea()
+                        .allowsHitTesting(false) // ✅ lets touches pass through
+
+                    VStack(spacing: 20) {
+                        Spacer()
+
+                        VStack(spacing: 20) {
+                            Text("👋 Welcome to Circl!")
+                                .font(.largeTitle)
+                                .bold()
+                                .multilineTextAlignment(.center)
+                                .foregroundColor(.white)
+
+                            Text("Click the ⋯ button in the bottom-right to access the menu.")
+                                .multilineTextAlignment(.center)
+                                .foregroundColor(.white)
+                                .padding(.horizontal)
+                        }
+                        .padding()
+                        .background(Color.white.opacity(0.1))
+                        .cornerRadius(20)
+
+                        Spacer()
+
+                        HStack {
+                            Spacer()
+                            Image(systemName: "arrow.turn.down.left")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 60, height: 60)
+                                .rotationEffect(.degrees(animateArrow ? -20 : 0))
+                                .scaleEffect(x: -1, y: 1)
+                                .foregroundColor(.white)
+                                .padding(.trailing, 40)
+                                .padding(.bottom, 40)
+                                .onAppear {
+                                    withAnimation(Animation.easeInOut(duration: 1).repeatForever(autoreverses: true)) {
+                                        animateArrow.toggle()
+                                    }
+                                }
+                        }
+                    }
+                    .padding()
+                }
+                .transition(.opacity)
+                .zIndex(11)
+            }
+
+
+            
+            
 
 
 
 
 
         }
+        
+
         .sheet(item: $selectedPostIdForComments) { selectedPost in
             CommentSheet(
                 postId: selectedPost.id,
@@ -751,7 +828,12 @@ struct PageForum: View {
             selectedFilter = UserDefaults.standard.string(forKey: "selectedFilter") ?? "public"
             fetchUserNetworkIds()
             fetchPostsWithLoading()
+
+            if !hasSeenTutorial {
+                showTutorial = true
+            }
         }
+
 
         .alert("Please select a category to post.", isPresented: $showCategoryAlert) {
             Button("OK", role: .cancel) { }
@@ -969,6 +1051,10 @@ struct CommentSheet: View {
     @Binding var isPresented: Bool
     var onDismiss: () -> Void = {}
     @State private var showMenu = false
+    @State private var rotationAngle: Double = 0
+
+    @AppStorage("hasSeenForumTutorial") private var hasSeenTutorial = false
+    @State private var showTutorial = false
 
     @State private var newComment = ""
     @State private var comments: [CommentModel] = []

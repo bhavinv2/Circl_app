@@ -30,18 +30,17 @@ struct PageGroupchats: View {
     
   
     @State private var showMenu = false
+    @State private var rotationAngle: Double = 0
+
     init(circle: CircleData) {
             self.circle = circle
             _selectedGroup = State(initialValue: circle.name)
         }
 
-    let trendingThreads = [
-        ThreadPost(id: 1, author: "Alice", content: "Check out this amazing resource for founders! 🚀", likes: 24, comments: 5),
-        ThreadPost(id: 2, author: "Bob", content: "What's everyone's biggest challenge this month?", likes: 18, comments: 12),
-        ThreadPost(id: 3, author: "Charlie", content: "We just closed our seed round! AMA.", likes: 35, comments: 20),
-        ThreadPost(id: 4, author: "Diana", content: "Looking for a cofounder! Message me.", likes: 12, comments: 3),
-        ThreadPost(id: 5, author: "Eve", content: "Check out my startup's landing page!", likes: 29, comments: 7)
-    ]
+    @State private var threads: [ThreadPost] = []
+    @State private var showCreateThreadPopup = false
+    @State private var newThreadContent: String = ""
+
 
     var body: some View {
         NavigationView {
@@ -88,16 +87,16 @@ struct PageGroupchats: View {
                     .padding(.horizontal)
                     .padding(.top, 10)
 
-                    // Announcement Banner
-                    Text("Announcements: Group Call Tonight 8:00 PM")
-                        .font(.subheadline)
-                        .foregroundColor(.white)
-                        .padding(8)
-                        .frame(maxWidth: .infinity)
-                        .background(Color.fromHex("004aad"))
-                        .cornerRadius(10)
-                        .padding(.horizontal)
-                        .padding(.vertical, 5)
+//                    // Announcement Banner
+//                    Text("Announcements: Group Call Tonight 8:00 PM")
+//                        .font(.subheadline)
+//                        .foregroundColor(.white)
+//                        .padding(8)
+//                        .frame(maxWidth: .infinity)
+//                        .background(Color.fromHex("004aad"))
+//                        .cornerRadius(10)
+//                        .padding(.horizontal)
+//                        .padding(.vertical, 5)
                     // 🟨 2. Then Circle Threads
                     VStack(alignment: .leading, spacing: 10) {
                         HStack {
@@ -114,18 +113,30 @@ struct PageGroupchats: View {
                                     .foregroundColor(.white)
                                     .clipShape(Circle())
                             }
+
+                            Spacer()
+
+                            Button(action: {
+                                showCreateThreadPopup = true
+                            }) {
+                                Image(systemName: "plus.circle.fill")
+                                    .font(.title2)
+                                    .foregroundColor(.blue)
+                            }
                         }
+
                         .padding(.horizontal)
                         
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 16) {
-                                ForEach(trendingThreads) { thread in
+                                ForEach(threads) { thread in
                                     ThreadCard(thread: thread)
                                         .frame(width: 280)
                                 }
                             }
                             .padding(.horizontal)
                         }
+
                     }
 
                     Divider().padding(.horizontal)
@@ -142,7 +153,7 @@ struct PageGroupchats: View {
                                             .padding(.horizontal)
 
                                         ForEach(categoryChannels) { channel in
-                                            NavigationLink(destination: PageCircleMessages(channel: channel)) {
+                                            NavigationLink(destination: PageCircleMessages(channel: channel, circleName: circle.name)) {
                                                 Text(channel.name)
                                                     .font(.subheadline)
                                                     .padding(.vertical, 6)
@@ -152,6 +163,7 @@ struct PageGroupchats: View {
                                                     .cornerRadius(12)
                                                     .padding(.horizontal)
                                             }
+
                                         }
 
                                         Divider().padding(.horizontal)
@@ -174,13 +186,44 @@ struct PageGroupchats: View {
 
                     Spacer()
                 }
+                .sheet(isPresented: $showCreateThreadPopup) {
+                    VStack(spacing: 16) {
+                        Text("New Thread")
+                            .font(.headline)
+                        TextEditor(text: $newThreadContent)
+                            .frame(height: 120)
+                            .padding()
+                            .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.gray))
+
+                        Button("Post") {
+                            postNewThread()
+                            showCreateThreadPopup = false
+                        }
+                        .padding()
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+
+                        Spacer()
+                    }
+                    .padding()
+                }
+
 
                 floatingButton
             }
         }
+        
+    
+
         .onAppear {
             fetchChannels(for: circle.id)
+            fetchThreads(for: circle.id)
             fetchMyCircles(userId: userId)
+            
+            
+            
+
             func fetchMyCircles(userId: Int) {
                 guard let url = URL(string: "https://circlapp.online/api/circles/my_circles/\(userId)/") else { return }
 
@@ -228,6 +271,54 @@ struct PageGroupchats: View {
             }
         }.resume()
     }
+    
+    
+    func postNewThread() {
+        guard let url = URL(string: "https://circlapp.online/api/circles/create_thread/") else { return }
+
+        let body: [String: Any] = [
+            "user_id": userId,
+            "circle_id": circle.id,
+            "content": newThreadContent
+        ]
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+
+        URLSession.shared.dataTask(with: request) { data, _, _ in
+            if let _ = data {
+                DispatchQueue.main.async {
+                    newThreadContent = ""
+                    fetchThreads(for: circle.id)
+                }
+            } else {
+                print("❌ Failed to post thread")
+            }
+        }.resume()
+    }
+
+    func fetchThreads(for circleId: Int) {
+        guard let url = URL(string: "https://circlapp.online/api/circles/get_threads/\(circleId)/") else { return }
+
+        URLSession.shared.dataTask(with: url) { data, _, _ in
+            if let data = data {
+                print("📥 Raw JSON:")
+                print(String(data: data, encoding: .utf8) ?? "nil")
+
+                if let decoded = try? JSONDecoder().decode([ThreadPost].self, from: data) {
+                    DispatchQueue.main.async {
+                        self.threads = decoded
+                    }
+                } else {
+                    print("❌ Failed to decode threads")
+                }
+            }
+        }.resume()
+    }
+
+
 
 
     var headerSection: some View {
@@ -334,8 +425,9 @@ struct PageGroupchats: View {
             }
 
             Button(action: {
-                withAnimation(.spring()) {
+                withAnimation(.easeInOut(duration: 0.4)) {
                     showMenu.toggle()
+                    rotationAngle += 360 // spin the logo
                 }
             }) {
                 ZStack {
@@ -343,21 +435,25 @@ struct PageGroupchats: View {
                         .fill(Color.fromHex("004aad"))
                         .frame(width: 60, height: 60)
 
-                    Image(systemName: "ellipsis")
-                        .rotationEffect(.degrees(90))
-                        .font(.system(size: 24, weight: .bold))
-                        .foregroundColor(.white)
+                    Image("CirclLogoButton")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 32, height: 32)
+                        .clipShape(Circle())
+                        .rotationEffect(.degrees(rotationAngle))
                 }
             }
             .shadow(radius: 4)
-            .padding(.bottom, -7)
+            .padding(.bottom, 3)
+            .offset(x: -15)
+
         }
     }
 }
 
 
 // MARK: - Thread Post Model
-struct ThreadPost: Identifiable {
+struct ThreadPost: Identifiable, Decodable {
     let id: Int
     let author: String
     let content: String

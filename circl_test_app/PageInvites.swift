@@ -332,6 +332,8 @@ struct PageInvites: View {
     @State private var showAlert = false
     @State private var alertMessage = ""
     @State private var showMenu = false
+    @State private var rotationAngle: Double = 0
+
     @State private var groupedMessages: [Int: [Message]] = [:]
     @State private var showChatPage: Bool = false
     @State private var selectedUser: NetworkUser? = nil
@@ -636,8 +638,9 @@ struct PageInvites: View {
                     }
 
                     Button(action: {
-                        withAnimation(.spring()) {
+                        withAnimation(.easeInOut(duration: 0.4)) {
                             showMenu.toggle()
+                            rotationAngle += 360 // spin the logo
                         }
                     }) {
                         ZStack {
@@ -645,14 +648,17 @@ struct PageInvites: View {
                                 .fill(Color.fromHex("004aad"))
                                 .frame(width: 60, height: 60)
 
-                            Image(systemName: "ellipsis")
-                                .rotationEffect(.degrees(90))
-                                .font(.system(size: 24, weight: .bold))
-                                .foregroundColor(.white)
+                            Image("CirclLogoButton")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 32, height: 32)
+                                .clipShape(Circle())
+                                .rotationEffect(.degrees(rotationAngle))
                         }
                     }
                     .shadow(radius: 4)
-                    .padding(.bottom, 18)
+                    .padding(.bottom, 19)
+
                     .zIndex(2)
                 }
                 .padding()

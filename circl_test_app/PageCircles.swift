@@ -17,6 +17,8 @@ struct APICircle: Identifiable, Decodable {
 struct PageCircles: View {
     @State private var searchText: String = ""
     @State private var showMenu = false
+    @State private var rotationAngle: Double = 0
+
     @State private var showCreateCircleSheet = false
     @State private var circleName: String = ""
     @State private var circleIndustry: String = ""
@@ -238,8 +240,9 @@ struct PageCircles: View {
                     }
 
                     Button(action: {
-                        withAnimation(.spring()) {
+                        withAnimation(.easeInOut(duration: 0.4)) {
                             showMenu.toggle()
+                            rotationAngle += 360 // spin the logo
                         }
                     }) {
                         ZStack {
@@ -247,14 +250,17 @@ struct PageCircles: View {
                                 .fill(Color.fromHex("004aad"))
                                 .frame(width: 60, height: 60)
 
-                            Image(systemName: "ellipsis")
-                                .rotationEffect(.degrees(90))
-                                .font(.system(size: 24, weight: .bold))
-                                .foregroundColor(.white)
+                            Image("CirclLogoButton")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 32, height: 32)
+                                .clipShape(Circle())
+                                .rotationEffect(.degrees(rotationAngle))
                         }
                     }
                     .shadow(radius: 4)
-                    .padding(.bottom, -7)
+                    .padding(.bottom, -15)
+
                 }
                 .sheet(isPresented: $showCreateCircleSheet) {
                     VStack(spacing: 16) {
