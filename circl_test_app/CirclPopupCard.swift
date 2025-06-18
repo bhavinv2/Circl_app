@@ -28,9 +28,13 @@ struct CirclPopupCard: View {
                 .frame(width: 100, height: 100)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
 
+            Image("CirclLogoButton")
+                .resizable()
+                .frame(width: 60, height: 60)
+                .clipShape(Circle())
+
             Text(circle.name)
-                .font(.title)
-                .fontWeight(.bold)
+
 
             Text("Industry: \(circle.industry)")
                 .font(.subheadline)

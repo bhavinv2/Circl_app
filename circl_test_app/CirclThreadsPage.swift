@@ -10,6 +10,7 @@ struct CircleThreadCommentModel: Identifiable, Codable {
 struct CirclThreadsPage: View {
     let circleId: Int
     let highlightedThreadId: Int?
+    @Environment(\.presentationMode) var presentationMode
 
     @AppStorage("user_id") var userId: Int = 0
     @State private var threadToDelete: ThreadPost? = nil
@@ -65,6 +66,34 @@ struct CirclThreadsPage: View {
                 .padding(.top, 15)
                 .padding(.bottom, 10)
                 .background(Color.fromHex("004aad"))
+                // Back button under the header
+                HStack {
+                    Button(action: {
+                        presentationMode.wrappedValue.dismiss()
+                    }) {
+                        HStack {
+                            Image(systemName: "chevron.left")
+                            Text("Back")
+                                .fontWeight(.semibold)
+                        }
+                        .foregroundColor(Color.fromHex("004aad"))
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 16)
+                        .background(Color.white)
+                        .cornerRadius(10)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10)
+                                .stroke(Color.fromHex("004aad"), lineWidth: 1.5)
+                        )
+                    }
+
+                    Spacer() // Push it left
+                }
+                .padding(.horizontal)
+          
+
+                .padding(.top, 12)
+
             }
 
             ScrollViewReader { proxy in
@@ -279,19 +308,26 @@ struct ThreadCardExpanded: View {
                     }
 
                     Button(action: onLikeTapped) {
-                        HStack(spacing: 4) {
+                        HStack(spacing: 6) {
                             Image(systemName: thread.liked_by_user ? "heart.fill" : "heart")
+                                .resizable()
+                                .frame(width: 20, height: 18)
                                 .foregroundColor(thread.liked_by_user ? .red : .gray)
                             Text("\(thread.likes)")
+                                .font(.system(size: 14, weight: .medium))
                         }
                     }
 
                     Button(action: onCommentTapped) {
-                        HStack(spacing: 4) {
+                        HStack(spacing: 6) {
                             Image(systemName: "bubble.right")
+                                .resizable()
+                                .frame(width: 20, height: 18)
                             Text("\(thread.comments)")
+                                .font(.system(size: 14, weight: .medium))
                         }
                     }
+
                 }
                 .font(.caption)
                 .foregroundColor(.gray)

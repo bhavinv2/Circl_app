@@ -127,6 +127,7 @@ struct PageMessages: View {
 
             .onAppear {
                 fetchNetworkUsers()
+           
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                     fetchMessages()
                 }
@@ -902,10 +903,27 @@ struct ChatView: View {
 
         HStack(alignment: .top) {
             if !isCurrentUser {
-                Image(systemName: "person.circle.fill")
-                    .resizable()
+                if let imageURL = user.profileImage, let url = URL(string: imageURL) {
+                    AsyncImage(url: url) { phase in
+                        if let image = phase.image {
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                        } else {
+                            Image("default_image")
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                        }
+                    }
                     .frame(width: 36, height: 36)
-                    .foregroundColor(.gray)
+                    .clipShape(Circle())
+                } else {
+                    Image("default_image")
+                        .resizable()
+                        .frame(width: 36, height: 36)
+                        .clipShape(Circle())
+                }
+
             }
 
             VStack(alignment: isCurrentUser ? .trailing : .leading, spacing: 4) {
@@ -952,12 +970,33 @@ struct ChatView: View {
             }
             .frame(maxWidth: UIScreen.main.bounds.width * 0.7, alignment: isCurrentUser ? .trailing : .leading)
 
-            if isCurrentUser {
-                Image(systemName: "person.circle.fill")
-                    .resizable()
-                    .frame(width: 36, height: 36)
-                    .foregroundColor(.gray)
-            }
+//            if isCurrentUser {
+//                if let imageURLString = UserDefaults.standard.string(forKey: "profile_image"),
+//                   !imageURLString.isEmpty,
+//                   imageURLString.lowercased() != "null",
+//                   let url = URL(string: imageURLString) {
+//
+//                    AsyncImage(url: url) { phase in
+//                        if let image = phase.image {
+//                            image
+//                                .resizable()
+//                                .aspectRatio(contentMode: .fill)
+//                        } else {
+//                            Image("default_image")
+//                                .resizable()
+//                                .aspectRatio(contentMode: .fill)
+//                        }
+//                    }
+//                    .frame(width: 36, height: 36)
+//                    .clipShape(Circle())
+//                } else {
+//                    Image("default_image")
+//                        .resizable()
+//                        .frame(width: 36, height: 36)
+//                        .clipShape(Circle())
+//                }
+//            }
+
         }
         .frame(maxWidth: .infinity, alignment: isCurrentUser ? .trailing : .leading)
     }

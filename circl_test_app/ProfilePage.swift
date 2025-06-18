@@ -712,6 +712,7 @@ struct ProfilePage: View {
                     DispatchQueue.main.async {
                         print("✅ Decoded:", decoded.full_name)
                         self.profileData = decoded
+                        
                         self.updatedBio = decoded.bio ?? ""
                         self.updatedPersonalityType = decoded.personality_type ?? ""
 //                        self.updatedEducationLevel = decoded.education_level ?? ""

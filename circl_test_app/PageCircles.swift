@@ -24,7 +24,8 @@ struct PageCircles: View {
     @State private var rotationAngle: Double = 0
     @State private var selectedCircleToOpen: CircleData? = nil
     @State private var triggerOpenGroupChat = false
-   
+    @State private var showAboutPopup = false
+
     @State private var showAddChannelPopup = false
     @State private var newChannelName = "#"
 
@@ -124,23 +125,56 @@ struct PageCircles: View {
                                     .foregroundColor(.blue)
                             }
                             
-                            if !searchText.isEmpty {
-                                let allCircles = exploreCircles + myCircles
-                                let filtered = allCircles.filter { $0.name.lowercased().contains(searchText.lowercased()) }
-
-                                ScrollView {
-                                    VStack(alignment: .leading, spacing: 8) {
-                                        ForEach(filtered) { circle in
-                                           
-                                        }
-                                    }
-                                    .padding(.horizontal)
-                                }
-                            }
+                           
 
 
                             
                         }
+                        // ▼︙ suggestions list – OUTSIDE the HStack
+                        if !searchText.isEmpty {
+                            // 1. Filter once
+                            let allCircles = exploreCircles + myCircles
+                            let filtered = allCircles.filter {
+                                $0.name.lowercased().contains(searchText.lowercased())
+                            }
+
+                            // 2. Show results
+                            ScrollView {
+                                VStack(alignment: .leading, spacing: 0) {
+                                    ForEach(filtered) { circle in
+                                        Button {
+                                            selectedCircleToOpen = circle
+                                            searchText = ""
+
+                                            let isMember = myCircles.contains(where: { $0.id == circle.id })
+                                            if isMember {
+                                                triggerOpenGroupChat = true
+                                            } else {
+                                                showAboutPopup = true
+                                            }
+                                        } label: {
+
+                                            HStack {
+                                                Text(circle.name)
+                                                    .foregroundColor(.primary)
+                                                Spacer()
+                                            }
+                                            .padding(.vertical, 10)
+                                            .padding(.horizontal, 16)
+                                        }
+
+                                        Divider()                     // thin separator
+                                    }
+                                }
+                            }
+                            .frame(maxHeight: 180)                   // keeps list compact
+                            .background(Color(.systemBackground))
+                            .cornerRadius(12)
+                            .shadow(radius: 4)
+                            .padding(.horizontal)
+                            .zIndex(1)                               // sit above other views
+                        }
+
 
                         Picker("View", selection: $showMyCircles) {
                             Text("Explore").tag(false)
@@ -189,6 +223,13 @@ struct PageCircles: View {
                                     }
                                 }
                                 .padding(.horizontal)
+                                if exploreCircles.isEmpty {
+                                    Text("No Circls? Create one!")
+                                        .foregroundColor(.gray)
+                                        .font(.headline)
+                                        .padding(.top, 40)
+                                }
+
 
 
 
@@ -287,78 +328,141 @@ struct PageCircles: View {
 
                 }
                 .sheet(isPresented: $showCreateCircleSheet) {
-                    VStack(spacing: 16) {
-                        Text("Create a Circl")
-                            .font(.title2)
-                            .bold()
+                    NavigationView {
+                        ScrollView {
+                            VStack(spacing: 24) {
+                                // Header
+                                VStack(spacing: 8) {
+                                    Image(systemName: "circle.grid.3x3.fill")
+                                        .font(.system(size: 40))
+                                        .foregroundColor(Color.fromHex("004aad"))
+                                    
+                                    Text("Create a New Circl")
+                                        .font(.title)
+                                        .fontWeight(.bold)
+                                    
+                                    Text("Build your community and connect with like-minded professionals")
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                        .multilineTextAlignment(.center)
+                                        .padding(.horizontal)
+                                }
+                                .padding(.top)
 
-                        TextField("Circle Name", text: $circleName)
-                            .padding()
-                            .background(Color(.systemGray6))
-                            .cornerRadius(10)
+                                // Name
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Label("Circl Name", systemImage: "textformat")
+                                        .font(.headline)
+                                    TextField("Enter your circl name", text: $circleName)
+                                        .padding()
+                                        .background(Color(.systemGray6))
+                                        .cornerRadius(12)
+                                }
 
-                        TextField("Industry", text: $circleIndustry)
-                            .padding()
-                            .background(Color(.systemGray6))
-                            .cornerRadius(10)
-                        
-                        TextField("About", text: $circleDescription)
-                            .padding()
-                            .background(Color(.systemGray6))
-                            .cornerRadius(10)
+                                // Industry
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Label("Industry", systemImage: "building.2")
+                                        .font(.headline)
+                                    TextField("e.g., Tech, Finance", text: $circleIndustry)
+                                        .padding()
+                                        .background(Color(.systemGray6))
+                                        .cornerRadius(12)
+                                }
 
+                                // Description
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Label("Description", systemImage: "text.alignleft")
+                                        .font(.headline)
+                                    ZStack(alignment: .topLeading) {
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .fill(Color(.systemBackground))
+                                            .frame(height: 100)
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 12)
+                                                    .stroke(Color.fromHex("004aad").opacity(0.3), lineWidth: 1)
+                                            )
+                                        if circleDescription.isEmpty {
+                                            Text("Describe your circl's purpose...")
+                                                .foregroundColor(.secondary)
+                                                .padding(.horizontal, 12)
+                                                .padding(.top, 8)
+                                        }
+                                        TextEditor(text: $circleDescription)
+                                            .padding(8)
+                                    }
+                                }
 
-                    
+                            
 
-                        
-
-
-                        Divider()
-
-                        // ✅ Channel Selector Here
-                        HStack {
-                            Text("Select Channels")
-                                .font(.headline)
-
-                        }
-
-
-                        ForEach(allChannelOptions, id: \.self) { channel in
-                            if channel == "#Welcome" {
-                                Toggle(channel, isOn: .constant(true))
-                                    .disabled(true) // 🔒 Always selected
-                                    .foregroundColor(.gray)
-                            } else {
-                                Toggle(channel, isOn: Binding(
-                                    get: { selectedChannels.contains(channel) },
-                                    set: { isSelected in
-                                        if isSelected {
-                                            selectedChannels.append(channel)
+                                // Channels
+                                VStack(alignment: .leading, spacing: 12) {
+                                    Label("Select Channels", systemImage: "number")
+                                        .font(.headline)
+                                    
+                                    ForEach(allChannelOptions, id: \.self) { channel in
+                                        if channel == "#Welcome" {
+                                            HStack {
+                                                Image(systemName: "checkmark.circle.fill")
+                                                    .foregroundColor(.green)
+                                                Text(channel)
+                                                Spacer()
+                                                Text("Required")
+                                                    .font(.caption)
+                                                    .padding(6)
+                                                    .background(Color.green.opacity(0.2))
+                                                    .cornerRadius(6)
+                                            }
+                                            .padding()
+                                            .background(Color.green.opacity(0.1))
+                                            .cornerRadius(10)
                                         } else {
-                                            selectedChannels.removeAll { $0 == channel }
+                                            Toggle(channel, isOn: Binding(
+                                                get: { selectedChannels.contains(channel) },
+                                                set: { isSelected in
+                                                    if isSelected {
+                                                        selectedChannels.append(channel)
+                                                    } else {
+                                                        selectedChannels.removeAll { $0 == channel }
+                                                    }
+                                                }
+                                            ))
+                                            .toggleStyle(SwitchToggleStyle(tint: Color.fromHex("004aad")))
                                         }
                                     }
-                                ))
+                                }
+
+                                // Create Button
+                                Button(action: {
+                                    createCircle()
+                                }) {
+                                    HStack {
+                                        Image(systemName: "plus.circle.fill")
+                                        Text("Create Circl")
+                                            .fontWeight(.semibold)
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(Color.fromHex("004aad"))
+                                    .foregroundColor(.white)
+                                    .cornerRadius(12)
+                                }
+                                .padding(.top, 16)
+                            }
+                            .padding()
+                        }
+                        .navigationBarTitleDisplayMode(.inline)
+                        .toolbar {
+                            ToolbarItem(placement: .navigationBarLeading) {
+                                Button("Cancel") {
+                                    showCreateCircleSheet = false
+                                }
+                                .foregroundColor(Color.fromHex("004aad"))
                             }
                         }
-
-
-                        Spacer()
-
-                        Button(action: {
-                            createCircle()
-                        }) {
-                            Text("Create Circl")
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.green)
-                                .foregroundColor(.white)
-                                .cornerRadius(12)
-                        }
                     }
-                    .padding()
+                    .presentationDetents([.large])
                 }
-                
+
                 
                 
 
@@ -369,6 +473,9 @@ struct PageCircles: View {
                 .onAppear { loadCircles() }
                 .onAppear {
                     loadCircles()
+                    
+                    
+                
                 }
                 .onChange(of: showMyCircles) { newValue in
                     print("🔄 showMyCircles changed:", newValue)
@@ -403,6 +510,27 @@ struct PageCircles: View {
         ) {
             EmptyView()
         }
+        .sheet(isPresented: $showAboutPopup) {
+            if let circle = selectedCircleToOpen {
+                NavigationView {
+                    CirclPopupCard(
+                        circle: circle,
+                        isMember: myCircles.contains(where: { $0.id == circle.id }),
+                        onJoinPressed: {
+                            joinCircleAndOpen(circle: circle)
+                            showAboutPopup = false
+                        },
+                        onOpenCircle: {
+                            selectedCircleToOpen = circle
+                            triggerOpenGroupChat = true
+                            showAboutPopup = false
+                        }
+                    )
+                    .navigationBarHidden(true)
+                }
+            }
+        }
+
 
     }
 
@@ -716,11 +844,21 @@ struct CircleCardView: View {
     var isMember: Bool = false
     var body: some View {
         HStack(alignment: .center, spacing: 12) {
-            Image(circle.imageName)
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-                .frame(width: 80, height: 80)
-                .clipShape(RoundedRectangle(cornerRadius: 8))
+            ZStack {
+                Image("CirclLogoButton") // Your blue circle logo
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 80, height: 80)
+                    .clipShape(Circle())
+                    .opacity(0.15)
+
+                Image(circle.imageName)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 80, height: 80)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+            }
+
 
             VStack(alignment: .leading, spacing: 6) {
                 HStack {

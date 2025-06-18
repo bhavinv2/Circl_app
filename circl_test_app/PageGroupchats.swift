@@ -601,11 +601,11 @@ struct PageGroupchats: View {
 
         URLSession.shared.dataTask(with: request) { data, response, error in
             DispatchQueue.main.async {
-                // Optional: navigate back or reload UI
-                presentationMode.wrappedValue.dismiss()
+                navigateBackToCircles = true  // 👈 Navigate explicitly
             }
         }.resume()
     }
+
     
     func deleteCircle() {
         guard let url = URL(string: "https://circlapp.online/api/circles/delete_circle/") else { return }
@@ -697,7 +697,19 @@ struct PageGroupchats: View {
     }
 
     private var floatingButton: some View {
-        VStack(alignment: .trailing, spacing: 8) {
+        ZStack {
+            // Background tap to dismiss
+            if showMenu {
+                Color.black.opacity(0.001)
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        withAnimation {
+                            showMenu = false
+                        }
+                    }
+            }
+
+            // Menu (top-right corner)
             if showMenu {
                 VStack(alignment: .leading, spacing: 0) {
                     Text("Welcome to your resources")
@@ -726,18 +738,9 @@ struct PageGroupchats: View {
                         MenuItem(icon: "envelope.fill", title: "Messages")
                     }
 
-//                    NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
-//                        MenuItem(icon: "newspaper.fill", title: "News & Knowledge")
-//                    }
-//
-//                    NavigationLink(destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true)) {
-//                        MenuItem(icon: "dollarsign.circle.fill", title: "The Circl Exchange")
-//                    }
-
                     Divider()
 
-                    NavigationLink(destination: PageGroupchatsWrapper().navigationBarBackButtonHidden(true))
-{
+                    NavigationLink(destination: PageGroupchatsWrapper().navigationBarBackButtonHidden(true)) {
                         MenuItem(icon: "circle.grid.2x2.fill", title: "Circles")
                     }
                 }
@@ -745,36 +748,49 @@ struct PageGroupchats: View {
                 .cornerRadius(12)
                 .shadow(radius: 5)
                 .frame(width: 250)
-                .transition(.scale.combined(with: .opacity))
-                .contentShape(Rectangle()) // 👈 absorbs taps inside the menu
-                .onTapGesture {}           // 👈 prevents menu from closing on self tap
+                .padding(.trailing, 20)
+                .offset(x: 65, y: 125) // 👈 adjust as needed
+
+                .alignmentGuide(.bottom) { d in d[.bottom] }
+                .alignmentGuide(.trailing) { d in d[.trailing] }
+
+              
+                .onTapGesture {} // Don’t dismiss if tapping inside menu
             }
 
-            Button(action: {
-                withAnimation(.easeInOut(duration: 0.4)) {
-                    showMenu.toggle()
-                    rotationAngle += 360 // spin the logo
-                }
-            }) {
-                ZStack {
-                    Circle()
-                        .fill(Color.fromHex("004aad"))
-                        .frame(width: 60, height: 60)
+            // Stationary Button (bottom-right)
+            VStack {
+                Spacer()
+                HStack {
+                    Spacer()
+                    Button(action: {
+                        withAnimation(.easeInOut(duration: 0.4)) {
+                            showMenu.toggle()
+                            rotationAngle += 360
+                        }
+                    }) {
+                        ZStack {
+                            Circle()
+                                .fill(Color.fromHex("004aad"))
+                                .frame(width: 60, height: 60)
 
-                    Image("CirclLogoButton")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 32, height: 32)
-                        .clipShape(Circle())
-                        .rotationEffect(.degrees(rotationAngle))
+                            Image("CirclLogoButton")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 32, height: 32)
+                                .clipShape(Circle())
+                                .rotationEffect(.degrees(rotationAngle))
+                        }
+                    }
+                    .shadow(radius: 4)
+                    .padding(.trailing, 20)
+                    .padding(.bottom, 2)
                 }
             }
-            .shadow(radius: 4)
-            .padding(.bottom, 3)
-            .offset(x: -15)
-
         }
     }
+
+
 }
 
 
@@ -937,7 +953,43 @@ struct PageGroupchatsWrapper: View {
                 ProgressView()
             } else if myCircles.isEmpty {
                 VStack(spacing: 0) {
-                    CirclHeader()
+                    VStack(spacing: 0) {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 5) {
+                                NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
+                                    Text("Circl.")
+                                        .font(.largeTitle)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(.white)
+                                }
+                            }
+
+                            Spacer()
+
+                            VStack(alignment: .trailing, spacing: 5) {
+                                HStack(spacing: 10) {
+                                    NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
+                                        Image(systemName: "bubble.left.and.bubble.right.fill")
+                                            .resizable()
+                                            .frame(width: 50, height: 40)
+                                            .foregroundColor(.white)
+                                    }
+
+                                    NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
+                                        Image(systemName: "person.circle.fill")
+                                            .resizable()
+                                            .frame(width: 50, height: 50)
+                                            .foregroundColor(.white)
+                                    }
+                                }
+                            }
+                        }
+                        .padding(.horizontal)
+                        .padding(.top, 15)
+                        .padding(.bottom, 10)
+                        .background(Color.fromHex("004aad"))
+                    }
+
 
                     Spacer()
 

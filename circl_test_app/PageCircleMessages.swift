@@ -12,6 +12,10 @@ struct PageCircleMessages: View {
         let profile_image: String?
         let user_id: Int
     }
+    @State private var allMyCircles: [CircleData] = []
+    @State private var showAboutCirclePopup = false
+    @State private var isMember = true
+
     @State private var navigateToMembers = false
     @State private var navigateBackToCircles = false
 
@@ -56,7 +60,7 @@ struct PageCircleMessages: View {
 
             // Tap-out background
             if showMenu || showCircleMenu || showCategoryMenu {
-                Color.black.opacity(0.3)
+                Color.black.opacity(0.001) // Touch-catcher
                     .edgesIgnoringSafeArea(.all)
                     .onTapGesture {
                         withAnimation {
@@ -67,6 +71,7 @@ struct PageCircleMessages: View {
                     }
                     .zIndex(1)
             }
+
 
             if showCircleMenu {
                 circleMenu
@@ -119,6 +124,25 @@ struct PageCircleMessages: View {
         }
 
         
+        .sheet(isPresented: $showAboutCirclePopup) {
+            CirclPopupCard(
+                circle: CircleData(
+                    id: channel.circleId,
+                    name: circleName,
+                    industry: "Unknown",
+                    memberCount: members.count,
+                    imageName: "uhmarketing",
+                    pricing: "Free",
+                    description: "No description available.",
+                    joinType: .joinNow,
+                    channels: allChannelsInCircle.map { $0.name },
+                    creatorId: 0,
+                    isModerator: false
+                ),
+                isMember: isMember // ✅ pass the value
+            )
+        }
+
 
     }
     
@@ -131,30 +155,26 @@ struct PageCircleMessages: View {
                 Button(action: {
                     presentationMode.wrappedValue.dismiss()
                 }) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "chevron.left")
-                            .foregroundColor(.white)
-                        Text("Back")
-                            .foregroundColor(.white)
-                            .font(.subheadline)
-                    }
+                    Image(systemName: "chevron.left")
+                        .foregroundColor(.white)
+                        .font(.title3)
                 }
 
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: 4) {
-                        Text(circleName)
 
 
+                HStack(spacing: 12) {
+                    // Circl Name + Dropdown
+                    Button(action: {
+                        withAnimation(.spring()) {
+                            closeOtherMenus(except: &showCircleMenu)
+                        }
+                    }) {
+                        HStack(spacing: 4) {
+                            Text(circleName)
+                                .font(.title3)
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
 
-                            .font(.title2)
-                            .fontWeight(.bold)
-                            .foregroundColor(.white)
-
-                        Button(action: {
-                            withAnimation(.spring()) {
-                                closeOtherMenus(except: &showCircleMenu)
-                            }
-                        }) {
                             Image(systemName: "chevron.down")
                                 .font(.subheadline)
                                 .foregroundColor(.white)
@@ -162,64 +182,55 @@ struct PageCircleMessages: View {
                         }
                     }
 
-                    HStack(spacing: 4) {
-                        Button(action: {
-                            withAnimation(.spring()) {
-                                closeOtherMenus(except: &showCategoryMenu)
-                            }
-                        }) {
-                            HStack(spacing: 6) {
-                                Text(currentChannel.name)
-
-                                    .font(.subheadline)
-                                    .padding(.horizontal, 10)
-                                    .padding(.vertical, 6)
-                                    .background(Color(.systemGray5))
-                                    .foregroundColor(.black)
-                                    .cornerRadius(15)
-
-                                Image(systemName: "chevron.down")
-                                    .font(.caption)
-                                    .foregroundColor(.white)
-                                    .rotationEffect(.degrees(showCategoryMenu ? 180 : 0))
-                            }
+                    // Channel Name + Dropdown
+                    Button(action: {
+                        withAnimation(.spring()) {
+                            closeOtherMenus(except: &showCategoryMenu)
                         }
-                        .buttonStyle(PlainButtonStyle()) // ✅ Optional: prevent highlight
+                    }) {
+                        HStack(spacing: 6) {
+                            Text(currentChannel.name)
+                                .font(.caption)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Color(.systemGray5))
+                                .foregroundColor(.black)
+                                .cornerRadius(12)
+
+
+                            Image(systemName: "chevron.down")
+                                .font(.caption)
+                                .foregroundColor(.white)
+                                .rotationEffect(.degrees(showCategoryMenu ? 180 : 0))
+                        }
                     }
+                    .buttonStyle(PlainButtonStyle())
 
-
-//                    HStack(spacing: 6) {
-//                        Text("\(members.count) members • Online now:")
-//                            .font(.subheadline)
-//                            .foregroundColor(.white.opacity(0.85))
-//
-//
-//                        Circle()
-//                            .fill(Color.green)
-//                            .frame(width: 8, height: 8)
-//
-//                        Text("status otw")
-//                            .font(.subheadline)
-//                            .foregroundColor(.white.opacity(0.85))
-//                    }
+                    Spacer()
                 }
+                .padding(.leading, 33)
+
 
                 Spacer()
 
                 Button(action: {
-                    withAnimation(.spring()) {
-                        closeOtherMenus(except: &showMenu)
+                    withAnimation(.easeInOut(duration: 0.4)) {
+                        showMenu.toggle()
+                        rotationAngle += 360 // spin the logo
                     }
                 }) {
-                    Image(systemName: "hammer.fill")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 24, height: 24)
-                        .foregroundColor(Color.fromHex("004aad"))
-                        .padding(12)
-                        .background(Color.white)
-                        .clipShape(Circle())
-                        .shadow(radius: 4)
+                    ZStack {
+                        Circle()
+                            .fill(Color.fromHex("004aad"))
+                            .frame(width: 60, height: 60)
+
+                        Image("CirclLogoButton")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 32, height: 32)
+                            .clipShape(Circle())
+                            .rotationEffect(.degrees(rotationAngle))
+                    }
                 }
             }
             .padding(.top, 1)
@@ -354,8 +365,14 @@ struct PageCircleMessages: View {
     // MARK: - Circle Menu
     private var circleMenu: some View {
         VStack(alignment: .leading, spacing: 0) {
-            GroupMenuItem(icon: "info.circle.fill", title: "About This Circle")
-            GroupMenuItem(icon: "person.crop.circle.badge.plus", title: "Invite Network")
+            Button(action: {
+                showAboutCirclePopup = true
+            }) {
+                GroupMenuItem(icon: "info.circle.fill", title: "About This Circle")
+            }
+            .buttonStyle(PlainButtonStyle())
+
+            
             Button(action: {
                 navigateToMembers = true
             }) {
@@ -374,10 +391,6 @@ struct PageCircleMessages: View {
             }
             .buttonStyle(PlainButtonStyle())
 
-
-            GroupMenuItem(icon: "pin.fill", title: "Pinned Messages")
-            GroupMenuItem(icon: "folder.fill", title: "Group Files")
-            GroupMenuItem(icon: "bell.fill", title: "Notification Settings")
 
             Divider()
 
@@ -441,7 +454,8 @@ struct PageCircleMessages: View {
 //                MenuItem(icon: "dollarsign.circle.fill", title: "The Circl Exchange")
 //            }
             Divider()
-            NavigationLink(destination: PageCircles().navigationBarBackButtonHidden(true)) {
+            NavigationLink(destination: PageGroupchatsWrapper().navigationBarBackButtonHidden(true))
+{
                 MenuItem(icon: "circle.grid.2x2.fill", title: "Circles")
             }
         }
@@ -608,11 +622,12 @@ struct RawChatMessage: Decodable {
 }
 
 extension PageCircleMessages {
-    static let dateFormatter: DateFormatter = {
-        let df = DateFormatter()
-        df.dateFormat = "yyyy-MM-dd HH:mm" // match your backend format
-        return df
+    static let dateFormatter: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter
     }()
+
 }
 
 
@@ -698,6 +713,7 @@ struct MenuItem3: View {
         HStack {
             Image(systemName: icon)
                 .foregroundColor(Color.fromHex("004aad"))
+            
                 .frame(width: 24)
             Text(title)
                 .foregroundColor(.primary)
