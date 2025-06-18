@@ -4,6 +4,7 @@ struct PageCircleMessages: View {
     let channel: Channel
     let circleName: String
     @Environment(\.presentationMode) var presentationMode
+    @Environment(\.colorScheme) var colorScheme // Auto-detect dark/light mode
     @State private var allChannelsInCircle: [Channel] = []
     @State private var showMembersPopup = false
     struct Member: Identifiable, Decodable, Hashable {
@@ -98,7 +99,7 @@ struct PageCircleMessages: View {
         }
 
 
-        .background(Color.white.edgesIgnoringSafeArea(.all))
+        .background(Color(UIColor.systemBackground).edgesIgnoringSafeArea(.all))
         .navigationBarBackButtonHidden(true)
         .onAppear {
             fetchMessages()
@@ -255,7 +256,10 @@ struct PageCircleMessages: View {
             .padding(.bottom, 16)
             .background(
                 LinearGradient(
-                    colors: [Color.fromHex("004aad"), Color.fromHex("0052cc")],
+                    colors: [
+                        Color.fromHex("004aad"), 
+                        Color.fromHex("0052cc")
+                    ],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 )
@@ -284,7 +288,7 @@ struct PageCircleMessages: View {
                 }
             }
         }
-        .background(Color.white)
+        .background(Color(UIColor.systemBackground))
     }
     func fetchMembers() {
         guard let url = URL(string: "https://circlapp.online/api/circles/members/\(channel.circleId)/") else { return }
