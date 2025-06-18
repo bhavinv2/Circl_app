@@ -233,12 +233,12 @@ struct PageEntrepreneurMatching: View {
                         NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
                             MenuItem(icon: "envelope.fill", title: "Messages")
                         }
-                        NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
-                            MenuItem(icon: "newspaper.fill", title: "News & Knowledge")
-                        }
-                        NavigationLink(destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true)) {
-                            MenuItem(icon: "person.3.fill", title: "The Circl Exchange")
-                        }
+//                        NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
+//                            MenuItem(icon: "newspaper.fill", title: "News & Knowledge")
+//                        }
+//                        NavigationLink(destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true)) {
+//                            MenuItem(icon: "person.3.fill", title: "The Circl Exchange")
+//                        }
 
                         Divider()
 
@@ -274,7 +274,7 @@ struct PageEntrepreneurMatching: View {
                     }
                 }
                 .shadow(radius: 4)
-                .padding(.bottom, 19)
+                .padding(.bottom, 35)
 
             }
             .padding(.trailing, 20)

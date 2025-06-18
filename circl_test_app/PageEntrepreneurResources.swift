@@ -116,12 +116,12 @@ struct PageEntrepreneurResources: View {
                             NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
                                 MenuItem(icon: "envelope.fill", title: "Messages")
                             }
-                            NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
-                                MenuItem(icon: "newspaper.fill", title: "News & Knowledge")
-                            }
-                            NavigationLink(destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true)) {
-                                MenuItem(icon: "dollarsign.circle.fill", title: "The Circl Exchange")
-                            }
+//                            NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
+//                                MenuItem(icon: "newspaper.fill", title: "News & Knowledge")
+//                            }
+//                            NavigationLink(destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true)) {
+//                                MenuItem(icon: "dollarsign.circle.fill", title: "The Circl Exchange")
+//                            }
 
                             Divider()
 
@@ -161,6 +161,7 @@ struct PageEntrepreneurResources: View {
                     }
                     .shadow(radius: 4)
                     .padding(.bottom, -12)
+                    .padding(.trailing, 8)
                     .zIndex(2) // make sure it's above the clear tap layer
 
                 }

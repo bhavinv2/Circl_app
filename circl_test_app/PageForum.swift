@@ -707,12 +707,12 @@ struct PageForum: View {
                                                             NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
                                                                 MenuItem(icon: "envelope.fill", title: "Messages")
                                                             }
-                                                            NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
-                                                                MenuItem(icon: "newspaper.fill", title: "News & Knowledge")
-                                                            }
-                                                            NavigationLink(destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true)) {
-                                                                MenuItem(icon: "dollarsign.circle.fill", title: "The Circl Exchange")
-                                                            }
+//                                                            NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
+//                                                                MenuItem(icon: "newspaper.fill", title: "News & Knowledge")
+//                                                            }
+//                                                            NavigationLink(destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true)) {
+//                                                                MenuItem(icon: "dollarsign.circle.fill", title: "The Circl Exchange")
+//                                                            }
 
                                                             Divider()
 
@@ -755,7 +755,8 @@ struct PageForum: View {
                             }
                         }
                         .shadow(radius: 4)
-                        .padding(.bottom, -10)
+                        .padding(.bottom, -30)
+                        .padding(.trailing, -10)
                         .zIndex(3) // always tappable
                     }
                     .padding()

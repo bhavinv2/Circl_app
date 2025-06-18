@@ -84,11 +84,12 @@ struct PageCircleMessages: View {
             }
         }
         NavigationLink(
-            destination: MemberListPage(circleName: circleName, circleId: channel.circleId),
+            destination: MemberListPage(circleName: circleName, circleId: channel.circleId, isModerator: false),
             isActive: $navigateToMembers
         ) {
             EmptyView()
         }
+
         
         NavigationLink(
             destination: PageCircles().navigationBarBackButtonHidden(true),
@@ -187,20 +188,20 @@ struct PageCircleMessages: View {
                     }
 
 
-                    HStack(spacing: 6) {
-                        Text("\(members.count) members • Online now:")
-                            .font(.subheadline)
-                            .foregroundColor(.white.opacity(0.85))
-
-
-                        Circle()
-                            .fill(Color.green)
-                            .frame(width: 8, height: 8)
-
-                        Text("status otw")
-                            .font(.subheadline)
-                            .foregroundColor(.white.opacity(0.85))
-                    }
+//                    HStack(spacing: 6) {
+//                        Text("\(members.count) members • Online now:")
+//                            .font(.subheadline)
+//                            .foregroundColor(.white.opacity(0.85))
+//
+//
+//                        Circle()
+//                            .fill(Color.green)
+//                            .frame(width: 8, height: 8)
+//
+//                        Text("status otw")
+//                            .font(.subheadline)
+//                            .foregroundColor(.white.opacity(0.85))
+//                    }
                 }
 
                 Spacer()
@@ -433,12 +434,12 @@ struct PageCircleMessages: View {
             NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
                 MenuItem(icon: "envelope.fill", title: "Messages")
             }
-            NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
-                MenuItem(icon: "newspaper.fill", title: "News & Knowledge")
-            }
-            NavigationLink(destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true)) {
-                MenuItem(icon: "dollarsign.circle.fill", title: "The Circl Exchange")
-            }
+//            NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
+//                MenuItem(icon: "newspaper.fill", title: "News & Knowledge")
+//            }
+//            NavigationLink(destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true)) {
+//                MenuItem(icon: "dollarsign.circle.fill", title: "The Circl Exchange")
+//            }
             Divider()
             NavigationLink(destination: PageCircles().navigationBarBackButtonHidden(true)) {
                 MenuItem(icon: "circle.grid.2x2.fill", title: "Circles")

@@ -1,8 +1,10 @@
 import SwiftUI
+
 struct MessageChannel: Identifiable, Codable, Hashable {
     let id: Int
     let name: String
     let circle_id: Int
+    
 }
 
 
@@ -10,6 +12,9 @@ struct PageGroupchats: View {
     @State private var showSettingsMenu = false
     @State private var showLeaveConfirmation = false
     @State private var navigateToMembers = false
+    @State private var navigateBackToCircles = false
+    @State private var navigateToManageUsers = false
+    @State private var navigateToManageChannels = false
 
     let circle: CircleData
     
@@ -17,7 +22,7 @@ struct PageGroupchats: View {
     @State private var deleteInputText = ""
 
     @State private var myCircles: [CircleData] = []
-
+    @State private var navigateToPageCircles = false
     @Environment(\.presentationMode) var presentationMode
     @AppStorage("user_id") private var userId: Int = 0
     @State private var loading = true
@@ -30,6 +35,8 @@ struct PageGroupchats: View {
     }
 
 
+    @State private var selectedThreadId: Int? = nil
+    @State private var goToThreadPage = false
 
    
     @State private var selectedGroup: String
@@ -108,21 +115,23 @@ struct PageGroupchats: View {
 
 
                         // Moderator label row (centered)
-                        HStack(spacing: 6) {
-                            if userId == circle.creatorId {
+                        // Moderator label row (centered)
+                        if circle.isModerator {
+                            HStack {
                                 Spacer()
-                                Text("You are a moderator for this Circl")
+                                Text("You are an admin for this Circl")
                                     .font(.footnote)
-                                    .foregroundColor(.gray)
-
-                                
-                                Spacer()
-                            } else {
+                                    .foregroundColor(.green)
                                 Spacer()
                             }
+                            .frame(height: 20)
+                            .padding(.bottom, 16)
                         }
-                        .frame(height: 20)
-                        .padding(.bottom, 16)
+                        else {
+                            Spacer().frame(height: 16) // ✅ adds same bottom padding when no admin label
+                        }
+
+
                     }
                     .padding(.top, 10)
 
@@ -142,7 +151,7 @@ struct PageGroupchats: View {
                     // 🟨 2. Then Circle Threads
                     VStack(alignment: .leading, spacing: 10) {
                         HStack {
-                            Text("Circle Threads")
+                            Text("Circl Threads")
                                 .font(.title3)
                                 .fontWeight(.bold)
 
@@ -164,9 +173,25 @@ struct PageGroupchats: View {
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 16) {
                                 ForEach(threads) { thread in
-                                    ThreadCard(thread: thread)
-                                        .frame(width: 280)
+                                    ThreadCard(
+                                        thread: thread,
+                                        onLikeTapped: {
+                                            likeThread(threadId: thread.id)
+                                        },
+                                        onCommentTapped: {
+                                            selectedThreadId = thread.id
+                                            goToThreadPage = true
+                                        }
+                                    )
+                                    .onTapGesture {
+                                        selectedThreadId = thread.id
+                                        goToThreadPage = true
+                                    }
+
+                                    .frame(width: 280)
                                 }
+
+
                             }
                             .padding(.horizontal)
                         }
@@ -181,24 +206,32 @@ struct PageGroupchats: View {
                             if !channels.isEmpty {
                                 ForEach(groupedChannels.keys.sorted(), id: \.self) { category in
                                     if let categoryChannels = groupedChannels[category] {
-                                        Text(category)
+                                        Text("Circl Channels")
                                             .font(.title3)
                                             .fontWeight(.bold)
                                             .padding(.horizontal)
 
+
                                         ForEach(categoryChannels) { channel in
                                             NavigationLink(destination: PageCircleMessages(channel: channel, circleName: circle.name)) {
-                                                Text(channel.name)
-                                                    .font(.subheadline)
-                                                    .padding(.vertical, 6)
-                                                    .padding(.horizontal, 12)
-                                                    .background(Color.fromHex("004aad").opacity(0.1))
-                                                    .foregroundColor(Color.fromHex("004aad"))
-                                                    .cornerRadius(12)
-                                                    .padding(.horizontal)
-                                            }
+                                                HStack {
+                                                    Text(channel.name)
+                                                        .font(.subheadline)
+                                                        .foregroundColor(Color.fromHex("004aad"))
 
+                                                    Spacer()
+
+                                                    Image(systemName: "chevron.right")
+                                                        .foregroundColor(.blue)
+                                                }
+                                                .padding(.vertical, 6)
+                                                .padding(.horizontal, 12)
+                                                .background(Color.fromHex("004aad").opacity(0.1))
+                                                .cornerRadius(12)
+                                                .padding(.horizontal)
+                                            }
                                         }
+
 
                                         Divider().padding(.horizontal)
                                     }
@@ -220,6 +253,13 @@ struct PageGroupchats: View {
 
                     Spacer()
                 }
+                NavigationLink(
+                    destination: CirclThreadsPage(circleId: circle.id, highlightedThreadId: selectedThreadId),
+                    isActive: $goToThreadPage
+                ) {
+                    EmptyView()
+                }
+
                 .sheet(isPresented: $showCreateThreadPopup) {
                     VStack(spacing: 16) {
                         Text("New Thread")
@@ -311,10 +351,10 @@ struct PageGroupchats: View {
                             }
                             .buttonStyle(PlainButtonStyle())
 
-                            if userId == circle.creatorId {
+                            if circle.isModerator {
                                 Divider()
 
-                                Text("Moderator Options")
+                                Text("Admin Options")
                                     .font(.footnote)
                                     .foregroundColor(.gray)
                                     .padding(.horizontal)
@@ -329,6 +369,22 @@ struct PageGroupchats: View {
                                     GroupMenuItem(icon: "trash.fill", title: "Delete Circle", isDestructive: true)
                                 }
                                 .buttonStyle(PlainButtonStyle())
+                                Button(action: {
+                                    navigateToManageUsers = true
+                                    showSettingsMenu = false
+                                }) {
+                                    GroupMenuItem(icon: "person.crop.circle.badge.minus", title: "Manage Users")
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                                Button(action: {
+                                    navigateToManageChannels = true
+                                    showSettingsMenu = false
+                                }) {
+                                    GroupMenuItem(icon: "slider.horizontal.3", title: "Manage Channels")
+                                }
+                                .buttonStyle(PlainButtonStyle())
+
+
 
                             }
 
@@ -356,11 +412,34 @@ struct PageGroupchats: View {
         }
         
         NavigationLink(
-            destination: MemberListPage(circleName: circle.name, circleId: circle.id),
+            destination: MemberListPage(circleName: circle.name, circleId: circle.id, isModerator: false),
             isActive: $navigateToMembers
         ) {
             EmptyView()
         }
+
+
+
+
+
+        NavigationLink(destination: PageCircles().navigationBarBackButtonHidden(true), isActive: $navigateBackToCircles) {
+            EmptyView()
+        }
+        NavigationLink(
+            destination: MemberListPage(circleName: circle.name, circleId: circle.id, isModerator: true),
+            isActive: $navigateToManageUsers
+        ) {
+            EmptyView()
+        }
+        NavigationLink(
+            destination: ManageChannelsPage(circleId: circle.id),
+            isActive: $navigateToManageChannels
+        ) {
+            EmptyView()
+        }
+
+
+
         .alert("Leave Circle?", isPresented: $showLeaveConfirmation) {
             Button("Leave", role: .destructive) {
                 leaveCircle()
@@ -409,13 +488,16 @@ struct PageGroupchats: View {
                                         id: $0.id,
                                         name: $0.name,
                                         industry: $0.industry,
-                                        members: "1k+", // Or fetch real member data later
+                                        memberCount: $0.member_count ?? 0, // ✅ match new CircleData model
+ // Or fetch real member data later
                                         imageName: "uhmarketing", // Or map image later
                                         pricing: $0.pricing,
                                         description: $0.description,
                                         joinType: $0.join_type == "apply_now" ? .applyNow : .joinNow,
                                         channels: $0.channels ?? [],
-                                        creatorId: $0.creator_id
+                                        creatorId: $0.creator_id,
+                                        isModerator: $0.is_moderator ?? false
+
                                     )
                                 }
                             }
@@ -427,6 +509,32 @@ struct PageGroupchats: View {
             }
 
         }
+    }
+    func likeThread(threadId: Int) {
+        guard let url = URL(string: "https://circlapp.online/api/circles/toggle_like/") else { return }
+
+        let body: [String: Any] = [
+            "user_id": userId,
+            "thread_id": threadId
+        ]
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+
+        URLSession.shared.dataTask(with: request) { data, _, _ in
+            if let data = data,
+               let response = try? JSONDecoder().decode([String: Int].self, from: data),
+               let updatedLikes = response["likes"] {
+                DispatchQueue.main.async {
+                    if let index = threads.firstIndex(where: { $0.id == threadId }) {
+                        threads[index].likes = updatedLikes
+                        threads[index].liked_by_user.toggle()
+                    }
+                }
+            }
+        }.resume()
     }
 
     func fetchChannels(for circleId: Int) {
@@ -515,14 +623,16 @@ struct PageGroupchats: View {
         URLSession.shared.dataTask(with: request) { data, _, _ in
             DispatchQueue.main.async {
                 // Navigate back to PageCircles after deletion
-                presentationMode.wrappedValue.dismiss()
+                navigateBackToCircles = true
+
             }
         }.resume()
     }
 
 
     func fetchThreads(for circleId: Int) {
-        guard let url = URL(string: "https://circlapp.online/api/circles/get_threads/\(circleId)/") else { return }
+        let userId = UserDefaults.standard.integer(forKey: "user_id")
+        guard let url = URL(string: "https://circlapp.online/api/circles/get_threads/\(circleId)/?user_id=\(userId)") else { return }
 
         URLSession.shared.dataTask(with: url) { data, _, _ in
             if let data = data {
@@ -544,13 +654,16 @@ struct PageGroupchats: View {
 
 
     var headerSection: some View {
+        // Header Section (copied from working screen)
         VStack(spacing: 0) {
             HStack {
                 VStack(alignment: .leading, spacing: 5) {
-                    Text("Circl.")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
+                    NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
+                        Text("Circl.")
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                    }
 
                     
                 }
@@ -562,25 +675,25 @@ struct PageGroupchats: View {
                         NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
                             Image(systemName: "bubble.left.and.bubble.right.fill")
                                 .resizable()
-                                .frame(width: 40, height: 30)
+                                .frame(width: 50, height: 40)
                                 .foregroundColor(.white)
                         }
 
                         NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
                             Image(systemName: "person.circle.fill")
                                 .resizable()
-                                .frame(width: 40, height: 40)
+                                .frame(width: 50, height: 50)
                                 .foregroundColor(.white)
                         }
                     }
-
-                   
                 }
             }
             .padding(.horizontal)
-            .padding(.vertical, 10)
-            .background(Color.fromHex12("004aad"))
+            .padding(.top, 15)
+            .padding(.bottom, 10)
+            .background(Color.fromHex("004aad"))
         }
+
     }
 
     private var floatingButton: some View {
@@ -613,13 +726,13 @@ struct PageGroupchats: View {
                         MenuItem(icon: "envelope.fill", title: "Messages")
                     }
 
-                    NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
-                        MenuItem(icon: "newspaper.fill", title: "News & Knowledge")
-                    }
-
-                    NavigationLink(destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true)) {
-                        MenuItem(icon: "dollarsign.circle.fill", title: "The Circl Exchange")
-                    }
+//                    NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
+//                        MenuItem(icon: "newspaper.fill", title: "News & Knowledge")
+//                    }
+//
+//                    NavigationLink(destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true)) {
+//                        MenuItem(icon: "dollarsign.circle.fill", title: "The Circl Exchange")
+//                    }
 
                     Divider()
 
@@ -668,35 +781,45 @@ struct PageGroupchats: View {
 // MARK: - Thread Post Model
 struct ThreadPost: Identifiable, Decodable {
     let id: Int
+    let author_id: Int
     let author: String
     let content: String
-    let likes: Int
-    let comments: Int
+    var likes: Int
+    var comments: Int
+    var liked_by_user: Bool
 }
+
 
 // MARK: - Thread Card View
 struct ThreadCard: View {
-    let thread: ThreadPost
+    @State var thread: ThreadPost
+    @AppStorage("user_id") var userId: Int = 0
+
+    let onLikeTapped: () -> Void
+    let onCommentTapped: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text(thread.author)
-                    .fontWeight(.bold)
+                Text(thread.author).fontWeight(.bold)
                 Spacer()
-                HStack(spacing: 12) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "heart")
+                Button(action: onLikeTapped) {
+                    HStack {
+                        Image(systemName: thread.liked_by_user ? "heart.fill" : "heart")
+                            .foregroundColor(thread.liked_by_user ? .red : .gray)
                         Text("\(thread.likes)")
                     }
-                    HStack(spacing: 4) {
+                }
+
+                Button(action: onCommentTapped) {
+                    HStack {
                         Image(systemName: "bubble.right")
                         Text("\(thread.comments)")
                     }
                 }
-                .font(.caption)
-                .foregroundColor(.gray)
             }
+            .font(.caption)
+            .foregroundColor(.gray)
 
             Text(thread.content)
                 .font(.body)
@@ -709,6 +832,9 @@ struct ThreadCard: View {
         .shadow(radius: 2)
     }
 }
+
+
+
 
 // MARK: - Menu Item Component
 struct MenuItem2: View {
@@ -759,13 +885,16 @@ struct PageGroupchats_Previews: PreviewProvider {
             id: 1,
             name: "Lean Startup-ists",
             industry: "Tech",
-            members: "1.2k+",
+            memberCount: 1200,
             imageName: "leanstartups",
             pricing: "Free",
             description: "A community of founders",
             joinType: .joinNow,
             channels: ["#Welcome", "#Founder-Chat", "#Introductions"],
-            creatorId: 999 // 🔧 TEMPORARY just for SwiftUI preview
+            creatorId: 999,
+            isModerator: true // ✅ or false, depending on what you want in the preview
+
+// 🔧 TEMPORARY just for SwiftUI preview
 // ✅ Add this line
         ))
     }
@@ -857,13 +986,16 @@ struct PageGroupchatsWrapper: View {
                             id: $0.id,
                             name: $0.name,
                             industry: $0.industry,
-                            members: "1k+",
+                            memberCount: $0.member_count ?? 0, // ✅ match new CircleData model
+
                             imageName: "uhmarketing",
                             pricing: $0.pricing,
                             description: $0.description,
                             joinType: $0.join_type == "apply_now" ? .applyNow : .joinNow,
                             channels: $0.channels ?? [],
-                            creatorId: $0.creator_id
+                            creatorId: $0.creator_id,
+                            isModerator: $0.is_moderator ?? false
+
                         )
                     }
                     self.loading = false

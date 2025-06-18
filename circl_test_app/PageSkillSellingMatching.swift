@@ -128,12 +128,12 @@ struct PageSkillSellingMatching: View {
                                 NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
                                     MenuItem(icon: "envelope.fill", title: "Messages")
                                 }
-                                NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
-                                    MenuItem(icon: "newspaper.fill", title: "News & Knowledge")
-                                }
-                                NavigationLink(destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true)) {
-                                    MenuItem(icon: "dollarsign.circle.fill", title: "The Circl Exchange")
-                                }
+//                                NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
+//                                    MenuItem(icon: "newspaper.fill", title: "News & Knowledge")
+//                                }
+//                                NavigationLink(destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true)) {
+//                                    MenuItem(icon: "dollarsign.circle.fill", title: "The Circl Exchange")
+//                                }
 
                                 Divider()
 

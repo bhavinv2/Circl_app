@@ -24,6 +24,7 @@ struct PageEntrepreneurKnowledge: View {
 
                 VStack(spacing: 0) {
                     // Header Section
+                    // Header Section (copied from working screen)
                     VStack(spacing: 0) {
                         HStack {
                             VStack(alignment: .leading, spacing: 5) {
@@ -34,41 +35,26 @@ struct PageEntrepreneurKnowledge: View {
                                         .foregroundColor(.white)
                                 }
 
-
-                                Button(action: {
-                                    // Action for Filter
-                                }) {
-                                    HStack {
-                                        Image(systemName: "slider.horizontal.3")
-                                            .foregroundColor(.white)
-                                        Text("Filter")
-                                            .font(.headline)
-                                            .foregroundColor(.white)
-                                    }
-                                }
+                                
                             }
 
                             Spacer()
 
                             VStack(alignment: .trailing, spacing: 5) {
-                                VStack {
-                                    HStack(spacing: 10) {
-                                        NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
-                                            Image(systemName: "bubble.left.and.bubble.right.fill")
-                                                .resizable()
-                                                .frame(width: 50, height: 40)
-                                                .foregroundColor(.white)
-                                        }
-
-                                        NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
-                                            Image(systemName: "person.circle.fill")
-                                                .resizable()
-                                                .frame(width: 50, height: 50)
-                                                .foregroundColor(.white)
-                                        }
+                                HStack(spacing: 10) {
+                                    NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
+                                        Image(systemName: "bubble.left.and.bubble.right.fill")
+                                            .resizable()
+                                            .frame(width: 50, height: 40)
+                                            .foregroundColor(.white)
                                     }
 
-                                   
+                                    NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
+                                        Image(systemName: "person.circle.fill")
+                                            .resizable()
+                                            .frame(width: 50, height: 50)
+                                            .foregroundColor(.white)
+                                    }
                                 }
                             }
                         }
@@ -77,6 +63,7 @@ struct PageEntrepreneurKnowledge: View {
                         .padding(.bottom, 10)
                         .background(Color.fromHex("004aad"))
                     }
+
 
                     // Scrollable Section
                     ScrollView {
@@ -131,13 +118,13 @@ struct PageEntrepreneurKnowledge: View {
                                 MenuItem(icon: "envelope.fill", title: "Messages")
                             }
 
-                            NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
-                                MenuItem(icon: "newspaper.fill", title: "News & Knowledge")
-                            }
-
-                            NavigationLink(destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true)) {
-                                MenuItem(icon: "dollarsign.circle.fill", title: "The Circl Exchange")
-                            }
+//                            NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
+//                                MenuItem(icon: "newspaper.fill", title: "News & Knowledge")
+//                            }
+//
+//                            NavigationLink(destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true)) {
+//                                MenuItem(icon: "dollarsign.circle.fill", title: "The Circl Exchange")
+//                            }
 
                             Divider()
 

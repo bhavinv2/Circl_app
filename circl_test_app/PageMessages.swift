@@ -71,12 +71,12 @@ struct PageMessages: View {
                                 NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
                                     MenuItem(icon: "envelope.fill", title: "Messages")
                                 }
-                                NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
-                                    MenuItem(icon: "newspaper.fill", title: "News & Knowledge")
-                                }
-                                NavigationLink(destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true)) {
-                                    MenuItem(icon: "person.3.fill", title: "The Circl Exchange")
-                                }
+//                                NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
+//                                    MenuItem(icon: "newspaper.fill", title: "News & Knowledge")
+//                                }
+//                                NavigationLink(destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true)) {
+//                                    MenuItem(icon: "person.3.fill", title: "The Circl Exchange")
+//                                }
 
                                 Divider()
 
@@ -928,11 +928,23 @@ struct ChatView: View {
                     if !isCurrentUser { Spacer() }
                 }
 
-                Text(message.content)
-                    .padding(10)
-                    .background(isCurrentUser ? Color.fromHex("004aad") : Color(.systemGray5))
-                    .foregroundColor(isCurrentUser ? .white : .black)
-                    .cornerRadius(12)
+                if let url = extractURL(from: message.content) {
+                    Link(destination: url) {
+                        Text(message.content)
+                            .underline()
+                            .padding(10)
+                            .background(isCurrentUser ? Color.fromHex("004aad") : Color(.systemGray5))
+                            .foregroundColor(.blue)
+                            .cornerRadius(12)
+                    }
+                } else {
+                    Text(message.content)
+                        .padding(10)
+                        .background(isCurrentUser ? Color.fromHex("004aad") : Color(.systemGray5))
+                        .foregroundColor(isCurrentUser ? .white : .black)
+                        .cornerRadius(12)
+                }
+
 
                 Text(message.displayTime)
                     .font(.caption2)
@@ -950,6 +962,13 @@ struct ChatView: View {
         .frame(maxWidth: .infinity, alignment: isCurrentUser ? .trailing : .leading)
     }
 
+    func extractURL(from text: String) -> URL? {
+        let types: NSTextCheckingResult.CheckingType = .link
+        guard let detector = try? NSDataDetector(types: types.rawValue) else { return nil }
+
+        let matches = detector.matches(in: text, options: [], range: NSMakeRange(0, text.utf16.count))
+        return matches.first?.url
+    }
 
     private var messageInputView: some View {
             HStack(spacing: 10) {
