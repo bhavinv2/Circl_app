@@ -753,9 +753,9 @@ struct PageCircleMessages_Previews: PreviewProvider {
             channel: Channel(
                 id: 1,
                 name: "#Welcome",
-                category: "Community",
                 circleId: 1
-            ),
+            )
+,
             circleName: "Lean Startup-ists" // ✅ Just add this line
         )
     }

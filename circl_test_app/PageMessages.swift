@@ -9,6 +9,8 @@ struct PageMessages: View {
     @State private var suggestedUsers: [NetworkUser] = []
     @State private var refreshToggle = false // ✅ Forces UI refresh
     @State private var showChatPopup = false
+    @State private var showDirectMessages: Bool = true
+    @State private var userCirclChannels: [Channel] = [] // ← You'll fill this later via API
 
     @State private var selectedUser: NetworkUser? = nil
     @State private var groupedMessages: [Int: [Message]] = [:]
@@ -78,7 +80,8 @@ struct PageMessages: View {
 
                                 Divider()
 
-                                NavigationLink(destination: PageCircles().navigationBarBackButtonHidden(true)) {
+                                NavigationLink(destination: PageGroupchatsWrapper().navigationBarBackButtonHidden(true))
+ {
                                     MenuItem(icon: "circle.grid.2x2.fill", title: "Circles")
                                 }
                             }
@@ -121,7 +124,7 @@ struct PageMessages: View {
             }
 
             .edgesIgnoringSafeArea(.bottom)
-            .navigationBarBackButtonHidden(true)
+
             .onAppear {
                 fetchNetworkUsers()
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
@@ -803,86 +806,150 @@ struct ChatView: View {
     let messages: [Message]
     @Binding var myNetwork: [NetworkUser]
     var onSendMessage: (Message) -> Void
-    
+    @State private var lastMessageId: Int?
+
     @State private var messageText: String = ""
     @State private var chatMessages: [Message] = []
     @State private var scrollTarget: Int? = nil
     @State private var isFirstAppearance = true
+    @Environment(\.presentationMode) var presentationMode
+
+    private var headerBar: some View {
+        HStack {
+            Button(action: {
+                presentationMode.wrappedValue.dismiss()
+            }) {
+                HStack(spacing: 4) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.white)
+
+                    Text("Back")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(.white)
+                }
+            }
+
+            Spacer()
+
+            Text(user.name)
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(.white)
+
+            Spacer()
+
+            // to balance layout
+            Spacer().frame(width: 60)
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 25)
+        .background(Color.fromHex("004aad"))
+    }
+
 
     var body: some View {
-        VStack {
+        VStack(spacing: 0) {
+            headerBar
+
             ScrollViewReader { proxy in
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 10) {
                         ForEach(chatMessages) { message in
                             messageView(for: message)
                                 .id(message.id)
-                                .transition(.opacity)
                         }
+
+                        // ✅ Anchor at bottom that always gets rendered
+                        Color.clear
+                            .frame(height: 1)
+                            .id("bottom")
                     }
                     .padding()
-                    .background(
-                        GeometryReader { geometry in
-                            Color.clear
-                                .onAppear {
-                                    // This ensures we scroll after messages are rendered
-                                    if isFirstAppearance {
-                                        scrollToBottom(proxy: proxy, animated: false)
-                                        isFirstAppearance = false
-                                    }
-                                }
+                    .onChange(of: chatMessages) { _ in
+                        // Scroll to bottom *after* messages are rendered
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                            proxy.scrollTo("bottom", anchor: .bottom)
                         }
-                    )
+                    }
                 }
-                .dismissKeyboardOnScroll()
                 .onAppear {
                     chatMessages = messages
-                    // Double insurance for initial scroll
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                        scrollToBottom(proxy: proxy, animated: false)
-                    }
-                }
-                .onChange(of: messages) { newMessages in
-                    chatMessages = newMessages
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        scrollToBottom(proxy: proxy, animated: true)
-                    }
-                }
-                .onChange(of: chatMessages) { newMessages in
-                    guard !newMessages.isEmpty else { return }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        scrollToBottom(proxy: proxy, animated: true)
+
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                        proxy.scrollTo("bottom", anchor: .bottom)
                     }
                 }
             }
+
+
 
             messageInputView
         }
-        .navigationBarTitle(user.name, displayMode: .inline)
+        .navigationBarTitleDisplayMode(.inline)
+
+        .navigationBarBackButtonHidden(true) // optional, hides back button but keeps swipe
+
+        .onDisappear {
+            isFirstAppearance = true
+        }
     }
+
+
 
     @ViewBuilder
     private func messageView(for message: Message) -> some View {
-        HStack {
-            if message.sender_id == UserDefaults.standard.integer(forKey: "user_id") {
-                Spacer()
+        let isCurrentUser = message.sender_id == UserDefaults.standard.integer(forKey: "user_id")
+
+        HStack(alignment: .top) {
+            if !isCurrentUser {
+                Image(systemName: "person.circle.fill")
+                    .resizable()
+                    .frame(width: 36, height: 36)
+                    .foregroundColor(.gray)
+            }
+
+            VStack(alignment: isCurrentUser ? .trailing : .leading, spacing: 4) {
+                HStack(spacing: 4) {
+                    if isCurrentUser { Spacer() }
+
+                    Button(action: {
+                        print("Tapped username: \(isCurrentUser ? "You" : user.name)")
+                    }) {
+                        HStack(spacing: 4) {
+                            Text(isCurrentUser ? "You" : user.name)
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                            Image(systemName: "chevron.down")
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                        }
+                    }
+
+                    if !isCurrentUser { Spacer() }
+                }
+
                 Text(message.content)
-                    .padding()
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
-                    .frame(maxWidth: 250, alignment: .trailing)
-            } else {
-                Text(message.content)
-                    .padding()
-                    .background(Color.gray.opacity(0.2))
-                    .foregroundColor(.black)
-                    .cornerRadius(10)
-                    .frame(maxWidth: 250, alignment: .leading)
-                Spacer()
+                    .padding(10)
+                    .background(isCurrentUser ? Color.fromHex("004aad") : Color(.systemGray5))
+                    .foregroundColor(isCurrentUser ? .white : .black)
+                    .cornerRadius(12)
+
+                Text(message.displayTime)
+                    .font(.caption2)
+                    .foregroundColor(.gray)
+            }
+            .frame(maxWidth: UIScreen.main.bounds.width * 0.7, alignment: isCurrentUser ? .trailing : .leading)
+
+            if isCurrentUser {
+                Image(systemName: "person.circle.fill")
+                    .resizable()
+                    .frame(width: 36, height: 36)
+                    .foregroundColor(.gray)
             }
         }
+        .frame(maxWidth: .infinity, alignment: isCurrentUser ? .trailing : .leading)
     }
+
 
     private var messageInputView: some View {
             HStack(spacing: 10) {

@@ -18,12 +18,13 @@ struct PageCircles: View {
     @State private var searchText: String = ""
     @State private var showMenu = false
     @State private var rotationAngle: Double = 0
+    @State private var selectedCircleToOpen: CircleData? = nil
+    @State private var triggerOpenGroupChat = false
 
     @State private var showCreateCircleSheet = false
     @State private var circleName: String = ""
     @State private var circleIndustry: String = ""
     @State private var circleDescription: String = ""
-    @State private var circlePricing: String = ""
     @State private var selectedJoinType: JoinType = .joinNow
 
     @State private var showMyCircles = false
@@ -68,12 +69,7 @@ struct PageCircles: View {
                                     .fontWeight(.bold)
                                     .foregroundColor(.white)
 
-                                Button(action: {}) {
-                                    HStack {
-                                        Image(systemName: "slider.horizontal.3").foregroundColor(.white)
-                                        Text("Filter").font(.headline).foregroundColor(.white)
-                                    }
-                                }
+                                
                             }
 
                             Spacer()
@@ -118,16 +114,7 @@ struct PageCircles: View {
                                     .foregroundColor(.blue)
                             }
 
-                            Button(action: {
-                                withAnimation(.spring()) {
-                                    showCreateCircleSheet.toggle()
-                                }
-                            }) {
-                                Image(systemName: "plus.circle.fill")
-                                    .resizable()
-                                    .frame(width: 30, height: 30)
-                                    .foregroundColor(.green)
-                            }
+                            
                         }
 
                         Picker("View", selection: $showMyCircles) {
@@ -154,30 +141,50 @@ struct PageCircles: View {
                                         .padding(.top, 40)
                                 } else {
                                     ForEach(myCircles) { circle in
-                                        NavigationLink(destination: PageGroupchats(circle: circle).navigationBarBackButtonHidden(true)) {
-                                            CircleCardView(circle: circle, showButtons: false)
-                                        }
+                                        CircleCardView(
+                                            circle: circle,
+                                            showButtons: false,
+                                            isMember: true
+                                        )
+                                        .padding(.horizontal)
+
 
                                         .buttonStyle(PlainButtonStyle())
                                         .padding(.horizontal)
                                     }
                                 }
                             } else {
-                                if !exploreCircles.isEmpty {
+                                HStack {
                                     Text("Explore")
                                         .font(.title2).bold()
-                                        .padding(.leading)
-                                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                                    Spacer()
+
+                                    Button(action: {
+                                        withAnimation(.spring()) {
+                                            showCreateCircleSheet.toggle()
+                                        }
+                                    }) {
+                                        Image(systemName: "plus.circle.fill")
+                                            .resizable()
+                                            .frame(width: 25, height: 25)
+                                            .foregroundColor(.green)
+                                    }
                                 }
+                                .padding(.horizontal)
+
+
 
                                 ForEach(exploreCircles) { circle in
                                     CircleCardView(
                                         circle: circle,
                                         onJoinPressed: {
-                                            joinCircle(circleId: circle.id)
+                                            joinCircleAndOpen(circle: circle)
                                         },
-                                        showButtons: true
+                                        showButtons: true,
+                                        isMember: myCircles.contains(where: { $0.id == circle.id }) // ✅ Dynamic check
                                     )
+
                                     .padding(.horizontal)
                                 }
                             }
@@ -226,7 +233,7 @@ struct PageCircles: View {
 
                             Divider()
 
-                            NavigationLink(destination: PageCircles().navigationBarBackButtonHidden(true)) {
+                            NavigationLink(destination: PageGroupchatsWrapper().navigationBarBackButtonHidden(true)) {
                                 MenuItem(icon: "circle.grid.2x2.fill", title: "Circles")
                             }
                         }
@@ -278,10 +285,6 @@ struct PageCircles: View {
                             .background(Color(.systemGray6))
                             .cornerRadius(10)
 
-                        TextField("Pricing (optional)", text: $circlePricing)
-                            .padding()
-                            .background(Color(.systemGray6))
-                            .cornerRadius(10)
 
                         TextEditor(text: $circleDescription)
                             .frame(height: 80)
@@ -363,6 +366,13 @@ struct PageCircles: View {
                     }
             )
         }
+        NavigationLink(
+            destination: GroupChatWrapper(circle: selectedCircleToOpen),
+            isActive: $triggerOpenGroupChat
+        ) {
+            EmptyView()
+        }
+
     }
 
     // MARK: - Helpers
@@ -383,7 +393,36 @@ struct PageCircles: View {
         default: return "100+"
         }
     }
-    
+    func joinCircleAndOpen(circle: CircleData) {
+        guard let url = URL(string: "https://circlapp.online/api/circles/join_circle/") else { return }
+
+        let payload = [
+            "user_id": userId,
+            "circle_id": circle.id
+        ]
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
+
+        URLSession.shared.dataTask(with: request) { data, _, error in
+            if let error = error {
+                print("❌ Join Circle error:", error.localizedDescription)
+                return
+            }
+
+            print("✅ Joined circle:", circle.id)
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                selectedCircleToOpen = circle
+                triggerOpenGroupChat = true
+            }
+
+            loadCircles() // Refresh list
+        }.resume()
+    }
+
     func joinCircle(circleId: Int) {
         guard let url = URL(string: "https://circlapp.online/api/circles/join_circle/") else { return }
         let payload = [
@@ -414,7 +453,7 @@ struct PageCircles: View {
             "user_id": userId,
             "name": circleName,
             "industry": circleIndustry,
-            "pricing": circlePricing,
+         
             "description": circleDescription,
             "join_type": selectedJoinType.rawValue.lowercased(),
             "channels": selectedChannels
@@ -430,7 +469,7 @@ struct PageCircles: View {
                 // ✅ Reset form fields here
                 circleName = ""
                 circleIndustry = ""
-                circlePricing = ""
+             
                 circleDescription = ""
                 selectedJoinType = .joinNow
                 selectedChannels = []
@@ -526,6 +565,19 @@ struct PageCircles: View {
     }
 }
 
+struct GroupChatWrapper: View {
+    let circle: CircleData?
+
+    var body: some View {
+        if let circle = circle {
+            PageGroupchats(circle: circle).navigationBarBackButtonHidden(true)
+        } else {
+            EmptyView()
+        }
+    }
+}
+
+
 // MARK: - Circle Data (template preserved)
 enum JoinType: String {
     case applyNow = "Apply Now"
@@ -550,9 +602,12 @@ struct CircleData: Identifiable {
     // MARK: - Circle Card View (template preserved)
 struct CircleCardView: View {
     var circle: CircleData
+    @State private var showAbout = false
+    @State private var selectedCircleToOpen: CircleData? = nil
+    @State private var triggerOpenGroupChat = false
     var onJoinPressed: (() -> Void)? = nil
     var showButtons: Bool = true // ✅ Default to true for explore
-
+    var isMember: Bool = false
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
             Image(circle.imageName)
@@ -583,10 +638,36 @@ struct CircleCardView: View {
                     .foregroundColor(.black)
 
                 HStack(spacing: 10) {
-                    Text("About")
-                        .underline()
-                        .font(.system(size: 16))
-                        .foregroundColor(.blue)
+                    Button(action: {
+                        showAbout = true
+                    }) {
+                        Text("About")
+                            .underline()
+                            .font(.system(size: 16))
+                            .foregroundColor(.blue)
+                    }
+                    .sheet(isPresented: $showAbout) {
+                        NavigationView {
+                            CirclPopupCard(
+                                circle: circle,
+                                isMember: isMember,
+                                onJoinPressed: onJoinPressed,
+                                onOpenCircle: {
+                                    showAbout = false
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                                        selectedCircleToOpen = circle
+                                        triggerOpenGroupChat = true
+                                    }
+                                }
+                            )
+                            .navigationBarHidden(true)
+                        }
+                    }
+
+
+
+
+
 
                     Spacer()
 

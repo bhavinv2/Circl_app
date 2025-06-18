@@ -626,7 +626,8 @@ struct PageInvites: View {
 
                             Divider()
 
-                            NavigationLink(destination: PageCircles().navigationBarBackButtonHidden(true)) {
+                            NavigationLink(destination: PageGroupchatsWrapper().navigationBarBackButtonHidden(true))
+ {
                                 MenuItem(icon: "circle.grid.2x2.fill", title: "Circles")
                             }
                         }

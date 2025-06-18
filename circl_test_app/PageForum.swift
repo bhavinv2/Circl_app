@@ -672,69 +672,94 @@ struct PageForum: View {
 
                 VStack(alignment: .trailing, spacing: 8) {
                     if showMenu {
-                        VStack(alignment: .leading, spacing: 0) {
-                            Text("Navigate")
-                                .font(.headline)
-                                .padding()
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .background(Color(.systemGray5))
-
-                            NavigationLink(destination: PageEntrepreneurMatching().navigationBarBackButtonHidden(true)) {
-                                MenuItem(icon: "person.2.fill", title: "Connect and Network")
+                        // Tappable backdrop layer to dismiss the menu
+                        Color.black.opacity(0.001)
+                            .ignoresSafeArea()
+                            .onTapGesture {
+                                withAnimation {
+                                    showMenu = false
+                                }
                             }
-                            NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true)) {
-                                MenuItem(icon: "person.crop.square.fill", title: "Your Business Profile")
-                            }
-                            NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
-                                MenuItem(icon: "text.bubble.fill", title: "The Forum Feed")
-                            }
-                            NavigationLink(destination: PageEntrepreneurResources().navigationBarBackButtonHidden(true)) {
-                                MenuItem(icon: "briefcase.fill", title: "Professional Services")
-                            }
-                            NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
-                                MenuItem(icon: "envelope.fill", title: "Messages")
-                            }
-                            NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
-                                MenuItem(icon: "newspaper.fill", title: "News & Knowledge")
-                            }
-                            NavigationLink(destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true)) {
-                                MenuItem(icon: "dollarsign.circle.fill", title: "The Circl Exchange")
-                            }
-
-                            Divider()
-
-                            NavigationLink(destination: PageCircles().navigationBarBackButtonHidden(true)) {
-                                MenuItem(icon: "circle.grid.2x2.fill", title: "Circles")
-                            }
-                        }
-                        .background(Color(.systemGray6))
-                        .cornerRadius(12)
-                        .shadow(radius: 5)
-                        .frame(width: 250)
-                        .transition(.scale.combined(with: .opacity))
+                            .zIndex(1) // under the menu, over the rest
                     }
 
-                    Button(action: {
-                        withAnimation(.easeInOut(duration: 0.4)) {
-                            showMenu.toggle()
-                            rotationAngle += 360 // spin the logo
-                        }
-                    }) {
-                        ZStack {
-                            Circle()
-                                .fill(Color.fromHex("004aad"))
-                                .frame(width: 60, height: 60)
+                    VStack(alignment: .trailing, spacing: 8) {
+                        if showMenu {
+                            VStack(alignment: .leading, spacing: 0) {
+                                Text("Navigate")
+                                    .font(.headline)
+                                    .padding()
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .background(Color(.systemGray5))
 
-                            Image("CirclLogoButton")
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 32, height: 32)
-                                .clipShape(Circle())
-                                .rotationEffect(.degrees(rotationAngle))
+                                NavigationLink(destination: PageEntrepreneurMatching().navigationBarBackButtonHidden(true)) {
+                                                                MenuItem(icon: "person.2.fill", title: "Connect and Network")
+                                                            }
+                                                            NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true)) {
+                                                                MenuItem(icon: "person.crop.square.fill", title: "Your Business Profile")
+                                                            }
+                                                            NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
+                                                                MenuItem(icon: "text.bubble.fill", title: "The Forum Feed")
+                                                            }
+                                                            NavigationLink(destination: PageEntrepreneurResources().navigationBarBackButtonHidden(true)) {
+                                                                MenuItem(icon: "briefcase.fill", title: "Professional Services")
+                                                            }
+                                                            NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
+                                                                MenuItem(icon: "envelope.fill", title: "Messages")
+                                                            }
+                                                            NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
+                                                                MenuItem(icon: "newspaper.fill", title: "News & Knowledge")
+                                                            }
+                                                            NavigationLink(destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true)) {
+                                                                MenuItem(icon: "dollarsign.circle.fill", title: "The Circl Exchange")
+                                                            }
+
+                                                            Divider()
+
+                                NavigationLink(destination: PageGroupchatsWrapper().navigationBarBackButtonHidden(true))
+ {
+                                                                MenuItem(icon: "circle.grid.2x2.fill", title: "Circles")
+                                                            }
+                            }
+                            .background(Color(.systemGray6))
+                            .cornerRadius(12)
+                            .shadow(radius: 5)
+                            .frame(width: 250)
+                            .transition(.scale.combined(with: .opacity))
+                            .zIndex(2) // show menu on top
                         }
+
+                        Button(action: {
+                            withAnimation(.easeInOut(duration: 0.4)) {
+                                showMenu.toggle()
+                                rotationAngle += 360
+                            }
+
+                            // ✅ Dismiss comment sheet too
+                            selectedPostIdForComments = nil
+                            showTutorial = false
+                            hasSeenTutorial = true
+                        }) {
+
+                            ZStack {
+                                Circle()
+                                    .fill(Color.fromHex("004aad"))
+                                    .frame(width: 60, height: 60)
+
+                                Image("CirclLogoButton")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 32, height: 32)
+                                    .clipShape(Circle())
+                                    .rotationEffect(.degrees(rotationAngle))
+                            }
+                        }
+                        .shadow(radius: 4)
+                        .padding(.bottom, -10)
+                        .zIndex(3) // always tappable
                     }
-                    .shadow(radius: 4)
-                    .padding(.bottom, -10)
+                    .padding()
+
 
 
                     
@@ -763,7 +788,7 @@ struct PageForum: View {
                                 .multilineTextAlignment(.center)
                                 .foregroundColor(.white)
 
-                            Text("Click the ⋯ button in the bottom-right to access the menu.")
+                            Text("Click the circl button in the bottom-right to access the menu and get started.")
                                 .multilineTextAlignment(.center)
                                 .foregroundColor(.white)
                                 .padding(.horizontal)
@@ -1255,4 +1280,3 @@ struct PageForum_Previews: PreviewProvider {
         PageForum()
     }
 }
-
