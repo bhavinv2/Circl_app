@@ -123,108 +123,144 @@ struct PageCircleMessages: View {
     
     
 
-    // MARK: - Header
     private var header: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack {
+        VStack(spacing: 0) {
+            HStack(alignment: .center) {
+                // Back button
                 Button(action: {
                     presentationMode.wrappedValue.dismiss()
                 }) {
-                    HStack(spacing: 4) {
+                    HStack(spacing: 6) {
                         Image(systemName: "chevron.left")
+                            .font(.system(size: 17, weight: .semibold))
                             .foregroundColor(.white)
                         Text("Back")
+                            .font(.system(size: 16, weight: .medium, design: .rounded))
                             .foregroundColor(.white)
-                            .font(.subheadline)
                     }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(
+                        RoundedRectangle(cornerRadius: 18)
+                            .fill(Color.white.opacity(0.15))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 18)
+                                    .stroke(Color.white.opacity(0.2), lineWidth: 0.5)
+                            )
+                    )
                 }
 
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: 4) {
+                Spacer(minLength: 6)
+
+                // Circle name with dropdown
+                VStack(alignment: .center, spacing: 4) {
+                    HStack(spacing: 8) {
                         Text(circleName)
-
-
-
-                            .font(.title2)
-                            .fontWeight(.bold)
-                            .foregroundColor(.white)
+                            .font(.system(size: 20, weight: .bold, design: .rounded))
+                            .foregroundStyle(LinearGradient(
+                                colors: [Color.white, Color.white.opacity(0.95)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ))
+                            .lineLimit(1)
+                            .truncationMode(.tail)
 
                         Button(action: {
                             withAnimation(.spring()) {
                                 closeOtherMenus(except: &showCircleMenu)
                             }
                         }) {
-                            Image(systemName: "chevron.down")
-                                .font(.subheadline)
-                                .foregroundColor(.white)
+                            Image(systemName: "chevron.down.circle.fill")
+                                .font(.system(size: 18, weight: .medium))
+                                .foregroundColor(.white.opacity(0.9))
                                 .rotationEffect(.degrees(showCircleMenu ? 180 : 0))
+                                .scaleEffect(showCircleMenu ? 1.05 : 1.0)
                         }
                     }
 
-                    HStack(spacing: 4) {
+                    // Channel selector row
+                    HStack(spacing: 12) {
+                        // Premium channel selector - now with button action
                         Button(action: {
-                            withAnimation(.spring()) {
+                            withAnimation(.interpolatingSpring(stiffness: 300, damping: 20)) {
                                 closeOtherMenus(except: &showCategoryMenu)
                             }
                         }) {
                             HStack(spacing: 6) {
-                                Text(currentChannel.name)
+                                Image(systemName: "number.circle.fill")
+                                    .foregroundColor(Color.fromHex("004aad"))
+                                    .font(.system(size: 12))
 
-                                    .font(.subheadline)
-                                    .padding(.horizontal, 10)
-                                    .padding(.vertical, 6)
-                                    .background(Color(.systemGray5))
-                                    .foregroundColor(.black)
-                                    .cornerRadius(15)
+                                Text(currentChannel.name)
+                                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                                    .foregroundColor(Color.fromHex("004aad"))
+                                    .lineLimit(1)
 
                                 Image(systemName: "chevron.down")
-                                    .font(.caption)
-                                    .foregroundColor(.white)
+                                    .font(.system(size: 9, weight: .bold))
+                                    .foregroundColor(Color.fromHex("004aad"))
                                     .rotationEffect(.degrees(showCategoryMenu ? 180 : 0))
+                                    .animation(.interpolatingSpring(stiffness: 400, damping: 25), value: showCategoryMenu)
                             }
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 5)
+                            .background(Color.white)
+                            .cornerRadius(14)
                         }
-                        .buttonStyle(PlainButtonStyle()) // ✅ Optional: prevent highlight
-                    }
+                        .buttonStyle(PlainButtonStyle())
 
+                        // Member count
+                        HStack(spacing: 4) {
+                            Image(systemName: "person.2.circle")
+                                .foregroundColor(.white)
+                                .font(.system(size: 12))
+                            Text("\(members.count)")
+                                .font(.system(size: 12, weight: .bold, design: .rounded))
+                                .foregroundColor(.white)
+                        }
 
-                    HStack(spacing: 6) {
-                        Text("\(members.count) members • Online now:")
-                            .font(.subheadline)
-                            .foregroundColor(.white.opacity(0.85))
-
-
-                        Circle()
-                            .fill(Color.green)
-                            .frame(width: 8, height: 8)
-
-                        Text("status otw")
-                            .font(.subheadline)
-                            .foregroundColor(.white.opacity(0.85))
+                        // Online indicator
+                        HStack(spacing: 4) {
+                            Circle()
+                                .fill(Color.green)
+                                .frame(width: 8, height: 8)
+                            Text("Online")
+                                .font(.system(size: 12, weight: .medium, design: .rounded))
+                                .foregroundColor(.white)
+                        }
                     }
                 }
 
-                Spacer()
+                Spacer(minLength: 6)
 
+                // Settings button
                 Button(action: {
-                    withAnimation(.spring()) {
+                    withAnimation {
                         closeOtherMenus(except: &showMenu)
                     }
                 }) {
-                    Image(systemName: "hammer.fill")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 24, height: 24)
-                        .foregroundColor(Color.fromHex("004aad"))
-                        .padding(12)
-                        .background(Color.white)
-                        .clipShape(Circle())
-                        .shadow(radius: 4)
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 38, height: 38)
+                        .overlay(
+                            Image(systemName: "ellipsis")
+                                .rotationEffect(.degrees(showMenu ? 90 : 0))
+                                .font(.system(size: 17, weight: .bold))
+                                .foregroundColor(Color.fromHex("004aad"))
+                        )
                 }
             }
-            .padding(.top, 1)
-            .padding(.horizontal)
-            .padding(.bottom, 10)
-            .background(Color.fromHex("004aad"))
+            .padding(.horizontal, 12)
+            .padding(.top, 12)
+            .padding(.bottom, 16)
+            .background(
+                LinearGradient(
+                    colors: [Color.fromHex("004aad"), Color.fromHex("0052cc")],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .ignoresSafeArea(edges: .top)
+            )
         }
     }
 

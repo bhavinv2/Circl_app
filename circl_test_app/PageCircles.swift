@@ -146,10 +146,11 @@ struct PageCircles: View {
                                             showButtons: false,
                                             isMember: true
                                         )
-                                        .padding(.horizontal)
-
-
-                                        .buttonStyle(PlainButtonStyle())
+                                        .onTapGesture {
+                                            // Navigate to the circle when tapped
+                                            selectedCircleToOpen = circle
+                                            triggerOpenGroupChat = true
+                                        }
                                         .padding(.horizontal)
                                     }
                                 }
@@ -270,75 +271,245 @@ struct PageCircles: View {
 
                 }
                 .sheet(isPresented: $showCreateCircleSheet) {
-                    VStack(spacing: 16) {
-                        Text("Create a Circl")
-                            .font(.title2)
-                            .bold()
+                    NavigationView {
+                        ScrollView {
+                            VStack(spacing: 24) {
+                                // Header Section
+                                VStack(spacing: 8) {
+                                    Image(systemName: "circle.grid.3x3.fill")
+                                        .font(.system(size: 40))
+                                        .foregroundColor(Color.fromHex("004aad"))
+                                    
+                                    Text("Create a New Circl")
+                                        .font(.title)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(.primary)
+                                    
+                                    Text("Build your community and connect with like-minded professionals")
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                        .multilineTextAlignment(.center)
+                                        .padding(.horizontal)
+                                }
+                                .padding(.top, 20)
 
-                        TextField("Circle Name", text: $circleName)
-                            .padding()
-                            .background(Color(.systemGray6))
-                            .cornerRadius(10)
+                                // Form Section
+                                VStack(spacing: 20) {
+                                    // Circl Name
+                                    VStack(alignment: .leading, spacing: 8) {
+                                        HStack {
+                                            Image(systemName: "textformat")
+                                                .foregroundColor(Color.fromHex("004aad"))
+                                                .frame(width: 20)
+                                            Text("Circl Name")
+                                                .font(.headline)
+                                                .fontWeight(.semibold)
+                                        }
+                                        
+                                        TextField("Enter your circl name", text: $circleName)
+                                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                                            .padding(.horizontal, 16)
+                                            .padding(.vertical, 12)
+                                            .background(
+                                                RoundedRectangle(cornerRadius: 12)
+                                                    .fill(Color(.systemBackground))
+                                                    .shadow(color: .gray.opacity(0.2), radius: 2, x: 0, y: 1)
+                                            )
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 12)
+                                                    .stroke(Color.fromHex("004aad").opacity(0.3), lineWidth: 1)
+                                            )
+                                    }
 
-                        TextField("Industry", text: $circleIndustry)
-                            .padding()
-                            .background(Color(.systemGray6))
-                            .cornerRadius(10)
+                                    // Industry
+                                    VStack(alignment: .leading, spacing: 8) {
+                                        HStack {
+                                            Image(systemName: "building.2")
+                                                .foregroundColor(Color.fromHex("004aad"))
+                                                .frame(width: 20)
+                                            Text("Industry")
+                                                .font(.headline)
+                                                .fontWeight(.semibold)
+                                        }
+                                        
+                                        TextField("e.g., Technology, Healthcare, Finance", text: $circleIndustry)
+                                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                                            .padding(.horizontal, 16)
+                                            .padding(.vertical, 12)
+                                            .background(
+                                                RoundedRectangle(cornerRadius: 12)
+                                                    .fill(Color(.systemBackground))
+                                                    .shadow(color: .gray.opacity(0.2), radius: 2, x: 0, y: 1)
+                                            )
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 12)
+                                                    .stroke(Color.fromHex("004aad").opacity(0.3), lineWidth: 1)
+                                            )
+                                    }
 
-
-                        TextEditor(text: $circleDescription)
-                            .frame(height: 80)
-                            .padding()
-                            .background(Color(.systemGray6))
-                            .cornerRadius(10)
-
-                        Picker("Join Type", selection: $selectedJoinType) {
-                            Text("Join Now").tag(JoinType.joinNow)
-                            Text("Apply Now").tag(JoinType.applyNow)
-                        }
-                        .pickerStyle(SegmentedPickerStyle())
-                        .padding(.top)
-
-                        Divider()
-
-                        // ✅ Channel Selector Here
-                        Text("Select Channels")
-                            .font(.headline)
-
-                        ForEach(allChannelOptions, id: \.self) { channel in
-                            if channel == "#Welcome" {
-                                Toggle(channel, isOn: .constant(true))
-                                    .disabled(true) // 🔒 Always selected
-                                    .foregroundColor(.gray)
-                            } else {
-                                Toggle(channel, isOn: Binding(
-                                    get: { selectedChannels.contains(channel) },
-                                    set: { isSelected in
-                                        if isSelected {
-                                            selectedChannels.append(channel)
-                                        } else {
-                                            selectedChannels.removeAll { $0 == channel }
+                                    // Description
+                                    VStack(alignment: .leading, spacing: 8) {
+                                        HStack {
+                                            Image(systemName: "text.alignleft")
+                                                .foregroundColor(Color.fromHex("004aad"))
+                                                .frame(width: 20)
+                                            Text("Description")
+                                                .font(.headline)
+                                                .fontWeight(.semibold)
+                                        }
+                                        
+                                        ZStack(alignment: .topLeading) {
+                                            RoundedRectangle(cornerRadius: 12)
+                                                .fill(Color(.systemBackground))
+                                                .frame(height: 100)
+                                                .shadow(color: .gray.opacity(0.2), radius: 2, x: 0, y: 1)
+                                                .overlay(
+                                                    RoundedRectangle(cornerRadius: 12)
+                                                        .stroke(Color.fromHex("004aad").opacity(0.3), lineWidth: 1)
+                                                )
+                                            
+                                            if circleDescription.isEmpty {
+                                                Text("Describe your circl's purpose and goals...")
+                                                    .foregroundColor(.secondary)
+                                                    .padding(.horizontal, 20)
+                                                    .padding(.vertical, 16)
+                                            }
+                                            
+                                            TextEditor(text: $circleDescription)
+                                                .padding(.horizontal, 16)
+                                                .padding(.vertical, 12)
+                                                .background(Color.clear)
                                         }
                                     }
-                                ))
+
+                                    // Join Type
+                                    VStack(alignment: .leading, spacing: 12) {
+                                        HStack {
+                                            Image(systemName: "person.badge.plus")
+                                                .foregroundColor(Color.fromHex("004aad"))
+                                                .frame(width: 20)
+                                            Text("Membership Type")
+                                                .font(.headline)
+                                                .fontWeight(.semibold)
+                                        }
+                                        
+                                        Picker("Join Type", selection: $selectedJoinType) {
+                                            Text("Open - Join Instantly").tag(JoinType.joinNow)
+                                            Text("Moderated - Apply to Join").tag(JoinType.applyNow)
+                                        }
+                                        .pickerStyle(SegmentedPickerStyle())
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 8)
+                                                .fill(Color(.systemGray6))
+                                        )
+                                    }
+
+                                    // Divider with style
+                                    Rectangle()
+                                        .fill(LinearGradient(
+                                            colors: [Color.clear, Color.fromHex("004aad").opacity(0.3), Color.clear],
+                                            startPoint: .leading,
+                                            endPoint: .trailing
+                                        ))
+                                        .frame(height: 1)
+                                        .padding(.vertical, 8)
+
+                                    // Channel Selection
+                                    VStack(alignment: .leading, spacing: 16) {
+                                        HStack {
+                                            Image(systemName: "number")
+                                                .foregroundColor(Color.fromHex("004aad"))
+                                                .frame(width: 20)
+                                            Text("Select Channels")
+                                                .font(.headline)
+                                                .fontWeight(.semibold)
+                                        }
+                                        
+                                        VStack(spacing: 12) {
+                                            ForEach(allChannelOptions, id: \.self) { channel in
+                                                HStack {
+                                                    if channel == "#Welcome" {
+                                                        HStack {
+                                                            Image(systemName: "checkmark.circle.fill")
+                                                                .foregroundColor(.green)
+                                                            Text(channel)
+                                                                .font(.body)
+                                                                .foregroundColor(.secondary)
+                                                            Spacer()
+                                                            Text("Required")
+                                                                .font(.caption)
+                                                                .padding(.horizontal, 8)
+                                                                .padding(.vertical, 4)
+                                                                .background(Color.green.opacity(0.2))
+                                                                .foregroundColor(.green)
+                                                                .cornerRadius(8)
+                                                        }
+                                                        .padding(.horizontal, 16)
+                                                        .padding(.vertical, 12)
+                                                        .background(Color.green.opacity(0.1))
+                                                        .cornerRadius(10)
+                                                    } else {
+                                                        Toggle(channel, isOn: Binding(
+                                                            get: { selectedChannels.contains(channel) },
+                                                            set: { isSelected in
+                                                                if isSelected {
+                                                                    selectedChannels.append(channel)
+                                                                } else {
+                                                                    selectedChannels.removeAll { $0 == channel }
+                                                                }
+                                                            }
+                                                        ))
+                                                        .toggleStyle(SwitchToggleStyle(tint: Color.fromHex("004aad")))
+                                                        .padding(.horizontal, 16)
+                                                        .padding(.vertical, 12)
+                                                        .background(Color(.systemGray6).opacity(0.5))
+                                                        .cornerRadius(10)
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                .padding(.horizontal, 20)
+
+                                // Create Button
+                                Button(action: {
+                                    createCircle()
+                                }) {
+                                    HStack {
+                                        Image(systemName: "plus.circle.fill")
+                                            .font(.title3)
+                                        Text("Create Circl")
+                                            .fontWeight(.semibold)
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 16)
+                                    .background(
+                                        LinearGradient(
+                                            colors: [Color.fromHex("004aad"), Color.fromHex("0066cc")],
+                                            startPoint: .leading,
+                                            endPoint: .trailing
+                                        )
+                                    )
+                                    .foregroundColor(.white)
+                                    .cornerRadius(16)
+                                    .shadow(color: Color.fromHex("004aad").opacity(0.3), radius: 8, x: 0, y: 4)
+                                }
+                                .padding(.horizontal, 20)
+                                .padding(.bottom, 30)
                             }
                         }
-
-
-                        Spacer()
-
-                        Button(action: {
-                            createCircle()
-                        }) {
-                            Text("Create Circl")
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.green)
-                                .foregroundColor(.white)
-                                .cornerRadius(12)
+                        .navigationBarTitleDisplayMode(.inline)
+                        .toolbar {
+                            ToolbarItem(placement: .navigationBarLeading) {
+                                Button("Cancel") {
+                                    showCreateCircleSheet = false
+                                }
+                                .foregroundColor(Color.fromHex("004aad"))
+                            }
                         }
                     }
-                    .padding()
+                    .presentationDetents([.large])
                 }
 
                 .padding()
