@@ -8,146 +8,293 @@ struct BlockedUser: Identifiable, Hashable {
 
 // MARK: - Main View
 struct PageSettings: View {
-    @Environment(\.presentationMode) var presentationMode  // For dismissing the settings page
+    @Environment(\.presentationMode) var presentationMode
     @State private var showLogoutAlert = false
     @State private var isLogoutConfirmed = false
+    @State private var isAnimating = false
 
-
+    private var animatedBackground: some View {
+        ZStack {
+            // Base gradient
+            LinearGradient(
+                colors: [
+                    Color(hexCode: "001a3d"),
+                    Color(hexCode: "004aad"),
+                    Color(hexCode: "0066ff"),
+                    Color(hexCode: "003d7a")
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            
+            // First flowing layer
+            LinearGradient(
+                colors: [
+                    Color.clear,
+                    Color(hexCode: "0066ff").opacity(0.2),
+                    Color.clear,
+                    Color(hexCode: "004aad").opacity(0.15),
+                    Color.clear
+                ],
+                startPoint: UnitPoint(
+                    x: isAnimating ? -0.3 : 1.3,
+                    y: 0.0
+                ),
+                endPoint: UnitPoint(
+                    x: isAnimating ? 1.0 : 0.0,
+                    y: 1.0
+                )
+            )
+            
+            // Second flowing layer (opposite direction)
+            LinearGradient(
+                colors: [
+                    Color(hexCode: "002d5a").opacity(0.1),
+                    Color.clear,
+                    Color(hexCode: "0066ff").opacity(0.18),
+                    Color.clear,
+                    Color(hexCode: "001a3d").opacity(0.12)
+                ],
+                startPoint: UnitPoint(
+                    x: isAnimating ? 1.2 : -0.2,
+                    y: 0.3
+                ),
+                endPoint: UnitPoint(
+                    x: isAnimating ? 0.1 : 0.9,
+                    y: 0.7
+                )
+            )
+            
+            // Third subtle wave layer
+            LinearGradient(
+                colors: [
+                    Color.clear,
+                    Color.clear,
+                    Color(hexCode: "0066ff").opacity(0.1),
+                    Color.clear,
+                    Color.clear
+                ],
+                startPoint: UnitPoint(
+                    x: isAnimating ? 0.2 : 0.8,
+                    y: isAnimating ? 0.0 : 1.0
+                ),
+                endPoint: UnitPoint(
+                    x: isAnimating ? 0.9 : 0.1,
+                    y: isAnimating ? 1.0 : 0.0
+                )
+            )
+        }
+        .onAppear {
+            withAnimation(Animation.easeInOut(duration: 15).repeatForever(autoreverses: true)) {
+                isAnimating = true
+            }
+        }
+    }
 
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
-                // ✅ Back Arrow - aligned to system height
+            // Header with animated background
+            VStack(spacing: 0) {
                 HStack {
                     Button(action: {
                         presentationMode.wrappedValue.dismiss()
                     }) {
-                        Image(systemName: "chevron.left")
-                            .resizable()
-                            .frame(width: 12, height: 20)
-                            .foregroundColor(.blue)
-                            .padding(.leading, 5)
+                        HStack(spacing: 8) {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundColor(.white)
+                            
+                            Text("Settings")
+                                .font(.system(size: 28, weight: .bold))
+                                .foregroundColor(.white)
+                        }
                     }
+                    
                     Spacer()
                 }
-                .padding(.top, 15) // ✅ Standard iOS nav top spacing
-                .padding(.leading, 15)
-                .padding(.bottom, 5)
+                .padding(.horizontal, 20)
+                .padding(.bottom, 15)
+            }
+            .padding(.top, (UIApplication.shared.windows.first?.safeAreaInsets.top ?? 0) + 15)
+            .background(animatedBackground.ignoresSafeArea())
+            .clipped()
 
-                // ✅ Settings Content (moved up slightly)
-                ScrollView {
-                    VStack(spacing: 20) {
-
-
-                        // Account Settings
-                        SectionHeader(title: "Account Settings")
-                        settingsOption(title: "Become a Mentor", iconName: "graduationcap.fill", destination: BecomeMentorPage())
-
-                        settingsOption(title: "Change Password", iconName: "lock.fill", destination: ChangePasswordPage())
+            // Content with modern cards
+            ScrollView {
+                LazyVStack(spacing: 16) {
+                    // Account Settings Section
+                    VStack(spacing: 12) {
+                        sectionHeader(title: "Account Settings", icon: "person.circle.fill")
                         
-                        settingsOption(title: "Blocked Users", iconName: "person.crop.circle.badge.xmark", destination: BlockedUsersPage())
-
-                        
-                        settingsOption(title: "Delete Account", iconName: "trash.fill", destination: DeleteAccountPage())
-
-                        // Feedback & Suggestions
-                        SectionHeader(title: "Feedback & Suggestions")
-                       
-                        settingsOption(title: "Suggest a Feature", iconName: "lightbulb.fill", destination: SuggestFeaturePage())
-                        settingsOption(title: "Report a Problem", iconName: "exclamationmark.triangle.fill", destination: ReportProblemPage())
-
-                        // Legal & Policies
-                        SectionHeader(title: "Legal & Policies")
-                        settingsOption(title: "Terms of Service", iconName: "doc.text.fill", destination: TermsOfServicePage())
-                        settingsOption(title: "Privacy Policy", iconName: "hand.raised.fill", destination: PrivacyPolicyPage())
-                        settingsOption(title: "Community Guidelines", iconName: "person.2.fill", destination: CommunityGuidelinesPage())
-
-                        // Help & Support
-                        SectionHeader(title: "Help & Support")
-                        
-                        settingsOption(title: "Contact Support", iconName: "headphones", destination: ContactSupportPage())
-
-
-                        // Logout Button
-                        Button(action: {
-                            showLogoutAlert = true  // Trigger alert when button is pressed
-                        }) {
-                            Text("Logout")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                                .padding()
-                                .frame(maxWidth: .infinity)
-                                .background(Color.red)
-                                .cornerRadius(10)
+                        VStack(spacing: 8) {
+                            settingsOption(title: "Become a Mentor", iconName: "graduationcap.fill", destination: BecomeMentorPage())
+                            settingsOption(title: "Change Password", iconName: "lock.fill", destination: ChangePasswordPage())
+                            settingsOption(title: "Blocked Users", iconName: "person.crop.circle.badge.xmark", destination: BlockedUsersPage())
+                            settingsOption(title: "Delete Account", iconName: "trash.fill", destination: DeleteAccountPage(), isDestructive: true)
                         }
-                        .padding(.top, 20)
-                        .padding(.bottom, 40)
-
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 5) // ✅ Moved up content spacingg
-                }
-            }
-            .edgesIgnoringSafeArea(.bottom)
-            .navigationBarHidden(true)
-            .alert(isPresented: $showLogoutAlert) {
-                Alert(
-                    title: Text("Log out of your account?"),
-                    primaryButton: .destructive(Text("Log Out")) {
-                        logoutUser() // Call the logout function when "Log Out" is pressed
-                    },
-                    secondaryButton: .cancel()
-                )
-            }
+                    .padding(20)
+                    .background(Color.white)
+                    .cornerRadius(16)
+                    .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 2)
 
+                    // Feedback & Suggestions Section
+                    VStack(spacing: 12) {
+                        sectionHeader(title: "Feedback & Suggestions", icon: "lightbulb.fill")
+                        
+                        VStack(spacing: 8) {
+                            settingsOption(title: "Suggest a Feature", iconName: "lightbulb.fill", destination: SuggestFeaturePage())
+                            settingsOption(title: "Report a Problem", iconName: "exclamationmark.triangle.fill", destination: ReportProblemPage())
+                        }
+                    }
+                    .padding(20)
+                    .background(Color.white)
+                    .cornerRadius(16)
+                    .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 2)
+
+                    // Legal & Policies Section
+                    VStack(spacing: 12) {
+                        sectionHeader(title: "Legal & Policies", icon: "doc.text.fill")
+                        
+                        VStack(spacing: 8) {
+                            settingsOption(title: "Terms of Service", iconName: "doc.text.fill", destination: TermsOfServicePage())
+                            settingsOption(title: "Privacy Policy", iconName: "hand.raised.fill", destination: PrivacyPolicyPage())
+                            settingsOption(title: "Community Guidelines", iconName: "person.2.fill", destination: CommunityGuidelinesPage())
+                        }
+                    }
+                    .padding(20)
+                    .background(Color.white)
+                    .cornerRadius(16)
+                    .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 2)
+
+                    // Help & Support Section
+                    VStack(spacing: 12) {
+                        sectionHeader(title: "Help & Support", icon: "headphones")
+                        
+                        VStack(spacing: 8) {
+                            settingsOption(title: "Contact Support", iconName: "headphones", destination: ContactSupportPage())
+                        }
+                    }
+                    .padding(20)
+                    .background(Color.white)
+                    .cornerRadius(16)
+                    .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 2)
+
+                    // Logout Button
+                    Button(action: {
+                        showLogoutAlert = true
+                    }) {
+                        HStack {
+                            Image(systemName: "rectangle.portrait.and.arrow.right")
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundColor(.white)
+                            
+                            Text("Logout")
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundColor(.white)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(
+                            LinearGradient(
+                                colors: [Color.red, Color.red.opacity(0.8)],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .cornerRadius(12)
+                    }
+                    .padding(.top, 8)
+                    .padding(.horizontal, 20)
+                    .shadow(color: .red.opacity(0.3), radius: 8, x: 0, y: 4)
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 16)
+            }
+            .background(Color(UIColor.systemGray6))
+        }
+        .ignoresSafeArea(edges: .top)
+        .navigationBarHidden(true)
+        .alert(isPresented: $showLogoutAlert) {
+            Alert(
+                title: Text("Log out of your account?"),
+                message: Text("You'll need to sign in again to access your account."),
+                primaryButton: .destructive(Text("Log Out")) {
+                    logoutUser()
+                },
+                secondaryButton: .cancel()
+            )
+        }
         }
     }
 
     // MARK: - Section Header
-    private func SectionHeader(title: String) -> some View {
-        HStack {
+    private func sectionHeader(title: String, icon: String) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundColor(Color(hexCode: "004aad"))
+            
             Text(title)
-                .font(.system(size: 20, weight: .bold))
-                .foregroundColor(.black)
+                .font(.system(size: 22, weight: .bold))
+                .foregroundColor(.primary)
+            
             Spacer()
         }
-        .padding(.top, 20)
     }
 
     // MARK: - Settings Option
-    private func settingsOption(title: String, iconName: String, destination: some View) -> some View {
+    private func settingsOption(title: String, iconName: String, destination: some View, isDestructive: Bool = false) -> some View {
         NavigationLink(destination:
             destination
                 .navigationBarTitleDisplayMode(.inline)
                 .navigationBarBackButtonHidden(false)
         ) {
-            HStack {
-                Image(systemName: iconName)
-                    .resizable()
-                    .frame(width: 24, height: 24)
-                    .foregroundColor(.white)
-                    .padding(12)
-                    .background(Color.fromHex("004aad"))
-                    .cornerRadius(8)
+            HStack(spacing: 16) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(
+                            LinearGradient(
+                                colors: isDestructive ? 
+                                    [Color.red.opacity(0.8), Color.red] :
+                                    [Color(hexCode: "004aad"), Color(hexCode: "0066ff")],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 44, height: 44)
+                    
+                    Image(systemName: iconName)
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundColor(.white)
+                }
 
-                Text(title)
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundColor(.black)
-                    .padding(.leading, 10)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .font(.system(size: 17, weight: .medium))
+                        .foregroundColor(.primary)
+                        .multilineTextAlignment(.leading)
+                    
+                    if isDestructive {
+                        Text("This action cannot be undone")
+                            .font(.system(size: 13))
+                            .foregroundColor(.secondary)
+                    }
+                }
 
                 Spacer()
 
                 Image(systemName: "chevron.right")
-                    .foregroundColor(.gray)
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(.secondary)
             }
-            .padding()
-            .background(Color.white)
-            .cornerRadius(10)
-            .overlay(
-                RoundedRectangle(cornerRadius: 10)
-                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-            )
+            .padding(.vertical, 12)
+            .padding(.horizontal, 16)
+            .background(Color(UIColor.systemGray6))
+            .cornerRadius(12)
         }
+        .buttonStyle(PlainButtonStyle())
     }
 
     // MARK: - Logout Functionality
@@ -169,7 +316,7 @@ struct PageSettings: View {
         var body: some View {
             ZStack {
                 Circle()
-                    .fill(Color.fromHex("004aad"))
+                    .fill(Color(hexCode: "004aad"))
                     .frame(width: 60, height: 60)
                 Image(systemName: iconName)
                     .resizable()
@@ -189,43 +336,110 @@ struct BecomeMentorPage: View {
     @State private var isSubmitted = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            Text("Mentor Application")
-                .font(.title)
-                .bold()
+        ScrollView {
+            VStack(spacing: 24) {
+                // Header
+                VStack(spacing: 8) {
+                    Image(systemName: "graduationcap.fill")
+                        .font(.system(size: 48, weight: .light))
+                        .foregroundColor(Color(hexCode: "004aad"))
+                    
+                    Text("Mentor Application")
+                        .font(.system(size: 28, weight: .bold))
+                        .foregroundColor(.primary)
+                    
+                    Text("Share your expertise and help fellow entrepreneurs grow")
+                        .font(.system(size: 16))
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
+                }
+                .padding(.top, 20)
 
-            TextField("Your Name", text: $name)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
+                // Form Card
+                VStack(spacing: 20) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Full Name")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.primary)
+                        
+                        TextField("Enter your full name", text: $name)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .font(.system(size: 16))
+                    }
 
-            TextField("Industry", text: $industry)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Industry")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.primary)
+                        
+                        TextField("e.g., Technology, Finance, Healthcare", text: $industry)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .font(.system(size: 16))
+                    }
 
-            Text("Why do you want to become a mentor?")
-                .font(.headline)
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Why do you want to become a mentor?")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.primary)
 
-            TextEditor(text: $reason)
-                .frame(height: 120)
-                .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.gray.opacity(0.5)))
+                        TextEditor(text: $reason)
+                            .frame(height: 120)
+                            .padding(8)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.secondary.opacity(0.3), lineWidth: 1)
+                            )
+                            .font(.system(size: 16))
+                    }
 
-            Button(action: {
-                submitMentorApplication()
-            }) {
-                Text("Submit Application")
-                    .foregroundColor(.white)
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(Color.blue)
-                    .cornerRadius(10)
+                    Button(action: {
+                        submitMentorApplication()
+                    }) {
+                        HStack {
+                            if isSubmitted {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .font(.system(size: 18, weight: .semibold))
+                            }
+                            
+                            Text(isSubmitted ? "Application Submitted!" : "Submit Application")
+                                .font(.system(size: 18, weight: .semibold))
+                        }
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(
+                            LinearGradient(
+                                colors: isSubmitted ? 
+                                    [Color.green, Color.green.opacity(0.8)] :
+                                    [Color(hexCode: "004aad"), Color(hexCode: "0066ff")],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .cornerRadius(12)
+                    }
+                    .disabled(name.isEmpty || industry.isEmpty || reason.isEmpty)
+                    .shadow(color: Color(hexCode: "004aad").opacity(0.3), radius: 8, x: 0, y: 4)
+
+                    if isSubmitted {
+                        Text("We'll review your application and get back to you within 2-3 business days.")
+                            .font(.system(size: 14))
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal)
+                    }
+                }
+                .padding(24)
+                .background(Color.white)
+                .cornerRadius(16)
+                .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 2)
             }
-
-            if isSubmitted {
-                Text("Application submitted! We'll review it shortly.")
-                    .foregroundColor(.green)
-            }
-
-            Spacer()
+            .padding(.horizontal, 20)
         }
-        .padding()
+        .background(Color(UIColor.systemGray6))
+        .navigationTitle("Become a Mentor")
+        .navigationBarTitleDisplayMode(.inline)
     }
 
     func submitMentorApplication() {
@@ -359,37 +573,101 @@ struct ChangePasswordPage: View {
     @State private var isSuccess = false
 
     var body: some View {
-        VStack(spacing: 20) {
-            Text("Change Password")
-                .font(.title)
-                .bold()
+        ScrollView {
+            VStack(spacing: 24) {
+                // Header
+                VStack(spacing: 8) {
+                    Image(systemName: "lock.fill")
+                        .font(.system(size: 48, weight: .light))
+                        .foregroundColor(Color(hexCode: "004aad"))
+                    
+                    Text("Change Password")
+                        .font(.system(size: 28, weight: .bold))
+                        .foregroundColor(.primary)
+                    
+                    Text("Keep your account secure with a strong password")
+                        .font(.system(size: 16))
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
+                }
+                .padding(.top, 20)
 
-            SecureField("Current Password", text: $oldPassword)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
+                // Form Card
+                VStack(spacing: 20) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Current Password")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.primary)
+                        
+                        SecureField("Enter your current password", text: $oldPassword)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .font(.system(size: 16))
+                    }
 
-            SecureField("New Password", text: $newPassword)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("New Password")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.primary)
+                        
+                        SecureField("Enter your new password", text: $newPassword)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .font(.system(size: 16))
+                    }
 
-            SecureField("Confirm New Password", text: $confirmPassword)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Confirm New Password")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.primary)
+                        
+                        SecureField("Confirm your new password", text: $confirmPassword)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .font(.system(size: 16))
+                    }
 
-            Button(action: changePassword) {
-                Text("Update Password")
-                    .foregroundColor(.white)
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(Color.blue)
-                    .cornerRadius(10)
+                    Button(action: changePassword) {
+                        Text("Update Password")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                            .background(
+                                LinearGradient(
+                                    colors: [Color(hexCode: "004aad"), Color(hexCode: "0066ff")],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .cornerRadius(12)
+                    }
+                    .disabled(oldPassword.isEmpty || newPassword.isEmpty || confirmPassword.isEmpty)
+                    .shadow(color: Color(hexCode: "004aad").opacity(0.3), radius: 8, x: 0, y: 4)
+
+                    if !message.isEmpty {
+                        HStack(spacing: 8) {
+                            Image(systemName: isSuccess ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                                .foregroundColor(isSuccess ? .green : .red)
+                            
+                            Text(message)
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(isSuccess ? .green : .red)
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
+                        .background((isSuccess ? Color.green : Color.red).opacity(0.1))
+                        .cornerRadius(8)
+                    }
+                }
+                .padding(24)
+                .background(Color.white)
+                .cornerRadius(16)
+                .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 2)
             }
-
-            if !message.isEmpty {
-                Text(message)
-                    .foregroundColor(isSuccess ? .green : .red)
-            }
-
-            Spacer()
+            .padding(.horizontal, 20)
         }
-        .padding()
+        .background(Color(UIColor.systemGray6))
+        .navigationTitle("Change Password")
+        .navigationBarTitleDisplayMode(.inline)
     }
 
     func changePassword() {
@@ -835,58 +1113,144 @@ struct ContactSupportPage: View {
     @State private var successMessage = ""
 
     var body: some View {
-        VStack(spacing: 20) {
-            Text("Contact Support")
-                .font(.title)
-                .bold()
+        ScrollView {
+            VStack(spacing: 24) {
+                // Header
+                VStack(spacing: 8) {
+                    Image(systemName: "headphones")
+                        .font(.system(size: 48, weight: .light))
+                        .foregroundColor(Color(hexCode: "004aad"))
+                    
+                    Text("Contact Support")
+                        .font(.system(size: 28, weight: .bold))
+                        .foregroundColor(.primary)
+                    
+                    Text("We're here to help! Send us your questions or feedback.")
+                        .font(.system(size: 16))
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
+                }
+                .padding(.top, 20)
 
-            // Name field
-            TextField("Your Name", text: $name)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .padding()
+                // Form Card
+                VStack(spacing: 20) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Your Name")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.primary)
+                        
+                        TextField("Enter your full name", text: $name)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .font(.system(size: 16))
+                    }
 
-            // Email field
-            TextField("Your Email", text: $email)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .padding()
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Email Address")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.primary)
+                        
+                        TextField("your.email@example.com", text: $email)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .font(.system(size: 16))
+                            .keyboardType(.emailAddress)
+                            .autocapitalization(.none)
+                    }
 
-            // Question field
-            TextEditor(text: $question)
-                .frame(height: 150)
-                .padding()
-                .border(Color.gray, width: 1)
-                .cornerRadius(8)
-                .padding()
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("How can we help?")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.primary)
 
-            // Submit Button
-            Button(action: {
-                // Logic to submit the form (to be added later)
-                isSubmitted = true
-                successMessage = "Thank you for your submission!"
-            }) {
-                Text("Submit Request")
-                    .foregroundColor(.white)
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(Color.blue)
-                    .cornerRadius(10)
+                        TextEditor(text: $question)
+                            .frame(height: 120)
+                            .padding(8)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.secondary.opacity(0.3), lineWidth: 1)
+                            )
+                            .font(.system(size: 16))
+                    }
+
+                    Button(action: {
+                        isSubmitted = true
+                        successMessage = "Thank you for contacting us! We'll get back to you within 24 hours."
+                        // Clear form
+                        name = ""
+                        email = ""
+                        question = ""
+                    }) {
+                        HStack {
+                            if isSubmitted {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .font(.system(size: 18, weight: .semibold))
+                            }
+                            
+                            Text(isSubmitted ? "Message Sent!" : "Send Message")
+                                .font(.system(size: 18, weight: .semibold))
+                        }
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(
+                            LinearGradient(
+                                colors: isSubmitted ? 
+                                    [Color.green, Color.green.opacity(0.8)] :
+                                    [Color(hexCode: "004aad"), Color(hexCode: "0066ff")],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .cornerRadius(12)
+                    }
+                    .disabled(name.isEmpty || email.isEmpty || question.isEmpty)
+                    .shadow(color: Color(hexCode: "004aad").opacity(0.3), radius: 8, x: 0, y: 4)
+
+                    if isSubmitted {
+                        Text(successMessage)
+                            .font(.system(size: 14))
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal)
+                    }
+                }
+                .padding(24)
+                .background(Color.white)
+                .cornerRadius(16)
+                .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 2)
+
+                // Additional Resources Card
+                VStack(spacing: 16) {
+                    Text("Other Ways to Reach Us")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(.primary)
+                    
+                    Link(destination: URL(string: "https://www.circlinternational.com/contact-circl")!) {
+                        HStack {
+                            Image(systemName: "globe")
+                                .font(.system(size: 18))
+                                .foregroundColor(Color(hexCode: "004aad"))
+                            
+                            Text("Visit our Contact Page")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(Color(hexCode: "004aad"))
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(Color(hexCode: "004aad").opacity(0.1))
+                        .cornerRadius(8)
+                    }
+                }
+                .padding(20)
+                .background(Color.white)
+                .cornerRadius(16)
+                .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 2)
             }
-
-            // Success message after submission
-            if isSubmitted {
-                Text(successMessage)
-                    .foregroundColor(.green)
-                    .font(.subheadline)
-            }
-
-            // Link to external contact page
-            Link("Visit our Contact Page", destination: URL(string: "https://www.circlinternational.com/contact-circl")!)
-                .foregroundColor(.blue)
-                .font(.subheadline)
-
-            Spacer()
+            .padding(.horizontal, 20)
         }
-        .padding()
+        .background(Color(UIColor.systemGray6))
+        .navigationTitle("Contact Support")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 

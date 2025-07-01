@@ -100,7 +100,7 @@ struct PageMessages: View {
                         }) {
                             ZStack {
                                 Circle()
-                                    .fill(Color.fromHex("004aad"))
+                                    .fill(Color(hexCode: "004aad"))
                                     .frame(width: 60, height: 60)
 
                                 Image("CirclLogoButton")
@@ -180,7 +180,7 @@ struct PageMessages: View {
             .padding(.horizontal)
             .padding(.top, 15)
             .padding(.bottom, 10)
-            .background(Color.fromHex("004aad"))
+            .background(Color(hexCode: "004aad"))
         }
     }
     
@@ -843,7 +843,7 @@ struct ChatView: View {
         }
         .padding(.horizontal)
         .padding(.vertical, 25)
-        .background(Color.fromHex("004aad"))
+        .background(Color(hexCode: "004aad"))
     }
 
 
@@ -930,7 +930,7 @@ struct ChatView: View {
 
                 Text(message.content)
                     .padding(10)
-                    .background(isCurrentUser ? Color.fromHex("004aad") : Color(.systemGray5))
+                    .background(isCurrentUser ? Color(hexCode: "004aad") : Color(.systemGray5))
                     .foregroundColor(isCurrentUser ? .white : .black)
                     .cornerRadius(12)
 
@@ -1034,15 +1034,6 @@ struct ChatView: View {
                 }
             }
         }.resume()
-    }
-}
-
-extension Color {
-    static func fromHex(_ hex: String) -> Color {
-        var hexSanitized = hex.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: "#", with: "")
-        var rgb: UInt64 = 0
-        Scanner(string: hexSanitized).scanHexInt64(&rgb)
-        return Color(red: Double((rgb >> 16) & 0xFF) / 255.0, green: Double((rgb >> 8) & 0xFF) / 255.0, blue: Double(rgb & 0xFF) / 255.0)
     }
 }
 

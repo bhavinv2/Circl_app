@@ -75,7 +75,7 @@ struct PageEntrepreneurKnowledge: View {
                         .padding(.horizontal)
                         .padding(.top, 15)
                         .padding(.bottom, 10)
-                        .background(Color.fromHex("004aad"))
+                        .background(Color(hexCode: "004aad"))
                     }
 
                     // Scrollable Section
@@ -84,11 +84,11 @@ struct PageEntrepreneurKnowledge: View {
                             Image(systemName: "hammer.circle")
                                 .resizable()
                                 .frame(width: 100, height: 100)
-                                .foregroundColor(Color.fromHex("004aad"))
+                                .foregroundColor(Color(hexCode: "004aad"))
 
                             Text("Thank you for your patience with Circl! We are currently working on creating the \"News\" feature - an opportunity for you to learn more about general news about your industry from news sources and fellow entrepreneurs in the community. Keep your notifications on and stay tuned in the discord server to know when we release it!")
                                 .font(.body)
-                                .foregroundColor(Color.fromHex("004aad"))
+                                .foregroundColor(Color(hexCode: "004aad"))
                                 .padding()
                                 .background(Color.gray.opacity(0.4))
                                 .cornerRadius(10)
@@ -161,7 +161,7 @@ struct PageEntrepreneurKnowledge: View {
                     }) {
                         ZStack {
                             Circle()
-                                .fill(Color.fromHex("004aad"))
+                                .fill(Color(hexCode: "004aad"))
                                 .frame(width: 60, height: 60)
 
                             Image("CirclLogoButton")
@@ -191,7 +191,7 @@ struct MenuItem10: View {
     var body: some View {
         HStack {
             Image(systemName: icon)
-                .foregroundColor(Color.fromHex("004aad"))
+                .foregroundColor(Color(hexCode: "004aad"))
                 .frame(width: 24)
             Text(title)
                 .foregroundColor(.primary)
@@ -200,23 +200,6 @@ struct MenuItem10: View {
         .padding(.horizontal)
         .padding(.vertical, 12)
         .contentShape(Rectangle())
-    }
-}
-
-// MARK: - Color Extension
-extension Color {
-    static func fromHex10(_ hex: String) -> Color {
-        var hexSanitized = hex.trimmingCharacters(in: .whitespacesAndNewlines)
-        hexSanitized = hexSanitized.hasPrefix("#") ? String(hexSanitized.dropFirst()) : hexSanitized
-
-        var rgb: UInt64 = 0
-        Scanner(string: hexSanitized).scanHexInt64(&rgb)
-
-        let red = Double((rgb >> 16) & 0xFF) / 255.0
-        let green = Double((rgb >> 8) & 0xFF) / 255.0
-        let blue = Double(rgb & 0xFF) / 255.0
-
-        return Color(red: red, green: green, blue: blue)
     }
 }
 

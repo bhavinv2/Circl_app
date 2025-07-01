@@ -96,7 +96,7 @@ struct PageCircles: View {
                         .padding(.horizontal)
                         .padding(.top, 15)
                         .padding(.bottom, 10)
-                        .background(Color.fromHex("004aad"))
+                        .background(Color(hexCode: "004aad"))
                     }
 
                     // MARK: Search + Add
@@ -255,7 +255,7 @@ struct PageCircles: View {
                     }) {
                         ZStack {
                             Circle()
-                                .fill(Color.fromHex("004aad"))
+                                .fill(Color(hexCode: "004aad"))
                                 .frame(width: 60, height: 60)
 
                             Image("CirclLogoButton")
@@ -278,7 +278,7 @@ struct PageCircles: View {
                                 VStack(spacing: 8) {
                                     Image(systemName: "circle.grid.3x3.fill")
                                         .font(.system(size: 40))
-                                        .foregroundColor(Color.fromHex("004aad"))
+                                        .foregroundColor(Color(hexCode: "004aad"))
                                     
                                     Text("Create a New Circl")
                                         .font(.title)
@@ -299,7 +299,7 @@ struct PageCircles: View {
                                     VStack(alignment: .leading, spacing: 8) {
                                         HStack {
                                             Image(systemName: "textformat")
-                                                .foregroundColor(Color.fromHex("004aad"))
+                                                .foregroundColor(Color(hexCode: "004aad"))
                                                 .frame(width: 20)
                                             Text("Circl Name")
                                                 .font(.headline)
@@ -317,7 +317,7 @@ struct PageCircles: View {
                                             )
                                             .overlay(
                                                 RoundedRectangle(cornerRadius: 12)
-                                                    .stroke(Color.fromHex("004aad").opacity(0.3), lineWidth: 1)
+                                                    .stroke(Color(hexCode: "004aad").opacity(0.3), lineWidth: 1)
                                             )
                                     }
 
@@ -325,7 +325,7 @@ struct PageCircles: View {
                                     VStack(alignment: .leading, spacing: 8) {
                                         HStack {
                                             Image(systemName: "building.2")
-                                                .foregroundColor(Color.fromHex("004aad"))
+                                                .foregroundColor(Color(hexCode: "004aad"))
                                                 .frame(width: 20)
                                             Text("Industry")
                                                 .font(.headline)
@@ -343,7 +343,7 @@ struct PageCircles: View {
                                             )
                                             .overlay(
                                                 RoundedRectangle(cornerRadius: 12)
-                                                    .stroke(Color.fromHex("004aad").opacity(0.3), lineWidth: 1)
+                                                    .stroke(Color(hexCode: "004aad").opacity(0.3), lineWidth: 1)
                                             )
                                     }
 
@@ -351,7 +351,7 @@ struct PageCircles: View {
                                     VStack(alignment: .leading, spacing: 8) {
                                         HStack {
                                             Image(systemName: "text.alignleft")
-                                                .foregroundColor(Color.fromHex("004aad"))
+                                                .foregroundColor(Color(hexCode: "004aad"))
                                                 .frame(width: 20)
                                             Text("Description")
                                                 .font(.headline)
@@ -365,7 +365,7 @@ struct PageCircles: View {
                                                 .shadow(color: .gray.opacity(0.2), radius: 2, x: 0, y: 1)
                                                 .overlay(
                                                     RoundedRectangle(cornerRadius: 12)
-                                                        .stroke(Color.fromHex("004aad").opacity(0.3), lineWidth: 1)
+                                                        .stroke(Color(hexCode: "004aad").opacity(0.3), lineWidth: 1)
                                                 )
                                             
                                             if circleDescription.isEmpty {
@@ -386,7 +386,7 @@ struct PageCircles: View {
                                     VStack(alignment: .leading, spacing: 12) {
                                         HStack {
                                             Image(systemName: "person.badge.plus")
-                                                .foregroundColor(Color.fromHex("004aad"))
+                                                .foregroundColor(Color(hexCode: "004aad"))
                                                 .frame(width: 20)
                                             Text("Membership Type")
                                                 .font(.headline)
@@ -407,7 +407,7 @@ struct PageCircles: View {
                                     // Divider with style
                                     Rectangle()
                                         .fill(LinearGradient(
-                                            colors: [Color.clear, Color.fromHex("004aad").opacity(0.3), Color.clear],
+                                            colors: [Color.clear, Color(hexCode: "004aad").opacity(0.3), Color.clear],
                                             startPoint: .leading,
                                             endPoint: .trailing
                                         ))
@@ -418,7 +418,7 @@ struct PageCircles: View {
                                     VStack(alignment: .leading, spacing: 16) {
                                         HStack {
                                             Image(systemName: "number")
-                                                .foregroundColor(Color.fromHex("004aad"))
+                                                .foregroundColor(Color(hexCode: "004aad"))
                                                 .frame(width: 20)
                                             Text("Select Channels")
                                                 .font(.headline)
@@ -459,7 +459,7 @@ struct PageCircles: View {
                                                                 }
                                                             }
                                                         ))
-                                                        .toggleStyle(SwitchToggleStyle(tint: Color.fromHex("004aad")))
+                                                        .toggleStyle(SwitchToggleStyle(tint: Color(hexCode: "004aad")))
                                                         .padding(.horizontal, 16)
                                                         .padding(.vertical, 12)
                                                         .background(Color(.systemGray6).opacity(0.5))
@@ -486,14 +486,14 @@ struct PageCircles: View {
                                     .padding(.vertical, 16)
                                     .background(
                                         LinearGradient(
-                                            colors: [Color.fromHex("004aad"), Color.fromHex("0066cc")],
+                                            colors: [Color(hexCode: "004aad"), Color(hexCode: "0066cc")],
                                             startPoint: .leading,
                                             endPoint: .trailing
                                         )
                                     )
                                     .foregroundColor(.white)
                                     .cornerRadius(16)
-                                    .shadow(color: Color.fromHex("004aad").opacity(0.3), radius: 8, x: 0, y: 4)
+                                    .shadow(color: Color(hexCode: "004aad").opacity(0.3), radius: 8, x: 0, y: 4)
                                 }
                                 .padding(.horizontal, 20)
                                 .padding(.bottom, 30)
@@ -505,7 +505,7 @@ struct PageCircles: View {
                                 Button("Cancel") {
                                     showCreateCircleSheet = false
                                 }
-                                .foregroundColor(Color.fromHex("004aad"))
+                                .foregroundColor(Color(hexCode: "004aad"))
                             }
                         }
                     }

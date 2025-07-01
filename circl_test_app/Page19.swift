@@ -10,8 +10,8 @@ struct Page19: View {
                 // Background with subtle gradient
                 LinearGradient(
                     gradient: Gradient(colors: [
-                        Color.fromHex("004aad"),
-                        Color.fromHex("0066cc")
+                        Color(hexCode: "004aad"),
+                        Color(hexCode: "0066cc")
                     ]),
                     startPoint: .top,
                     endPoint: .bottom
@@ -136,7 +136,7 @@ struct Page19: View {
                             .overlay(
                                 Text("Circl.")
                                     .font(.system(size: 55, weight: .bold))
-                                    .foregroundColor(Color.fromHex("004aad"))
+                                    .foregroundColor(Color(hexCode: "004aad"))
                             )
                             .frame(width: 180, height: 180)
                             .padding(.top, 5)
@@ -182,8 +182,8 @@ struct Page19: View {
                             .font(.system(size: 18, weight: .bold))
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(Color.fromHex("ffde59"))
-                            .foregroundColor(Color.fromHex("004aad"))
+                            .background(Color(hexCode: "ffde59"))
+                            .foregroundColor(Color(hexCode: "004aad"))
                             .cornerRadius(12)
                             .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)
                         }
@@ -198,7 +198,7 @@ struct Page19: View {
                             .frame(maxWidth: .infinity)
                             .padding()
                             .background(Color.white.opacity(0.9))
-                            .foregroundColor(Color.fromHex("004aad"))
+                            .foregroundColor(Color(hexCode: "004aad"))
                             .cornerRadius(12)
                             .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)
                         }
@@ -294,19 +294,5 @@ struct Particle {
 struct Page19_Previews: PreviewProvider {
     static var previews: some View {
         Page19()
-    }
-}
-
-extension Color {
-    static func fromHex19(_ hex: String) -> Color {
-        let scanner = Scanner(string: hex)
-        var rgbValue: UInt64 = 0
-        scanner.scanHexInt64(&rgbValue)
-        
-        let r = Double((rgbValue & 0xFF0000) >> 16) / 255.0
-        let g = Double((rgbValue & 0x00FF00) >> 8) / 255.0
-        let b = Double(rgbValue & 0x0000FF) / 255.0
-        
-        return Color(red: r, green: g, blue: b)
     }
 }

@@ -192,8 +192,8 @@ struct PageGroupchats: View {
                                                     .font(.subheadline)
                                                     .padding(.vertical, 6)
                                                     .padding(.horizontal, 12)
-                                                    .background(Color.fromHex("004aad").opacity(0.1))
-                                                    .foregroundColor(Color.fromHex("004aad"))
+                                                    .background(Color(hexCode: "004aad").opacity(0.1))
+                                                    .foregroundColor(Color(hexCode: "004aad"))
                                                     .cornerRadius(12)
                                                     .padding(.horizontal)
                                             }
@@ -579,7 +579,7 @@ struct PageGroupchats: View {
             }
             .padding(.horizontal)
             .padding(.vertical, 10)
-            .background(Color.fromHex12("004aad"))
+            .background(Color(hexCode: "004aad"))
         }
     }
 
@@ -645,7 +645,7 @@ struct PageGroupchats: View {
             }) {
                 ZStack {
                     Circle()
-                        .fill(Color.fromHex("004aad"))
+                        .fill(Color(hexCode: "004aad"))
                         .frame(width: 60, height: 60)
 
                     Image("CirclLogoButton")
@@ -686,7 +686,7 @@ struct ThreadCard: View {
                 Spacer()
                 HStack(spacing: 12) {
                     HStack(spacing: 4) {
-                        Image(systemName: "heart")
+                        Image(systemName: "hand.thumbsup")
                         Text("\(thread.likes)")
                     }
                     HStack(spacing: 4) {
@@ -721,7 +721,7 @@ struct MenuItem2: View {
         }) {
             HStack {
                 Image(systemName: icon)
-                    .foregroundColor(Color.fromHex("004aad"))
+                    .foregroundColor(Color(hexCode: "004aad"))
                     .frame(width: 24)
                 Text(title)
                     .foregroundColor(.primary)
@@ -732,23 +732,6 @@ struct MenuItem2: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(PlainButtonStyle())
-    }
-}
-
-// MARK: - Color Extension Helper
-extension Color {
-    static func fromHex12(_ hex: String) -> Color {
-        var hexSanitized = hex.trimmingCharacters(in: .whitespacesAndNewlines)
-        hexSanitized = hexSanitized.hasPrefix("#") ? String(hexSanitized.dropFirst()) : hexSanitized
-
-        var rgb: UInt64 = 0
-        Scanner(string: hexSanitized).scanHexInt64(&rgb)
-
-        let red = Double((rgb >> 16) & 0xFF) / 255.0
-        let green = Double((rgb >> 8) & 0xFF) / 255.0
-        let blue = Double(rgb & 0xFF) / 255.0
-
-        return Color(red: red, green: green, blue: blue)
     }
 }
 
@@ -915,7 +898,7 @@ struct CirclHeader: View {
             .padding(.horizontal)
             .padding(.top, 15)
             .padding(.bottom, 10)
-            .background(Color.fromHex("004aad"))
+            .background(Color(hexCode: "004aad"))
         }
     }
 }

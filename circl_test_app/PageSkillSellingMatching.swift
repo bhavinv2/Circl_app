@@ -61,7 +61,7 @@ struct PageSkillSellingMatching: View {
                         .padding(.horizontal)
                         .padding(.top, 15)
                         .padding(.bottom, 10)
-                        .background(Color.fromHex("004aad"))
+                        .background(Color(hexCode: "004aad"))
                     }
                     
                     // Scrollable Section
@@ -71,12 +71,12 @@ struct PageSkillSellingMatching: View {
                             Image(systemName: "hammer.circle")
                                 .resizable()
                                 .frame(width: 100, height: 100)
-                                .foregroundColor(Color.fromHex("004aad"))
+                                .foregroundColor(Color(hexCode: "004aad"))
                             
                             // Text below the hammer symbol
                             Text("We are currently working on creating our \"Marketplace\" feature - an opportunity for you to choose to monetize your skills. Sell anything from your sales expertise to web development to getting a project from a local business to add to your resume. We are very excited to release this feature for you to find a new way to generate revenue from our platform!")
                                 .font(.body)
-                                .foregroundColor(Color.fromHex("004aad"))
+                                .foregroundColor(Color(hexCode: "004aad"))
                                 .padding()
                                 .background(Color.gray.opacity(0.4))
                                 .cornerRadius(10)
@@ -157,7 +157,7 @@ struct PageSkillSellingMatching: View {
                         }) {
                             ZStack {
                                 Circle()
-                                    .fill(Color.fromHex("004aad"))
+                                    .fill(Color(hexCode: "004aad"))
                                     .frame(width: 60, height: 60)
 
                                 Image("CirclLogoButton")
@@ -189,7 +189,7 @@ struct MenuItem14: View {
     var body: some View {
         HStack {
             Image(systemName: icon)
-                .foregroundColor(Color.fromHex("004aad"))
+                .foregroundColor(Color(hexCode: "004aad"))
                 .frame(width: 24)
             Text(title)
                 .foregroundColor(.primary)
@@ -201,22 +201,7 @@ struct MenuItem14: View {
     }
 }
 
-// MARK: - Color Extension
-extension Color {
-    static func fromHex4(_ hex: String) -> Color {
-        var hexSanitized = hex.trimmingCharacters(in: .whitespacesAndNewlines)
-        hexSanitized = hexSanitized.hasPrefix("#") ? String(hexSanitized.dropFirst()) : hexSanitized
-
-        var rgb: UInt64 = 0
-        Scanner(string: hexSanitized).scanHexInt64(&rgb)
-
-        let red = Double((rgb >> 16) & 0xFF) / 255.0
-        let green = Double((rgb >> 8) & 0xFF) / 255.0
-        let blue = Double(rgb & 0xFF) / 255.0
-
-        return Color(red: red, green: green, blue: blue)
-    }
-}
+// MARK: - Color Extension removed (using ColorExtensions.swift instead)
 
 // MARK: - Preview
 #Preview {

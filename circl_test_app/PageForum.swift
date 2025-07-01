@@ -1,6 +1,15 @@
 import SwiftUI
 import UIKit
 
+struct MessageModel: Identifiable, Codable {
+    let id: Int
+    let sender_id: Int
+    let receiver_id: Int
+    let content: String
+    let timestamp: String
+    let is_read: Bool
+}
+
 struct ForumPostModel: Identifiable, Codable {
     let id: Int
     let user: String
@@ -90,154 +99,111 @@ struct ForumPost: View {
     let onTapProfile: () -> Void
     let isMentor: Bool
 
-    @State private var showOptionsBox = false
     @State private var showDeleteConfirmation = false
     @State private var showReportSheet = false
 
 
     var body: some View {
-        ZStack(alignment: .topTrailing) {
-            VStack(alignment: .leading, spacing: 10) {
-                HStack(alignment: .top, spacing: 12) {
-                    Button(action: {
-                        onTapProfile()
-                    }) {
-                        AsyncImage(url: URL(string: profileImageName)) { phase in
-                            if let image = phase.image {
-                                image.resizable().aspectRatio(contentMode: .fill)
-                            } else {
-                                Image("default_image").resizable().aspectRatio(contentMode: .fill)
-                            }
+        VStack(alignment: .leading, spacing: 12) {
+            // Post Header
+            HStack(spacing: 12) {
+                Button(action: onTapProfile) {
+                    AsyncImage(url: URL(string: profileImageName)) { phase in
+                        if let image = phase.image {
+                            image.resizable().aspectRatio(contentMode: .fill)
+                        } else {
+                            Image("default_image").resizable().aspectRatio(contentMode: .fill)
                         }
-                        .frame(width: 40, height: 40)
+                    }
+                    .frame(width: 48, height: 48)
+                    .clipShape(Circle())
+                }
+
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack {
+                        Text(author).font(.system(size: 16, weight: .bold))
+                        if isMentor {
+                            Image(systemName: "checkmark.seal.fill")
+                                .foregroundColor(Color(hexCode: "004aad"))
+                                .font(.system(size: 14))
+                        }
+                    }
+                    Text(timeAgo(from: timestamp))
+                        .font(.system(size: 13))
+                        .foregroundColor(.secondary)
+                }
+
+                Spacer()
+
+                Menu {
+                    if isCurrentUser {
+                        Button("Delete Post", role: .destructive) {
+                            showDeleteConfirmation = true
+                        }
+                    } else {
+                        Button("Report Post", role: .destructive) {
+                            showReportSheet = true
+                        }
+                    }
+                } label: {
+                    Image(systemName: "ellipsis")
+                        .font(.body.weight(.semibold))
+                        .foregroundColor(.secondary)
+                        .padding(8)
+                        .background(Color.primary.opacity(0.05))
                         .clipShape(Circle())
-                        .shadow(radius: 1)
-                    }
-
-                    VStack(alignment: .leading, spacing: 2) {
-                        HStack {
-                            Text(author).font(.headline)
-                            Text(isMentor ? "Mentor" : "Entrepreneur").font(.subheadline).foregroundColor(.gray)
-                        }
-
-                        Text(timeAgo(from: timestamp))
-                            .font(.subheadline)
-                            .foregroundColor(.gray)
-                    }
-
-                    Spacer()
-
-                    if !category.trimmingCharacters(in: .whitespaces).isEmpty && category != "Category" {
-                        Text(category)
-                            .font(.caption)
-                            .padding(8)
-                            .background(Color.fromHex("ffde59"))
-                            .foregroundColor(.black)
-                            .cornerRadius(5)
-                            .offset(y: 25)
-                    }
                 }
-
-                Text(content).font(.body).lineLimit(3).foregroundColor(.black)
-
-                // Buttons (Like, Comment)
-                HStack {
-                    Button(action: { toggleLike() }) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "hand.thumbsup.fill")
-                                .foregroundColor(likedByUser ? .red : .gray)
-                            Text("Like")
-                            Text("(\(likeCount))").foregroundColor(.gray)
-                        }
-                        .font(.subheadline)
-                    }
-
-                    Spacer()
-
-                    Button(action: { onComment() }) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "message")
-                            Text("Comment")
-                            Text("(\(commentCount))").foregroundColor(.gray)
-                        }
-                        .font(.subheadline)
-                    }
-
-                    Spacer()
-                }
-                .padding(.top, 10)
-            }
-            .padding()
-            .background(Color.white)
-            .cornerRadius(10)
-            .shadow(radius: 2)
-
-            ZStack(alignment: .topTrailing) {
-                if showOptionsBox {
-                    Color.black.opacity(0.001)
-                        .ignoresSafeArea()
-                        .onTapGesture {
-                            showOptionsBox = false
-                        }
-                }
-
-                HStack(spacing: 12) {
-                    ZStack(alignment: .topTrailing) {
-                        Button(action: {
-                            showOptionsBox.toggle()
-                        }) {
-                            Image(systemName: "ellipsis")
-                                .foregroundColor(.gray)
-                                .font(.system(size: 25, weight: .regular))
-                        }
-
-                        if showOptionsBox {
-                            VStack(alignment: .trailing, spacing: 8) {
-                                if isCurrentUser {
-                                    Button("Delete Post") {
-                                        showOptionsBox = false
-                                        showDeleteConfirmation = true
-                                    }
-                                    .foregroundColor(.red)
-                                } else {
-                                    Button("Report Post") {
-                                        showOptionsBox = false
-                                        showReportSheet = true
-                                    }
-                                    .foregroundColor(.red)
-                                }
-                            }
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 10)
-                            .background(Color.white)
-                            .cornerRadius(25)
-                            .shadow(radius: 4)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 25)
-                                    .stroke(Color.gray.opacity(0.2), lineWidth: 0.5)
-                            )
-                            .offset(x: -25, y: 0)
-                        }
-                    }
-                }
-                .offset(x: -25, y: 20)
-            }
-            .alert(isPresented: $showDeleteConfirmation) {
-                Alert(
-                    title: Text("Delete Post?"),
-                    message: Text("Are you sure you want to delete this post?"),
-                    primaryButton: .destructive(Text("Delete")) {
-                        onDelete()
-                    },
-                    secondaryButton: .cancel()
-                )
-            }
-            .sheet(isPresented: $showReportSheet) {
-                ReportPostView(postID: postID, isPresented: $showReportSheet)
             }
 
+            Text(content)
+                .font(.system(size: 15))
+                .lineSpacing(4)
+
+            if !category.trimmingCharacters(in: .whitespaces).isEmpty && category != "Category" {
+                Text(category)
+                    .font(.system(size: 12, weight: .medium))
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(Color(hexCode: "004aad").opacity(0.1))
+                    .foregroundColor(Color(hexCode: "004aad"))
+                    .clipShape(Capsule())
+            }
+
+            Divider().padding(.vertical, 4)
+
+            HStack(spacing: 24) {
+                Button(action: toggleLike) {
+                    HStack(spacing: 6) {
+                        Image(systemName: likedByUser ? "heart.fill" : "heart")
+                            .foregroundColor(likedByUser ? .red : .secondary)
+                        Text("\(likeCount) Likes")
+                    }
+                }
+                .buttonStyle(PlainButtonStyle())
+
+                Button(action: onComment) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "bubble.left")
+                        Text("\(commentCount) Comments")
+                    }
+                }
+                .buttonStyle(PlainButtonStyle())
+
+                Spacer()
+            }
+            .font(.system(size: 14, weight: .medium))
+            .foregroundColor(.secondary)
         }
-
+        .padding(16)
+        .background(Color.white)
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 2)
+        .alert("Delete Post?", isPresented: $showDeleteConfirmation) {
+            Button("Delete", role: .destructive, action: onDelete)
+        }
+        .sheet(isPresented: $showReportSheet) {
+            ReportPostView(postID: postID, isPresented: $showReportSheet)
+        }
     }
 }
 
@@ -319,6 +285,9 @@ struct ForumMainContent: View {
     @Binding var posts: [ForumPostModel]
     @Binding var selectedPostIdForComments: ForumPostModel?
     @Binding var loggedInUserFullName: String
+    @Binding var userFirstName: String
+    @Binding var userProfileImageURL: String
+    @Binding var unreadMessageCount: Int
     @Binding var selectedProfile: FullProfile?
     @Binding var showProfileSheet: Bool
     @Binding var showCategoryAlert: Bool
@@ -326,12 +295,10 @@ struct ForumMainContent: View {
     @Binding var showPageLoading: Bool
     @State private var showMenu = false
     @State private var rotationAngle: Double = 0
+    @State private var isAnimating = false
 
     @AppStorage("hasSeenForumTutorial") private var hasSeenTutorial = false
     @State private var showTutorial = false
-
-
-
 
     var fetchPosts: () -> Void
     var submitPost: () -> Void
@@ -339,8 +306,87 @@ struct ForumMainContent: View {
     var toggleLike: (ForumPostModel) -> Void
     var fetchUserProfile: (Int, @escaping (FullProfile?) -> Void) -> Void
 
+    private var animatedBackground: some View {
+        ZStack {
+            // Base gradient
+            LinearGradient(
+                colors: [
+                    Color(hexCode: "001a3d"),
+                    Color(hexCode: "004aad"),
+                    Color(hexCode: "0066ff"),
+                    Color(hexCode: "003d7a")
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            
+            // First flowing layer
+            LinearGradient(
+                colors: [
+                    Color.clear,
+                    Color(hexCode: "0066ff").opacity(0.2),
+                    Color.clear,
+                    Color(hexCode: "004aad").opacity(0.15),
+                    Color.clear
+                ],
+                startPoint: UnitPoint(
+                    x: isAnimating ? -0.3 : 1.3,
+                    y: 0.0
+                ),
+                endPoint: UnitPoint(
+                    x: isAnimating ? 1.0 : 0.0,
+                    y: 1.0
+                )
+            )
+            
+            // Second flowing layer (opposite direction)
+            LinearGradient(
+                colors: [
+                    Color(hexCode: "002d5a").opacity(0.1),
+                    Color.clear,
+                    Color(hexCode: "0066ff").opacity(0.18),
+                    Color.clear,
+                    Color(hexCode: "001a3d").opacity(0.12)
+                ],
+                startPoint: UnitPoint(
+                    x: isAnimating ? 1.2 : -0.2,
+                    y: 0.3
+                ),
+                endPoint: UnitPoint(
+                    x: isAnimating ? 0.1 : 0.9,
+                    y: 0.7
+                )
+            )
+            
+            // Third subtle wave layer
+            LinearGradient(
+                colors: [
+                    Color.clear,
+                    Color.clear,
+                    Color(hexCode: "0066ff").opacity(0.1),
+                    Color.clear,
+                    Color.clear
+                ],
+                startPoint: UnitPoint(
+                    x: isAnimating ? 0.2 : 0.8,
+                    y: isAnimating ? 0.0 : 1.0
+                ),
+                endPoint: UnitPoint(
+                    x: isAnimating ? 0.9 : 0.1,
+                    y: isAnimating ? 1.0 : 0.0
+                )
+            )
+        }
+        .onAppear {
+            withAnimation(Animation.easeInOut(duration: 15).repeatForever(autoreverses: true)) {
+                isAnimating = true
+            }
+        }
+    }
+
     var body: some View {
         VStack(spacing: 0) {
+            // Header
             VStack(spacing: 0) {
                 HStack {
                     VStack(alignment: .leading, spacing: 5) {
@@ -351,7 +397,6 @@ struct ForumMainContent: View {
                                 .foregroundColor(.white)
                         }
 
-                        
                         HStack(spacing: 0) {
                             Button(action: {
                                 withAnimation {
@@ -387,7 +432,7 @@ struct ForumMainContent: View {
                                     .animation(.easeInOut(duration: 0.2), value: selectedFilter)
                             }
                         }
-                        .background(Color.fromHex("004aad"))
+                        .background(Color(hexCode: "004aad"))
                         .cornerRadius(10)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.leading, -12)
@@ -399,28 +444,98 @@ struct ForumMainContent: View {
                         VStack {
                             HStack(spacing: 10) {
                                 NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
-                                    Image(systemName: "bubble.left.and.bubble.right.fill")
-                                        .resizable()
-                                        .frame(width: 50, height: 40)
-                                        .foregroundColor(.white)
+                                    ZStack {
+                                        Image(systemName: "bubble.left.and.bubble.right.fill")
+                                            .resizable()
+                                            .frame(width: 50, height: 40)
+                                            .foregroundColor(.white)
+                                        
+                                        // Notification badge - positioned more precisely
+                                        if unreadMessageCount > 0 {
+                                            ZStack {
+                                                Circle()
+                                                    .fill(Color.red)
+                                                    .frame(width: 18, height: 18)
+                                                
+                                                Text(unreadMessageCount > 99 ? "99+" : "\(unreadMessageCount)")
+                                                    .font(.system(size: 9, weight: .bold))
+                                                    .foregroundColor(.white)
+                                                    .minimumScaleFactor(0.5)
+                                            }
+                                            .offset(x: 20, y: -15)
+                                        }
+                                    }
                                 }
 
                                 NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
-                                    Image(systemName: "person.circle.fill")
-                                        .resizable()
-                                        .frame(width: 50, height: 50)
+                                    if !userProfileImageURL.isEmpty {
+                                        AsyncImage(url: URL(string: userProfileImageURL)) { phase in
+                                            switch phase {
+                                            case .empty:
+                                                // Loading state
+                                                ProgressView()
+                                                    .frame(width: 50, height: 50)
+                                                    .foregroundColor(.white)
+                                            case .success(let image):
+                                                // Successfully loaded image
+                                                image
+                                                    .resizable()
+                                                    .scaledToFill()
+                                                    .frame(width: 50, height: 50)
+                                                    .clipShape(Circle())
+                                                    .overlay(
+                                                        Circle()
+                                                            .stroke(Color.white.opacity(0.3), lineWidth: 2)
+                                                    )
+                                            case .failure(_):
+                                                // Failed to load, show default
+                                                Image(systemName: "person.circle.fill")
+                                                    .resizable()
+                                                    .frame(width: 50, height: 50)
+                                                    .foregroundColor(.white)
+                                            @unknown default:
+                                                // Fallback
+                                                Image(systemName: "person.circle.fill")
+                                                    .resizable()
+                                                    .frame(width: 50, height: 50)
+                                                    .foregroundColor(.white)
+                                            }
+                                        }
+                                    } else {
+                                        Image(systemName: "person.circle.fill")
+                                            .resizable()
+                                            .frame(width: 50, height: 50)
+                                            .foregroundColor(.white)
+                                    }
+                                }
+                            }
+                            .padding(.bottom, 5)
+                            
+                            // Welcome message with improved styling
+                            if !userFirstName.isEmpty {
+                                VStack(spacing: 2) {
+                                    Text("Welcome back,")
+                                        .font(.system(size: 12, weight: .medium))
+                                        .foregroundColor(.white.opacity(0.8))
+                                        .shadow(color: .black.opacity(0.15), radius: 1, x: 0, y: 0.5)
+                                    
+                                    Text("\(userFirstName)!")
+                                        .font(.system(size: 16, weight: .bold))
                                         .foregroundColor(.white)
+                                        .shadow(color: .black.opacity(0.2), radius: 1, x: 0, y: 0.5)
                                 }
                             }
                         }
                     }
                 }
                 .padding(.horizontal)
-                .padding(.top, 15)
                 .padding(.bottom, 10)
-                .background(Color.fromHex("004aad"))
             }
-            
+            .padding(.top, (UIApplication.shared.windows.first?.safeAreaInsets.top ?? 0) + 15)
+            .background(animatedBackground.ignoresSafeArea())
+            .clipped()
+
+            // ScrollView for content
             ScrollView {
                 if showPageLoading {
                     VStack {
@@ -433,161 +548,118 @@ struct ForumMainContent: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     LazyVStack(spacing: 20) {
-                        VStack(alignment: .leading, spacing: 10) {
-                                                    Text("Write a Post")
-                                                        .font(.headline)
-                                                        .foregroundColor(.black)
-                                                    
-                                                    HStack {
-                                                        TextField("Ask a question, or share some knowledge", text: $postContent)
-                                                            .padding()
-                                                            .background(Color(UIColor.systemGray4))
-                                                            .cornerRadius(5)
-                                                        Button(action: {
-                                                            submitPost()
-                                                        }) {
-                                                            Image(systemName: "rectangle.portrait.and.arrow.forward")
-                                                                .foregroundColor(Color.fromHex("004aad"))
-                                                        }
+                        // New Post Creation UI
+                        VStack(alignment: .leading, spacing: 12) {
+                            HStack(spacing: 12) {
+                                AsyncImage(url: URL(string: userProfileImageURL)) { phase in
+                                    if let image = phase.image {
+                                        image.resizable().aspectRatio(contentMode: .fill)
+                                    } else {
+                                        Image(systemName: "person.circle.fill").resizable().aspectRatio(contentMode: .fill).foregroundColor(.gray)
+                                    }
+                                }
+                                .frame(width: 40, height: 40)
+                                .clipShape(Circle())
 
-                                                    }
-                                                    
-//                                                    if let selectedImage = selectedImage {
-//                                                        Image(uiImage: selectedImage)
-//                                                            .resizable()
-//                                                            .scaledToFit()
-//                                                            .frame(height: 200)
-//                                                            .cornerRadius(10)
-//                                                            .padding(.top, 10)
-//                                                    }
-                                                    
-                                                    HStack(spacing: 10) {
-                                                        Menu {
-                                                            Button("Advice & Tips", action: { selectedCategory = "Advice & Tips" })
-                                                            Button("Personal Development", action: { selectedCategory = "Personal Development" })
-                                                            Button("Experience", action: { selectedCategory = "Experience" })
-                                                            Button("Product Launch", action: { selectedCategory = "Product Launch" })
-                                                            Button("Funding", action: { selectedCategory = "Funding" })
-                                                            Button("Investment", action: { selectedCategory = "Investment" })
-                                                            Button("Networking", action: { selectedCategory = "Networking" })
-                                                            Button("Collaboration", action: { selectedCategory = "Collaboration" })
-                                                            Button("News & Trends", action: { selectedCategory = "News & Trends" })
-                                                            Button("Challenges", action: { selectedCategory = "Challenges" })
-                                                            Button("Marketing", action: { selectedCategory = "Marketing" })
-                                                            Button("Growth", action: { selectedCategory = "Growth" })
-                                                            Button("Sales", action: { selectedCategory = "Sales" })
-                                                            Button("Technology", action: { selectedCategory = "Technology" })
-                                                            Button("Legal & Compliance", action: { selectedCategory = "Legal & Compliance" })
-                                                            Button("Productivity", action: { selectedCategory = "Productivity" })
-                                                        } label: {
-                                                            HStack {
-                                                                Text(selectedCategory)
-                                                                    .font(.subheadline)
-                                                                Spacer()
-                                                                Image(systemName: "chevron.down")
-                                                            }
-                                                            .padding(.horizontal, 8)
-                                                            .padding(.vertical, 6)
-                                                            .background(Color(UIColor.systemGray4))
-                                                            .cornerRadius(5)
-                                                            .frame(width: 120)
-                                                        }
-                                                        
-//                                                        Menu {
-//                                                            Button("Upload from Camera") {
-//                                                                sourceType = .camera
-//                                                                isImagePickerPresented = true
-//                                                            }
-//                                                            Button("Upload from Gallery") {
-//                                                                sourceType = .photoLibrary
-//                                                                isImagePickerPresented = true
-//                                                            }
-//                                                        } label: {
-//                                                            HStack {
-//                                                                Text("Pictures")
-//                                                                    .font(.subheadline)
-//                                                                Spacer()
-//                                                                Image(systemName: "plus")
-//                                                            }
-//                                                            .padding(.horizontal, 8)
-//                                                            .padding(.vertical, 6)
-//                                                            .background(Color(UIColor.systemGray4))
-//                                                            .cornerRadius(5)
-//                                                            .frame(width: 120)
-//                                                        }
-                                                        
-                                                        Menu {
-                                                            Button("Public", action: { selectedPrivacy = "Public" })
-                                                            Button("My Network", action: { selectedPrivacy = "My Network" })
-                                                        } label: {
-                                                            HStack {
-                                                                Text(selectedPrivacy)
-                                                                    .font(.subheadline)
-                                                                Spacer()
-                                                                Image(systemName: "chevron.down")
-                                                            }
-                                                            .padding(.horizontal, 8)
-                                                            .padding(.vertical, 6)
-                                                            .background(Color(UIColor.systemGray4))
-                                                            .cornerRadius(5)
-                                                            .frame(width: 120)
-                                                        }
-                                                    }
-                                                }
-                                                .padding()
-                                                .background(Color.white)
-                                                .cornerRadius(10)
-                                                .shadow(radius: 3)
-                                                
-                                                ForEach(posts) { post in
-                                                    ForumPost(
-                                                        content: post.content,
-                                                        author: post.user,
-                                                        timestamp: post.created_at,
-                                                        category: post.category,
-                                                        profileImageName: post.profileImage ?? "",
-                                                        company: "Circl",
-                                                        postID: post.id,  // ✅ Moved here
-                                                        onComment: {
-                                                            selectedPostIdForComments = post
-                                                        },
-                                                        commentCount: post.comment_count ?? 0,
-                                                        likeCount: post.like_count,
-                                                        likedByUser: post.liked_by_user,
-                                                        toggleLike: {
-                                                            toggleLike(post)
-                                                        },
-                                                        isCurrentUser: post.user == loggedInUserFullName,
-                                                        onDelete: {
-                                                            deletePost(post.id)
-                                                        },
-                                                        onTapProfile: {
-                                                            fetchUserProfile(post.user_id) { profile in
-                                                                if let profile = profile {
-                                                                    selectedProfile = profile
-                                                                    showProfileSheet = true
-                                                                }
-                                                            }
-                                                        },
-                                                        isMentor: post.isMentor ?? false
-                                                    )
+                                Text("The floor is yours, \(userFirstName)!")
+                                    .foregroundColor(.secondary)
+                            }
 
-                                                    .onAppear {
-                                                        print("🧠 profileImage for \(post.user): \(post.profileImage ?? "nil")")
-                                                    }
-                                                    .padding(.bottom, 10)
-                                                }
-                        // your posts go here
+                            TextField("Pitch an idea, share a win, or ask the community for advice...", text: $postContent, axis: .vertical)
+                                .lineLimit(4...)
+                                .padding(12)
+                                .background(Color(UIColor.systemGray6))
+                                .cornerRadius(10)
+                                .overlay(
+                                    postContent.isEmpty ?
+                                    Text("Pitch an idea, share a win, or ask the community for advice...")
+                                        .foregroundColor(.gray)
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 16)
+                                        .allowsHitTesting(false)
+                                    : nil, alignment: .topLeading
+                                )
+
+                            HStack {
+                                Button(action: { showCategoryAlert = true }) {
+                                    HStack {
+                                        Image(systemName: "tag")
+                                        Text(selectedCategory.isEmpty ? "Category" : selectedCategory)
+                                    }
+                                }
+
+                                Button(action: { /* Action for privacy */ }) {
+                                    HStack {
+                                        Image(systemName: "globe")
+                                        Text(selectedPrivacy)
+                                    }
+                                }
+
+                                Spacer()
+
+                                Button(action: submitPost) {
+                                    Text("Post")
+                                        .fontWeight(.bold)
+                                        .foregroundColor(.white)
+                                        .padding(.vertical, 10)
+                                        .padding(.horizontal, 24)
+                                        .background(Color(hexCode: "004aad"))
+                                        .clipShape(Capsule())
+                                }
+                                .disabled(postContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                            }
+                            .foregroundColor(Color(hexCode: "004aad"))
+                        }
+                        .padding()
+                        .background(Color.white)
+                        .cornerRadius(16)
+                        .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
+                        
+                        ForEach(posts) { post in
+                            ForumPost(
+                                content: post.content,
+                                author: post.user,
+                                timestamp: post.created_at,
+                                category: post.category,
+                                profileImageName: post.profileImage ?? "",
+                                company: "Circl",
+                                postID: post.id,
+                                onComment: {
+                                    selectedPostIdForComments = post
+                                },
+                                commentCount: post.comment_count ?? 0,
+                                likeCount: post.like_count,
+                                likedByUser: post.liked_by_user,
+                                toggleLike: {
+                                    toggleLike(post)
+                                },
+                                isCurrentUser: post.user == loggedInUserFullName,
+                                onDelete: {
+                                    deletePost(post.id)
+                                },
+                                onTapProfile: {
+                                    fetchUserProfile(post.user_id) { profile in
+                                        if let profile = profile {
+                                            selectedProfile = profile
+                                            showProfileSheet = true
+                                        }
+                                    }
+                                },
+                                isMentor: post.isMentor ?? false
+                            )
+                            .onAppear {
+                                print("🧠 profileImage for \(post.user): \(post.profileImage ?? "nil")")
+                            }
+                            .padding(.bottom, 10)
+                        }
                     }
                     .padding()
                 }
             }
             .background(Color(UIColor.systemGray6))
             .dismissKeyboardOnScroll()
-
-            
-            
         }
+        .ignoresSafeArea(edges: .top)
     }
 }
 
@@ -603,6 +675,11 @@ struct PageForum: View {
     @State private var posts: [ForumPostModel] = []
     @State private var selectedPostIdForComments: ForumPostModel?
     @State private var loggedInUserFullName: String = ""
+    @State private var userFirstName: String = ""
+    @State private var userProfileImageURL: String = ""
+    @State private var currentUserProfile: FullProfile?
+    @State private var unreadMessageCount: Int = 0
+    @State private var messages: [MessageModel] = []
     @State private var showCategoryAlert = false
     @State private var selectedFilter: String = "public"
     @State private var selectedProfile: FullProfile?
@@ -612,6 +689,8 @@ struct PageForum: View {
     @State private var userNetworkIds: [Int] = []
     @State private var showMenu = false
     @State private var rotationAngle: Double = 0
+    @State private var gradientOffset: CGFloat = 0
+    @State private var backgroundRotationAngle: Double = 0
 
     @State private var profileUserId: Int? = nil
     @State private var showProfile: Bool = false
@@ -642,6 +721,9 @@ struct PageForum: View {
                 posts: $posts,
                 selectedPostIdForComments: $selectedPostIdForComments,
                 loggedInUserFullName: $loggedInUserFullName,
+                userFirstName: $userFirstName,
+                userProfileImageURL: $userProfileImageURL,
+                unreadMessageCount: $unreadMessageCount,
                 selectedProfile: $selectedProfile,
                 showProfileSheet: $showProfileSheet,
                 showCategoryAlert: $showCategoryAlert,
@@ -743,7 +825,7 @@ struct PageForum: View {
 
                             ZStack {
                                 Circle()
-                                    .fill(Color.fromHex("004aad"))
+                                    .fill(Color(hexCode: "004aad"))
                                     .frame(width: 60, height: 60)
 
                                 Image("CirclLogoButton")
@@ -850,6 +932,17 @@ struct PageForum: View {
 
         .onAppear {
             loggedInUserFullName = UserDefaults.standard.string(forKey: "user_fullname") ?? ""
+            // Extract first name
+            if !loggedInUserFullName.isEmpty {
+                userFirstName = loggedInUserFullName.components(separatedBy: " ").first ?? ""
+            }
+            
+            // Fetch current user's profile to get profile image
+            fetchCurrentUserProfile()
+            
+            // Fetch messages for notification count
+            fetchMessagesForNotification()
+            
             selectedFilter = UserDefaults.standard.string(forKey: "selectedFilter") ?? "public"
             fetchUserNetworkIds()
             fetchPostsWithLoading()
@@ -905,6 +998,62 @@ struct PageForum: View {
                     }
                 } catch {
                     print("❌ Decoding error:", error)
+                }
+            }
+        }.resume()
+    }
+    
+    func fetchCurrentUserProfile() {
+        guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else {
+            print("❌ No user_id in UserDefaults")
+            return
+        }
+
+        let urlString = "https://circlapp.online/api/users/profile/\(userId)/"
+        print("🌐 Fetching current user profile from:", urlString)
+
+        guard let url = URL(string: urlString) else {
+            print("❌ Invalid URL")
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("❌ Request failed:", error)
+                return
+            }
+
+            if let data = data {
+                print("📦 Received current user data:", String(data: data, encoding: .utf8) ?? "No string")
+
+                if let decoded = try? JSONDecoder().decode(FullProfile.self, from: data) {
+                    DispatchQueue.main.async {
+                        print("✅ Decoded current user:", decoded.full_name)
+                        self.currentUserProfile = decoded
+                        
+                        // Update profile image URL
+                        if let profileImage = decoded.profile_image, !profileImage.isEmpty {
+                            self.userProfileImageURL = profileImage
+                            print("✅ Profile image loaded: \(profileImage)")
+                        } else {
+                            self.userProfileImageURL = ""
+                            print("❌ No profile image found for current user")
+                        }
+                        
+                        // Update user name info
+                        self.loggedInUserFullName = decoded.full_name
+                        self.userFirstName = decoded.first_name
+                    }
+                } else {
+                    print("❌ Failed to decode current user profile")
                 }
             }
         }.resume()
@@ -1069,18 +1218,68 @@ struct PageForum: View {
     }
 }
 
-// [Rest of the code remains exactly the same]
+// MARK: - Message Functions for Notification Badge
+
+extension PageForum {
+    func fetchMessagesForNotification() {
+        guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else { return }
+
+        guard let url = URL(string: "https://circlapp.online/api/users/get_messages/\(userId)/") else { return }
+
+        URLSession.shared.dataTask(with: url) { data, _, error in
+            if let data = data {
+                do {
+                    let response = try JSONDecoder().decode([String: [MessageModel]].self, from: data)
+                    DispatchQueue.main.async {
+                        let allMessages = response["messages"] ?? []
+                        self.messages = allMessages
+                        self.calculateUnreadMessageCount()
+                    }
+                } catch {
+                    print("Error decoding messages:", error)
+                }
+            }
+        }.resume()
+    }
+    
+    func calculateUnreadMessageCount() {
+        guard let myId = UserDefaults.standard.value(forKey: "user_id") as? Int else { return }
+        
+        let unreadMessages = messages.filter { message in
+            message.receiver_id == myId && !message.is_read && message.sender_id != myId
+        }
+        
+        unreadMessageCount = unreadMessages.count
+    }
+}
+
+struct CustomCircleButton: View {
+    let iconName: String
+    
+    var body: some View {
+        ZStack {
+            Circle()
+                .fill(Color(hexCode: "004aad"))
+                .frame(width: 60, height: 60)
+            Image(systemName: iconName)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 30, height: 30)
+                .foregroundColor(.white)
+        }
+    }
+}
+
+struct PageForum_Previews: PreviewProvider {
+    static var previews: some View {
+        PageForum()
+    }
+}
 
 struct CommentSheet: View {
     let postId: Int
     @Binding var isPresented: Bool
     var onDismiss: () -> Void = {}
-    @State private var showMenu = false
-    @State private var rotationAngle: Double = 0
-
-    @AppStorage("hasSeenForumTutorial") private var hasSeenTutorial = false
-    @State private var showTutorial = false
-
     @State private var newComment = ""
     @State private var comments: [CommentModel] = []
 
@@ -1133,14 +1332,8 @@ struct CommentSheet: View {
                             }
                         }
                     }
-                    // Floating Hammer Menu
-                    
-
                     .padding()
                 }
-
-                .dismissKeyboardOnScroll()
-                
 
                 HStack {
                     TextField("Add a comment...", text: $newComment)
@@ -1170,9 +1363,7 @@ struct CommentSheet: View {
                 fetchComments()
             }
         }
-        
     }
-
 
     func fetchComments() {
         guard let url = URL(string: "https://circlapp.online/api/forum/comments/\(postId)/") else { return }
@@ -1196,87 +1387,24 @@ struct CommentSheet: View {
     }
 
     func submitComment() {
-        print("🟡 Trying to submit comment: \(newComment)")
-
-        guard let url = URL(string: "https://circlapp.online/api/forum/comments/add/") else {
-            print("❌ Invalid URL")
-            return
-        }
+        guard let url = URL(string: "https://circlapp.online/api/forum/comments/add/") else { return }
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
         if let token = UserDefaults.standard.string(forKey: "auth_token") {
-            print("🔐 Auth Token found: \(token.prefix(10))...")
             request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
-        } else {
-            print("❌ No auth token found")
         }
 
         let body: [String: Any] = ["post_id": postId, "text": newComment]
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
 
         URLSession.shared.dataTask(with: request) { data, response, error in
-            if let error = error {
-                print("❌ Network error:", error.localizedDescription)
-                return
-            }
-
-            if let httpResponse = response as? HTTPURLResponse {
-                print("📡 COMMENT Status Code:", httpResponse.statusCode)
-            }
-
-            if let data = data {
-                let raw = String(data: data, encoding: .utf8) ?? "No response"
-                print("📡 COMMENT Raw Response:", raw)
-
-                DispatchQueue.main.async {
-                    newComment = ""
-                    fetchComments()
-                }
-            }
-        }.resume()
-    }
-    
-    func toggleLike(_ comment: CommentModel) {
-        guard let url = URL(string: "https://circlapp.online/api/forum/comments/\(comment.id)/\(comment.liked_by_user ? "unlike" : "like")/") else { return }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        if let token = UserDefaults.standard.string(forKey: "auth_token") {
-            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
-        }
-
-        URLSession.shared.dataTask(with: request) { _, _, _ in
             DispatchQueue.main.async {
+                newComment = ""
                 fetchComments()
             }
         }.resume()
-    }
-}
-
-struct CustomCircleButton: View {
-    let iconName: String
-    
-    var body: some View {
-        ZStack {
-            Circle()
-                .fill(Color.fromHex("004aad"))
-                .frame(width: 60, height: 60)
-            Image(systemName: iconName)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: 30, height: 30)
-                .foregroundColor(.white)
-        }
-    }
-}
-
-struct PageForum_Previews: PreviewProvider {
-    static var previews: some View {
-        PageForum()
     }
 }

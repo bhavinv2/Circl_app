@@ -32,7 +32,7 @@ struct PageEntrepreneurResources: View {
                         VStack(spacing: 20) {
                             Text("Connect to professional resources")
                                 .font(.headline)
-                                .foregroundColor(.fromHex("004aad"))
+                                .foregroundColor(Color(hexCode: "004aad"))
                                 .padding()
                                 .frame(maxWidth: .infinity)
                                 .background(Color.yellow)
@@ -81,7 +81,7 @@ struct PageEntrepreneurResources: View {
                                 }
                             }
                             .padding(.horizontal)
-                            .foregroundColor(.fromHex("004aad"))
+                            .foregroundColor(Color(hexCode: "004aad"))
                         }
                         .padding(.top, 10)
                         .padding(.bottom, 10)
@@ -145,7 +145,7 @@ struct PageEntrepreneurResources: View {
                     }) {
                         ZStack {
                             Circle()
-                                .fill(Color.fromHex("004aad"))
+                                .fill(Color(hexCode: "004aad"))
                                 .frame(width: 60, height: 60)
 
                             Image("CirclLogoButton")
@@ -211,7 +211,7 @@ struct PageEntrepreneurResources: View {
             .padding(.horizontal)
             .padding(.top, 15)
             .padding(.bottom, 10)
-            .background(Color.fromHex("004aad"))
+            .background(Color(hexCode: "004aad"))
         }
     }
 

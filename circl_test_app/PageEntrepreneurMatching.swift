@@ -3,17 +3,16 @@ import Foundation
 
 // MARK: - Main View for Entrepreneur Matching
 struct PageEntrepreneurMatching: View {
-    @State private var entrepreneurs: [EntrepreneurProfileData] = []
-    @State private var userNetworkEmails: [String] = []
     @State private var declinedEmails: Set<String> = []
     @State private var showConfirmation = false
     @State private var selectedEmailToAdd: String? = nil
     @State private var selectedFullProfile: FullProfile? = nil
-    @State private var showProfilePreview = false
     @State private var showMenu = false
     @State private var rotationAngle: Double = 0
-
+    @State private var isAnimating = false
+    @State private var userFirstName: String = ""
     
+    @ObservedObject private var networkManager = NetworkDataManager.shared
 
     enum HammerPage {
         case forum, resources, knowledge, business
@@ -29,8 +28,9 @@ struct PageEntrepreneurMatching: View {
     
     private var mainContent: some View {
         ZStack(alignment: .bottomTrailing) {
-            VStack(spacing: 0) {
-                headerSection
+            VStack(spacing: 8) {
+                enhancedHeaderSection
+                welcomeSection
                 selectionButtonsSection
                 scrollableContent
             }
@@ -43,12 +43,26 @@ struct PageEntrepreneurMatching: View {
             NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true), tag: .knowledge, selection: $navigateTo) { EmptyView() }
             NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true), tag: .business, selection: $navigateTo) { EmptyView() }
         }
-        .edgesIgnoringSafeArea(.bottom)
+        .edgesIgnoringSafeArea([.top, .bottom])
         .navigationBarBackButtonHidden(true)
+        .onAppear {
+            print("🎯 PageEntrepreneurMatching appeared - using shared network manager")
+            
+            // Extract user's first name for personalization
+            let fullName = UserDefaults.standard.string(forKey: "user_fullname") ?? ""
+            userFirstName = fullName.components(separatedBy: " ").first ?? "Friend"
+            
+            // Start animation
+            withAnimation(Animation.easeInOut(duration: 8).repeatForever(autoreverses: true)) {
+                isAnimating = true
+            }
+            
+            // Use shared network manager to refresh data
+            networkManager.refreshAllData()
+        }
     }
 
-    
-    private var headerSection: some View {
+    private var enhancedHeaderSection: some View {
         VStack(spacing: 0) {
             HStack {
                 VStack(alignment: .leading, spacing: 5) {
@@ -57,29 +71,20 @@ struct PageEntrepreneurMatching: View {
                             .font(.largeTitle)
                             .fontWeight(.bold)
                             .foregroundColor(.white)
+                            .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
                     }
-
-                    
-//                    Button(action: {}) {
-//                        HStack {
-//                            Image(systemName: "slider.horizontal.3")
-//                                .foregroundColor(.white)
-//                            Text("Filter")
-//                                .font(.headline)
-//                                .foregroundColor(.white)
-//                        }
-//                    }
                 }
                 
                 Spacer()
                 
                 VStack(alignment: .trailing, spacing: 5) {
-                    HStack(spacing: 10) {
+                    HStack(spacing: 15) {
                         NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
                             Image(systemName: "bubble.left.and.bubble.right.fill")
                                 .resizable()
                                 .frame(width: 50, height: 40)
                                 .foregroundColor(.white)
+                                .shadow(color: .black.opacity(0.2), radius: 1, x: 0, y: 0.5)
                         }
                         
                         NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
@@ -87,108 +92,260 @@ struct PageEntrepreneurMatching: View {
                                 .resizable()
                                 .frame(width: 50, height: 50)
                                 .foregroundColor(.white)
+                                .shadow(color: .black.opacity(0.2), radius: 1, x: 0, y: 0.5)
                         }
                     }
                 }
             }
             .padding(.horizontal)
-            .padding(.top, 15)
-            .padding(.bottom, 10)
-            .background(Color.fromHex("004aad"))
+            .padding(.top, (UIApplication.shared.windows.first?.safeAreaInsets.top ?? 0) + 15)
+            .padding(.bottom, 20)
         }
+        .background(
+            animatedBackground
+                .ignoresSafeArea(.all, edges: .top)
+        )
+        .clipped()
+    }
+    
+    private var animatedBackground: some View {
+        ZStack {
+            // Base gradient
+            LinearGradient(
+                colors: [
+                    Color(hexCode: "001a3d"),
+                    Color(hexCode: "004aad"),
+                    Color(hexCode: "0066ff"),
+                    Color(hexCode: "003d7a")
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            
+            // Animated overlay
+            LinearGradient(
+                colors: [
+                    Color.clear,
+                    Color(hexCode: "0066ff").opacity(0.3),
+                    Color.clear,
+                    Color(hexCode: "004aad").opacity(0.2),
+                    Color.clear
+                ],
+                startPoint: UnitPoint(
+                    x: isAnimating ? 0.0 : 1.0,
+                    y: isAnimating ? 0.0 : 1.0
+                ),
+                endPoint: UnitPoint(
+                    x: isAnimating ? 1.0 : 0.0,
+                    y: isAnimating ? 1.0 : 0.0
+                )
+            )
+        }
+    }
+    
+    private var welcomeSection: some View {
+        VStack(spacing: 15) {
+            HStack {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Welcome back, \(userFirstName)! 👋")
+                        .font(.system(size: 22, weight: .bold))
+                        .foregroundColor(.primary)
+                    
+                    Text("Ready to grow your network? Connect with amazing entrepreneurs and mentors...")
+                        .font(.system(size: 16, weight: .regular))
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.leading)
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                Spacer()
+            }
+            
+            UnifiedMetricsView()
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 16)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color(.systemBackground))
+                .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
+        )
+        .padding(.horizontal, 16)
+        .padding(.top, -5)
     }
     
     private var selectionButtonsSection: some View {
-        HStack(spacing: 10) {
-            NavigationLink(destination: PageEntrepreneurMatching().navigationBarBackButtonHidden(true)) {
-                buttonContent(title: "Entrepreneurs", color: .yellow)
+        VStack(spacing: 12) {
+            HStack {
+                Text("Discover Industry Professionals")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundColor(.primary)
+                Spacer()
             }
             
-            NavigationLink(destination: PageMentorMatching().navigationBarBackButtonHidden(true)) {
-                buttonContent(title: "Mentors", color: .gray)
+            HStack(spacing: 8) {
+                NavigationLink(destination: PageEntrepreneurMatching().navigationBarBackButtonHidden(true)) {
+                    enhancedButtonContent(
+                        title: "Entrepreneurs",
+                        subtitle: "Growth Partners",
+                        icon: "person.2.fill",
+                        isSelected: true,
+                        color: Color(hexCode: "004aad")
+                    )
+                }
+                
+                NavigationLink(destination: PageMentorMatching().navigationBarBackButtonHidden(true)) {
+                    enhancedButtonContent(
+                        title: "Mentors",
+                        subtitle: "Expert Guidance",
+                        icon: "graduationcap.fill",
+                        isSelected: false,
+                        color: .gray
+                    )
+                }
+                
+                NavigationLink(destination: PageMyNetwork().navigationBarBackButtonHidden(true)) {
+                    enhancedButtonContent(
+                        title: "My Network",
+                        subtitle: "Connections",
+                        icon: "person.3.fill",
+                        isSelected: false,
+                        color: .gray
+                    )
+                }
             }
-            
-            NavigationLink(destination: PageInvites().navigationBarBackButtonHidden(true)) {
-                buttonContent(title: "My Network", color: .gray)
-            }
-
         }
-        .padding(.horizontal)
-        .padding(.vertical, 10)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
     }
     
-    private func buttonContent(title: String, color: Color) -> some View {
-        Text(title)
-            .font(.system(size: 12))
-            .padding()
-            .frame(maxWidth: .infinity)
-            .background(color)
-            .foregroundColor(.black)
-            .cornerRadius(10)
+    private func enhancedButtonContent(title: String, subtitle: String, icon: String, isSelected: Bool, color: Color) -> some View {
+        VStack(spacing: 4) {
+            Image(systemName: icon)
+                .font(.system(size: 16))
+                .foregroundColor(isSelected ? .white : color)
+            
+            Text(title)
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundColor(isSelected ? .white : .primary)
+                .lineLimit(1)
+            
+            Text(subtitle)
+                .font(.system(size: 9, weight: .regular))
+                .foregroundColor(isSelected ? .white.opacity(0.8) : .secondary)
+                .lineLimit(1)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 12)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(isSelected ? color : Color(.systemGray6))
+                .shadow(color: isSelected ? color.opacity(0.3) : .clear, radius: 4, x: 0, y: 2)
+        )
+        .scaleEffect(isSelected ? 1.02 : 1.0)
+        .animation(.easeInOut(duration: 0.2), value: isSelected)
     }
     
     private var scrollableContent: some View {
         ScrollView {
-            VStack(spacing: 20) {
-                ForEach(entrepreneurs, id: \.email) { entrepreneur in
-                    entrepreneurButton(for: entrepreneur)
+            LazyVStack(spacing: 16) {
+                if networkManager.entrepreneurs.isEmpty {
+                    emptyStateView
+                } else {
+                    ForEach(networkManager.entrepreneurs.filter { !declinedEmails.contains($0.email) }, id: \.email) { entrepreneur in
+                        enhancedEntrepreneurCard(for: entrepreneur)
+                            .transition(.asymmetric(
+                                insertion: .scale.combined(with: .opacity),
+                                removal: .slide.combined(with: .opacity)
+                            ))
+                    }
                 }
             }
-            .padding()
+            .padding(.horizontal)
+            .padding(.bottom, 100) // Space for floating button
         }
         .alert(isPresented: $showConfirmation) {
             Alert(
-                title: Text("Send Friend Request?"),
-                message: Text("Are you sure you want to send a friend request to this user?"),
-                primaryButton: .default(Text("Yes")) {
+                title: Text("🤝 Send Connection Request?"),
+                message: Text("Ready to start building an amazing partnership? Let's connect you with this entrepreneur!"),
+                primaryButton: .default(Text("Yes, Let's Connect! 🚀")) {
                     if let email = selectedEmailToAdd {
-                        addToNetwork(email: email)
+                        networkManager.addToNetwork(email: email)
+                        // The NetworkDataManager will handle removing from the entrepreneurs list
                     }
                 },
-                secondaryButton: .cancel()
+                secondaryButton: .cancel(Text("Maybe Later"))
             )
         }
         .onAppear {
-            fetchUserNetwork {
-                fetchEntrepreneurs()
-            }
+            // Data will be loaded from NetworkDataManager.shared
         }
-        .sheet(isPresented: Binding(
-            get: { showProfilePreview && selectedFullProfile != nil },
-            set: { newValue in showProfilePreview = newValue }
-        )) {
-            if let profile = selectedFullProfile {
-                DynamicProfilePreview(profileData: profile, isInNetwork: false)
-            }
+        .sheet(item: $selectedFullProfile) { profile in
+            DynamicProfilePreview(profileData: profile, isInNetwork: networkManager.userNetworkEmails.contains(profile.email ?? ""))
         }
     }
     
-    private func entrepreneurButton(for entrepreneur: EntrepreneurProfileData) -> some View {
+    private var emptyStateView: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "person.2.badge.plus")
+                .font(.system(size: 60))
+                .foregroundColor(.gray.opacity(0.5))
+            
+            VStack(spacing: 8) {
+                Text("Your Network Awaits! 🌟")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.primary)
+                
+                Text("We're discovering amazing entrepreneurs for you. Check back in a moment to see your perfect matches!")
+                    .font(.body)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal)
+            }
+            
+            Button(action: {
+                networkManager.refreshAllData()
+            }) {
+                HStack(spacing: 8) {
+                    Image(systemName: "arrow.clockwise")
+                    Text("Refresh")
+                }
+                .font(.headline)
+                .foregroundColor(.white)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 12)
+                .background(Color(hexCode: "004aad"))
+                .cornerRadius(25)
+            }
+        }
+        .padding(.vertical, 40)
+    }
+    
+    private func enhancedEntrepreneurCard(for entrepreneur: SharedEntrepreneurProfileData) -> some View {
         Button(action: {
+            print("🎯 Card tapped for user: \(entrepreneur.name)")
             fetchUserProfile(userId: entrepreneur.user_id) { profile in
                 if let profile = profile {
+                    print("✅ Profile fetched successfully for: \(profile.first_name ?? "Unknown")")
                     selectedFullProfile = profile
-                    showProfilePreview = true
+                } else {
+                    print("❌ Failed to fetch profile for user ID: \(entrepreneur.user_id)")
                 }
             }
         }) {
-            EntrepreneurProfileTemplate(
-                name: entrepreneur.name,
-                title: "Entrepreneur",
-                company: entrepreneur.company,
-                proficiency: entrepreneur.proficiency,
-                tags: entrepreneur.tags,
-                profileImage: entrepreneur.profileImage,
-
-                onAccept: {
+            EnhancedEntrepreneurTemplate(
+                entrepreneur: entrepreneur,
+                onConnect: {
                     selectedEmailToAdd = entrepreneur.email
                     showConfirmation = true
                 },
-                onDecline: {
-                    declinedEmails.insert(entrepreneur.email)
-                    entrepreneurs.removeAll { $0.email == entrepreneur.email }
-                },
-                isMentor: entrepreneur.isMentor
+                onSkip: {
+                    withAnimation(.easeInOut) {
+                        let _ = declinedEmails.insert(entrepreneur.email)
+                        // The entrepreneur will be filtered out in the ForEach
+                    }
+                }
             )
         }
         .buttonStyle(PlainButtonStyle())
@@ -262,7 +419,7 @@ struct PageEntrepreneurMatching: View {
                 }) {
                     ZStack {
                         Circle()
-                            .fill(Color.fromHex("004aad"))
+                            .fill(Color(hexCode: "004aad"))
                             .frame(width: 60, height: 60)
 
                         Image("CirclLogoButton")
@@ -279,163 +436,11 @@ struct PageEntrepreneurMatching: View {
             }
             .padding(.trailing, 20)
             .zIndex(1)
-        }
-    }
+        }    }
 
 
 
 
-    
-    // All the existing methods remain exactly the same...
-    func fetchEntrepreneurs() {
-        let currentUserEmail = UserDefaults.standard.string(forKey: "user_email") ?? ""
-        print("🔍 Stored user_email in UserDefaults:", currentUserEmail)
-        
-        guard let url = URL(string: "https://circlapp.online/api/users/get-entrepreneurs/") else { return }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        if let token = UserDefaults.standard.string(forKey: "auth_token") {
-            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
-        }
-
-        URLSession.shared.dataTask(with: request) { data, response, error in
-
-            if let error = error {
-                print("❌ Request Error: \(error.localizedDescription)")
-                return
-            }
-            
-            if let data = data {
-                if let decodedResponse = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
-                    print("📡 Response from Backend: \(decodedResponse)") // Debug Log
-                    
-                    if let entrepreneurList = decodedResponse["entrepreneurs"] as? [[String: Any]] {
-                        DispatchQueue.main.async {
-                            self.entrepreneurs = entrepreneurList.compactMap { entrepreneur -> EntrepreneurProfileData? in
-                                
-                                let email = entrepreneur["email"] as? String ?? ""
-                                
-                                // Get current user's email
-                                let currentUserEmail = UserDefaults.standard.string(forKey: "user_email") ?? ""
-                                
-                                guard email != currentUserEmail, // ← exclude myself
-                                      !self.userNetworkEmails.contains(email),
-                                      !self.declinedEmails.contains(email) else {
-                                    return nil
-                                }
-                                
-                                
-                                guard let user_id = entrepreneur["id"] as? Int else {
-                                    return nil
-                                }
-                                
-                                return EntrepreneurProfileData(
-                                    user_id: user_id,
-                                    name: "\(entrepreneur["first_name"] ?? "") \(entrepreneur["last_name"] ?? "")",
-                                    title: "Entrepreneur",
-                                    company: entrepreneur["industry_interest"] as? String ?? "Unknown Industry",
-                                    proficiency: entrepreneur["main_usage"] as? String ?? "Unknown",
-                                    tags: entrepreneur["tags"] as? [String] ?? [],
-                                    email: email,
-                                    profileImage: entrepreneur["profileImage"] as? String,
-                                    isMentor: entrepreneur["is_mentor"] as? Bool ?? false
-                                )
-                            }
-                        }
-                    } else {
-                        print("❌ API response missing 'entrepreneurs' key")
-                    }
-                } else {
-                    print("❌ Failed to parse JSON response")
-                }
-            }
-        }.resume()
-    }
-    
-    func fetchUserNetwork(completion: @escaping () -> Void) {
-        guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int,
-              let url = URL(string: "https://circlapp.online/api/users/get_network/\(userId)/") else {
-            print("❌ No user_id in UserDefaults")
-            return
-        }
-        
-        URLSession.shared.dataTask(with: url) { data, response, error in
-            if let error = error {
-                print("❌ Network fetch error: \(error.localizedDescription)")
-                return
-            }
-            
-            guard let data = data else {
-                print("❌ No data received")
-                return
-            }
-            
-            do {
-                let json = try JSONSerialization.jsonObject(with: data, options: [])
-                print("🔎 Raw Network Response: \(json)")
-                
-                if let networkArray = json as? [[String: Any]] {
-                    DispatchQueue.main.async {
-                        self.userNetworkEmails = networkArray.compactMap { $0["email"] as? String }
-                        completion()
-                    }
-                } else if let dict = json as? [String: Any],
-                          let network = dict["network"] as? [[String: Any]] {
-                    DispatchQueue.main.async {
-                        self.userNetworkEmails = network.compactMap { $0["email"] as? String }
-                        completion()
-                    }
-                } else {
-                    print("❌ Unknown format in network response")
-                }
-                
-            } catch {
-                if let rawString = String(data: data, encoding: .utf8) {
-                    print("❌ JSON Parsing Error – Raw text: \(rawString)")
-                } else {
-                    print("❌ JSON Parsing Error: Could not decode response")
-                }
-            }
-        }.resume()
-    }
-    
-    func addToNetwork(email: String) {
-        guard let senderId = UserDefaults.standard.value(forKey: "user_id") as? Int,
-              let url = URL(string: "https://circlapp.online/api/users/send_friend_request/") else {
-            print("❌ Missing sender ID or bad URL")
-            return
-        }
-        
-        let body: [String: Any] = [
-            "user_id": senderId,
-            "receiver_email": email
-        ]
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
-        
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            if let error = error {
-                print("❌ Error sending friend request:", error.localizedDescription)
-                return
-            }
-            
-            if let data = data {
-                let rawResponse = String(data: data, encoding: .utf8)
-                print("📡 Friend Request Response:", rawResponse ?? "No response body")
-            }
-            
-            DispatchQueue.main.async {
-                entrepreneurs.removeAll { $0.email == email }
-                userNetworkEmails.append(email)
-            }
-        }.resume()
-    }
     
     func fetchUserProfile(userId: Int, completion: @escaping (FullProfile?) -> Void) {
         let urlString = "https://circlapp.online/api/users/profile/\(userId)/"
@@ -476,33 +481,217 @@ struct PageEntrepreneurMatching: View {
             completion(nil)
         }.resume()
     }
-    
-    // MARK: - EntrepreneurProfileData Model
-    struct EntrepreneurProfileData {
-        var user_id: Int
-        var name: String
-        var title: String
-        var company: String
-        var proficiency: String
-        var tags: [String]
-        var email: String
-        var profileImage: String?
-        var isMentor: Bool
-    }
-    
-    // MARK: - Preview
-    struct PageEntrepreneurMatching_Previews: PreviewProvider {
-        static var previews: some View {
-            PageEntrepreneurMatching()
-        }
+}
+
+
+
+// MARK: - Preview
+struct PageEntrepreneurMatching_Previews: PreviewProvider {
+    static var previews: some View {
+        PageEntrepreneurMatching()
     }
 }
 
 
 
 
-// MARK: - EntrepreneurProfileTemplate (kept exactly the same)
-struct EntrepreneurProfileTemplate: View {
+// MARK: - Enhanced EntrepreneurProfileTemplate
+struct EnhancedEntrepreneurTemplate: View {
+    let entrepreneur: SharedEntrepreneurProfileData
+    let onConnect: () -> Void
+    let onSkip: () -> Void
+    
+    @State private var isHovered = false
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            // Header with profile image and basic info
+            HStack(alignment: .top, spacing: 15) {
+                // Profile Image with premium styling
+                ZStack {
+                    if let imageURL = entrepreneur.profileImage,
+                       let encodedURLString = imageURL.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+                       let url = URL(string: encodedURLString) {
+                        AsyncImage(url: url) { phase in
+                            if let image = phase.image {
+                                image
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                            } else {
+                                Image("default_image")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                            }
+                        }
+                        .frame(width: 80, height: 80)
+                        .clipShape(Circle())
+                        .overlay(
+                            Circle()
+                                .stroke(
+                                    LinearGradient(
+                                        colors: [Color(hexCode: "004aad"), Color(hexCode: "0066ff")],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    ),
+                                    lineWidth: 3
+                                )
+                        )
+                    } else {
+                        Image("default_image")
+                            .resizable()
+                            .frame(width: 80, height: 80)
+                            .clipShape(Circle())
+                            .overlay(
+                                Circle()
+                                    .stroke(
+                                        LinearGradient(
+                                            colors: [Color(hexCode: "004aad"), Color(hexCode: "0066ff")],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        ),
+                                        lineWidth: 3
+                                    )
+                            )
+                    }
+                    
+                    // Status indicator
+                    Circle()
+                        .fill(Color.green)
+                        .frame(width: 20, height: 20)
+                        .overlay(
+                            Circle()
+                                .stroke(Color.white, lineWidth: 2)
+                        )
+                        .offset(x: 25, y: 25)
+                }
+                
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack {
+                        Text(entrepreneur.name)
+                            .font(.title3)
+                            .fontWeight(.bold)
+                            .foregroundColor(.primary)
+                        
+                        if entrepreneur.isMentor {
+                            HStack(spacing: 4) {
+                                Image(systemName: "star.fill")
+                                    .font(.caption)
+                                Text("Mentor")
+                                    .font(.caption2)
+                                    .fontWeight(.semibold)
+                            }
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 3)
+                            .background(
+                                Capsule()
+                                    .fill(Color.orange)
+                            )
+                        }
+                    }
+                    
+                    Text(entrepreneur.company)
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .foregroundColor(Color(hexCode: "004aad"))
+                    
+                    Text(entrepreneur.proficiency)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .padding(.top, 2)
+                }
+                
+                Spacer()
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 20)
+            
+            // Tags section
+            if !entrepreneur.tags.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(entrepreneur.tags.prefix(4), id: \.self) { tag in
+                            Text(tag)
+                                .font(.caption)
+                                .fontWeight(.medium)
+                                .foregroundColor(Color(hexCode: "004aad"))
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(
+                                    Capsule()
+                                        .fill(Color(hexCode: "004aad").opacity(0.1))
+                                        .overlay(
+                                            Capsule()
+                                                .stroke(Color(hexCode: "004aad").opacity(0.3), lineWidth: 1)
+                                        )
+                                )
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                }
+                .padding(.top, 15)
+            }
+            
+            // Action buttons
+            HStack(spacing: 15) {
+                Button(action: onSkip) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "xmark")
+                            .font(.headline)
+                        Text("Skip")
+                            .fontWeight(.semibold)
+                    }
+                    .foregroundColor(.gray)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(
+                        RoundedRectangle(cornerRadius: 25)
+                            .fill(Color(.systemGray6))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 25)
+                                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                            )
+                    )
+                }
+                
+                Button(action: onConnect) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "person.badge.plus")
+                            .font(.headline)
+                        Text("Connect")
+                            .fontWeight(.semibold)
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(
+                        RoundedRectangle(cornerRadius: 25)
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color(hexCode: "004aad"), Color(hexCode: "0066ff")],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .shadow(color: Color(hexCode: "004aad").opacity(0.3), radius: 8, x: 0, y: 4)
+                    )
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 20)
+        }
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(Color(.systemBackground))
+                .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 4)
+        )
+        .scaleEffect(isHovered ? 1.02 : 1.0)
+        .animation(.easeInOut(duration: 0.2), value: isHovered)
+    }
+}
+
+// MARK: - EntrepreneurCardTemplate (kept for compatibility)
+struct EntrepreneurCardTemplate: View {
     var name: String
     var title: String
     var company: String

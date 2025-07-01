@@ -7,7 +7,7 @@ struct MenuItem: View {
     var body: some View {
         HStack {
             Image(systemName: icon)
-                .foregroundColor(Color.fromHex("004aad"))
+                .foregroundColor(Color(hexCode: "004aad"))
                 .frame(width: 24)
             Text(title)
                 .foregroundColor(.primary)

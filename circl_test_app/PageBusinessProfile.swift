@@ -34,11 +34,91 @@ struct BusinessProfile: Codable {
 
 // MARK: - Main View
 struct PageBusinessProfile: View {
-    // MARK: - Placeholder Data
-    @State private var isEditing: Bool = false
+    // MARK: - State Variables
+
     @State private var showBusinessOwnerMessage = false
     @State private var showMenu = false
     @State private var rotationAngle: Double = 0
+    @State private var isAnimating = false
+
+    // MARK: - Animated Background
+    private var animatedBackground: some View {
+        ZStack {
+            // Base gradient
+            LinearGradient(
+                colors: [
+                    Color(hexCode: "001a3d"),
+                    Color(hexCode: "004aad"),
+                    Color(hexCode: "0066ff"),
+                    Color(hexCode: "003d7a")
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            
+            // First flowing layer
+            LinearGradient(
+                colors: [
+                    Color.clear,
+                    Color(hexCode: "0066ff").opacity(0.2),
+                    Color.clear,
+                    Color(hexCode: "004aad").opacity(0.15),
+                    Color.clear
+                ],
+                startPoint: UnitPoint(
+                    x: isAnimating ? -0.3 : 1.3,
+                    y: 0.0
+                ),
+                endPoint: UnitPoint(
+                    x: isAnimating ? 1.0 : 0.0,
+                    y: 1.0
+                )
+            )
+            
+            // Second flowing layer (opposite direction)
+            LinearGradient(
+                colors: [
+                    Color(hexCode: "002d5a").opacity(0.1),
+                    Color.clear,
+                    Color(hexCode: "0066ff").opacity(0.18),
+                    Color.clear,
+                    Color(hexCode: "001a3d").opacity(0.12)
+                ],
+                startPoint: UnitPoint(
+                    x: isAnimating ? 1.2 : -0.2,
+                    y: 0.3
+                ),
+                endPoint: UnitPoint(
+                    x: isAnimating ? 0.1 : 0.9,
+                    y: 0.7
+                )
+            )
+            
+            // Third subtle wave layer
+            LinearGradient(
+                colors: [
+                    Color.clear,
+                    Color.clear,
+                    Color(hexCode: "0066ff").opacity(0.1),
+                    Color.clear,
+                    Color.clear
+                ],
+                startPoint: UnitPoint(
+                    x: isAnimating ? 0.2 : 0.8,
+                    y: isAnimating ? 0.0 : 1.0
+                ),
+                endPoint: UnitPoint(
+                    x: isAnimating ? 0.9 : 0.1,
+                    y: isAnimating ? 1.0 : 0.0
+                )
+            )
+        }
+        .onAppear {
+            withAnimation(Animation.easeInOut(duration: 15).repeatForever(autoreverses: true)) {
+                isAnimating = true
+            }
+        }
+    }
 
 
     @State private var companyName: String = "Company Name"
@@ -151,7 +231,7 @@ struct PageBusinessProfile: View {
                     }) {
                         ZStack {
                             Circle()
-                                .fill(Color.fromHex("004aad"))
+                                .fill(Color(hexCode: "004aad"))
                                 .frame(width: 60, height: 60)
 
                             Image("CirclLogoButton")
@@ -184,8 +264,8 @@ struct PageBusinessProfile: View {
                         .zIndex(2) // Above main content, below hammer button
                 }
             }
-            .edgesIgnoringSafeArea(.bottom)
             .navigationBarBackButtonHidden(true)
+            .ignoresSafeArea(.all) // This will make the background extend to the notch
             .onAppear {
                 if let userId = UserDefaults.standard.value(forKey: "user_id") as? Int {
                     viewModel.fetchProfile(for: userId)
@@ -206,7 +286,7 @@ struct PageBusinessProfile: View {
                 }
             }
             .onReceive(viewModel.$profile) { profile in
-                guard let profile = profile, !isEditing else { return }
+                guard let profile = profile else { return }
                 companyName = profile.business_name ?? ""
                 aboutText = profile.about ?? ""
                 companyDetails = [
@@ -265,32 +345,19 @@ struct PageBusinessProfile: View {
                             .fontWeight(.bold)
                             .foregroundColor(.white)
                     }
-
                 }
 
-                Spacer() // Moves the "Edit" button towards the center
-
-                // Edit button centered
-                Button(action: {
-                    if isEditing {
-                        saveChanges()
-                    }
-                    isEditing.toggle()
-                }) {
-                    Text(isEditing ? "Save" : "Edit")
-                        .foregroundColor(.white)
-                        .fontWeight(.bold)
-                }
-
-                Spacer() // Balances the layout and keeps "Edit" centered
+                Spacer()
 
                 VStack(alignment: .trailing, spacing: 5) {
                     HStack(spacing: 10) {
                         NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
-                            Image(systemName: "bubble.left.and.bubble.right.fill")
-                                .resizable()
-                                .frame(width: 50, height: 40)
-                                .foregroundColor(.white)
+                            ZStack {
+                                Image(systemName: "bubble.left.and.bubble.right.fill")
+                                    .resizable()
+                                    .frame(width: 50, height: 40)
+                                    .foregroundColor(.white)
+                            }
                         }
 
                         NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
@@ -300,19 +367,21 @@ struct PageBusinessProfile: View {
                                 .foregroundColor(.white)
                         }
                     }
+                    .padding(.bottom, 5)
                 }
             }
-            .padding(.horizontal)
-            .padding(.top, 15)
-            .padding(.bottom, 10)
-            .background(Color.fromHex("004aad")) // Updated blue color
+            .padding(.horizontal, 20)
+            .padding(.bottom, 15)
         }
+        .padding(.top, 60) // Fixed padding instead of dynamic safe area
+        .background(animatedBackground.ignoresSafeArea(.all))
+        .clipped()
     }
 
     
     private var scrollableSection: some View {
         ScrollView {
-            VStack(spacing: 20) {
+            LazyVStack(spacing: 20) {
                 companyOverviewSection
                 aboutSection
                 companyDetailsSection
@@ -324,305 +393,283 @@ struct PageBusinessProfile: View {
 //                lookingForSection
 //                contactUsSection
             }
-            .padding()
-            .background(Color(.systemGray4))
+            .padding(.horizontal, 20)
+            .padding(.vertical, 16)
         }
+        .background(Color(UIColor.systemGray6))
         .dismissKeyboardOnScroll()
     }
     
     private var companyOverviewSection: some View {
-        VStack(spacing: 10) {
-            VStack(spacing: 10) {
-                Rectangle()
-                    .fill(Color.gray.opacity(0.2))
-                    .frame(height: 120)
-                    .overlay(
-                        Image(companyLogo)
-                            .resizable()
-                            .scaledToFit()
-                            .padding()
-                            .foregroundColor(.gray)
-                    )
-                    .cornerRadius(10)
-                
-                if isEditing {
-                    TextField("Enter Company Name", text: $companyName)
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                        .padding(8)
-                        .background(Color.white.opacity(0.9))
-                        .cornerRadius(8)
-                        .foregroundColor(.black)
-                        .padding(.horizontal, 16)
-                } else {
-                    if let companyWebsiteURL = companyWebsiteURL {
-                        Link(companyName, destination: companyWebsiteURL)
-                            .font(.title2)
-                            .fontWeight(.semibold)
+        VStack(spacing: 16) {
+            // Company Logo & Name Card
+            VStack(spacing: 16) {
+                // Logo placeholder
+                ZStack {
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(
+                            LinearGradient(
+                                colors: [Color(hexCode: "004aad"), Color(hexCode: "0066ff")],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(height: 120)
+                    
+                    VStack(spacing: 8) {
+                        Image(systemName: "building.2.fill")
+                            .font(.system(size: 48, weight: .light))
                             .foregroundColor(.white)
-                            .underline()
-                    } else {
-                        Text(companyName)
-                            .font(.title2)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.white)
+                        
+                        Text("Company Logo")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.white.opacity(0.8))
                     }
                 }
+                
+                // Company Name
+                if let companyWebsiteURL = companyWebsiteURL {
+                    Link(companyName.isEmpty ? "Your Company" : companyName, destination: companyWebsiteURL)
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(Color(hexCode: "004aad"))
+                        .underline()
+                } else {
+                    Text(companyName.isEmpty ? "Your Company" : companyName)
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(.primary)
+                }
             }
-            .padding()
-            .background(Color.fromHex("004aad"))
-            .cornerRadius(10)
+            .padding(24)
+            .background(Color.white)
+            .cornerRadius(16)
+            .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 2)
         }
     }
 
     
     private var aboutSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("About")
-                .font(.headline)
-                .foregroundColor(.black)
-            
-            if isEditing {
-                TextEditor(text: $aboutText)
-                    .frame(height: 120)
-                    .padding()
-                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.gray.opacity(0.4)))
-            } else {
-                Text(aboutText)
-                    .frame(height: 120)
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(spacing: 12) {
+                Image(systemName: "info.circle.fill")
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundColor(Color(hexCode: "004aad"))
+                
+                Text("About")
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundColor(.primary)
+                
+                Spacer()
             }
+            
+            Text(aboutText.isEmpty ? "Tell us about your company..." : aboutText)
+                .font(.system(size: 16))
+                .foregroundColor(aboutText.isEmpty ? .secondary : .primary)
+                .lineSpacing(4)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding()
-        .frame(maxWidth: .infinity)
+        .padding(24)
         .background(Color.white)
-        .cornerRadius(10)
-        .overlay(
-            RoundedRectangle(cornerRadius: 10)
-                .stroke(Color.gray, lineWidth: 1)
-        )
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 2)
     }
     
     private var companyDetailsSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Company Overview")
-                .font(.headline)
-                .fontWeight(.bold)
-                .foregroundColor(.black)
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(spacing: 12) {
+                Image(systemName: "building.columns.fill")
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundColor(Color(hexCode: "004aad"))
+                
+                Text("Company Overview")
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundColor(.primary)
+                
+                Spacer()
+            }
 
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 16) {
                 ForEach(companyDetails.keys.sorted(), id: \.self) { key in
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: 8) {
                         Text(key)
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.gray)
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.secondary)
 
-                        if isEditing {
-                            TextField("Enter \(key)", text: Binding(
-                                get: { companyDetails[key, default: ""] },
-                                set: { companyDetails[key] = $0 }
-                            ))
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                        } else {
-                            Text(companyDetails[key, default: ""])
-                                .foregroundColor(.primary)
-                        }
+                        Text(companyDetails[key, default: ""].isEmpty ? "Not specified" : companyDetails[key, default: ""])
+                            .font(.system(size: 16))
+                            .foregroundColor(companyDetails[key, default: ""].isEmpty ? .secondary : .primary)
                     }
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 16)
+                    .background(Color(UIColor.systemGray6))
+                    .cornerRadius(8)
                 }
             }
-            .padding()
-            .frame(maxWidth: .infinity)
-            .background(Color.white)
-            .cornerRadius(10)
-            .overlay(
-                RoundedRectangle(cornerRadius: 10)
-                    .stroke(Color.gray, lineWidth: 1)
-            )
         }
-        .padding()
+        .padding(24)
         .background(Color.white)
-        .cornerRadius(10)
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 2)
     }
 
     
     private var valuesSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Values")
-                .font(.headline)
-                .fontWeight(.bold)
-                .foregroundColor(.black)
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(spacing: 12) {
+                Image(systemName: "heart.fill")
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundColor(Color(hexCode: "004aad"))
+                
+                Text("Values")
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundColor(.primary)
+                
+                Spacer()
+            }
             
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 16) {
                 ForEach(["Vision", "Company Culture"], id: \.self) { key in
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: 8) {
                         Text(key)
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.gray)
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.secondary)
                         
-                        if isEditing {
-                            TextEditor(text: Binding(
-                                get: { values[key, default: ""] },
-                                set: { values[key] = $0 }
-                            ))
-                            .frame(height: 80)
-                            .padding(8)
-                            .background(Color(.systemGray6))
-                            .cornerRadius(8)
-                        } else {
-                            Text(values[key, default: ""])
-                                .foregroundColor(.primary)
-                        }
+                        Text(values[key, default: ""].isEmpty ? "Not specified" : values[key, default: ""])
+                            .font(.system(size: 16))
+                            .foregroundColor(values[key, default: ""].isEmpty ? .secondary : .primary)
+                            .lineSpacing(4)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                     }
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 16)
+                    .background(Color(UIColor.systemGray6))
+                    .cornerRadius(8)
                 }
             }
-            .padding()
-            .frame(maxWidth: .infinity)
-            .background(Color.white)
-            .cornerRadius(10)
-            .overlay(
-                RoundedRectangle(cornerRadius: 10)
-                    .stroke(Color.gray, lineWidth: 1)
-            )
         }
-        .padding()
+        .padding(24)
         .background(Color.white)
-        .cornerRadius(10)
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 2)
     }
     
     private var solutionSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Solution")
-                .font(.headline)
-                .fontWeight(.bold)
-                .foregroundColor(.black)
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(spacing: 12) {
+                Image(systemName: "lightbulb.fill")
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundColor(Color(hexCode: "004aad"))
+                
+                Text("Solution")
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundColor(.primary)
+                
+                Spacer()
+            }
             
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 16) {
                 ForEach(["Product/Service", "Unique Selling Proposition", "Traction/Progress"], id: \.self) { key in
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: 8) {
                         Text(key)
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.gray)
-                        
-                        if isEditing {
-                            TextEditor(text: Binding(
-                                get: { solutionDetails[key, default: ""] },
-                                set: { solutionDetails[key] = $0 }
-                            ))
-                            .frame(height: 80)
-                            .padding(8)
-                            .background(Color(.systemGray6))
-                            .cornerRadius(8)
-                        } else {
-                            Text(solutionDetails[key, default: ""])
-                                .foregroundColor(.primary)
-                        }
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.secondary)
+
+                        Text(solutionDetails[key, default: ""].isEmpty ? "Not specified" : solutionDetails[key, default: ""])
+                            .font(.system(size: 16))
+                            .foregroundColor(solutionDetails[key, default: ""].isEmpty ? .secondary : .primary)
+                            .lineSpacing(4)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                     }
+                    .padding(.vertical, 12)
+                    .padding(.horizontal, 16)
+                    .background(Color(UIColor.systemGray6))
+                    .cornerRadius(8)
                 }
             }
-            .padding()
-            .frame(maxWidth: .infinity)
-            .background(Color.white)
-            .cornerRadius(10)
-            .overlay(
-                RoundedRectangle(cornerRadius: 10)
-                    .stroke(Color.gray, lineWidth: 1)
-            )
         }
-        .padding()
+        .padding(24)
         .background(Color.white)
-        .cornerRadius(10)
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 2)
     }
     
     private var businessModelSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Business Model")
-                .font(.headline)
-                .fontWeight(.bold)
-                .foregroundColor(.black)
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(spacing: 12) {
+                Image(systemName: "chart.line.uptrend.xyaxis")
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundColor(Color(hexCode: "004aad"))
+                
+                Text("Business Model")
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundColor(.primary)
+                
+                Spacer()
+            }
             
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 16) {
                 ForEach(["Revenue Streams", "Pricing Strategy"], id: \.self) { key in
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: 8) {
                         Text(key)
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.gray)
-                        
-                        if isEditing {
-                            TextEditor(text: Binding(
-                                get: { businessModelDetails[key, default: ""] },
-                                set: { businessModelDetails[key] = $0 }
-                            ))
-                            .frame(height: 80)
-                            .padding(8)
-                            .background(Color(.systemGray6))
-                            .cornerRadius(8)
-                        } else {
-                            Text(businessModelDetails[key, default: ""])
-                                .foregroundColor(.primary)
-                        }
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.secondary)
+
+                        Text(businessModelDetails[key, default: ""].isEmpty ? "Not specified" : businessModelDetails[key, default: ""])
+                            .font(.system(size: 16))
+                            .foregroundColor(businessModelDetails[key, default: ""].isEmpty ? .secondary : .primary)
+                            .lineSpacing(4)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                     }
+                    .padding(.vertical, 12)
+                    .padding(.horizontal, 16)
+                    .background(Color(UIColor.systemGray6))
+                    .cornerRadius(8)
                 }
             }
-            .padding()
-            .frame(maxWidth: .infinity)
-            .background(Color.white)
-            .cornerRadius(10)
-            .overlay(
-                RoundedRectangle(cornerRadius: 10)
-                    .stroke(Color.gray, lineWidth: 1)
-            )
         }
-        .padding()
+        .padding(24)
         .background(Color.white)
-        .cornerRadius(10)
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 2)
     }
     
     private var teamSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("The Team")
-                .font(.headline)
-                .fontWeight(.bold)
-                .foregroundColor(.black)
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(spacing: 12) {
+                Image(systemName: "person.3.fill")
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundColor(Color(hexCode: "004aad"))
+                
+                Text("The Team")
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundColor(.primary)
+                
+                Spacer()
+            }
             
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 16) {
                 ForEach(["CoFounders", "Key Hires", "Advisors/Mentors"], id: \.self) { key in
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: 8) {
                         Text(key)
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.gray)
-                        
-                        if isEditing {
-                            TextEditor(text: Binding(
-                                get: { teamDetails[key, default: ""] },
-                                set: { teamDetails[key] = $0 }
-                            ))
-                            .frame(height: 80)
-                            .padding(8)
-                            .background(Color(.systemGray6))
-                            .cornerRadius(8)
-                        } else {
-                            Text(teamDetails[key, default: ""])
-                                .foregroundColor(.primary)
-                        }
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.secondary)
+
+                        Text(teamDetails[key, default: ""].isEmpty ? "Not specified" : teamDetails[key, default: ""])
+                            .font(.system(size: 16))
+                            .foregroundColor(teamDetails[key, default: ""].isEmpty ? .secondary : .primary)
+                            .lineSpacing(4)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                     }
+                    .padding(.vertical, 12)
+                    .padding(.horizontal, 16)
+                    .background(Color(UIColor.systemGray6))
+                    .cornerRadius(8)
                 }
             }
-            .padding()
-            .frame(maxWidth: .infinity)
-            .background(Color.white)
-            .cornerRadius(10)
-            .overlay(
-                RoundedRectangle(cornerRadius: 10)
-                    .stroke(Color.gray, lineWidth: 1)
-            )
         }
-        .padding()
+        .padding(24)
         .background(Color.white)
-        .cornerRadius(10)
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 2)
     }
     
 //    private var financialsFundingSection: some View {
@@ -752,7 +799,7 @@ struct PageBusinessProfile: View {
         var body: some View {
             ZStack {
                 Circle()
-                    .fill(Color.fromHex("004aad"))
+                    .fill(Color(hexCode: "004aad"))
                     .frame(width: 60, height: 60)
                 Image(systemName: iconName)
                     .resizable()
@@ -829,7 +876,6 @@ struct PageBusinessProfile: View {
                 if let data = data {
                     do {
                         DispatchQueue.main.async {
-                            isEditing = false
                             viewModel.fetchProfile(for: userId)
                             
                             // Small delay to ensure fetch finishes

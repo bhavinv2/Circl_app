@@ -69,7 +69,7 @@ struct UserProfilePage: View {
             .padding(.horizontal)
             .padding(.top, 15)
             .padding(.bottom, 10)
-            .background(Color.fromHex("004aad")) // Blue background for the header
+            .background(Color(hexCode: "004aad")) // Blue background for the header
         }
     }
 
@@ -724,7 +724,7 @@ struct UserProfilePage: View {
         var body: some View {
             ZStack {
                 Circle()
-                    .fill(Color.fromHex("004aad"))
+                    .fill(Color(hexCode: "004aad"))
                     .frame(width: 60, height: 60)
                 Image(systemName: iconName)
                     .resizable()
