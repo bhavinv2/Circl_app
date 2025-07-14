@@ -778,58 +778,7 @@ struct PageForum: View {
             .ignoresSafeArea(edges: .bottom)
             .zIndex(1)
             
-            if showTutorial {
-                // Dim background only behind the tutorial content
-                ZStack {
-                    Rectangle()
-                        .fill(Color.black.opacity(0.6))
-                        .ignoresSafeArea()
-                        .allowsHitTesting(false) // ✅ lets touches pass through
 
-                    VStack(spacing: 20) {
-                        Spacer()
-
-                        VStack(spacing: 20) {
-                            Text("👋 Welcome to Circl!")
-                                .font(.largeTitle)
-                                .bold()
-                                .multilineTextAlignment(.center)
-                                .foregroundColor(.white)
-
-                            Text("Use the navigation bar at the bottom to explore different sections of the app.")
-                                .multilineTextAlignment(.center)
-                                .foregroundColor(.white)
-                                .padding(.horizontal)
-                        }
-                        .padding()
-                        .background(Color.white.opacity(0.1))
-                        .cornerRadius(20)
-
-                        Spacer()
-
-                        HStack {
-                            Spacer()
-                            Image(systemName: "arrow.turn.down.left")
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 60, height: 60)
-                                .rotationEffect(.degrees(animateArrow ? -20 : 0))
-                                .scaleEffect(x: -1, y: 1)
-                                .foregroundColor(.white)
-                                .padding(.trailing, 40)
-                                .padding(.bottom, 40)
-                                .onAppear {
-                                    withAnimation(Animation.easeInOut(duration: 1).repeatForever(autoreverses: true)) {
-                                        animateArrow.toggle()
-                                    }
-                                }
-                        }
-                    }
-                    .padding()
-                }
-                .transition(.opacity)
-                .zIndex(11)
-            }
             }
         }
         .navigationBarHidden(true)
