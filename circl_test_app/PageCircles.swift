@@ -40,6 +40,7 @@ struct PageCircles: View {
     
     @State private var userProfileImageURL: String = ""
     @State private var unreadMessageCount: Int = 0
+    @State private var userFirstName: String = ""
 
     init(showMyCircles: Bool = false) {
         self._showMyCircles = State(initialValue: showMyCircles)
@@ -292,114 +293,114 @@ struct PageCircles: View {
                                 }
                             }
                         }
-                        .padding(.bottom)
+                        .padding(.bottom, 80) // Add space for bottom navigation
                     }
                 }
-            }
-            
-            // MARK: - Twitter/X Style Bottom Navigation
-            VStack {
-                Spacer()
                 
-                HStack(spacing: 0) {
-                    // Forum / Home
-                    NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
-                        VStack(spacing: 4) {
-                            Image(systemName: "house")
-                                .font(.system(size: 22, weight: .medium))
-                                .foregroundColor(Color(UIColor.label).opacity(0.6))
-                            Text("Home")
-                                .font(.system(size: 10, weight: .medium))
-                                .foregroundColor(Color(UIColor.label).opacity(0.6))
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
+                // MARK: - Twitter/X Style Bottom Navigation
+                VStack {
+                    Spacer()
                     
-                    // Connect and Network
-                    NavigationLink(destination: PageMyNetwork().navigationBarBackButtonHidden(true)) {
-                        VStack(spacing: 4) {
-                            Image(systemName: "person.2")
-                                .font(.system(size: 22, weight: .medium))
-                                .foregroundColor(Color(UIColor.label).opacity(0.6))
-                            Text("Network")
-                                .font(.system(size: 10, weight: .medium))
-                                .foregroundColor(Color(UIColor.label).opacity(0.6))
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
-                    
-                    // Circles (Current page - highlighted)
-                    VStack(spacing: 4) {
-                        Image(systemName: "circle.grid.2x2.fill")
-                            .font(.system(size: 22, weight: .medium))
-                            .foregroundColor(Color(hex: "004aad"))
-                        Text("Circles")
-                            .font(.system(size: 10, weight: .medium))
-                            .foregroundColor(Color(hex: "004aad"))
-                    }
-                    .frame(maxWidth: .infinity)
-                    
-                    // Messages
-                    NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
-                        VStack(spacing: 4) {
-                            ZStack {
-                                Image(systemName: "envelope")
+                    HStack(spacing: 0) {
+                        // Forum / Home
+                        NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
+                            VStack(spacing: 4) {
+                                Image(systemName: "house")
                                     .font(.system(size: 22, weight: .medium))
                                     .foregroundColor(Color(UIColor.label).opacity(0.6))
-                                
-                                if unreadMessageCount > 0 {
-                                    Text(unreadMessageCount > 99 ? "99+" : "\(unreadMessageCount)")
-                                        .font(.system(size: 10, weight: .bold))
-                                        .foregroundColor(.white)
-                                        .frame(minWidth: 16, minHeight: 16)
-                                        .background(Color.red)
-                                        .clipShape(Circle())
-                                        .offset(x: 12, y: -12)
-                                }
+                                Text("Home")
+                                    .font(.system(size: 10, weight: .medium))
+                                    .foregroundColor(Color(UIColor.label).opacity(0.6))
                             }
-                            Text("Messages")
-                                .font(.system(size: 10, weight: .medium))
-                                .foregroundColor(Color(UIColor.label).opacity(0.6))
+                            .frame(maxWidth: .infinity)
                         }
-                        .frame(maxWidth: .infinity)
-                    }
-                    
-                    // More / Additional Resources
-                    NavigationLink(destination: PageMore(
-                        userFirstName: .constant(""),
-                        userProfileImageURL: .constant(""),
-                        unreadMessageCount: .constant(0)
-                    ).navigationBarBackButtonHidden(true)) {
+                        
+                        // Connect and Network
+                        NavigationLink(destination: PageMyNetwork().navigationBarBackButtonHidden(true)) {
+                            VStack(spacing: 4) {
+                                Image(systemName: "person.2")
+                                    .font(.system(size: 22, weight: .medium))
+                                    .foregroundColor(Color(UIColor.label).opacity(0.6))
+                                Text("Network")
+                                    .font(.system(size: 10, weight: .medium))
+                                    .foregroundColor(Color(UIColor.label).opacity(0.6))
+                            }
+                            .frame(maxWidth: .infinity)
+                        }
+                        
+                        // Circles (Current page - highlighted)
                         VStack(spacing: 4) {
-                            Image(systemName: "ellipsis")
+                            Image(systemName: "circle.grid.2x2.fill")
                                 .font(.system(size: 22, weight: .medium))
-                                .foregroundColor(Color(UIColor.label).opacity(0.6))
-                            Text("More")
+                                .foregroundColor(Color(hex: "004aad"))
+                            Text("Circles")
                                 .font(.system(size: 10, weight: .medium))
-                                .foregroundColor(Color(UIColor.label).opacity(0.6))
+                                .foregroundColor(Color(hex: "004aad"))
                         }
                         .frame(maxWidth: .infinity)
+                        
+                        // Messages
+                        NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
+                            VStack(spacing: 4) {
+                                ZStack {
+                                    Image(systemName: "envelope")
+                                        .font(.system(size: 22, weight: .medium))
+                                        .foregroundColor(Color(UIColor.label).opacity(0.6))
+                                    
+                                    if unreadMessageCount > 0 {
+                                        Text(unreadMessageCount > 99 ? "99+" : "\(unreadMessageCount)")
+                                            .font(.system(size: 10, weight: .bold))
+                                            .foregroundColor(.white)
+                                            .frame(minWidth: 16, minHeight: 16)
+                                            .background(Color.red)
+                                            .clipShape(Circle())
+                                            .offset(x: 12, y: -12)
+                                    }
+                                }
+                                Text("Messages")
+                                    .font(.system(size: 10, weight: .medium))
+                                    .foregroundColor(Color(UIColor.label).opacity(0.6))
+                            }
+                            .frame(maxWidth: .infinity)
+                        }
+                        
+                        // More / Additional Resources
+                        NavigationLink(destination: PageMore(
+                            userFirstName: $userFirstName,
+                            userProfileImageURL: $userProfileImageURL,
+                            unreadMessageCount: $unreadMessageCount
+                        ).navigationBarBackButtonHidden(true)) {
+                            VStack(spacing: 4) {
+                                Image(systemName: "ellipsis")
+                                    .font(.system(size: 22, weight: .medium))
+                                    .foregroundColor(Color(UIColor.label).opacity(0.6))
+                                Text("More")
+                                    .font(.system(size: 10, weight: .medium))
+                                    .foregroundColor(Color(UIColor.label).opacity(0.6))
+                            }
+                            .frame(maxWidth: .infinity)
+                        }
                     }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 20)
+                    .padding(.bottom, 8)
+                    .background(
+                        Rectangle()
+                            .fill(Color(UIColor.systemBackground))
+                            .shadow(color: .black.opacity(0.1), radius: 1, x: 0, y: -1)
+                            .ignoresSafeArea(edges: .bottom)
+                    )
+                    .overlay(
+                        Rectangle()
+                            .frame(height: 0.5)
+                            .foregroundColor(Color(UIColor.separator))
+                            .padding(.horizontal, 16),
+                        alignment: .top
+                    )
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 20)
-                .padding(.bottom, 8)
-                .background(
-                    Rectangle()
-                        .fill(Color(UIColor.systemBackground))
-                        .shadow(color: .black.opacity(0.1), radius: 1, x: 0, y: -1)
-                        .ignoresSafeArea(edges: .bottom)
-                )
-                .overlay(
-                    Rectangle()
-                        .frame(height: 0.5)
-                        .foregroundColor(Color(UIColor.separator))
-                        .padding(.horizontal, 16),
-                    alignment: .top
-                )
+                .ignoresSafeArea(edges: .bottom)
+                .zIndex(1)
             }
-            .ignoresSafeArea(edges: .bottom)
-            .zIndex(1)
         }
         .navigationBarHidden(true)
         .onAppear {
@@ -465,6 +466,14 @@ struct PageCircles: View {
                    let profileImage = json["profile_image"] as? String {
                     DispatchQueue.main.async {
                         self.userProfileImageURL = profileImage
+                    }
+                }
+                
+                // Also load first name
+                if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let firstName = json["first_name"] as? String {
+                    DispatchQueue.main.async {
+                        self.userFirstName = firstName
                     }
                 }
             } catch {
