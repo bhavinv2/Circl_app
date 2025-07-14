@@ -103,10 +103,10 @@ struct Page3: View {
             // Base gradient layer with multiple blues
             LinearGradient(
                 colors: [
-                    Color(hexCode: "001a3d"),
-                    Color(hexCode: "004aad"),
-                    Color(hexCode: "0066ff"),
-                    Color(hexCode: "003d7a")
+                    Color(hex: "001a3d"),
+                    Color(hex: "004aad"),
+                    Color(hex: "0066ff"),
+                    Color(hex: "003d7a")
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -115,7 +115,7 @@ struct Page3: View {
             // Moving radial gradients for depth
             RadialGradient(
                 colors: [
-                    Color(hexCode: "0066ff").opacity(0.4),
+                    Color(hex: "0066ff").opacity(0.4),
                     Color.clear
                 ],
                 center: .center,
@@ -127,7 +127,7 @@ struct Page3: View {
             
             RadialGradient(
                 colors: [
-                    Color(hexCode: "002d5a").opacity(0.6),
+                    Color(hex: "002d5a").opacity(0.6),
                     Color.clear
                 ],
                 center: .center,
@@ -141,9 +141,9 @@ struct Page3: View {
             LinearGradient(
                 colors: [
                     Color.clear,
-                    Color(hexCode: "004aad").opacity(0.2),
+                    Color(hex: "004aad").opacity(0.2),
                     Color.clear,
-                    Color(hexCode: "0066ff").opacity(0.3),
+                    Color(hex: "0066ff").opacity(0.3),
                     Color.clear
                 ],
                 startPoint: UnitPoint(x: 0.2 + gradientOffset * 0.001, y: 0),
@@ -606,7 +606,7 @@ struct NextButton: View {
         }) {
             Text(isSubmitting ? "Submitting..." : "Next")
                 .font(.system(size: 24, weight: .bold, design: .rounded))
-                .foregroundColor(Color(hexCode: "004aad"))
+                .foregroundColor(Color(hex: "004aad"))
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 15)
                 .background(
@@ -668,7 +668,7 @@ struct StyledTextField: View {
             .keyboardType(keyboardType)
             .autocapitalization(autocapitalization)
             .disableAutocorrection(true)
-            .foregroundColor(Color(hexCode: "004aad"))
+            .foregroundColor(Color(hex: "004aad"))
             .font(.system(size: 16, weight: .medium))
             .padding(.horizontal, 15)
         }
@@ -709,12 +709,12 @@ struct DropdownField: View {
                         .font(.system(size: 16, weight: .medium))
                         .foregroundColor(
                             selectedOption == nil ?
-                                Color(hexCode: "004aad").opacity(0.6) :
-                                Color(hexCode: "004aad")
+                                Color(hex: "004aad").opacity(0.6) :
+                                Color(hex: "004aad")
                         )
                     Spacer()
                     Image(systemName: "chevron.down")
-                        .foregroundColor(Color(hexCode: "004aad"))
+                        .foregroundColor(Color(hex: "004aad"))
                         .font(.system(size: 14, weight: .medium))
                 }
                 .padding(.horizontal, 15)
@@ -763,12 +763,12 @@ struct CategorizedDropdownField: View {
                         .font(.system(size: 16, weight: .medium))
                         .foregroundColor(
                             selectedOption == nil ?
-                            Color(hexCode: "004aad").opacity(0.6) :
-                            Color(hexCode: "004aad")
+                            Color(hex: "004aad").opacity(0.6) :
+                            Color(hex: "004aad")
                         )
                     Spacer()
                     Image(systemName: "chevron.down")
-                        .foregroundColor(Color(hexCode: "004aad"))
+                        .foregroundColor(Color(hex: "004aad"))
                         .font(.system(size: 14, weight: .medium))
                 }
                 .padding(.horizontal, 15)

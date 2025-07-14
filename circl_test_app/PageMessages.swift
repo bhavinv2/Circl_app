@@ -23,6 +23,13 @@ struct PageMessages: View {
 
     @State private var myNetwork: [NetworkUser] = [] // ✅ Correct type
     
+    // User profile data for header
+    @State private var userFirstName: String = ""
+    @State private var userProfileImageURL: String = ""
+    @State private var unreadMessageCount: Int = 0
+    @State private var userMessages: [MessageModel] = [] // Separate from main messages
+    @AppStorage("user_id") private var userId: Int = 0
+    
     var body: some View {
         NavigationView {
             ZStack(alignment: .bottomTrailing) {
@@ -69,7 +76,7 @@ struct PageMessages: View {
                                     MenuItem(icon: "briefcase.fill", title: "Professional Services")
                                 }
                                 NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
-                                    MenuItem(icon: "envelope.fill", title: "Messages")
+                                    MenuItem(icon: "envelope.fill", title: "Messages", badgeCount: unreadMessageCount)
                                 }
                                 NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
                                     MenuItem(icon: "newspaper.fill", title: "News & Knowledge")
@@ -80,7 +87,7 @@ struct PageMessages: View {
 
                                 Divider()
 
-                                NavigationLink(destination: PageGroupchatsWrapper().navigationBarBackButtonHidden(true))
+                                NavigationLink(destination: PageCircles(showMyCircles: true).navigationBarBackButtonHidden(true))
  {
                                     MenuItem(icon: "circle.grid.2x2.fill", title: "Circles")
                                 }
@@ -100,7 +107,7 @@ struct PageMessages: View {
                         }) {
                             ZStack {
                                 Circle()
-                                    .fill(Color(hexCode: "004aad"))
+                                    .fill(Color(hex: "004aad"))
                                     .frame(width: 60, height: 60)
 
                                 Image("CirclLogoButton")
@@ -134,6 +141,9 @@ struct PageMessages: View {
                 self.timer = Timer.scheduledTimer(withTimeInterval: 45, repeats: true) { _ in
                     fetchMessages()
                 }
+                
+                // Load user profile and messages
+                loadUserData()
             }
             .onDisappear {
                 DispatchQueue.main.async {
@@ -159,28 +169,16 @@ struct PageMessages: View {
                 
                 Spacer()
                 
-                VStack(alignment: .trailing, spacing: 5) {
-                    VStack {
-                        HStack(spacing: 10) {
-                            Image(systemName: "bubble.left.and.bubble.right.fill")
-                                .resizable()
-                                .frame(width: 50, height: 40)
-                                .foregroundColor(.white)
-                            
-                            NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
-                                Image(systemName: "person.circle.fill")
-                                    .resizable()
-                                    .frame(width: 50, height: 50)
-                                    .foregroundColor(.white)
-                            }
-                        }
-                    }
-                }
+                ProfileHeaderView(
+                    userFirstName: $userFirstName,
+                    userProfileImageURL: $userProfileImageURL,
+                    unreadMessageCount: $unreadMessageCount
+                )
             }
             .padding(.horizontal)
             .padding(.top, 15)
             .padding(.bottom, 10)
-            .background(Color(hexCode: "004aad"))
+            .background(Color(hex: "004aad"))
         }
     }
     
@@ -618,6 +616,105 @@ struct PageMessages: View {
             }
         }.resume()
     }
+    
+    // MARK: - User Profile Functions
+    func loadUserData() {
+        fetchCurrentUserProfile()
+        loadUserMessages()
+    }
+    
+    func fetchCurrentUserProfile() {
+        guard userId > 0 else {
+            print("❌ No user_id in UserDefaults")
+            return
+        }
+
+        let urlString = "https://circlapp.online/api/users/profile/\(userId)/"
+        print("🌐 Fetching current user profile from:", urlString)
+
+        guard let url = URL(string: urlString) else {
+            print("❌ Invalid URL")
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("❌ Network error:", error.localizedDescription)
+                return
+            }
+
+            guard let data = data else {
+                print("❌ No data received")
+                return
+            }
+
+            do {
+                let decoded = try JSONDecoder().decode(FullProfile.self, from: data)
+                DispatchQueue.main.async {
+                    // Update profile image URL
+                    if let profileImage = decoded.profile_image, !profileImage.isEmpty {
+                        self.userProfileImageURL = profileImage
+                        print("✅ Profile image loaded: \(profileImage)")
+                    } else {
+                        self.userProfileImageURL = ""
+                        print("❌ No profile image found for current user")
+                    }
+                    
+                    // Update user name info
+                    self.userFirstName = decoded.first_name
+                }
+            } catch {
+                print("❌ Failed to decode current user profile:", error)
+            }
+        }.resume()
+    }
+    
+    func loadUserMessages() {
+        guard userId > 0 else { return }
+        
+        guard let url = URL(string: "https://circlapp.online/api/messages/user_messages/\(userId)/") else { return }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            guard let data = data else { return }
+            
+            do {
+                let response = try JSONDecoder().decode([String: [MessageModel]].self, from: data)
+                DispatchQueue.main.async {
+                    let allMessages = response["messages"] ?? []
+                    self.userMessages = allMessages
+                    self.calculateUnreadMessageCount()
+                }
+            } catch {
+                print("Error decoding messages:", error)
+            }
+        }.resume()
+    }
+    
+    func calculateUnreadMessageCount() {
+        guard userId > 0 else { return }
+        
+        let unreadMessages = userMessages.filter { message in
+            message.receiver_id == userId && !message.is_read && message.sender_id != userId
+        }
+        
+        unreadMessageCount = unreadMessages.count
+    }
 }
 
 struct ChatPopup: View {
@@ -843,7 +940,7 @@ struct ChatView: View {
         }
         .padding(.horizontal)
         .padding(.vertical, 25)
-        .background(Color(hexCode: "004aad"))
+        .background(Color(hex: "004aad"))
     }
 
 
@@ -930,7 +1027,7 @@ struct ChatView: View {
 
                 Text(message.content)
                     .padding(10)
-                    .background(isCurrentUser ? Color(hexCode: "004aad") : Color(.systemGray5))
+                    .background(isCurrentUser ? Color(hex: "004aad") : Color(.systemGray5))
                     .foregroundColor(isCurrentUser ? .white : .black)
                     .cornerRadius(12)
 

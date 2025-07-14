@@ -152,7 +152,7 @@ struct Page9: View {
         NavigationView { // ✅ Ensures navigation works properly
             ZStack {
                 // Background Color
-                Color(hexCode: "004aad")
+                Color(hex: "004aad")
                     .edgesIgnoringSafeArea(.all)
                 
                 
@@ -271,7 +271,7 @@ struct Page9: View {
                         // Title
                         Text("Your Business Profile")
                             .font(.system(size: 32, weight: .bold))
-                            .foregroundColor(Color(hexCode: "ffde59"))
+                            .foregroundColor(Color(hex: "ffde59"))
                         
                         // Separator
                         Rectangle()
@@ -289,13 +289,13 @@ struct Page9: View {
                             // Business Name Field
                             TextField("Business Name", text: $businessName)
                                 .padding(15)
-                                .background(Color(hexCode: "d9d9d9"))
+                                .background(Color(hex: "d9d9d9"))
                                 .cornerRadius(10)
                                 .font(.system(size: 20))
-                                .foregroundColor(Color(hexCode: "004aad"))
+                                .foregroundColor(Color(hex: "004aad"))
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 10)
-                                        .stroke(Color(hexCode: "004aad"), lineWidth: 2)
+                                        .stroke(Color(hex: "004aad"), lineWidth: 2)
                                 )
                                 .frame(maxWidth: .infinity)
                             
@@ -337,13 +337,13 @@ struct Page9: View {
                             // Other Input Fields
                             TextField("Location (City, State Abbreviation)", text: $businessLocation)
                                 .padding(15)
-                                .background(Color(hexCode: "d9d9d9"))
+                                .background(Color(hex: "d9d9d9"))
                                 .cornerRadius(10)
                                 .font(.system(size: 20))
-                                .foregroundColor(Color(hexCode: "004aad"))
+                                .foregroundColor(Color(hex: "004aad"))
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 10)
-                                        .stroke(Color(hexCode: "004aad"), lineWidth: 2)
+                                        .stroke(Color(hex: "004aad"), lineWidth: 2)
                                 )
                                 .frame(maxWidth: .infinity)
                         }
@@ -387,10 +387,10 @@ struct Page9: View {
                         }) {
                             Text("Next")
                                 .font(.system(size: 24, weight: .bold))
-                                .foregroundColor(Color(hexCode: "004aad"))
+                                .foregroundColor(Color(hex: "004aad"))
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 15)
-                                .background(Color(hexCode: "ffde59"))
+                                .background(Color(hex: "ffde59"))
                                 .cornerRadius(10)
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 10)
@@ -443,7 +443,7 @@ struct DropdownField3: View {
                         .font(.headline)
                         .foregroundColor(.white)
                         .padding(.top, 5)
-                        .background(Color(hexCode: "004aad"))
+                        .background(Color(hex: "004aad"))
                         .padding(.horizontal, 10)
                 }
             }
@@ -457,12 +457,12 @@ struct DropdownField3: View {
                     Text(selectedOption ?? placeholder)
                         .foregroundColor(
                             selectedOption == nil ?
-                                Color(hexCode: "004aad").opacity(0.6) :
-                                Color(hexCode: "004aad")
+                                Color(hex: "004aad").opacity(0.6) :
+                                Color(hex: "004aad")
                         )
                     Spacer()
                     Image(systemName: "chevron.down")
-                        .foregroundColor(Color(hexCode: "004aad"))
+                        .foregroundColor(Color(hex: "004aad"))
                 }
                 .padding(.horizontal, 15)
             }
@@ -478,13 +478,13 @@ struct InputField: View {
     var body: some View {
         TextField(placeholder, text: .constant(""))
             .padding(15)
-            .background(Color(hexCode: "d9d9d9"))
+            .background(Color(hex: "d9d9d9"))
             .cornerRadius(10)
             .font(.system(size: 20))
-            .foregroundColor(Color(hexCode: "004aad"))
+            .foregroundColor(Color(hex: "004aad"))
             .overlay(
                 RoundedRectangle(cornerRadius: 10)
-                    .stroke(Color(hexCode: "004aad"), lineWidth: 2)
+                    .stroke(Color(hex: "004aad"), lineWidth: 2)
             )
             .frame(maxWidth: .infinity)
     }

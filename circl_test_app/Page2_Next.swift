@@ -52,9 +52,9 @@ struct Page2_Next: View {
             // Base gradient layer with multiple blues
             LinearGradient(
                 colors: [
-                    Color(hexCode: "001a3d"),
-                    Color(hexCode: "004aad"),
-                    Color(hexCode: "0066ff")
+                    Color(hex: "001a3d"),
+                    Color(hex: "004aad"),
+                    Color(hex: "0066ff")
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -64,9 +64,9 @@ struct Page2_Next: View {
             // Moving secondary gradient layer
             LinearGradient(
                 colors: [
-                    Color(hexCode: "004aad").opacity(0.6),
-                    Color(hexCode: "0066ff").opacity(0.8),
-                    Color(hexCode: "001a3d").opacity(0.4)
+                    Color(hex: "004aad").opacity(0.6),
+                    Color(hex: "0066ff").opacity(0.8),
+                    Color(hex: "001a3d").opacity(0.4)
                 ],
                 startPoint: .bottomLeading,
                 endPoint: .topTrailing
@@ -175,7 +175,7 @@ struct Page2_Next: View {
                 
                 Text("Terms")
                     .font(.system(size: 32, weight: .bold, design: .rounded))
-                    .foregroundColor(Color(hexCode: "FFD700"))
+                    .foregroundColor(Color(hex: "FFD700"))
             }
             .opacity(textOpacity)
             .animation(.easeInOut(duration: 1.0).delay(0.5), value: textOpacity)
@@ -222,7 +222,7 @@ struct Page2_Next: View {
         HStack(alignment: .top, spacing: 12) {
             Text(number)
                 .font(.system(size: 16, weight: .bold, design: .rounded))
-                .foregroundColor(Color(hexCode: "FFD700"))
+                .foregroundColor(Color(hex: "FFD700"))
                 .frame(width: 20)
             
             Text(text)
@@ -248,7 +248,7 @@ struct Page2_Next: View {
                         if isAccepted {
                             Image(systemName: "checkmark")
                                 .font(.system(size: 14, weight: .bold))
-                                .foregroundColor(Color(hexCode: "FFD700"))
+                                .foregroundColor(Color(hex: "FFD700"))
                         }
                     }
                     
@@ -271,7 +271,7 @@ struct Page2_Next: View {
         NavigationLink(destination: Page3()) {
             Text("Continue")
                 .font(.system(size: 22, weight: .bold, design: .rounded))
-                .foregroundColor(isAccepted ? Color(hexCode: "004aad") : Color.gray)
+                .foregroundColor(isAccepted ? Color(hex: "004aad") : Color.gray)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 13)
                 .background(

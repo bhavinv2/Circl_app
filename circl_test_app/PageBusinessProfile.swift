@@ -40,6 +40,14 @@ struct PageBusinessProfile: View {
     @State private var showMenu = false
     @State private var rotationAngle: Double = 0
     @State private var isAnimating = false
+    @State private var isEditing = false
+    
+    // User profile data for header
+    @State private var userFirstName: String = ""
+    @State private var userProfileImageURL: String = ""
+    @State private var unreadMessageCount: Int = 0
+    @State private var messages: [MessageModel] = []
+    @AppStorage("user_id") private var userId: Int = 0
 
     // MARK: - Animated Background
     private var animatedBackground: some View {
@@ -47,10 +55,10 @@ struct PageBusinessProfile: View {
             // Base gradient
             LinearGradient(
                 colors: [
-                    Color(hexCode: "001a3d"),
-                    Color(hexCode: "004aad"),
-                    Color(hexCode: "0066ff"),
-                    Color(hexCode: "003d7a")
+                    Color(hex: "001a3d"),
+                    Color(hex: "004aad"),
+                    Color(hex: "0066ff"),
+                    Color(hex: "003d7a")
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -60,9 +68,9 @@ struct PageBusinessProfile: View {
             LinearGradient(
                 colors: [
                     Color.clear,
-                    Color(hexCode: "0066ff").opacity(0.2),
+                    Color(hex: "0066ff").opacity(0.2),
                     Color.clear,
-                    Color(hexCode: "004aad").opacity(0.15),
+                    Color(hex: "004aad").opacity(0.15),
                     Color.clear
                 ],
                 startPoint: UnitPoint(
@@ -78,11 +86,11 @@ struct PageBusinessProfile: View {
             // Second flowing layer (opposite direction)
             LinearGradient(
                 colors: [
-                    Color(hexCode: "002d5a").opacity(0.1),
+                    Color(hex: "002d5a").opacity(0.1),
                     Color.clear,
-                    Color(hexCode: "0066ff").opacity(0.18),
+                    Color(hex: "0066ff").opacity(0.18),
                     Color.clear,
-                    Color(hexCode: "001a3d").opacity(0.12)
+                    Color(hex: "001a3d").opacity(0.12)
                 ],
                 startPoint: UnitPoint(
                     x: isAnimating ? 1.2 : -0.2,
@@ -99,7 +107,7 @@ struct PageBusinessProfile: View {
                 colors: [
                     Color.clear,
                     Color.clear,
-                    Color(hexCode: "0066ff").opacity(0.1),
+                    Color(hex: "0066ff").opacity(0.1),
                     Color.clear,
                     Color.clear
                 ],
@@ -211,7 +219,7 @@ struct PageBusinessProfile: View {
 
                             Divider()
 
-                            NavigationLink(destination: PageGroupchatsWrapper().navigationBarBackButtonHidden(true))
+                            NavigationLink(destination: PageCircles(showMyCircles: true).navigationBarBackButtonHidden(true))
  {
                                 MenuItem(icon: "circle.grid.2x2.fill", title: "Circles")
                             }
@@ -231,7 +239,7 @@ struct PageBusinessProfile: View {
                     }) {
                         ZStack {
                             Circle()
-                                .fill(Color(hexCode: "004aad"))
+                                .fill(Color(hex: "004aad"))
                                 .frame(width: 60, height: 60)
 
                             Image("CirclLogoButton")
@@ -267,6 +275,8 @@ struct PageBusinessProfile: View {
             .navigationBarBackButtonHidden(true)
             .ignoresSafeArea(.all) // This will make the background extend to the notch
             .onAppear {
+                fetchUnreadMessageCount()
+                loadUserData()
                 if let userId = UserDefaults.standard.value(forKey: "user_id") as? Int {
                     viewModel.fetchProfile(for: userId)
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
@@ -333,7 +343,31 @@ struct PageBusinessProfile: View {
         }
     }
     
-    
+    private func fetchUnreadMessageCount() {
+        guard let url = URL(string: "https://circlapp.online/api/unread_message_count/\(userId)/") else {
+            print("Invalid URL for unread message count")
+            return
+        }
+
+        var request = URLRequest(url: url)
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let data = data {
+                if let decodedResponse = try? JSONDecoder().decode([String: Int].self, from: data) {
+                    DispatchQueue.main.async {
+                        self.unreadMessageCount = decodedResponse["unread_count"] ?? 0
+                    }
+                } else {
+                    print("Failed to decode unread message count")
+                }
+            } else if let error = error {
+                print("Error fetching unread message count: \(error.localizedDescription)")
+            }
+        }.resume()
+    }
     
     var headerSection: some View {
         VStack(spacing: 0) {
@@ -349,26 +383,11 @@ struct PageBusinessProfile: View {
 
                 Spacer()
 
-                VStack(alignment: .trailing, spacing: 5) {
-                    HStack(spacing: 10) {
-                        NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
-                            ZStack {
-                                Image(systemName: "bubble.left.and.bubble.right.fill")
-                                    .resizable()
-                                    .frame(width: 50, height: 40)
-                                    .foregroundColor(.white)
-                            }
-                        }
-
-                        NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
-                            Image(systemName: "person.circle.fill")
-                                .resizable()
-                                .frame(width: 50, height: 50)
-                                .foregroundColor(.white)
-                        }
-                    }
-                    .padding(.bottom, 5)
-                }
+                ProfileHeaderView(
+                    userFirstName: $userFirstName,
+                    userProfileImageURL: $userProfileImageURL,
+                    unreadMessageCount: $unreadMessageCount
+                )
             }
             .padding(.horizontal, 20)
             .padding(.bottom, 15)
@@ -409,7 +428,7 @@ struct PageBusinessProfile: View {
                     RoundedRectangle(cornerRadius: 16)
                         .fill(
                             LinearGradient(
-                                colors: [Color(hexCode: "004aad"), Color(hexCode: "0066ff")],
+                                colors: [Color(hex: "004aad"), Color(hex: "0066ff")],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             )
@@ -431,7 +450,7 @@ struct PageBusinessProfile: View {
                 if let companyWebsiteURL = companyWebsiteURL {
                     Link(companyName.isEmpty ? "Your Company" : companyName, destination: companyWebsiteURL)
                         .font(.system(size: 24, weight: .bold))
-                        .foregroundColor(Color(hexCode: "004aad"))
+                        .foregroundColor(Color(hex: "004aad"))
                         .underline()
                 } else {
                     Text(companyName.isEmpty ? "Your Company" : companyName)
@@ -452,7 +471,7 @@ struct PageBusinessProfile: View {
             HStack(spacing: 12) {
                 Image(systemName: "info.circle.fill")
                     .font(.system(size: 20, weight: .semibold))
-                    .foregroundColor(Color(hexCode: "004aad"))
+                    .foregroundColor(Color(hex: "004aad"))
                 
                 Text("About")
                     .font(.system(size: 22, weight: .bold))
@@ -478,7 +497,7 @@ struct PageBusinessProfile: View {
             HStack(spacing: 12) {
                 Image(systemName: "building.columns.fill")
                     .font(.system(size: 20, weight: .semibold))
-                    .foregroundColor(Color(hexCode: "004aad"))
+                    .foregroundColor(Color(hex: "004aad"))
                 
                 Text("Company Overview")
                     .font(.system(size: 22, weight: .bold))
@@ -510,16 +529,15 @@ struct PageBusinessProfile: View {
         .cornerRadius(16)
         .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 2)
     }
-
     
     private var valuesSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(spacing: 12) {
-                Image(systemName: "heart.fill")
+                Image(systemName: "heart.rectangle.fill")
                     .font(.system(size: 20, weight: .semibold))
-                    .foregroundColor(Color(hexCode: "004aad"))
+                    .foregroundColor(Color(hex: "004aad"))
                 
-                Text("Values")
+                Text("Our Values")
                     .font(.system(size: 22, weight: .bold))
                     .foregroundColor(.primary)
                 
@@ -557,9 +575,9 @@ struct PageBusinessProfile: View {
             HStack(spacing: 12) {
                 Image(systemName: "lightbulb.fill")
                     .font(.system(size: 20, weight: .semibold))
-                    .foregroundColor(Color(hexCode: "004aad"))
+                    .foregroundColor(Color(hex: "004aad"))
                 
-                Text("Solution")
+                Text("Our Solution")
                     .font(.system(size: 22, weight: .bold))
                     .foregroundColor(.primary)
                 
@@ -595,9 +613,9 @@ struct PageBusinessProfile: View {
     private var businessModelSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(spacing: 12) {
-                Image(systemName: "chart.line.uptrend.xyaxis")
+                Image(systemName: "dollarsign.circle.fill")
                     .font(.system(size: 20, weight: .semibold))
-                    .foregroundColor(Color(hexCode: "004aad"))
+                    .foregroundColor(Color(hex: "004aad"))
                 
                 Text("Business Model")
                     .font(.system(size: 22, weight: .bold))
@@ -637,9 +655,9 @@ struct PageBusinessProfile: View {
             HStack(spacing: 12) {
                 Image(systemName: "person.3.fill")
                     .font(.system(size: 20, weight: .semibold))
-                    .foregroundColor(Color(hexCode: "004aad"))
+                    .foregroundColor(Color(hex: "004aad"))
                 
-                Text("The Team")
+                Text("Our Team")
                     .font(.system(size: 22, weight: .bold))
                     .foregroundColor(.primary)
                 
@@ -672,295 +690,145 @@ struct PageBusinessProfile: View {
         .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 2)
     }
     
-//    private var financialsFundingSection: some View {
-//        VStack(alignment: .leading, spacing: 10) {
-//            Text("Financials/Funding")
-//                .font(.headline)
-//                .fontWeight(.bold)
-//                .foregroundColor(.black)
-//            
-//            VStack(alignment: .leading, spacing: 8) {
-//                ForEach(financialsDetails.keys.sorted(), id: \.self) { key in
-//                    VStack(alignment: .leading, spacing: 4) {
-//                        Text(key)
-//                            .font(.subheadline)
-//                            .fontWeight(.semibold)
-//                            .foregroundColor(.gray)
-//                        
-//                        if isEditing {
-//                            TextEditor(text: Binding(
-//                                get: { financialsDetails[key, default: ""] },
-//                                set: { financialsDetails[key] = $0 }
-//                            ))
-//                            .frame(height: 80)
-//                            .padding(8)
-//                            .background(Color(.systemGray6))
-//                            .cornerRadius(8)
-//                        } else {
-//                            Text(financialsDetails[key, default: ""])
-//                                .foregroundColor(.primary)
-//                        }
-//                    }
-//                }
-//            }
-//            .padding()
-//            .frame(maxWidth: .infinity)
-//            .background(Color.white)
-//            .cornerRadius(10)
-//            .overlay(
-//                RoundedRectangle(cornerRadius: 10)
-//                    .stroke(Color.gray, lineWidth: 1)
-//            )
-//        }
-//        .padding()
-//        .background(Color.white)
-//        .cornerRadius(10)
-//    }
-//    
-//    private var lookingForSection: some View {
-//        VStack(alignment: .leading, spacing: 10) {
-//            Text("Looking For")
-//                .font(.headline)
-//                .fontWeight(.bold)
-//                .foregroundColor(.black)
-//            
-//            VStack(alignment: .leading, spacing: 8) {
-//                ForEach(lookingForDetails.keys.sorted(), id: \.self) { key in
-//                    VStack(alignment: .leading, spacing: 4) {
-//                        Text(key)
-//                            .font(.subheadline)
-//                            .fontWeight(.semibold)
-//                            .foregroundColor(.gray)
-//                        
-//                        if isEditing {
-//                            TextEditor(text: Binding(
-//                                get: { lookingForDetails[key, default: ""] },
-//                                set: { lookingForDetails[key] = $0 }
-//                            ))
-//                            .frame(height: 80)
-//                            .padding(8)
-//                            .background(Color(.systemGray6))
-//                            .cornerRadius(8)
-//                        } else {
-//                            Text(lookingForDetails[key, default: ""])
-//                                .foregroundColor(.primary)
-//                        }
-//                    }
-//                }
-//            }
-//            .padding()
-//            .frame(maxWidth: .infinity)
-//            .background(Color.white)
-//            .cornerRadius(10)
-//            .overlay(
-//                RoundedRectangle(cornerRadius: 10)
-//                    .stroke(Color.gray, lineWidth: 1)
-//            )
-//        }
-//        .padding()
-//        .background(Color.white)
-//        .cornerRadius(10)
-//    }
-//    
-//    private var contactUsSection: some View {
-//        VStack(alignment: .leading, spacing: 10) {
-//            Text("Contact Us")
-//                .font(.headline)
-//                .fontWeight(.bold)
-//                .foregroundColor(.black)
-//            
-//            VStack(alignment: .leading, spacing: 8) {
-//                Text(contactPerson)
-//                    .foregroundColor(Color.fromHex("004aad"))
-//                    .underline()
-//                    .onTapGesture {
-//                        // Navigate to John Doe's profile
-//                    }
-//            }
-//            .padding()
-//            .frame(maxWidth: .infinity)
-//            .background(Color.white)
-//            .cornerRadius(10)
-//            .overlay(
-//                RoundedRectangle(cornerRadius: 10)
-//                    .stroke(Color.gray, lineWidth: 1)
-//            )
-//        }
-//        .padding()
-//        .background(Color.white)
-//        .cornerRadius(10)
-//    }
-    
-    
-    
-    struct CustomCircleButton: View {
-        let iconName: String
-        
-        var body: some View {
-            ZStack {
-                Circle()
-                    .fill(Color(hexCode: "004aad"))
-                    .frame(width: 60, height: 60)
-                Image(systemName: iconName)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 30, height: 30)
-                    .foregroundColor(.white)
+    private var financialsFundingSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(spacing: 12) {
+                Image(systemName: "chart.pie.fill")
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundColor(Color(hex: "004aad"))
+                
+                Text("Financials & Funding")
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundColor(.primary)
+                
+                Spacer()
             }
-        }
-    }
-    
-    private func detailRow(title: String, value: String) -> some View {
-        HStack(alignment: .top, spacing: 0) {
-            Text("\(title): ")
-                .font(.body)
-                .fontWeight(.semibold)
-                .foregroundColor(.primary)
-            Text(value)
-                .font(.body)
-                .foregroundColor(.primary)
-        }
-    }
-    
-    func saveChanges() {
-        guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else {
-            print("❌ User ID not found in UserDefaults")
-            return
-        }
-
-        let url = URL(string: "https://circlapp.online/api/users/business-profile/\(userId)/")!
-        var request = URLRequest(url: url)
-        request.httpMethod = "PATCH"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        let payload: [String: Any] = [
-            "about": aboutText.trimmingCharacters(in: .whitespacesAndNewlines),
-            "vision": values["Vision"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "",
-            "mission": values["Mission"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "",
-            "company_culture": values["Company Culture"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "",
-            "product_service": solutionDetails["Product/Service"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "",
-            "unique_selling_proposition": solutionDetails["Unique Selling Proposition"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "",
-            "traction": solutionDetails["Traction/Progress"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "",
-            "revenue_streams": businessModelDetails["Revenue Streams"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "",
-            "pricing_strategy": businessModelDetails["Pricing Strategy"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "",
-            "advisors_mentors": teamDetails["Advisors/Mentors"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "",
-            "cofounders": teamDetails["CoFounders"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "",
-            "key_hires": teamDetails["Key Hires"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "",
-            "industry": companyDetails["Industry"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "",
-            "location": companyDetails["Location"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "",
-            "business_name": companyName.trimmingCharacters(in: .whitespacesAndNewlines),
-            "revenue": companyDetails["Revenue"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "",
-            "stage": companyDetails["Stage"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "",
-            "type": companyDetails["Type"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "",
-            "looking_for": companyDetails["Looking for"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        ]
-
-        // 🔍 Log the payload for debugging
-        print("📤 Sending payload: \(payload)")
-
-
-        do {
-            request.httpBody = try JSONSerialization.data(withJSONObject: payload, options: [])
-        } catch {
-            print("⚠️ JSON encode error: \(error)")
-            return
-        }
-
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            if let error = error {
-                print("❌ Save failed: \(error)")
-                return
-            }
-
-            if let httpResponse = response as? HTTPURLResponse {
-                print("📡 Status code: \(httpResponse.statusCode)")
-                if let data = data {
-                    do {
-                        DispatchQueue.main.async {
-                            viewModel.fetchProfile(for: userId)
-                            
-                            // Small delay to ensure fetch finishes
-                            viewModel.fetchProfile(for: userId)
-
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
-                                if let profile = viewModel.profile {
-                                    self.applyProfileToUI(profile)
-                                } else {
-                                    print("⚠️ No profile returned yet — might need longer delay")
-                                }
-                            }
-
+            
+            VStack(alignment: .leading, spacing: 16) {
+                ForEach(financialsDetails.keys.sorted(), id: \.self) { key in
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(key)
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.gray)
+                        
+                        if isEditing {
+                            TextEditor(text: Binding(
+                                get: { financialsDetails[key, default: ""] },
+                                set: { financialsDetails[key] = $0 }
+                            ))
+                            .frame(height: 80)
+                            .padding(8)
+                            .background(Color(.systemGray6))
+                            .cornerRadius(8)
+                        } else {
+                            Text(financialsDetails[key, default: ""])
+                                .foregroundColor(.primary)
                         }
-
-                    } catch {
-                        print("❌ JSON decode failed: \(error)")
-                    }
-
-                    if let responseBody = String(data: data, encoding: .utf8) {
-                        print("📦 Response body: \(responseBody)")
                     }
                 }
-            } else {
-                print("⚠️ No HTTP response")
             }
-        }.resume()
+            .padding()
+            .frame(maxWidth: .infinity)
+            .background(Color.white)
+            .cornerRadius(10)
+            .overlay(
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(Color.gray, lineWidth: 1)
+            )
+        }
+        .padding()
+        .background(Color.white)
+        .cornerRadius(10)
     }
     
-    func applyProfileToUI(_ profile: BusinessProfile) {
-        companyName = profile.business_name ?? ""
-        aboutText = profile.about ?? ""
-
-        companyDetails = [
-            "Industry": profile.industry ?? "",
-            "Type": profile.type ?? "",
-            "Stage": profile.stage ?? "",
-            "Revenue": profile.revenue ?? "",
-            "Location": profile.location ?? "",
-            "Looking for": profile.looking_for ?? ""
-        ]
-
-        values = [
-            "Vision": profile.vision ?? "",
-            "Mission": profile.mission ?? "",
-            "Company Culture": profile.company_culture ?? ""
-        ]
-
-        solutionDetails = [
-            "Product/Service": profile.product_service ?? "",
-            "Unique Selling Proposition": profile.unique_selling_proposition ?? "",
-            "Traction/Progress": profile.traction ?? ""
-        ]
-
-        businessModelDetails = [
-            "Revenue Streams": profile.revenue_streams ?? "",
-            "Pricing Strategy": profile.pricing_strategy ?? ""
-        ]
-
-        teamDetails = [
-            "CoFounders": profile.cofounders ?? "",
-            "Key Hires": profile.key_hires ?? "",
-            "Advisors/Mentors": profile.advisors_mentors ?? ""
-        ]
-
-        financialsDetails = [
-            "Funding Stage": profile.funding_stage ?? "",
-            "Amount Raised": profile.amount_raised ?? "",
-            "Use of Funds": profile.use_of_funds ?? "",
-            "Financial Projections": profile.financial_projections ?? ""
-        ]
-
-        lookingForDetails = [
-            "Roles Needed": profile.roles_needed ?? "",
-            "Mentorship": profile.mentorship ?? "",
-            "Investment": profile.investment ?? "",
-            "Other": profile.other ?? ""
-        ]
+    private var lookingForSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(spacing: 12) {
+                Image(systemName: "magnifyingglass.circle.fill")
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundColor(Color(hex: "004aad"))
+                
+                Text("What We're Looking For")
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundColor(.primary)
+                
+                Spacer()
+            }
+            
+            VStack(alignment: .leading, spacing: 16) {
+                ForEach(lookingForDetails.keys.sorted(), id: \.self) { key in
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(key)
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.gray)
+                        
+                        if isEditing {
+                            TextEditor(text: Binding(
+                                get: { lookingForDetails[key, default: ""] },
+                                set: { lookingForDetails[key] = $0 }
+                            ))
+                            .frame(height: 80)
+                            .padding(8)
+                            .background(Color(.systemGray6))
+                            .cornerRadius(8)
+                        } else {
+                            Text(lookingForDetails[key, default: ""])
+                                .foregroundColor(.primary)
+                        }
+                    }
+                }
+            }
+            .padding()
+            .frame(maxWidth: .infinity)
+            .background(Color.white)
+            .cornerRadius(10)
+            .overlay(
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(Color.gray, lineWidth: 1)
+            )
+        }
+        .padding()
+        .background(Color.white)
+        .cornerRadius(10)
     }
-
-
+    
+    private var contactUsSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Contact Us")
+                .font(.headline)
+                .fontWeight(.bold)
+                .foregroundColor(.black)
+            
+            VStack(alignment: .leading, spacing: 8) {
+                Text(contactPerson)
+                    .foregroundColor(Color(hex: "004aad"))
+                    .underline()
+                    .onTapGesture {
+                        // Navigate to John Doe's profile
+                    }
+            }
+            .padding()
+            .frame(maxWidth: .infinity)
+            .background(Color.white)
+            .cornerRadius(10)
+            .overlay(
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(Color.gray, lineWidth: 1)
+            )
+        }
+        .padding()
+        .background(Color.white)
+        .cornerRadius(10)
+    }
+    
+    func loadUserData() {
+        userFirstName = UserDefaults.standard.string(forKey: "user_first_name") ?? "User"
+        userProfileImageURL = UserDefaults.standard.string(forKey: "user_profile_image_url") ?? ""
+    }
 }
 
-
-// MARK: - Preview
 struct PageBusinessProfile_Previews: PreviewProvider {
     static var previews: some View {
         PageBusinessProfile()

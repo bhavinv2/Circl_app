@@ -37,7 +37,7 @@ struct Page5: View {
     var body: some View {
         NavigationView {
             ZStack {
-                Color(hexCode: "004aad")
+                Color(hex: "004aad")
                     .edgesIgnoringSafeArea(.all)
                 
                 // Cloud background code remains the same...
@@ -100,7 +100,7 @@ struct Page5: View {
                     
                     Text("Create Your Account")
                         .font(.system(size: 32, weight: .bold))
-                        .foregroundColor(Color(hexCode: "ffde59"))
+                        .foregroundColor(Color(hex: "ffde59"))
                     
                     Rectangle()
                         .frame(height: 2)
@@ -165,7 +165,7 @@ struct Page5: View {
                                     }
                                 }
                                 .frame(maxHeight: 150)
-                                .background(Color(hexCode: "d9d9d9"))
+                                .background(Color(hex: "d9d9d9"))
                                 .cornerRadius(10)
                             }
                         }
@@ -199,8 +199,8 @@ struct Page5: View {
                         
                         Link("Take the 16 personalities test", destination: URL(string: "https://www.16personalities.com/")!)
                             .font(.system(size: 14, weight: .regular))
-                            .foregroundColor(Color(hexCode: "ffde59"))
-                            .underline(true, color: Color(hexCode: "ffde59"))
+                            .foregroundColor(Color(hex: "ffde59"))
+                            .underline(true, color: Color(hex: "ffde59"))
                             .padding(.top, 8)
                     }
                     .padding(.horizontal, 30)
@@ -233,10 +233,10 @@ struct Page5: View {
                     }) {
                         Text(isSubmitting ? "Submitting..." : "Next")
                             .font(.system(size: 24, weight: .bold))
-                            .foregroundColor(Color(hexCode: "004aad"))
+                            .foregroundColor(Color(hex: "004aad"))
                             .frame(maxWidth: 300)
                             .padding(.vertical, 15)
-                            .background(isSubmitting ? Color.gray : Color(hexCode: "ffde59"))
+                            .background(isSubmitting ? Color.gray : Color(hex: "ffde59"))
                             .cornerRadius(10)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 10)
@@ -556,10 +556,10 @@ struct RoundedTextFieldStyle: TextFieldStyle {
     func _body(configuration: TextField<Self._Label>) -> some View {
         configuration
             .padding(15)
-            .background(Color(hexCode: "d9d9d9"))
+            .background(Color(hex: "d9d9d9"))
             .cornerRadius(10)
             .font(.system(size: 20))
-            .foregroundColor(Color(hexCode: "004aad"))
+            .foregroundColor(Color(hex: "004aad"))
     }
 }
 
@@ -578,19 +578,19 @@ struct DropdownField5: View {
         } label: {
             ZStack {
                 RoundedRectangle(cornerRadius: 10)
-                    .fill(Color(hexCode: "d9d9d9"))
+                    .fill(Color(hex: "d9d9d9"))
                     .frame(height: 50)
 
                 HStack {
                     Text(selectedOption ?? placeholder)
                         .foregroundColor(
                             selectedOption == nil ?
-                                Color(hexCode: "004aad").opacity(0.6) :
-                                Color(hexCode: "004aad")
+                                Color(hex: "004aad").opacity(0.6) :
+                                Color(hex: "004aad")
                         )
                     Spacer()
                     Image(systemName: "chevron.down")
-                        .foregroundColor(Color(hexCode: "004aad"))
+                        .foregroundColor(Color(hex: "004aad"))
                 }
                 .padding(.horizontal, 15)
             }

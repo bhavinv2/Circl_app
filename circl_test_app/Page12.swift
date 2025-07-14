@@ -6,7 +6,7 @@ struct Page12: View {
     var body: some View {
         ZStack {
             // Background Color
-            Color(hexCode: "004aad")
+            Color(hex: "004aad")
                 .edgesIgnoringSafeArea(.all)
             
             VStack(spacing: 20) {
@@ -15,7 +15,7 @@ struct Page12: View {
                 // Title
                 Text("Your Business Profile")
                     .font(.system(size: 32, weight: .bold))
-                    .foregroundColor(Color(hexCode: "ffde59"))
+                    .foregroundColor(Color(hex: "ffde59"))
                     .padding(.top, 4) // Adjusted for 3-pixel drop and 8-pixel reduced spacing
                 
                 // Separator
@@ -60,10 +60,10 @@ struct Page12: View {
                     }) {
                         Text("Next")
                             .font(.system(size: 24, weight: .bold))
-                            .foregroundColor(Color(hexCode: "004aad"))
+                            .foregroundColor(Color(hex: "004aad"))
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 15)
-                            .background(Color(hexCode: "ffde59"))
+                            .background(Color(hex: "ffde59"))
                             .cornerRadius(10)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 10)

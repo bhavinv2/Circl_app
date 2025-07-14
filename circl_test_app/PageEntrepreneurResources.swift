@@ -3,6 +3,8 @@ import SwiftUI
 struct PageEntrepreneurResources: View {
     @State private var showMenu = false
     @State private var rotationAngle: Double = 0
+    @State private var unreadMessageCount: Int = 0
+    @AppStorage("user_id") private var userId: Int = 0
 
    
 
@@ -32,7 +34,7 @@ struct PageEntrepreneurResources: View {
                         VStack(spacing: 20) {
                             Text("Connect to professional resources")
                                 .font(.headline)
-                                .foregroundColor(Color(hexCode: "004aad"))
+                                .foregroundColor(Color(hex: "004aad"))
                                 .padding()
                                 .frame(maxWidth: .infinity)
                                 .background(Color.yellow)
@@ -81,7 +83,7 @@ struct PageEntrepreneurResources: View {
                                 }
                             }
                             .padding(.horizontal)
-                            .foregroundColor(Color(hexCode: "004aad"))
+                            .foregroundColor(Color(hex: "004aad"))
                         }
                         .padding(.top, 10)
                         .padding(.bottom, 10)
@@ -90,6 +92,7 @@ struct PageEntrepreneurResources: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .navigationBarBackButtonHidden(true)
+                .onAppear(perform: fetchUnreadMessageCount)
 
                 // Floating Ellipsis Menu
                 VStack(alignment: .trailing, spacing: 8) {
@@ -114,7 +117,7 @@ struct PageEntrepreneurResources: View {
                                 MenuItem(icon: "briefcase.fill", title: "Professional Services")
                             }
                             NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
-                                MenuItem(icon: "envelope.fill", title: "Messages")
+                                MenuItem(icon: "envelope.fill", title: "Messages", badgeCount: unreadMessageCount)
                             }
                             NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
                                 MenuItem(icon: "newspaper.fill", title: "News & Knowledge")
@@ -125,7 +128,7 @@ struct PageEntrepreneurResources: View {
 
                             Divider()
 
-                            NavigationLink(destination: PageGroupchatsWrapper().navigationBarBackButtonHidden(true)) {
+                            NavigationLink(destination: PageCircles(showMyCircles: true).navigationBarBackButtonHidden(true)) {
                                 MenuItem(icon: "circle.grid.2x2.fill", title: "Circles")
                             }
 
@@ -145,7 +148,7 @@ struct PageEntrepreneurResources: View {
                     }) {
                         ZStack {
                             Circle()
-                                .fill(Color(hexCode: "004aad"))
+                                .fill(Color(hex: "004aad"))
                                 .frame(width: 60, height: 60)
 
                             Image("CirclLogoButton")
@@ -192,10 +195,22 @@ struct PageEntrepreneurResources: View {
                     VStack {
                         HStack(spacing: 10) {
                             NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
-                                Image(systemName: "bubble.left.and.bubble.right.fill")
-                                    .resizable()
-                                    .frame(width: 50, height: 40)
-                                    .foregroundColor(.white)
+                                ZStack(alignment: .topTrailing) {
+                                    Image(systemName: "bubble.left.and.bubble.right.fill")
+                                        .resizable()
+                                        .frame(width: 50, height: 40)
+                                        .foregroundColor(.white)
+                                    
+                                    if unreadMessageCount > 0 {
+                                        Text("\(unreadMessageCount)")
+                                            .font(.caption2.bold())
+                                            .foregroundColor(.white)
+                                            .padding(5)
+                                            .background(Color.red)
+                                            .clipShape(Circle())
+                                            .offset(x: 8, y: -8)
+                                    }
+                                }
                             }
 
                             NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
@@ -211,8 +226,34 @@ struct PageEntrepreneurResources: View {
             .padding(.horizontal)
             .padding(.top, 15)
             .padding(.bottom, 10)
-            .background(Color(hexCode: "004aad"))
+            .background(Color(hex: "004aad"))
         }
+    }
+
+    private func fetchUnreadMessageCount() {
+        guard let url = URL(string: "https://circlapp.online/api/unread_message_count/\(userId)/") else {
+            print("Invalid URL for unread message count")
+            return
+        }
+
+        var request = URLRequest(url: url)
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let data = data {
+                if let decodedResponse = try? JSONDecoder().decode([String: Int].self, from: data) {
+                    DispatchQueue.main.async {
+                        self.unreadMessageCount = decodedResponse["unread_count"] ?? 0
+                    }
+                } else {
+                    print("Failed to decode unread message count")
+                }
+            } else if let error = error {
+                print("Error fetching unread message count: \(error.localizedDescription)")
+            }
+        }.resume()
     }
 
     // MARK: - Entrepreneur Resource Item

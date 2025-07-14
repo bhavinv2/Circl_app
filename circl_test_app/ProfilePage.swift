@@ -326,7 +326,7 @@ struct ProfilePage: View {
 
                             Divider()
 
-                            NavigationLink(destination: PageGroupchatsWrapper().navigationBarBackButtonHidden(true))
+                            NavigationLink(destination: PageCircles(showMyCircles: true).navigationBarBackButtonHidden(true))
  {
                                 MenuItem(icon: "circle.grid.2x2.fill", title: "Circles")
                             }
@@ -346,7 +346,7 @@ struct ProfilePage: View {
                     }) {
                         ZStack {
                             Circle()
-                                .fill(Color(hexCode: "004aad"))
+                                .fill(Color(hex: "004aad"))
                                 .frame(width: 60, height: 60)
 
                             Image("CirclLogoButton")
@@ -955,16 +955,6 @@ struct ProfileField: View {
     }
 
 
-}
-
-extension Color {
-    static func customHex(_ hex: String) -> Color {
-        let hexValue = Int(hex.dropFirst(), radix: 16) ?? 0
-        let red = Double((hexValue >> 16) & 0xFF) / 255.0
-        let green = Double((hexValue >> 8) & 0xFF) / 255.0
-        let blue = Double(hexValue & 0xFF) / 255.0
-        return Color(red: red, green: green, blue: blue)
-    }
 }
 
 func calculateAge(from birthday: String) -> String {

@@ -189,17 +189,17 @@ struct PageCircleMessages: View {
                         }) {
                             HStack(spacing: 6) {
                                 Image(systemName: "number.circle.fill")
-                                    .foregroundColor(Color(hexCode: "004aad"))
+                                    .foregroundColor(Color(hex: "004aad"))
                                     .font(.system(size: 12))
 
                                 Text(currentChannel.name)
                                     .font(.system(size: 13, weight: .semibold, design: .rounded))
-                                    .foregroundColor(Color(hexCode: "004aad"))
+                                    .foregroundColor(Color(hex: "004aad"))
                                     .lineLimit(1)
 
                                 Image(systemName: "chevron.down")
                                     .font(.system(size: 9, weight: .bold))
-                                    .foregroundColor(Color(hexCode: "004aad"))
+                                    .foregroundColor(Color(hex: "004aad"))
                                     .rotationEffect(.degrees(showCategoryMenu ? 180 : 0))
                                     .animation(.interpolatingSpring(stiffness: 400, damping: 25), value: showCategoryMenu)
                             }
@@ -247,7 +247,7 @@ struct PageCircleMessages: View {
                             Image(systemName: "ellipsis")
                                 .rotationEffect(.degrees(showMenu ? 90 : 0))
                                 .font(.system(size: 17, weight: .bold))
-                                .foregroundColor(Color(hexCode: "004aad"))
+                                .foregroundColor(Color(hex: "004aad"))
                         )
                 }
             }
@@ -257,8 +257,8 @@ struct PageCircleMessages: View {
             .background(
                 LinearGradient(
                     colors: [
-                        Color(hexCode: "004aad"), 
-                        Color(hexCode: "0052cc")
+                        Color(hex: "004aad"), 
+                        Color(hex: "0052cc")
                     ],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
@@ -382,7 +382,7 @@ struct PageCircleMessages: View {
                 Image(systemName: "paperplane.fill")
                     .rotationEffect(.degrees(45))
                     .font(.title2)
-                    .foregroundColor(newMessage.isEmpty ? .gray : Color(hexCode: "004aad"))
+                    .foregroundColor(newMessage.isEmpty ? .gray : Color(hex: "004aad"))
             }
             .disabled(newMessage.isEmpty)
         }
@@ -401,7 +401,7 @@ struct PageCircleMessages: View {
 
                 HStack {
                     Image(systemName: "person.2.fill")
-                        .foregroundColor(Color(hexCode: "004aad"))
+                        .foregroundColor(Color(hex: "004aad"))
                         .frame(width: 24)
                     Text("Members List")
                         .foregroundColor(.primary)
@@ -480,7 +480,7 @@ struct PageCircleMessages: View {
                 MenuItem(icon: "dollarsign.circle.fill", title: "The Circl Exchange")
             }
             Divider()
-            NavigationLink(destination: PageCircles().navigationBarBackButtonHidden(true)) {
+            NavigationLink(destination: PageCircles(showMyCircles: true).navigationBarBackButtonHidden(true)) {
                 MenuItem(icon: "circle.grid.2x2.fill", title: "Circles")
             }
         }
@@ -688,13 +688,13 @@ struct ChatBubble: View {
                 if let attributed = try? AttributedString(markdown: message.content) {
                     Text(attributed)
                         .padding(10)
-                        .background(message.isCurrentUser ? Color(hexCode: "004aad") : Color(.systemGray5))
+                        .background(message.isCurrentUser ? Color(hex: "004aad") : Color(.systemGray5))
                         .foregroundColor(message.isCurrentUser ? .white : .black)
                         .cornerRadius(12)
                 } else {
                     Text(message.content)
                         .padding(10)
-                        .background(message.isCurrentUser ? Color(hexCode: "004aad") : Color(.systemGray5))
+                        .background(message.isCurrentUser ? Color(hex: "004aad") : Color(.systemGray5))
                         .foregroundColor(message.isCurrentUser ? .white : .black)
                         .cornerRadius(12)
                 }
@@ -736,7 +736,7 @@ struct MenuItem3: View {
     var body: some View {
         HStack {
             Image(systemName: icon)
-                .foregroundColor(Color(hexCode: "004aad"))
+                .foregroundColor(Color(hex: "004aad"))
                 .frame(width: 24)
             Text(title)
                 .foregroundColor(.primary)
@@ -756,7 +756,7 @@ struct GroupMenuItem: View {
     var body: some View {
         HStack {
             Image(systemName: icon)
-                .foregroundColor(isDestructive ? .red : Color(hexCode: "004aad"))
+                .foregroundColor(isDestructive ? .red : Color(hex: "004aad"))
                 .frame(width: 24)
             Text(title)
                 .foregroundColor(isDestructive ? .red : .primary)

@@ -132,10 +132,10 @@ struct PageMentorMatching: View {
             // Base gradient
             LinearGradient(
                 colors: [
-                    SwiftUI.Color(hexCode: "001a3d"),
-                    SwiftUI.Color(hexCode: "004aad"),
-                    SwiftUI.Color(hexCode: "0066ff"),
-                    SwiftUI.Color(hexCode: "003d7a")
+                    SwiftUI.Color(hex: "001a3d"),
+                    SwiftUI.Color(hex: "004aad"),
+                    SwiftUI.Color(hex: "0066ff"),
+                    SwiftUI.Color(hex: "003d7a")
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -145,9 +145,9 @@ struct PageMentorMatching: View {
             LinearGradient(
                 colors: [
                     Color.clear,
-                    SwiftUI.Color(hexCode: "0066ff").opacity(0.3),
+                    SwiftUI.Color(hex: "0066ff").opacity(0.3),
                     Color.clear,
-                    SwiftUI.Color(hexCode: "004aad").opacity(0.2),
+                    SwiftUI.Color(hex: "004aad").opacity(0.2),
                     Color.clear
                 ],
                 startPoint: UnitPoint(
@@ -219,7 +219,7 @@ struct PageMentorMatching: View {
                         subtitle: "Expert Guidance",
                         icon: "graduationcap.fill",
                         isSelected: true,
-                        color: SwiftUI.Color(hexCode: "004aad")
+                        color: SwiftUI.Color(hex: "004aad")
                     )
                 }
                 
@@ -331,7 +331,7 @@ struct PageMentorMatching: View {
                     .foregroundColor(.white)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 10)
-                    .background(Color(hexCode: "004aad"))
+                    .background(Color(hex: "004aad"))
                     .cornerRadius(20)
                 }
                 
@@ -341,10 +341,10 @@ struct PageMentorMatching: View {
                         Text("Find Entrepreneurs")
                     }
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(Color(hexCode: "004aad"))
+                    .foregroundColor(Color(hex: "004aad"))
                     .padding(.horizontal, 16)
                     .padding(.vertical, 10)
-                    .background(Color(hexCode: "004aad").opacity(0.1))
+                    .background(Color(hex: "004aad").opacity(0.1))
                     .cornerRadius(20)
                 }
                 
@@ -357,7 +357,7 @@ struct PageMentorMatching: View {
                     .foregroundColor(.white)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 10)
-                    .background(Color(hexCode: "004aad"))
+                    .background(Color(hex: "004aad"))
                     .cornerRadius(20)
                 }
             }
@@ -454,7 +454,7 @@ struct PageMentorMatching: View {
 
                         Divider()
 
-                        NavigationLink(destination: PageGroupchatsWrapper().navigationBarBackButtonHidden(true)) {
+                        NavigationLink(destination: PageCircles(showMyCircles: true).navigationBarBackButtonHidden(true)) {
                             MenuItem(icon: "circle.grid.2x2.fill", title: "Circles")
                         }
                     }
@@ -473,7 +473,7 @@ struct PageMentorMatching: View {
                 }) {
                     ZStack {
                         Circle()
-                            .fill(Color(hexCode: "004aad"))
+                            .fill(Color(hex: "004aad"))
                             .frame(width: 60, height: 60)
 
                         Image("CirclLogoButton")

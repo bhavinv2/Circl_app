@@ -12,6 +12,12 @@ struct PageEntrepreneurMatching: View {
     @State private var isAnimating = false
     @State private var userFirstName: String = ""
     
+    // User profile data for header
+    @State private var userProfileImageURL: String = ""
+    @State private var unreadMessageCount: Int = 0
+    @State private var messages: [MessageModel] = []
+    @AppStorage("user_id") private var userId: Int = 0
+    
     @ObservedObject private var networkManager = NetworkDataManager.shared
 
     enum HammerPage {
@@ -48,6 +54,9 @@ struct PageEntrepreneurMatching: View {
         .onAppear {
             print("🎯 PageEntrepreneurMatching appeared - using shared network manager")
             
+            // Load user profile data for header
+            loadUserData()
+            
             // Extract user's first name for personalization
             let fullName = UserDefaults.standard.string(forKey: "user_fullname") ?? ""
             userFirstName = fullName.components(separatedBy: " ").first ?? "Friend"
@@ -74,28 +83,13 @@ struct PageEntrepreneurMatching: View {
                             .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
                     }
                 }
-                
-                Spacer()
-                
-                VStack(alignment: .trailing, spacing: 5) {
-                    HStack(spacing: 15) {
-                        NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
-                            Image(systemName: "bubble.left.and.bubble.right.fill")
-                                .resizable()
-                                .frame(width: 50, height: 40)
-                                .foregroundColor(.white)
-                                .shadow(color: .black.opacity(0.2), radius: 1, x: 0, y: 0.5)
-                        }
-                        
-                        NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
-                            Image(systemName: "person.circle.fill")
-                                .resizable()
-                                .frame(width: 50, height: 50)
-                                .foregroundColor(.white)
-                                .shadow(color: .black.opacity(0.2), radius: 1, x: 0, y: 0.5)
-                        }
-                    }
-                }
+                 Spacer()
+
+                ProfileHeaderView(
+                    userFirstName: $userFirstName,
+                    userProfileImageURL: $userProfileImageURL,
+                    unreadMessageCount: $unreadMessageCount
+                )
             }
             .padding(.horizontal)
             .padding(.top, (UIApplication.shared.windows.first?.safeAreaInsets.top ?? 0) + 15)
@@ -113,10 +107,10 @@ struct PageEntrepreneurMatching: View {
             // Base gradient
             LinearGradient(
                 colors: [
-                    Color(hexCode: "001a3d"),
-                    Color(hexCode: "004aad"),
-                    Color(hexCode: "0066ff"),
-                    Color(hexCode: "003d7a")
+                    Color(hex: "001a3d"),
+                    Color(hex: "004aad"),
+                    Color(hex: "0066ff"),
+                    Color(hex: "003d7a")
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -126,9 +120,9 @@ struct PageEntrepreneurMatching: View {
             LinearGradient(
                 colors: [
                     Color.clear,
-                    Color(hexCode: "0066ff").opacity(0.3),
+                    Color(hex: "0066ff").opacity(0.3),
                     Color.clear,
-                    Color(hexCode: "004aad").opacity(0.2),
+                    Color(hex: "004aad").opacity(0.2),
                     Color.clear
                 ],
                 startPoint: UnitPoint(
@@ -190,7 +184,7 @@ struct PageEntrepreneurMatching: View {
                         subtitle: "Growth Partners",
                         icon: "person.2.fill",
                         isSelected: true,
-                        color: Color(hexCode: "004aad")
+                        color: Color(hex: "004aad")
                     )
                 }
                 
@@ -315,7 +309,7 @@ struct PageEntrepreneurMatching: View {
                 .foregroundColor(.white)
                 .padding(.horizontal, 24)
                 .padding(.vertical, 12)
-                .background(Color(hexCode: "004aad"))
+                .background(Color(hex: "004aad"))
                 .cornerRadius(25)
             }
         }
@@ -399,7 +393,7 @@ struct PageEntrepreneurMatching: View {
 
                         Divider()
 
-                        NavigationLink(destination: PageGroupchatsWrapper().navigationBarBackButtonHidden(true))
+                        NavigationLink(destination: PageCircles(showMyCircles: true).navigationBarBackButtonHidden(true))
  {
                             MenuItem(icon: "circle.grid.2x2.fill", title: "Circles")
                         }
@@ -419,7 +413,7 @@ struct PageEntrepreneurMatching: View {
                 }) {
                     ZStack {
                         Circle()
-                            .fill(Color(hexCode: "004aad"))
+                            .fill(Color(hex: "004aad"))
                             .frame(width: 60, height: 60)
 
                         Image("CirclLogoButton")
@@ -481,6 +475,105 @@ struct PageEntrepreneurMatching: View {
             completion(nil)
         }.resume()
     }
+    
+    // MARK: - User Profile Functions
+    func loadUserData() {
+        fetchCurrentUserProfile()
+        loadMessages()
+    }
+    
+    func fetchCurrentUserProfile() {
+        guard userId > 0 else {
+            print("❌ No user_id in UserDefaults")
+            return
+        }
+
+        let urlString = "https://circlapp.online/api/users/profile/\(userId)/"
+        print("🌐 Fetching current user profile from:", urlString)
+
+        guard let url = URL(string: urlString) else {
+            print("❌ Invalid URL")
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("❌ Network error:", error.localizedDescription)
+                return
+            }
+
+            guard let data = data else {
+                print("❌ No data received")
+                return
+            }
+
+            do {
+                let decoded = try JSONDecoder().decode(FullProfile.self, from: data)
+                DispatchQueue.main.async {
+                    // Update profile image URL
+                    if let profileImage = decoded.profile_image, !profileImage.isEmpty {
+                        self.userProfileImageURL = profileImage
+                        print("✅ Profile image loaded: \(profileImage)")
+                    } else {
+                        self.userProfileImageURL = ""
+                        print("❌ No profile image found for current user")
+                    }
+                    
+                    // Update user name info
+                    self.userFirstName = decoded.first_name
+                }
+            } catch {
+                print("❌ Failed to decode current user profile:", error)
+            }
+        }.resume()
+    }
+    
+    func loadMessages() {
+        guard userId > 0 else { return }
+        
+        guard let url = URL(string: "https://circlapp.online/api/messages/user_messages/\(userId)/") else { return }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            guard let data = data else { return }
+            
+            do {
+                let response = try JSONDecoder().decode([String: [MessageModel]].self, from: data)
+                DispatchQueue.main.async {
+                    let allMessages = response["messages"] ?? []
+                    self.messages = allMessages
+                    self.calculateUnreadMessageCount()
+                }
+            } catch {
+                print("Error decoding messages:", error)
+            }
+        }.resume()
+    }
+    
+    func calculateUnreadMessageCount() {
+        guard userId > 0 else { return }
+        
+        let unreadMessages = messages.filter { message in
+            message.receiver_id == userId && !message.is_read && message.sender_id != userId
+        }
+        
+        unreadMessageCount = unreadMessages.count
+    }
 }
 
 
@@ -529,7 +622,7 @@ struct EnhancedEntrepreneurTemplate: View {
                             Circle()
                                 .stroke(
                                     LinearGradient(
-                                        colors: [Color(hexCode: "004aad"), Color(hexCode: "0066ff")],
+                                        colors: [Color(hex: "004aad"), Color(hex: "0066ff")],
                                         startPoint: .topLeading,
                                         endPoint: .bottomTrailing
                                     ),
@@ -545,7 +638,7 @@ struct EnhancedEntrepreneurTemplate: View {
                                 Circle()
                                     .stroke(
                                         LinearGradient(
-                                            colors: [Color(hexCode: "004aad"), Color(hexCode: "0066ff")],
+                                            colors: [Color(hex: "004aad"), Color(hex: "0066ff")],
                                             startPoint: .topLeading,
                                             endPoint: .bottomTrailing
                                         ),
@@ -593,7 +686,7 @@ struct EnhancedEntrepreneurTemplate: View {
                     Text(entrepreneur.company)
                         .font(.subheadline)
                         .fontWeight(.medium)
-                        .foregroundColor(Color(hexCode: "004aad"))
+                        .foregroundColor(Color(hex: "004aad"))
                     
                     Text(entrepreneur.proficiency)
                         .font(.caption)
@@ -614,15 +707,15 @@ struct EnhancedEntrepreneurTemplate: View {
                             Text(tag)
                                 .font(.caption)
                                 .fontWeight(.medium)
-                                .foregroundColor(Color(hexCode: "004aad"))
+                                .foregroundColor(Color(hex: "004aad"))
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 6)
                                 .background(
                                     Capsule()
-                                        .fill(Color(hexCode: "004aad").opacity(0.1))
+                                        .fill(Color(hex: "004aad").opacity(0.1))
                                         .overlay(
                                             Capsule()
-                                                .stroke(Color(hexCode: "004aad").opacity(0.3), lineWidth: 1)
+                                                .stroke(Color(hex: "004aad").opacity(0.3), lineWidth: 1)
                                         )
                                 )
                         }
@@ -668,12 +761,12 @@ struct EnhancedEntrepreneurTemplate: View {
                         RoundedRectangle(cornerRadius: 25)
                             .fill(
                                 LinearGradient(
-                                    colors: [Color(hexCode: "004aad"), Color(hexCode: "0066ff")],
+                                    colors: [Color(hex: "004aad"), Color(hex: "0066ff")],
                                     startPoint: .leading,
                                     endPoint: .trailing
                                 )
                             )
-                            .shadow(color: Color(hexCode: "004aad").opacity(0.3), radius: 8, x: 0, y: 4)
+                            .shadow(color: Color(hex: "004aad").opacity(0.3), radius: 8, x: 0, y: 4)
                     )
                 }
             }

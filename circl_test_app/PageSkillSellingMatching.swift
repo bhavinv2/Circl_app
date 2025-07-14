@@ -61,7 +61,7 @@ struct PageSkillSellingMatching: View {
                         .padding(.horizontal)
                         .padding(.top, 15)
                         .padding(.bottom, 10)
-                        .background(Color(hexCode: "004aad"))
+                        .background(Color(hex: "004aad"))
                     }
                     
                     // Scrollable Section
@@ -71,12 +71,12 @@ struct PageSkillSellingMatching: View {
                             Image(systemName: "hammer.circle")
                                 .resizable()
                                 .frame(width: 100, height: 100)
-                                .foregroundColor(Color(hexCode: "004aad"))
+                                .foregroundColor(Color(hex: "004aad"))
                             
                             // Text below the hammer symbol
                             Text("We are currently working on creating our \"Marketplace\" feature - an opportunity for you to choose to monetize your skills. Sell anything from your sales expertise to web development to getting a project from a local business to add to your resume. We are very excited to release this feature for you to find a new way to generate revenue from our platform!")
                                 .font(.body)
-                                .foregroundColor(Color(hexCode: "004aad"))
+                                .foregroundColor(Color(hex: "004aad"))
                                 .padding()
                                 .background(Color.gray.opacity(0.4))
                                 .cornerRadius(10)
@@ -137,7 +137,7 @@ struct PageSkillSellingMatching: View {
 
                                 Divider()
 
-                                NavigationLink(destination: PageGroupchatsWrapper().navigationBarBackButtonHidden(true))
+                                NavigationLink(destination: PageCircles(showMyCircles: true).navigationBarBackButtonHidden(true))
  {
                                     MenuItem(icon: "circle.grid.2x2.fill", title: "Circles")
                                 }
@@ -157,7 +157,7 @@ struct PageSkillSellingMatching: View {
                         }) {
                             ZStack {
                                 Circle()
-                                    .fill(Color(hexCode: "004aad"))
+                                    .fill(Color(hex: "004aad"))
                                     .frame(width: 60, height: 60)
 
                                 Image("CirclLogoButton")
@@ -189,7 +189,7 @@ struct MenuItem14: View {
     var body: some View {
         HStack {
             Image(systemName: icon)
-                .foregroundColor(Color(hexCode: "004aad"))
+                .foregroundColor(Color(hex: "004aad"))
                 .frame(width: 24)
             Text(title)
                 .foregroundColor(.primary)

@@ -1,10 +1,7 @@
 import SwiftUI
-struct MessageChannel: Identifiable, Codable, Hashable {
-    let id: Int
-    let name: String
-    let circle_id: Int
-}
+import Foundation
 
+// Add reference to CircleDataModels.swift for data types
 
 struct PageGroupchats: View {
     @State private var showSettingsMenu = false
@@ -192,8 +189,8 @@ struct PageGroupchats: View {
                                                     .font(.subheadline)
                                                     .padding(.vertical, 6)
                                                     .padding(.horizontal, 12)
-                                                    .background(Color(hexCode: "004aad").opacity(0.1))
-                                                    .foregroundColor(Color(hexCode: "004aad"))
+                                                    .background(Color(hex: "004aad").opacity(0.1))
+                                                    .foregroundColor(Color(hex: "004aad"))
                                                     .cornerRadius(12)
                                                     .padding(.horizontal)
                                             }
@@ -252,7 +249,7 @@ struct PageGroupchats: View {
                     // Navigate to Explore Circles
                     presentationMode.wrappedValue.dismiss() // Optional: if you want to pop this view
                 }) {
-                    NavigationLink(destination: PageCircles().navigationBarBackButtonHidden(true)) {
+                    NavigationLink(destination: PageCircles(showMyCircles: true).navigationBarBackButtonHidden(true)) {
                         Text("Explore Circles")
                             .frame(maxWidth: .infinity)
                             .padding()
@@ -398,29 +395,22 @@ struct PageGroupchats: View {
             
 
             func fetchMyCircles(userId: Int) {
-                guard let url = URL(string: "https://circlapp.online/api/circles/my_circles/\(userId)/") else { return }
-
-                URLSession.shared.dataTask(with: url) { data, _, _ in
-                    if let data = data {
-                        if let decoded = try? JSONDecoder().decode([APICircle].self, from: data) {
-                            DispatchQueue.main.async {
-                                self.myCircles = decoded.map {
-                                    CircleData(
-                                        id: $0.id,
-                                        name: $0.name,
-                                        industry: $0.industry,
-                                        members: "1k+", // Or fetch real member data later
-                                        imageName: "uhmarketing", // Or map image later
-                                        pricing: $0.pricing,
-                                        description: $0.description,
-                                        joinType: $0.join_type == "apply_now" ? .applyNow : .joinNow,
-                                        channels: $0.channels ?? [],
-                                        creatorId: $0.creator_id
-                                    )
-                                }
-                            }
-                        } else {
-                            print("❌ Failed to decode my_circles")
+                URLSession.shared.dataTask(with: URL(string: "https://circlapp.online/api/circles/get_my_circles/")!) { data, _, _ in
+                    guard let data = data else {
+                        DispatchQueue.main.async {
+                            self.loading = false
+                        }
+                        return
+                    }
+                    if let decoded: [CircleData] = try? JSONDecoder().decode([CircleData].self, from: data) {
+                        DispatchQueue.main.async {
+                            self.myCircles = decoded
+                            self.loading = false
+                        }
+                    } else {
+                        print("❌ Failed to decode my_circles")
+                        DispatchQueue.main.async {
+                            self.loading = false
                         }
                     }
                 }.resume()
@@ -465,16 +455,22 @@ struct PageGroupchats: View {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
 
-        URLSession.shared.dataTask(with: request) { data, _, _ in
-            if let _ = data {
-                DispatchQueue.main.async {
-                    newThreadContent = ""
-                    fetchThreads(for: circle.id)
-                }
-            } else {
-                print("❌ Failed to post thread")
+        // Explicitly define the type of the URLSession data task
+        let task: URLSessionDataTask = URLSession.shared.dataTask(with: request) { data, response, error in
+            // Handle the response and error
+            guard let data = data, error == nil else {
+                print("Error: \(error?.localizedDescription ?? "Unknown error")")
+                return
             }
-        }.resume()
+
+            DispatchQueue.main.async {
+                newThreadContent = ""
+                fetchThreads(for: circle.id)
+            }
+        }
+
+        // Start the task
+        task.resume()
     }
 
     
@@ -491,12 +487,14 @@ struct PageGroupchats: View {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
 
-        URLSession.shared.dataTask(with: request) { data, response, error in
+        // Added explicit type annotation to resolve ambiguity
+        let task: URLSessionDataTask = URLSession.shared.dataTask(with: request) { data, response, error in
             DispatchQueue.main.async {
                 // Optional: navigate back or reload UI
                 presentationMode.wrappedValue.dismiss()
             }
-        }.resume()
+        }
+        task.resume()
     }
     
     func deleteCircle() {
@@ -512,12 +510,14 @@ struct PageGroupchats: View {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
 
-        URLSession.shared.dataTask(with: request) { data, _, _ in
+        // Added explicit type annotation to resolve ambiguity
+        let task: URLSessionDataTask = URLSession.shared.dataTask(with: request) { data, _, _ in
             DispatchQueue.main.async {
                 // Navigate back to PageCircles after deletion
                 presentationMode.wrappedValue.dismiss()
             }
-        }.resume()
+        }
+        task.resume()
     }
 
 
@@ -579,7 +579,7 @@ struct PageGroupchats: View {
             }
             .padding(.horizontal)
             .padding(.vertical, 10)
-            .background(Color(hexCode: "004aad"))
+            .background(Color(hex: "004aad"))
         }
     }
 
@@ -623,8 +623,7 @@ struct PageGroupchats: View {
 
                     Divider()
 
-                    NavigationLink(destination: PageGroupchatsWrapper().navigationBarBackButtonHidden(true))
-{
+                    NavigationLink(destination: PageCircles(showMyCircles: true).navigationBarBackButtonHidden(true)) {
                         MenuItem(icon: "circle.grid.2x2.fill", title: "Circles")
                     }
                 }
@@ -645,7 +644,7 @@ struct PageGroupchats: View {
             }) {
                 ZStack {
                     Circle()
-                        .fill(Color(hexCode: "004aad"))
+                        .fill(Color(hex: "004aad"))
                         .frame(width: 60, height: 60)
 
                     Image("CirclLogoButton")
@@ -721,7 +720,7 @@ struct MenuItem2: View {
         }) {
             HStack {
                 Image(systemName: icon)
-                    .foregroundColor(Color(hexCode: "004aad"))
+                    .foregroundColor(Color(hex: "004aad"))
                     .frame(width: 24)
                 Text(title)
                     .foregroundColor(.primary)
@@ -738,18 +737,21 @@ struct MenuItem2: View {
 // MARK: - Preview
 struct PageGroupchats_Previews: PreviewProvider {
     static var previews: some View {
+        // Fixed: CircleData expects channels as [String], not [Channel]
+        let sampleChannels = ["#Welcome", "#Founder-Chat", "#Introductions"]
+
         PageGroupchats(circle: CircleData(
             id: 1,
-            name: "Lean Startup-ists",
+            name: "Lean Startup-lists",
             industry: "Tech",
-            members: "1.2k+",
+            memberCount: 1200,
             imageName: "leanstartups",
             pricing: "Free",
             description: "A community of founders",
             joinType: .joinNow,
-            channels: ["#Welcome", "#Founder-Chat", "#Introductions"],
-            creatorId: 999 // 🔧 TEMPORARY just for SwiftUI preview
-// ✅ Add this line
+            channels: sampleChannels,
+            creatorId: 999,
+            isModerator: false
         ))
     }
 }
@@ -801,7 +803,7 @@ struct PageGroupchatsWrapper: View {
                             .multilineTextAlignment(.center)
                             .padding()
 
-                        NavigationLink(destination: PageCircles().navigationBarBackButtonHidden(true)) {
+                        NavigationLink(destination: PageCircles(showMyCircles: true).navigationBarBackButtonHidden(true)) {
                             Text("Explore Circls")
                                 .foregroundColor(.white)
                                 .padding()
@@ -829,24 +831,39 @@ struct PageGroupchatsWrapper: View {
     }
 
     func fetchMyCircles() {
+        // Local API model for this function
+        struct LocalAPICircle: Identifiable, Decodable {
+            let id: Int
+            let name: String
+            let industry: String
+            let pricing: String
+            let description: String
+            let join_type: String
+            let channels: [String]?
+            let creator_id: Int
+            let is_moderator: Bool?
+            let member_count: Int?
+        }
+        
         guard let url = URL(string: "https://circlapp.online/api/circles/my_circles/\(userId)/") else { return }
 
         URLSession.shared.dataTask(with: url) { data, _, _ in
             if let data = data,
-               let decoded = try? JSONDecoder().decode([APICircle].self, from: data) {
+               let decoded = try? JSONDecoder().decode([LocalAPICircle].self, from: data) {
                 DispatchQueue.main.async {
-                    self.myCircles = decoded.map {
-                        CircleData(
-                            id: $0.id,
-                            name: $0.name,
-                            industry: $0.industry,
-                            members: "1k+",
+                    self.myCircles = decoded.map { apiCircle in
+                        return CircleData(
+                            id: apiCircle.id,
+                            name: apiCircle.name,
+                            industry: apiCircle.industry,
+                            memberCount: apiCircle.member_count ?? 0,
                             imageName: "uhmarketing",
-                            pricing: $0.pricing,
-                            description: $0.description,
-                            joinType: $0.join_type == "apply_now" ? .applyNow : .joinNow,
-                            channels: $0.channels ?? [],
-                            creatorId: $0.creator_id
+                            pricing: apiCircle.pricing,
+                            description: apiCircle.description,
+                            joinType: apiCircle.join_type == "apply_now" ? JoinType.applyNow : JoinType.joinNow,
+                            channels: apiCircle.channels ?? [],
+                            creatorId: apiCircle.creator_id,
+                            isModerator: apiCircle.is_moderator ?? false
                         )
                     }
                     self.loading = false
@@ -898,7 +915,7 @@ struct CirclHeader: View {
             .padding(.horizontal)
             .padding(.top, 15)
             .padding(.bottom, 10)
-            .background(Color(hexCode: "004aad"))
+            .background(Color(hex: "004aad"))
         }
     }
 }

@@ -49,10 +49,10 @@ struct Page2: View {
             // Base gradient layer with multiple blues
             LinearGradient(
                 colors: [
-                    Color(hexCode: "001a3d"),
-                    Color(hexCode: "004aad"),
-                    Color(hexCode: "0066ff"),
-                    Color(hexCode: "003d7a")
+                    Color(hex: "001a3d"),
+                    Color(hex: "004aad"),
+                    Color(hex: "0066ff"),
+                    Color(hex: "003d7a")
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -61,7 +61,7 @@ struct Page2: View {
             // Moving radial gradients for depth
             RadialGradient(
                 colors: [
-                    Color(hexCode: "0066ff").opacity(0.4),
+                    Color(hex: "0066ff").opacity(0.4),
                     Color.clear
                 ],
                 center: .center,
@@ -73,7 +73,7 @@ struct Page2: View {
             
             RadialGradient(
                 colors: [
-                    Color(hexCode: "002d5a").opacity(0.6),
+                    Color(hex: "002d5a").opacity(0.6),
                     Color.clear
                 ],
                 center: .center,
@@ -87,9 +87,9 @@ struct Page2: View {
             LinearGradient(
                 colors: [
                     Color.clear,
-                    Color(hexCode: "004aad").opacity(0.2),
+                    Color(hex: "004aad").opacity(0.2),
                     Color.clear,
-                    Color(hexCode: "0066ff").opacity(0.3),
+                    Color(hex: "0066ff").opacity(0.3),
                     Color.clear
                 ],
                 startPoint: UnitPoint(x: 0.2 + gradientOffset * 0.001, y: 0),
@@ -213,13 +213,13 @@ struct Page2: View {
     
     private var titleSection: some View {
         HStack {
-            Text("Circl")
+            Text("Welcome to")
                 .font(.system(size: 32, weight: .bold, design: .rounded))
                 .foregroundColor(.white)
             
-            Text("Ethics")
+            Text("Circl")
                 .font(.system(size: 32, weight: .bold, design: .rounded))
-                .foregroundColor(Color(hexCode: "FFD700"))
+                .foregroundColor(Color(hex: "FFD700"))
         }
         .opacity(textOpacity)
         .animation(.easeInOut(duration: 1.0).delay(0.5), value: textOpacity)
@@ -254,9 +254,9 @@ struct Page2: View {
     
     private var buttonSection: some View {
         NavigationLink(destination: Page2_Next()) {
-            Text("Next")
+            Text("Get Started")
                 .font(.system(size: 22, weight: .bold, design: .rounded))
-                .foregroundColor(Color(hexCode: "004aad"))
+                .foregroundColor(Color(hex: "004aad"))
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 13)
                 .background(

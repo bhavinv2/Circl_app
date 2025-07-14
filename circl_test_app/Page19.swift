@@ -10,8 +10,8 @@ struct Page19: View {
                 // Background with subtle gradient
                 LinearGradient(
                     gradient: Gradient(colors: [
-                        Color(hexCode: "004aad"),
-                        Color(hexCode: "0066cc")
+                        Color(hex: "004aad"),
+                        Color(hex: "0066cc")
                     ]),
                     startPoint: .top,
                     endPoint: .bottom
@@ -136,7 +136,7 @@ struct Page19: View {
                             .overlay(
                                 Text("Circl.")
                                     .font(.system(size: 55, weight: .bold))
-                                    .foregroundColor(Color(hexCode: "004aad"))
+                                    .foregroundColor(Color(hex: "004aad"))
                             )
                             .frame(width: 180, height: 180)
                             .padding(.top, 5)
@@ -182,8 +182,8 @@ struct Page19: View {
                             .font(.system(size: 18, weight: .bold))
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(Color(hexCode: "ffde59"))
-                            .foregroundColor(Color(hexCode: "004aad"))
+                            .background(Color(hex: "ffde59"))
+                            .foregroundColor(Color(hex: "004aad"))
                             .cornerRadius(12)
                             .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)
                         }
@@ -198,7 +198,7 @@ struct Page19: View {
                             .frame(maxWidth: .infinity)
                             .padding()
                             .background(Color.white.opacity(0.9))
-                            .foregroundColor(Color(hexCode: "004aad"))
+                            .foregroundColor(Color(hex: "004aad"))
                             .cornerRadius(12)
                             .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)
                         }

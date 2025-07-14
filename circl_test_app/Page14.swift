@@ -7,7 +7,7 @@ struct Page14: View {
     var body: some View {
         ZStack {
             // Background Color
-            Color(hexCode: "004aad")
+            Color(hex: "004aad")
                 .edgesIgnoringSafeArea(.all)
             
             ZStack {
@@ -100,7 +100,7 @@ struct Page14: View {
                 // Title
                 Text("Terms and Conditions")
                     .font(.system(size: 32, weight: .bold))
-                    .foregroundColor(Color(hexCode: "ffde59"))
+                    .foregroundColor(Color(hex: "ffde59"))
 
                 // Separator
                 Rectangle()
@@ -244,10 +244,10 @@ struct Page14: View {
                     label: {
                         Text("Next")
                             .font(.system(size: 24, weight: .bold))
-                            .foregroundColor(Color(hexCode: "004aad"))
+                            .foregroundColor(Color(hex: "004aad"))
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 15)
-                            .background(Color(hexCode: "ffde59"))
+                            .background(Color(hex: "ffde59"))
                             .cornerRadius(10)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 10)

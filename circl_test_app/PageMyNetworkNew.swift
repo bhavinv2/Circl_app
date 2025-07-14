@@ -15,6 +15,7 @@ struct PageMyNetworkNew: View {
     @State private var rotationAngle: Double = 0
     @State private var isAnimating = false
     @State private var userFirstName: String = ""
+    @State private var unreadMessageCount = 0
 
     var body: some View {
         NavigationView {
@@ -47,6 +48,7 @@ struct PageMyNetworkNew: View {
             
             fetchFriendRequests()
             fetchMyNetwork()
+            fetchUnreadMessageCount()
         }
         .alert(isPresented: $showAlert) {
             Alert(title: Text("Network Update"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
@@ -125,10 +127,10 @@ struct PageMyNetworkNew: View {
             // Base gradient
             LinearGradient(
                 colors: [
-                    Color(hexCode: "001a3d"),
-                    Color(hexCode: "004aad"),
-                    Color(hexCode: "0066ff"),
-                    Color(hexCode: "003d7a")
+                    Color(hex: "001a3d"),
+                    Color(hex: "004aad"),
+                    Color(hex: "0066ff"),
+                    Color(hex: "003d7a")
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -138,9 +140,9 @@ struct PageMyNetworkNew: View {
             LinearGradient(
                 colors: [
                     Color.clear,
-                    Color(hexCode: "0066ff").opacity(0.3),
+                    Color(hex: "0066ff").opacity(0.3),
                     Color.clear,
-                    Color(hexCode: "004aad").opacity(0.2),
+                    Color(hex: "004aad").opacity(0.2),
                     Color.clear
                 ],
                 startPoint: UnitPoint(
@@ -251,7 +253,7 @@ struct PageMyNetworkNew: View {
                         subtitle: "Connections",
                         icon: "person.3.fill",
                         isSelected: true,
-                        color: Color(hexCode: "004aad")
+                        color: Color(hex: "004aad")
                     )
                 }
             }
@@ -331,7 +333,7 @@ struct PageMyNetworkNew: View {
                     Image(systemName: "magnifyingglass")
                         .foregroundColor(.white)
                         .frame(width: 40, height: 40)
-                        .background(Color(hexCode: "004aad"))
+                        .background(Color(hex: "004aad"))
                         .cornerRadius(8)
                 }
             }
@@ -350,7 +352,7 @@ struct PageMyNetworkNew: View {
                 HStack(spacing: 8) {
                     Image(systemName: "magnifyingglass.circle.fill")
                         .font(.system(size: 18))
-                        .foregroundColor(Color(hexCode: "004aad"))
+                        .foregroundColor(Color(hex: "004aad"))
                     
                     Text("Search Result")
                         .font(.system(size: 16, weight: .semibold))
@@ -411,7 +413,7 @@ struct PageMyNetworkNew: View {
                         LinearGradient(
                             colors: [
                                 Color(.systemBackground),
-                                Color(hexCode: "004aad").opacity(0.02)
+                                Color(hex: "004aad").opacity(0.02)
                             ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
@@ -422,7 +424,7 @@ struct PageMyNetworkNew: View {
                     .fill(
                         RadialGradient(
                             colors: [
-                                Color(hexCode: "004aad").opacity(0.05),
+                                Color(hex: "004aad").opacity(0.05),
                                 Color.clear
                             ],
                             center: .center,
@@ -522,7 +524,7 @@ struct PageMyNetworkNew: View {
                     .foregroundColor(.white)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 10)
-                    .background(Color(hexCode: "004aad"))
+                    .background(Color(hex: "004aad"))
                     .cornerRadius(20)
                 }
                 
@@ -532,10 +534,10 @@ struct PageMyNetworkNew: View {
                         Text("Find Mentors")
                     }
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(Color(hexCode: "004aad"))
+                    .foregroundColor(Color(hex: "004aad"))
                     .padding(.horizontal, 16)
                     .padding(.vertical, 10)
-                    .background(Color(hexCode: "004aad").opacity(0.1))
+                    .background(Color(hex: "004aad").opacity(0.1))
                     .cornerRadius(20)
                 }
             }
@@ -605,7 +607,7 @@ struct PageMyNetworkNew: View {
                             MenuItem(icon: "briefcase.fill", title: "Professional Services")
                         }
                         NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
-                            MenuItem(icon: "envelope.fill", title: "Messages")
+                            MenuItem(icon: "envelope.fill", title: "Messages", badgeCount: unreadMessageCount)
                         }
                         NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
                             MenuItem(icon: "newspaper.fill", title: "News & Knowledge")
@@ -616,7 +618,7 @@ struct PageMyNetworkNew: View {
 
                         Divider()
 
-                        NavigationLink(destination: PageGroupchatsWrapper().navigationBarBackButtonHidden(true)) {
+                        NavigationLink(destination: PageCircles(showMyCircles: true).navigationBarBackButtonHidden(true)) {
                             MenuItem(icon: "circle.grid.2x2.fill", title: "Circles")
                         }
                     }
@@ -635,7 +637,7 @@ struct PageMyNetworkNew: View {
                 }) {
                     ZStack {
                         Circle()
-                            .fill(Color(hexCode: "004aad"))
+                            .fill(Color(hex: "004aad"))
                             .frame(width: 60, height: 60)
 
                         Image("CirclLogoButton")
@@ -780,6 +782,41 @@ struct PageMyNetworkNew: View {
             completion(nil)
         }.resume()
     }
+
+    private func fetchUnreadMessageCount() {
+        guard let url = URL(string: "https://circlapp.online/api/unread-messages/count/") else {
+            print("Invalid URL")
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let data = data {
+                do {
+                    let decodedResponse = try JSONDecoder().decode(UnreadMessagesCountResponse.self, from: data)
+                    DispatchQueue.main.async {
+                        self.unreadMessageCount = decodedResponse.unread_count
+                    }
+                } catch {
+                    // It's possible the response is just a number
+                    if let countString = String(data: data, encoding: .utf8), let count = Int(countString) {
+                        DispatchQueue.main.async {
+                            self.unreadMessageCount = count
+                        }
+                    } else {
+                        print("Failed to decode unread message count: \(error)")
+                    }
+                }
+            } else if let error = error {
+                print("Error fetching unread message count: \(error)")
+            }
+        }.resume()
+    }
 }
 
 // MARK: - Modern Network Card Component
@@ -811,20 +848,20 @@ struct ModernNetworkCard: View {
                     HStack(spacing: 4) {
                         Image(systemName: "at")
                             .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(Color(hexCode: "004aad"))
+                            .foregroundColor(Color(hex: "004aad"))
                         
                         Text(username)
                             .font(.system(size: 13, weight: .medium, design: .rounded))
-                            .foregroundColor(Color(hexCode: "004aad"))
+                            .foregroundColor(Color(hex: "004aad"))
                     }
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
                     .background(
                         Capsule()
-                            .fill(Color(hexCode: "004aad").opacity(0.1))
+                            .fill(Color(hex: "004aad").opacity(0.1))
                             .overlay(
                                 Capsule()
-                                    .stroke(Color(hexCode: "004aad").opacity(0.2), lineWidth: 1)
+                                    .stroke(Color(hex: "004aad").opacity(0.2), lineWidth: 1)
                             )
                     )
                 }
@@ -915,7 +952,7 @@ struct ModernNetworkCard: View {
                     LinearGradient(
                         colors: [
                             Color.white.opacity(0.8),
-                            Color(hexCode: "004aad").opacity(0.3)
+                            Color(hex: "004aad").opacity(0.3)
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
@@ -923,7 +960,7 @@ struct ModernNetworkCard: View {
                     lineWidth: 2
                 )
         )
-        .shadow(color: Color(hexCode: "004aad").opacity(0.2), radius: 6, x: 0, y: 3)
+        .shadow(color: Color(hex: "004aad").opacity(0.2), radius: 6, x: 0, y: 3)
     }
     
     private var connectionStatusIndicator: some View {

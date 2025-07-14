@@ -18,10 +18,10 @@ struct PageSettings: View {
             // Base gradient
             LinearGradient(
                 colors: [
-                    Color(hexCode: "001a3d"),
-                    Color(hexCode: "004aad"),
-                    Color(hexCode: "0066ff"),
-                    Color(hexCode: "003d7a")
+                    Color(hex: "001a3d"),
+                    Color(hex: "004aad"),
+                    Color(hex: "0066ff"),
+                    Color(hex: "003d7a")
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -31,9 +31,9 @@ struct PageSettings: View {
             LinearGradient(
                 colors: [
                     Color.clear,
-                    Color(hexCode: "0066ff").opacity(0.2),
+                    Color(hex: "0066ff").opacity(0.2),
                     Color.clear,
-                    Color(hexCode: "004aad").opacity(0.15),
+                    Color(hex: "004aad").opacity(0.15),
                     Color.clear
                 ],
                 startPoint: UnitPoint(
@@ -49,11 +49,11 @@ struct PageSettings: View {
             // Second flowing layer (opposite direction)
             LinearGradient(
                 colors: [
-                    Color(hexCode: "002d5a").opacity(0.1),
+                    Color(hex: "002d5a").opacity(0.1),
                     Color.clear,
-                    Color(hexCode: "0066ff").opacity(0.18),
+                    Color(hex: "0066ff").opacity(0.18),
                     Color.clear,
-                    Color(hexCode: "001a3d").opacity(0.12)
+                    Color(hex: "001a3d").opacity(0.12)
                 ],
                 startPoint: UnitPoint(
                     x: isAnimating ? 1.2 : -0.2,
@@ -70,7 +70,7 @@ struct PageSettings: View {
                 colors: [
                     Color.clear,
                     Color.clear,
-                    Color(hexCode: "0066ff").opacity(0.1),
+                    Color(hex: "0066ff").opacity(0.1),
                     Color.clear,
                     Color.clear
                 ],
@@ -234,7 +234,7 @@ struct PageSettings: View {
         HStack(spacing: 12) {
             Image(systemName: icon)
                 .font(.system(size: 20, weight: .semibold))
-                .foregroundColor(Color(hexCode: "004aad"))
+                .foregroundColor(Color(hex: "004aad"))
             
             Text(title)
                 .font(.system(size: 22, weight: .bold))
@@ -258,7 +258,7 @@ struct PageSettings: View {
                             LinearGradient(
                                 colors: isDestructive ? 
                                     [Color.red.opacity(0.8), Color.red] :
-                                    [Color(hexCode: "004aad"), Color(hexCode: "0066ff")],
+                                    [Color(hex: "004aad"), Color(hex: "0066ff")],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             )
@@ -316,7 +316,7 @@ struct PageSettings: View {
         var body: some View {
             ZStack {
                 Circle()
-                    .fill(Color(hexCode: "004aad"))
+                    .fill(Color(hex: "004aad"))
                     .frame(width: 60, height: 60)
                 Image(systemName: iconName)
                     .resizable()
@@ -342,7 +342,7 @@ struct BecomeMentorPage: View {
                 VStack(spacing: 8) {
                     Image(systemName: "graduationcap.fill")
                         .font(.system(size: 48, weight: .light))
-                        .foregroundColor(Color(hexCode: "004aad"))
+                        .foregroundColor(Color(hex: "004aad"))
                     
                     Text("Mentor Application")
                         .font(.system(size: 28, weight: .bold))
@@ -412,7 +412,7 @@ struct BecomeMentorPage: View {
                             LinearGradient(
                                 colors: isSubmitted ? 
                                     [Color.green, Color.green.opacity(0.8)] :
-                                    [Color(hexCode: "004aad"), Color(hexCode: "0066ff")],
+                                    [Color(hex: "004aad"), Color(hex: "0066ff")],
                                 startPoint: .leading,
                                 endPoint: .trailing
                             )
@@ -420,7 +420,7 @@ struct BecomeMentorPage: View {
                         .cornerRadius(12)
                     }
                     .disabled(name.isEmpty || industry.isEmpty || reason.isEmpty)
-                    .shadow(color: Color(hexCode: "004aad").opacity(0.3), radius: 8, x: 0, y: 4)
+                    .shadow(color: Color(hex: "004aad").opacity(0.3), radius: 8, x: 0, y: 4)
 
                     if isSubmitted {
                         Text("We'll review your application and get back to you within 2-3 business days.")
@@ -579,7 +579,7 @@ struct ChangePasswordPage: View {
                 VStack(spacing: 8) {
                     Image(systemName: "lock.fill")
                         .font(.system(size: 48, weight: .light))
-                        .foregroundColor(Color(hexCode: "004aad"))
+                        .foregroundColor(Color(hex: "004aad"))
                     
                     Text("Change Password")
                         .font(.system(size: 28, weight: .bold))
@@ -633,7 +633,7 @@ struct ChangePasswordPage: View {
                             .padding(.vertical, 16)
                             .background(
                                 LinearGradient(
-                                    colors: [Color(hexCode: "004aad"), Color(hexCode: "0066ff")],
+                                    colors: [Color(hex: "004aad"), Color(hex: "0066ff")],
                                     startPoint: .leading,
                                     endPoint: .trailing
                                 )
@@ -641,7 +641,7 @@ struct ChangePasswordPage: View {
                             .cornerRadius(12)
                     }
                     .disabled(oldPassword.isEmpty || newPassword.isEmpty || confirmPassword.isEmpty)
-                    .shadow(color: Color(hexCode: "004aad").opacity(0.3), radius: 8, x: 0, y: 4)
+                    .shadow(color: Color(hex: "004aad").opacity(0.3), radius: 8, x: 0, y: 4)
 
                     if !message.isEmpty {
                         HStack(spacing: 8) {
@@ -947,7 +947,7 @@ struct TermsOfServicePage: View {
             VStack(alignment: .leading, spacing: 15) {
                 Text("A. Terms & Conditions")
                     .font(.title)
-                    .foregroundColor(Color(hexCode: "004aad"))
+                    .foregroundColor(Color(hex: "004aad"))
 
                 Text("Effective Date: March 30, 2025")
                     .font(.subheadline)
@@ -995,7 +995,7 @@ struct PrivacyPolicyPage: View {
             VStack(alignment: .leading, spacing: 15) {
                 Text("B. Privacy Policy")
                     .font(.title)
-                    .foregroundColor(Color(hexCode: "004aad"))
+                    .foregroundColor(Color(hex: "004aad"))
 
                 Text("Effective Date: March 30, 2025")
                     .font(.subheadline)
@@ -1053,7 +1053,7 @@ struct CommunityGuidelinesPage: View {
             VStack(alignment: .leading, spacing: 15) {
                 Text("D. Community Guidelines")
                     .font(.title)
-                    .foregroundColor(Color(hexCode: "004aad"))
+                    .foregroundColor(Color(hex: "004aad"))
 
                 Text("Effective Date: March 30, 2025")
                     .font(.subheadline)
@@ -1119,7 +1119,7 @@ struct ContactSupportPage: View {
                 VStack(spacing: 8) {
                     Image(systemName: "headphones")
                         .font(.system(size: 48, weight: .light))
-                        .foregroundColor(Color(hexCode: "004aad"))
+                        .foregroundColor(Color(hex: "004aad"))
                     
                     Text("Contact Support")
                         .font(.system(size: 28, weight: .bold))
@@ -1196,7 +1196,7 @@ struct ContactSupportPage: View {
                             LinearGradient(
                                 colors: isSubmitted ? 
                                     [Color.green, Color.green.opacity(0.8)] :
-                                    [Color(hexCode: "004aad"), Color(hexCode: "0066ff")],
+                                    [Color(hex: "004aad"), Color(hex: "0066ff")],
                                 startPoint: .leading,
                                 endPoint: .trailing
                             )
@@ -1204,7 +1204,7 @@ struct ContactSupportPage: View {
                         .cornerRadius(12)
                     }
                     .disabled(name.isEmpty || email.isEmpty || question.isEmpty)
-                    .shadow(color: Color(hexCode: "004aad").opacity(0.3), radius: 8, x: 0, y: 4)
+                    .shadow(color: Color(hex: "004aad").opacity(0.3), radius: 8, x: 0, y: 4)
 
                     if isSubmitted {
                         Text(successMessage)
@@ -1229,15 +1229,15 @@ struct ContactSupportPage: View {
                         HStack {
                             Image(systemName: "globe")
                                 .font(.system(size: 18))
-                                .foregroundColor(Color(hexCode: "004aad"))
+                                .foregroundColor(Color(hex: "004aad"))
                             
                             Text("Visit our Contact Page")
                                 .font(.system(size: 16, weight: .medium))
-                                .foregroundColor(Color(hexCode: "004aad"))
+                                .foregroundColor(Color(hex: "004aad"))
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 12)
-                        .background(Color(hexCode: "004aad").opacity(0.1))
+                        .background(Color(hex: "004aad").opacity(0.1))
                         .cornerRadius(8)
                     }
                 }

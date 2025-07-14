@@ -25,10 +25,10 @@ struct Page1: View {
                     // Base gradient layer
                     LinearGradient(
                         colors: [
-                            Color(hexCode: "001a3d"),
-                            Color(hexCode: "004aad"),
-                            Color(hexCode: "0066ff"),
-                            Color(hexCode: "004aad")
+                            Color(hex: "001a3d"),
+                            Color(hex: "004aad"),
+                            Color(hex: "0066ff"),
+                            Color(hex: "004aad")
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
@@ -37,7 +37,7 @@ struct Page1: View {
                     // Moving overlay gradients for animation
                     RadialGradient(
                         colors: [
-                            Color(hexCode: "0066ff").opacity(0.6),
+                            Color(hex: "0066ff").opacity(0.6),
                             Color.clear
                         ],
                         center: .center,
@@ -49,7 +49,7 @@ struct Page1: View {
                     
                     RadialGradient(
                         colors: [
-                            Color(hexCode: "002d5a").opacity(0.8),
+                            Color(hex: "002d5a").opacity(0.8),
                             Color.clear
                         ],
                         center: .center,
@@ -63,7 +63,7 @@ struct Page1: View {
                     LinearGradient(
                         colors: [
                             Color.clear,
-                            Color(hexCode: "004aad").opacity(0.3),
+                            Color(hex: "004aad").opacity(0.3),
                             Color.clear
                         ],
                         startPoint: UnitPoint(x: 0.5 + gradientOffset * 0.002, y: 0),
@@ -112,7 +112,7 @@ struct Page1: View {
                             .overlay(
                                 Text("Circl.")
                                     .font(.system(size: 55, weight: .bold))
-                                    .foregroundColor(Color(hexCode: "004aad"))
+                                    .foregroundColor(Color(hex: "004aad"))
                             )
                             .frame(width: 250, height: 250)
                             .offset(y: -30)
@@ -141,7 +141,7 @@ struct Page1: View {
                                         endPoint: .bottomTrailing
                                     )
                                 )
-                                .foregroundColor(Color(hexCode: "004aad"))
+                                .foregroundColor(Color(hex: "004aad"))
                                 .cornerRadius(15)
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 15)
@@ -158,12 +158,12 @@ struct Page1: View {
                         VStack(spacing: 15) {
                             // Email Field
                             RoundedRectangle(cornerRadius: 20)
-                                .fill(Color(hexCode: "e2e2e2"))
+                                .fill(Color(hex: "e2e2e2"))
                                 .frame(width: UIScreen.main.bounds.width - 100, height: 50)
                                 .overlay(
                                     TextField("Email", text: $email)
                                         .padding(.horizontal)
-                                        .foregroundColor(Color(hexCode: "004aad"))
+                                        .foregroundColor(Color(hex: "004aad"))
                                         .autocapitalization(.none)
                                         .keyboardType(.emailAddress)
                                 )
@@ -174,12 +174,12 @@ struct Page1: View {
 
                             // Password Field
                             RoundedRectangle(cornerRadius: 20)
-                                .fill(Color(hexCode: "e2e2e2"))
+                                .fill(Color(hex: "e2e2e2"))
                                 .frame(width: UIScreen.main.bounds.width - 100, height: 50)
                                 .overlay(
                                     SecureField("Password", text: $password)
                                         .padding(.horizontal)
-                                        .foregroundColor(Color(hexCode: "004aad"))
+                                        .foregroundColor(Color(hex: "004aad"))
                                 )
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 20)
@@ -199,7 +199,7 @@ struct Page1: View {
                                             endPoint: .bottomTrailing
                                         )
                                     )
-                                    .foregroundColor(Color(hexCode: "004aad"))
+                                    .foregroundColor(Color(hex: "004aad"))
                                     .cornerRadius(15)
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 15)
@@ -263,8 +263,8 @@ struct Page1: View {
 
                     .padding()
                     .frame(maxWidth: .infinity)
-                    .background(Color(hexCode: "ffde59"))
-                    .foregroundColor(Color(hexCode: "004aad"))
+                    .background(Color(hex: "ffde59"))
+                    .foregroundColor(Color(hex: "004aad"))
                     .cornerRadius(10)
                     .padding(.horizontal)
 

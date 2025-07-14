@@ -1,4 +1,5 @@
 import SwiftUI
+import Foundation
 
 struct CirclPopupCard: View {
     var circle: CircleData
@@ -40,7 +41,7 @@ struct CirclPopupCard: View {
                     .font(.subheadline)
             }
 
-            Text("\(circle.members) Members")
+            Text("\(circle.memberCount) Members")
                 .font(.subheadline)
 
             Divider().padding(.horizontal)

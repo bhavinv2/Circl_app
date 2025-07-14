@@ -75,7 +75,7 @@ struct PageEntrepreneurKnowledge: View {
                         .padding(.horizontal)
                         .padding(.top, 15)
                         .padding(.bottom, 10)
-                        .background(Color(hexCode: "004aad"))
+                        .background(Color(hex: "004aad"))
                     }
 
                     // Scrollable Section
@@ -84,11 +84,11 @@ struct PageEntrepreneurKnowledge: View {
                             Image(systemName: "hammer.circle")
                                 .resizable()
                                 .frame(width: 100, height: 100)
-                                .foregroundColor(Color(hexCode: "004aad"))
+                                .foregroundColor(Color(hex: "004aad"))
 
                             Text("Thank you for your patience with Circl! We are currently working on creating the \"News\" feature - an opportunity for you to learn more about general news about your industry from news sources and fellow entrepreneurs in the community. Keep your notifications on and stay tuned in the discord server to know when we release it!")
                                 .font(.body)
-                                .foregroundColor(Color(hexCode: "004aad"))
+                                .foregroundColor(Color(hex: "004aad"))
                                 .padding()
                                 .background(Color.gray.opacity(0.4))
                                 .cornerRadius(10)
@@ -141,7 +141,7 @@ struct PageEntrepreneurKnowledge: View {
 
                             Divider()
 
-                            NavigationLink(destination: PageGroupchatsWrapper().navigationBarBackButtonHidden(true))
+                            NavigationLink(destination: PageCircles(showMyCircles: true).navigationBarBackButtonHidden(true))
  {
                                 MenuItem(icon: "circle.grid.2x2.fill", title: "Circles")
                             }
@@ -161,7 +161,7 @@ struct PageEntrepreneurKnowledge: View {
                     }) {
                         ZStack {
                             Circle()
-                                .fill(Color(hexCode: "004aad"))
+                                .fill(Color(hex: "004aad"))
                                 .frame(width: 60, height: 60)
 
                             Image("CirclLogoButton")
@@ -191,7 +191,7 @@ struct MenuItem10: View {
     var body: some View {
         HStack {
             Image(systemName: icon)
-                .foregroundColor(Color(hexCode: "004aad"))
+                .foregroundColor(Color(hex: "004aad"))
                 .frame(width: 24)
             Text(title)
                 .foregroundColor(.primary)

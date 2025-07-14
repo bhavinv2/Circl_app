@@ -1,14 +1,6 @@
 import SwiftUI
 import UIKit
-
-struct MessageModel: Identifiable, Codable {
-    let id: Int
-    let sender_id: Int
-    let receiver_id: Int
-    let content: String
-    let timestamp: String
-    let is_read: Bool
-}
+import Foundation
 
 struct ForumPostModel: Identifiable, Codable {
     let id: Int
@@ -102,11 +94,10 @@ struct ForumPost: View {
     @State private var showDeleteConfirmation = false
     @State private var showReportSheet = false
 
-
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // Post Header
-            HStack(spacing: 12) {
+        VStack(spacing: 0) {
+            HStack(alignment: .top, spacing: 12) {
+                // Profile Image - Twitter/X style
                 Button(action: onTapProfile) {
                     AsyncImage(url: URL(string: profileImageName)) { phase in
                         if let image = phase.image {
@@ -115,89 +106,124 @@ struct ForumPost: View {
                             Image("default_image").resizable().aspectRatio(contentMode: .fill)
                         }
                     }
-                    .frame(width: 48, height: 48)
+                    .frame(width: 40, height: 40)
                     .clipShape(Circle())
                 }
-
-                VStack(alignment: .leading, spacing: 2) {
-                    HStack {
-                        Text(author).font(.system(size: 16, weight: .bold))
+                
+                // Main Tweet Content
+                VStack(alignment: .leading, spacing: 8) {
+                    // Header with name, verification, time, and menu
+                    HStack(spacing: 4) {
+                        Text(author)
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(.primary)
+                        
                         if isMentor {
                             Image(systemName: "checkmark.seal.fill")
-                                .foregroundColor(Color(hexCode: "004aad"))
+                                .foregroundColor(Color(hex: "004aad"))
                                 .font(.system(size: 14))
                         }
-                    }
-                    Text(timeAgo(from: timestamp))
-                        .font(.system(size: 13))
-                        .foregroundColor(.secondary)
-                }
-
-                Spacer()
-
-                Menu {
-                    if isCurrentUser {
-                        Button("Delete Post", role: .destructive) {
-                            showDeleteConfirmation = true
+                        
+                        Text("·")
+                            .foregroundColor(.secondary)
+                            .font(.system(size: 15))
+                        
+                        Text(timeAgo(from: timestamp))
+                            .font(.system(size: 15))
+                            .foregroundColor(.secondary)
+                        
+                        Spacer()
+                        
+                        Menu {
+                            if isCurrentUser {
+                                Button("Delete Post", role: .destructive) {
+                                    showDeleteConfirmation = true
+                                }
+                            } else {
+                                Button("Report Post", role: .destructive) {
+                                    showReportSheet = true
+                                }
+                            }
+                        } label: {
+                            Image(systemName: "ellipsis")
+                                .font(.system(size: 16))
+                                .foregroundColor(.secondary)
+                                .padding(4)
                         }
-                    } else {
-                        Button("Report Post", role: .destructive) {
-                            showReportSheet = true
-                        }
                     }
-                } label: {
-                    Image(systemName: "ellipsis")
-                        .font(.body.weight(.semibold))
-                        .foregroundColor(.secondary)
-                        .padding(8)
-                        .background(Color.primary.opacity(0.05))
-                        .clipShape(Circle())
-                }
-            }
-
-            Text(content)
-                .font(.system(size: 15))
-                .lineSpacing(4)
-
-            if !category.trimmingCharacters(in: .whitespaces).isEmpty && category != "Category" {
-                Text(category)
-                    .font(.system(size: 12, weight: .medium))
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 5)
-                    .background(Color(hexCode: "004aad").opacity(0.1))
-                    .foregroundColor(Color(hexCode: "004aad"))
-                    .clipShape(Capsule())
-            }
-
-            Divider().padding(.vertical, 4)
-
-            HStack(spacing: 24) {
-                Button(action: toggleLike) {
-                    HStack(spacing: 6) {
-                        Image(systemName: likedByUser ? "heart.fill" : "heart")
+                    
+                    // Tweet Content
+                    Text(content)
+                        .font(.system(size: 15))
+                        .lineSpacing(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .foregroundColor(.primary)
+                    
+                    // Category Tag (if exists)
+                    if !category.trimmingCharacters(in: .whitespaces).isEmpty && category != "Category" {
+                        Text(category)
+                            .font(.system(size: 12, weight: .medium))
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color(hex: "004aad").opacity(0.1))
+                            .foregroundColor(Color(hex: "004aad"))
+                            .clipShape(Capsule())
+                    }
+                    
+                    // Action Buttons - Twitter/X style
+                    HStack(spacing: 0) {
+                        // Comment Button
+                        Button(action: onComment) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "bubble.left")
+                                    .font(.system(size: 16))
+                                Text("\(commentCount)")
+                                    .font(.system(size: 13))
+                            }
+                            .foregroundColor(.secondary)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        
+                        Spacer()
+                        
+                        // Like Button
+                        Button(action: toggleLike) {
+                            HStack(spacing: 4) {
+                                Image(systemName: likedByUser ? "heart.fill" : "heart")
+                                    .font(.system(size: 16))
+                                Text("\(likeCount)")
+                                    .font(.system(size: 13))
+                            }
                             .foregroundColor(likedByUser ? .red : .secondary)
-                        Text("\(likeCount) Likes")
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        
+                        Spacer()
+                        
+                        // Share placeholder (maintaining spacing)
+                        HStack(spacing: 4) {
+                            Image(systemName: "square.and.arrow.up")
+                                .font(.system(size: 16))
+                        }
+                        .foregroundColor(.secondary)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
                     }
+                    .padding(.top, 4)
                 }
-                .buttonStyle(PlainButtonStyle())
-
-                Button(action: onComment) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "bubble.left")
-                        Text("\(commentCount) Comments")
-                    }
-                }
-                .buttonStyle(PlainButtonStyle())
-
-                Spacer()
             }
-            .font(.system(size: 14, weight: .medium))
-            .foregroundColor(.secondary)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            
+            // Separator line
+            Divider()
+                .background(Color.gray.opacity(0.3))
         }
-        .padding(16)
         .background(Color.white)
-        .cornerRadius(16)
-        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 2)
         .alert("Delete Post?", isPresented: $showDeleteConfirmation) {
             Button("Delete", role: .destructive, action: onDelete)
         }
@@ -276,345 +302,263 @@ struct ReportPostView: View {
 
 struct ForumMainContent: View {
     @Binding var selectedFilter: String
+    @Binding var visualSelectedTab: String
     @Binding var selectedCategory: String
-    @Binding var selectedPrivacy: String
-    @Binding var postContent: String
-    @Binding var selectedImage: UIImage?
-    @Binding var isImagePickerPresented: Bool
-    @Binding var sourceType: UIImagePickerController.SourceType
     @Binding var posts: [ForumPostModel]
-    @Binding var selectedPostIdForComments: ForumPostModel?
-    @Binding var loggedInUserFullName: String
+    @Binding var isLoading: Bool
     @Binding var userFirstName: String
     @Binding var userProfileImageURL: String
     @Binding var unreadMessageCount: Int
-    @Binding var selectedProfile: FullProfile?
-    @Binding var showProfileSheet: Bool
+    @Binding var postContent: String
+    @Binding var selectedPrivacy: String
+    @Binding var selectedPostIdForComments: ForumPostModel?
+    @Binding var loggedInUserFullName: String
     @Binding var showCategoryAlert: Bool
-    @Binding var isLoading: Bool
-    @Binding var showPageLoading: Bool
-    @State private var showMenu = false
-    @State private var rotationAngle: Double = 0
-    @State private var isAnimating = false
-
-    @AppStorage("hasSeenForumTutorial") private var hasSeenTutorial = false
-    @State private var showTutorial = false
-
-    var fetchPosts: () -> Void
-    var submitPost: () -> Void
-    var deletePost: (Int) -> Void
-    var toggleLike: (ForumPostModel) -> Void
-    var fetchUserProfile: (Int, @escaping (FullProfile?) -> Void) -> Void
-
-    private var animatedBackground: some View {
-        ZStack {
-            // Base gradient
-            LinearGradient(
-                colors: [
-                    Color(hexCode: "001a3d"),
-                    Color(hexCode: "004aad"),
-                    Color(hexCode: "0066ff"),
-                    Color(hexCode: "003d7a")
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            
-            // First flowing layer
-            LinearGradient(
-                colors: [
-                    Color.clear,
-                    Color(hexCode: "0066ff").opacity(0.2),
-                    Color.clear,
-                    Color(hexCode: "004aad").opacity(0.15),
-                    Color.clear
-                ],
-                startPoint: UnitPoint(
-                    x: isAnimating ? -0.3 : 1.3,
-                    y: 0.0
-                ),
-                endPoint: UnitPoint(
-                    x: isAnimating ? 1.0 : 0.0,
-                    y: 1.0
-                )
-            )
-            
-            // Second flowing layer (opposite direction)
-            LinearGradient(
-                colors: [
-                    Color(hexCode: "002d5a").opacity(0.1),
-                    Color.clear,
-                    Color(hexCode: "0066ff").opacity(0.18),
-                    Color.clear,
-                    Color(hexCode: "001a3d").opacity(0.12)
-                ],
-                startPoint: UnitPoint(
-                    x: isAnimating ? 1.2 : -0.2,
-                    y: 0.3
-                ),
-                endPoint: UnitPoint(
-                    x: isAnimating ? 0.1 : 0.9,
-                    y: 0.7
-                )
-            )
-            
-            // Third subtle wave layer
-            LinearGradient(
-                colors: [
-                    Color.clear,
-                    Color.clear,
-                    Color(hexCode: "0066ff").opacity(0.1),
-                    Color.clear,
-                    Color.clear
-                ],
-                startPoint: UnitPoint(
-                    x: isAnimating ? 0.2 : 0.8,
-                    y: isAnimating ? 0.0 : 1.0
-                ),
-                endPoint: UnitPoint(
-                    x: isAnimating ? 0.9 : 0.1,
-                    y: isAnimating ? 1.0 : 0.0
-                )
-            )
-        }
-        .onAppear {
-            withAnimation(Animation.easeInOut(duration: 15).repeatForever(autoreverses: true)) {
-                isAnimating = true
-            }
-        }
-    }
+    
+    let onPost: () -> Void
+    let fetcher: (String, String) -> Void
+    let likeToggler: (ForumPostModel) -> Void
+    let submitPost: () -> Void
+    let toggleLike: (ForumPostModel) -> Void
+    let deletePost: (Int) -> Void
+    let fetchUserProfile: (Int, @escaping (FullProfile?) -> Void) -> Void
+    let selectedProfile: FullProfile?
+    let showProfileSheet: (FullProfile) -> Void
 
     var body: some View {
         VStack(spacing: 0) {
-            // Header
+            // Header - Twitter/X style layout
             VStack(spacing: 0) {
                 HStack {
-                    VStack(alignment: .leading, spacing: 5) {
-                        NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
-                            Text("Circl.")
-                                .font(.largeTitle)
-                                .fontWeight(.bold)
-                                .foregroundColor(.white)
-                        }
-
-                        HStack(spacing: 0) {
-                            Button(action: {
-                                withAnimation {
-                                    selectedFilter = "public"
-                                    UserDefaults.standard.set("public", forKey: "selectedFilter")
-                                    fetchPosts()
-                                }
-                            }) {
-                                Text("Public")
-                                    .fontWeight(selectedFilter == "public" ? .bold : .regular)
+                    // Left side - Profile
+                    NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
+                        AsyncImage(url: URL(string: userProfileImageURL)) { phase in
+                            switch phase {
+                            case .success(let image):
+                                image
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 32, height: 32)
+                                    .clipShape(Circle())
+                            default:
+                                Image(systemName: "person.circle.fill")
+                                    .font(.system(size: 32))
                                     .foregroundColor(.white)
-                                    .padding(.horizontal, 16)
-                                    .padding(.vertical, 10)
-                                    .background(selectedFilter == "public" ? Color.white.opacity(0.15) : Color.clear)
-                                    .cornerRadius(8)
-                                    .animation(.easeInOut(duration: 0.2), value: selectedFilter)
-                            }
-
-                            Button(action: {
-                                withAnimation {
-                                    selectedFilter = "my_network"
-                                    UserDefaults.standard.set("my_network", forKey: "selectedFilter")
-                                    fetchPosts()
-                                }
-                            }) {
-                                Text("My Network")
-                                    .fontWeight(selectedFilter == "my_network" ? .bold : .regular)
-                                    .foregroundColor(.white)
-                                    .padding(.horizontal, 16)
-                                    .padding(.vertical, 10)
-                                    .background(selectedFilter == "my_network" ? Color.white.opacity(0.15) : Color.clear)
-                                    .cornerRadius(8)
-                                    .animation(.easeInOut(duration: 0.2), value: selectedFilter)
                             }
                         }
-                        .background(Color(hexCode: "004aad"))
-                        .cornerRadius(10)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.leading, -12)
                     }
                     
                     Spacer()
                     
-                    VStack(alignment: .trailing, spacing: 5) {
-                        VStack {
-                            HStack(spacing: 10) {
-                                NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
-                                    ZStack {
-                                        Image(systemName: "bubble.left.and.bubble.right.fill")
-                                            .resizable()
-                                            .frame(width: 50, height: 40)
-                                            .foregroundColor(.white)
-                                        
-                                        // Notification badge - positioned more precisely
-                                        if unreadMessageCount > 0 {
-                                            ZStack {
-                                                Circle()
-                                                    .fill(Color.red)
-                                                    .frame(width: 18, height: 18)
-                                                
-                                                Text(unreadMessageCount > 99 ? "99+" : "\(unreadMessageCount)")
-                                                    .font(.system(size: 9, weight: .bold))
-                                                    .foregroundColor(.white)
-                                                    .minimumScaleFactor(0.5)
-                                            }
-                                            .offset(x: 20, y: -15)
-                                        }
-                                    }
-                                }
-
-                                NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
-                                    if !userProfileImageURL.isEmpty {
-                                        AsyncImage(url: URL(string: userProfileImageURL)) { phase in
-                                            switch phase {
-                                            case .empty:
-                                                // Loading state
-                                                ProgressView()
-                                                    .frame(width: 50, height: 50)
-                                                    .foregroundColor(.white)
-                                            case .success(let image):
-                                                // Successfully loaded image
-                                                image
-                                                    .resizable()
-                                                    .scaledToFill()
-                                                    .frame(width: 50, height: 50)
-                                                    .clipShape(Circle())
-                                                    .overlay(
-                                                        Circle()
-                                                            .stroke(Color.white.opacity(0.3), lineWidth: 2)
-                                                    )
-                                            case .failure(_):
-                                                // Failed to load, show default
-                                                Image(systemName: "person.circle.fill")
-                                                    .resizable()
-                                                    .frame(width: 50, height: 50)
-                                                    .foregroundColor(.white)
-                                            @unknown default:
-                                                // Fallback
-                                                Image(systemName: "person.circle.fill")
-                                                    .resizable()
-                                                    .frame(width: 50, height: 50)
-                                                    .foregroundColor(.white)
-                                            }
-                                        }
-                                    } else {
-                                        Image(systemName: "person.circle.fill")
-                                            .resizable()
-                                            .frame(width: 50, height: 50)
-                                            .foregroundColor(.white)
-                                    }
-                                }
-                            }
-                            .padding(.bottom, 5)
+                    // Center - Logo
+                    Text("Circl.")
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(.white)
+                    
+                    Spacer()
+                    
+                    // Right side - Messages
+                    NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
+                        ZStack {
+                            Image(systemName: "envelope")
+                                .font(.system(size: 24))
+                                .foregroundColor(.white)
                             
-                            // Welcome message with improved styling
-                            if !userFirstName.isEmpty {
-                                VStack(spacing: 2) {
-                                    Text("Welcome back,")
-                                        .font(.system(size: 12, weight: .medium))
-                                        .foregroundColor(.white.opacity(0.8))
-                                        .shadow(color: .black.opacity(0.15), radius: 1, x: 0, y: 0.5)
-                                    
-                                    Text("\(userFirstName)!")
-                                        .font(.system(size: 16, weight: .bold))
-                                        .foregroundColor(.white)
-                                        .shadow(color: .black.opacity(0.2), radius: 1, x: 0, y: 0.5)
-                                }
+                            if unreadMessageCount > 0 {
+                                Text(unreadMessageCount > 99 ? "99+" : "\(unreadMessageCount)")
+                                    .font(.system(size: 10, weight: .bold))
+                                    .foregroundColor(.white)
+                                    .padding(4)
+                                    .background(Color.red)
+                                    .clipShape(Circle())
+                                    .offset(x: 10, y: -10)
                             }
                         }
                     }
                 }
-                .padding(.horizontal)
-                .padding(.bottom, 10)
-            }
-            .padding(.top, (UIApplication.shared.windows.first?.safeAreaInsets.top ?? 0) + 15)
-            .background(animatedBackground.ignoresSafeArea())
-            .clipped()
-
-            // ScrollView for content
-            ScrollView {
-                if showPageLoading {
-                    VStack {
-                        Spacer()
-                        ProgressView("Loading Posts...")
-                            .progressViewStyle(CircularProgressViewStyle())
-                            .padding()
-                        Spacer()
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else {
-                    LazyVStack(spacing: 20) {
-                        // New Post Creation UI
-                        VStack(alignment: .leading, spacing: 12) {
-                            HStack(spacing: 12) {
-                                AsyncImage(url: URL(string: userProfileImageURL)) { phase in
-                                    if let image = phase.image {
-                                        image.resizable().aspectRatio(contentMode: .fill)
-                                    } else {
-                                        Image(systemName: "person.circle.fill").resizable().aspectRatio(contentMode: .fill).foregroundColor(.gray)
-                                    }
-                                }
-                                .frame(width: 40, height: 40)
-                                .clipShape(Circle())
-
-                                Text("The floor is yours, \(userFirstName)!")
-                                    .foregroundColor(.secondary)
-                            }
-
-                            TextField("Pitch an idea, share a win, or ask the community for advice...", text: $postContent, axis: .vertical)
-                                .lineLimit(4...)
-                                .padding(12)
-                                .background(Color(UIColor.systemGray6))
-                                .cornerRadius(10)
-                                .overlay(
-                                    postContent.isEmpty ?
-                                    Text("Pitch an idea, share a win, or ask the community for advice...")
-                                        .foregroundColor(.gray)
-                                        .padding(.horizontal, 12)
-                                        .padding(.vertical, 16)
-                                        .allowsHitTesting(false)
-                                    : nil, alignment: .topLeading
-                                )
-
-                            HStack {
-                                Button(action: { showCategoryAlert = true }) {
-                                    HStack {
-                                        Image(systemName: "tag")
-                                        Text(selectedCategory.isEmpty ? "Category" : selectedCategory)
-                                    }
-                                }
-
-                                Button(action: { /* Action for privacy */ }) {
-                                    HStack {
-                                        Image(systemName: "globe")
-                                        Text(selectedPrivacy)
-                                    }
-                                }
-
-                                Spacer()
-
-                                Button(action: submitPost) {
-                                    Text("Post")
-                                        .fontWeight(.bold)
-                                        .foregroundColor(.white)
-                                        .padding(.vertical, 10)
-                                        .padding(.horizontal, 24)
-                                        .background(Color(hexCode: "004aad"))
-                                        .clipShape(Capsule())
-                                }
-                                .disabled(postContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                            }
-                            .foregroundColor(Color(hexCode: "004aad"))
+                .padding(.horizontal, 16)
+                .padding(.bottom, 16)
+                .padding(.top, 8)
+                
+                // Tab Buttons Row - Twitter/X style tabs
+                HStack(spacing: 0) {
+                    Spacer()
+                    
+                    // For You Tab
+                    HStack {
+                        VStack(spacing: 8) {
+                            Text("For you")
+                                .font(.system(size: 15, weight: visualSelectedTab == "public" ? .semibold : .regular))
+                                .foregroundColor(.white)
+                            
+                            Rectangle()
+                                .fill(visualSelectedTab == "public" ? Color.white : Color.clear)
+                                .frame(height: 3)
+                                .animation(.easeInOut(duration: 0.2), value: visualSelectedTab)
                         }
-                        .padding()
-                        .background(Color.white)
-                        .cornerRadius(16)
-                        .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
+                        .frame(width: 70)
+                    }
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        print("🔄 For you tab tapped")
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            visualSelectedTab = "public"
+                        }
+                        UserDefaults.standard.set("public", forKey: "selectedFilter")
+                        print("✅ visualSelectedTab set to: \(visualSelectedTab)")
+                        // API call on background queue to avoid UI interference
+                        DispatchQueue.global(qos: .userInitiated).async {
+                            fetcher(selectedCategory, "public")
+                        }
+                    }
+                    
+                    Spacer()
+                    
+                    // Following Tab
+                    HStack {
+                        VStack(spacing: 8) {
+                            Text("Following")
+                                .font(.system(size: 15, weight: visualSelectedTab == "my_network" ? .semibold : .regular))
+                                .foregroundColor(.white)
+                            
+                            Rectangle()
+                                .fill(visualSelectedTab == "my_network" ? Color.white : Color.clear)
+                                .frame(height: 3)
+                                .animation(.easeInOut(duration: 0.2), value: visualSelectedTab)
+                        }
+                        .frame(width: 80)
+                    }
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        print("🔄 Following tab tapped")
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            visualSelectedTab = "my_network"
+                        }
+                        UserDefaults.standard.set("my_network", forKey: "selectedFilter")
+                        print("✅ visualSelectedTab set to: \(visualSelectedTab)")
+                        // API call on background queue to avoid UI interference
+                        DispatchQueue.global(qos: .userInitiated).async {
+                            fetcher(selectedCategory, "my_network")
+                        }
+                    }
+                    
+                    Spacer()
+                }
+                .padding(.bottom, 8)
+            }
+            .padding(.top, 50) // Add safe area padding for status bar and notch
+            .background(Color(hex: "004aad"))
+            .ignoresSafeArea(edges: .top)
+            
+            // Compose Area - Twitter/X style
+            VStack(spacing: 0) {
+                HStack(alignment: .top, spacing: 12) {
+                    // Profile Image
+                    AsyncImage(url: URL(string: userProfileImageURL)) { phase in
+                        if let image = phase.image {
+                            image.resizable().aspectRatio(contentMode: .fill)
+                        } else {
+                            Image(systemName: "person.circle.fill")
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .foregroundColor(.gray.opacity(0.5))
+                        }
+                    }
+                    .frame(width: 40, height: 40)
+                    .clipShape(Circle())
+                    
+                    VStack(alignment: .leading, spacing: 0) {
+                        // Main text input area
+                        TextField("", text: $postContent)
+                            .font(.system(size: 20, weight: .regular))
+                            .lineLimit(6...)
+                            .textFieldStyle(PlainTextFieldStyle())
+                            .placeholder(when: postContent.isEmpty) {
+                                Text("What's happening?")
+                                    .font(.system(size: 20, weight: .regular))
+                                    .foregroundColor(.gray.opacity(0.5))
+                            }
+                            .padding(.vertical, 4)
                         
+                        Spacer(minLength: 12)
+                        
+                        // Bottom action row
+                        HStack(spacing: 0) {
+                            // Left side buttons
+                            HStack(spacing: 16) {
+                                // Category button
+                                Button(action: { showCategoryAlert = true }) {
+                                    HStack(spacing: 4) {
+                                        Image(systemName: "tag")
+                                            .font(.system(size: 14, weight: .medium))
+                                        Text("Category")
+                                            .font(.system(size: 13, weight: .medium))
+                                    }
+                                    .foregroundColor(Color(hex: "004aad"))
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 4)
+                                    .background(Color(hex: "e8f2ff"))
+                                    .cornerRadius(16)
+                                }
+                                
+                                // Privacy button
+                                Button(action: { /* Privacy action */ }) {
+                                    HStack(spacing: 4) {
+                                        Image(systemName: selectedPrivacy == "Public" ? "globe" : "lock")
+                                            .font(.system(size: 14, weight: .medium))
+                                        Text(selectedPrivacy)
+                                            .font(.system(size: 13, weight: .medium))
+                                    }
+                                    .foregroundColor(Color(hex: "004aad"))
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 4)
+                                    .background(Color(hex: "e8f2ff"))
+                                    .cornerRadius(16)
+                                }
+                            }
+                            
+                            Spacer()
+                            
+                            // Post button
+                            Button(action: submitPost) {
+                                Text("Post")
+                                    .font(.system(size: 15, weight: .bold))
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 20)
+                                    .padding(.vertical, 8)
+                                    .background(
+                                        postContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty 
+                                        ? Color.gray.opacity(0.4)
+                                        : Color(hex: "004aad")
+                                    )
+                                    .clipShape(Capsule())
+                            }
+                            .disabled(postContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                        }
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                
+                Divider()
+                    .background(Color.gray.opacity(0.2))
+            }
+            .background(Color.white)
+            .shadow(color: Color.black.opacity(0.03), radius: 1, x: 0, y: 1)
+
+            // Feed Content
+            if isLoading {
+                VStack {
+                    Spacer()
+                    ProgressView("Loading...")
+                        .font(.system(size: 16))
+                        .padding()
+                    Spacer()
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                ScrollView {
+                    LazyVStack(spacing: 0) {
                         ForEach(posts) { post in
                             ForumPost(
                                 content: post.content,
@@ -640,30 +584,24 @@ struct ForumMainContent: View {
                                 onTapProfile: {
                                     fetchUserProfile(post.user_id) { profile in
                                         if let profile = profile {
-                                            selectedProfile = profile
-                                            showProfileSheet = true
+                                            showProfileSheet(profile)
                                         }
                                     }
                                 },
                                 isMentor: post.isMentor ?? false
                             )
-                            .onAppear {
-                                print("🧠 profileImage for \(post.user): \(post.profileImage ?? "nil")")
-                            }
-                            .padding(.bottom, 10)
                         }
                     }
-                    .padding()
+                    .padding(.bottom, 80) // Add padding for bottom navigation
                 }
+                .background(Color.white)
             }
-            .background(Color(UIColor.systemGray6))
-            .dismissKeyboardOnScroll()
         }
+        .background(Color.white)
+        .dismissKeyboardOnScroll()
         .ignoresSafeArea(edges: .top)
     }
 }
-
-// [Previous code remains exactly the same until the PageForum struct]
 
 struct PageForum: View {
     @State private var selectedCategory = "Category"
@@ -677,18 +615,18 @@ struct PageForum: View {
     @State private var loggedInUserFullName: String = ""
     @State private var userFirstName: String = ""
     @State private var userProfileImageURL: String = ""
-    @State private var currentUserProfile: FullProfile?
     @State private var unreadMessageCount: Int = 0
     @State private var messages: [MessageModel] = []
-    @State private var showCategoryAlert = false
+    @AppStorage("user_id") private var userId: Int = 0
+    @State private var showPostCreationSheet = false
     @State private var selectedFilter: String = "public"
+    @State private var visualSelectedTab: String = "public" // Visual state separate from API state
     @State private var selectedProfile: FullProfile?
     @State private var showProfileSheet = false
     @State private var isLoading = false
     @State private var showPageLoading = true
     @State private var userNetworkIds: [Int] = []
-    @State private var showMenu = false
-    @State private var rotationAngle: Double = 0
+
     @State private var gradientOffset: CGFloat = 0
     @State private var backgroundRotationAngle: Double = 0
 
@@ -699,158 +637,146 @@ struct PageForum: View {
     @State private var showKeyboard: Bool = false
     @AppStorage("hasSeenForumTutorial") private var hasSeenTutorial = false
     @State private var showTutorial = false
+    @State private var showCategoryAlert = false
 
     @State private var animateArrow = false
-
-
-
-    
-    
+    @State private var currentUserProfile: FullProfile?
 
     var body: some View {
-        // Remove NavigationView from here and just use ForumMainContent directly
-        ZStack(alignment: .bottomTrailing) {
-            ForumMainContent(
-                selectedFilter: $selectedFilter,
-                selectedCategory: $selectedCategory,
-                selectedPrivacy: $selectedPrivacy,
-                postContent: $postContent,
-                selectedImage: $selectedImage,
-                isImagePickerPresented: $isImagePickerPresented,
-                sourceType: $sourceType,
-                posts: $posts,
-                selectedPostIdForComments: $selectedPostIdForComments,
-                loggedInUserFullName: $loggedInUserFullName,
-                userFirstName: $userFirstName,
-                userProfileImageURL: $userProfileImageURL,
-                unreadMessageCount: $unreadMessageCount,
-                selectedProfile: $selectedProfile,
-                showProfileSheet: $showProfileSheet,
-                showCategoryAlert: $showCategoryAlert,
-                isLoading: $isLoading,
-                showPageLoading: $showPageLoading,
-             
-                fetchPosts: fetchPostsWithoutLoading,
-                submitPost: submitPost,
-                deletePost: deletePost,
-                toggleLike: toggleLike,
-                fetchUserProfile: fetchUserProfile
-            )
+        NavigationView {
+            ZStack {
+                ForumMainContent(
+                    selectedFilter: $selectedFilter,
+                    visualSelectedTab: $visualSelectedTab,
+                    selectedCategory: $selectedCategory,
+                    posts: $posts,
+                    isLoading: $isLoading,
+                    userFirstName: $userFirstName,
+                    userProfileImageURL: $userProfileImageURL,
+                    unreadMessageCount: $unreadMessageCount,
+                    postContent: $postContent,
+                    selectedPrivacy: $selectedPrivacy,
+                    selectedPostIdForComments: $selectedPostIdForComments,
+                    loggedInUserFullName: $loggedInUserFullName,
+                    showCategoryAlert: $showCategoryAlert,
+                    onPost: submitPost,
+                    fetcher: fetchPostsWithParameters,
+                    likeToggler: { post in toggleLike(post) },
+                    submitPost: submitPost,
+                    toggleLike: { post in toggleLike(post) },
+                    deletePost: deletePost,
+                    fetchUserProfile: fetchUserProfile,
+                    selectedProfile: selectedProfile,
+                    showProfileSheet: { profile in
+                        selectedProfile = profile
+                        showProfileSheet = true
+                    }
+                )
 
-
-            // 🟦 Floating Ellipsis Menu (with tap-away dismiss)
-            // Floating Ellipsis Menu (fixed position, tap away to close)
-            ZStack(alignment: .bottomTrailing) {
-                if showMenu {
-                    Color.black.opacity(0.001) // invisible but tappable
-                        .ignoresSafeArea()
-                        .onTapGesture {
-                            withAnimation {
-                                showMenu = false
-                            }
+            
+            // MARK: - Twitter/X Style Bottom Navigation
+            VStack {
+                Spacer()
+                
+                HStack(spacing: 0) {
+                    // Forum / Home (Current page - highlighted)
+                    VStack(spacing: 4) {
+                        Image(systemName: "house.fill")
+                            .font(.system(size: 22, weight: .medium))
+                            .foregroundColor(Color(hex: "004aad"))
+                        Text("Home")
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundColor(Color(hex: "004aad"))
+                    }
+                    .frame(maxWidth: .infinity)
+                    
+                    // Connect and Network
+                    NavigationLink(destination: PageMyNetwork().navigationBarBackButtonHidden(true)) {
+                        VStack(spacing: 4) {
+                            Image(systemName: "person.2")
+                                .font(.system(size: 22, weight: .medium))
+                                .foregroundColor(Color(UIColor.label).opacity(0.6))
+                            Text("Network")
+                                .font(.system(size: 10, weight: .medium))
+                                .foregroundColor(Color(UIColor.label).opacity(0.6))
                         }
-                        .zIndex(1)
-                }
-
-                VStack(alignment: .trailing, spacing: 8) {
-                    if showMenu {
-                        // Tappable backdrop layer to dismiss the menu
-                        Color.black.opacity(0.001)
-                            .ignoresSafeArea()
-                            .onTapGesture {
-                                withAnimation {
-                                    showMenu = false
+                        .frame(maxWidth: .infinity)
+                    }
+                    
+                    // Circles
+                    NavigationLink(destination: PageCircles().navigationBarBackButtonHidden(true)) {
+                        VStack(spacing: 4) {
+                            Image(systemName: "circle.grid.2x2")
+                                .font(.system(size: 22, weight: .medium))
+                                .foregroundColor(Color(UIColor.label).opacity(0.6))
+                            Text("Circles")
+                                .font(.system(size: 10, weight: .medium))
+                                .foregroundColor(Color(UIColor.label).opacity(0.6))
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                    
+                    // Messages
+                    NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
+                        VStack(spacing: 4) {
+                            ZStack {
+                                Image(systemName: "envelope")
+                                    .font(.system(size: 22, weight: .medium))
+                                    .foregroundColor(Color(UIColor.label).opacity(0.6))
+                                
+                                if unreadMessageCount > 0 {
+                                    Text("\(unreadMessageCount)")
+                                        .font(.system(size: 10, weight: .bold))
+                                        .foregroundColor(.white)
+                                        .frame(minWidth: 16, minHeight: 16)
+                                        .background(Color.red)
+                                        .clipShape(Circle())
+                                        .offset(x: 12, y: -12)
                                 }
                             }
-                            .zIndex(1) // under the menu, over the rest
-                    }
-
-                    VStack(alignment: .trailing, spacing: 8) {
-                        if showMenu {
-                            VStack(alignment: .leading, spacing: 0) {
-                                Text("Navigate")
-                                    .font(.headline)
-                                    .padding()
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .background(Color(.systemGray5))
-
-                                NavigationLink(destination: PageEntrepreneurMatching().navigationBarBackButtonHidden(true)) {
-                                                                MenuItem(icon: "person.2.fill", title: "Connect and Network")
-                                                            }
-                                                            NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true)) {
-                                                                MenuItem(icon: "person.crop.square.fill", title: "Your Business Profile")
-                                                            }
-                                                            NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
-                                                                MenuItem(icon: "text.bubble.fill", title: "The Forum Feed")
-                                                            }
-                                                            NavigationLink(destination: PageEntrepreneurResources().navigationBarBackButtonHidden(true)) {
-                                                                MenuItem(icon: "briefcase.fill", title: "Professional Services")
-                                                            }
-                                                            NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
-                                                                MenuItem(icon: "envelope.fill", title: "Messages")
-                                                            }
-                                                            NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
-                                                                MenuItem(icon: "newspaper.fill", title: "News & Knowledge")
-                                                            }
-                                                            NavigationLink(destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true)) {
-                                                                MenuItem(icon: "dollarsign.circle.fill", title: "The Circl Exchange")
-                                                            }
-
-                                                            Divider()
-
-                                NavigationLink(destination: PageGroupchatsWrapper().navigationBarBackButtonHidden(true))
- {
-                                                                MenuItem(icon: "circle.grid.2x2.fill", title: "Circles")
-                                                            }
-                            }
-                            .background(Color(.systemGray6))
-                            .cornerRadius(12)
-                            .shadow(radius: 5)
-                            .frame(width: 250)
-                            .transition(.scale.combined(with: .opacity))
-                            .zIndex(2) // show menu on top
+                            Text("Messages")
+                                .font(.system(size: 10, weight: .medium))
+                                .foregroundColor(Color(UIColor.label).opacity(0.6))
                         }
-
-                        Button(action: {
-                            withAnimation(.easeInOut(duration: 0.4)) {
-                                showMenu.toggle()
-                                rotationAngle += 360
-                            }
-
-                            // ✅ Dismiss comment sheet too
-                            selectedPostIdForComments = nil
-                            showTutorial = false
-                            hasSeenTutorial = true
-                        }) {
-
-                            ZStack {
-                                Circle()
-                                    .fill(Color(hexCode: "004aad"))
-                                    .frame(width: 60, height: 60)
-
-                                Image("CirclLogoButton")
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(width: 32, height: 32)
-                                    .clipShape(Circle())
-                                    .rotationEffect(.degrees(rotationAngle))
-                            }
-                        }
-                        .shadow(radius: 4)
-                        .padding(.bottom, -10)
-                        .zIndex(3) // always tappable
+                        .frame(maxWidth: .infinity)
                     }
-                    .padding()
-
-
-
                     
+                    // More / Additional Resources
+                    NavigationLink(destination: PageMore(
+                        userFirstName: $userFirstName,
+                        userProfileImageURL: $userProfileImageURL,
+                        unreadMessageCount: $unreadMessageCount
+                    ).navigationBarBackButtonHidden(true)) {
+                        VStack(spacing: 4) {
+                            Image(systemName: "ellipsis")
+                                .font(.system(size: 22, weight: .medium))
+                                .foregroundColor(Color(UIColor.label).opacity(0.6))
+                            Text("More")
+                                .font(.system(size: 10, weight: .medium))
+                                .foregroundColor(Color(UIColor.label).opacity(0.6))
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
                 }
-                .padding()
-                .zIndex(2)
-                
-                
+                .padding(.horizontal, 16)
+                .padding(.vertical, 20)
+                .padding(.bottom, 8)
+                .background(
+                    Rectangle()
+                        .fill(Color(UIColor.systemBackground))
+                        .shadow(color: .black.opacity(0.1), radius: 1, x: 0, y: -1)
+                        .ignoresSafeArea(edges: .bottom)
+                )
+                .overlay(
+                    Rectangle()
+                        .frame(height: 0.5)
+                        .foregroundColor(Color(UIColor.separator))
+                        .padding(.horizontal, 16),
+                    alignment: .top
+                )
             }
+            .ignoresSafeArea(edges: .bottom)
+            .zIndex(1)
             
             if showTutorial {
                 // Dim background only behind the tutorial content
@@ -870,7 +796,7 @@ struct PageForum: View {
                                 .multilineTextAlignment(.center)
                                 .foregroundColor(.white)
 
-                            Text("Click the circl button in the bottom-right to access the menu and get started.")
+                            Text("Use the navigation bar at the bottom to explore different sections of the app.")
                                 .multilineTextAlignment(.center)
                                 .foregroundColor(.white)
                                 .padding(.horizontal)
@@ -904,17 +830,9 @@ struct PageForum: View {
                 .transition(.opacity)
                 .zIndex(11)
             }
-
-
-            
-            
-
-
-
-
-
+            }
         }
-        
+        .navigationBarHidden(true)
 
         .sheet(item: $selectedPostIdForComments) { selectedPost in
             CommentSheet(
@@ -925,10 +843,6 @@ struct PageForum: View {
                 )
             )
         }
-
-
-            
-
 
         .onAppear {
             loggedInUserFullName = UserDefaults.standard.string(forKey: "user_fullname") ?? ""
@@ -943,7 +857,10 @@ struct PageForum: View {
             // Fetch messages for notification count
             fetchMessagesForNotification()
             
+            // Load saved filter preference
             selectedFilter = UserDefaults.standard.string(forKey: "selectedFilter") ?? "public"
+            visualSelectedTab = selectedFilter // Sync visual state with saved preference
+            
             fetchUserNetworkIds()
             fetchPostsWithLoading()
 
@@ -966,6 +883,13 @@ struct PageForum: View {
     }
     
     func fetchPostsWithoutLoading() {
+        fetchPostsInternal()
+    }
+    
+    func fetchPostsWithParameters(_ filter: String, _ category: String) {
+        selectedFilter = filter
+        selectedCategory = category
+        // Note: Don't touch visualSelectedTab here - it's managed by the UI only
         fetchPostsInternal()
     }
     
@@ -1251,6 +1175,27 @@ extension PageForum {
         
         unreadMessageCount = unreadMessages.count
     }
+    
+    private func refreshPosts() async {
+        // Refresh posts using current filter and category values
+        await MainActor.run {
+            fetchPostsWithParameters(selectedFilter, selectedCategory)
+        }
+    }
+}
+
+// MARK: - View Extensions
+extension View {
+    func placeholder<Content: View>(
+        when shouldShow: Bool,
+        alignment: Alignment = .leading,
+        @ViewBuilder placeholder: () -> Content) -> some View {
+
+        ZStack(alignment: alignment) {
+            placeholder().opacity(shouldShow ? 1 : 0)
+            self
+        }
+    }
 }
 
 struct CustomCircleButton: View {
@@ -1259,7 +1204,7 @@ struct CustomCircleButton: View {
     var body: some View {
         ZStack {
             Circle()
-                .fill(Color(hexCode: "004aad"))
+                .fill(Color(hex: "004aad"))
                 .frame(width: 60, height: 60)
             Image(systemName: iconName)
                 .resizable()
@@ -1285,80 +1230,130 @@ struct CommentSheet: View {
 
     var body: some View {
         NavigationView {
-            VStack {
+            VStack(spacing: 0) {
+                // Header
+                HStack {
+                    Button("Cancel") {
+                        isPresented = false
+                        onDismiss()
+                    }
+                    .foregroundColor(Color(hex: "004aad"))
+                    
+                    Spacer()
+                    
+                    Text("Comments")
+                        .font(.system(size: 18, weight: .semibold))
+                    
+                    Spacer()
+                    
+                    Button("Done") {
+                        isPresented = false
+                        onDismiss()
+                    }
+                    .foregroundColor(Color(hex: "004aad"))
+                }
+                .padding()
+                .background(Color.white)
+                
+                Divider()
+                
+                // Comments List
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 12) {
+                    LazyVStack(spacing: 0) {
                         ForEach(comments) { comment in
-                            HStack(alignment: .top, spacing: 12) {
-                                // Profile Image
-                                if let urlString = comment.profile_image,
-                                   let encoded = urlString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
-                                   let url = URL(string: encoded) {
-                                    AsyncImage(url: url) { phase in
-                                        if let image = phase.image {
-                                            image
-                                                .resizable()
-                                                .aspectRatio(contentMode: .fill)
-                                        } else {
-                                            Image("default_image")
-                                                .resizable()
-                                                .aspectRatio(contentMode: .fill)
+                            VStack(spacing: 0) {
+                                HStack(alignment: .top, spacing: 12) {
+                                    // Profile Image
+                                    if let urlString = comment.profile_image,
+                                       let encoded = urlString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+                                       let url = URL(string: encoded) {
+                                        AsyncImage(url: url) { phase in
+                                            if let image = phase.image {
+                                                image
+                                                    .resizable()
+                                                    .aspectRatio(contentMode: .fill)
+                                            } else {
+                                                Image("default_image")
+                                                    .resizable()
+                                                    .aspectRatio(contentMode: .fill)
+                                            }
                                         }
-                                    }
-                                    .frame(width: 34, height: 34)
-                                    .clipShape(Circle())
-                                    .shadow(radius: 1)
-                                } else {
-                                    Image("default_image")
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fill)
-                                        .frame(width: 34, height: 34)
+                                        .frame(width: 32, height: 32)
                                         .clipShape(Circle())
-                                        .shadow(radius: 1)
+                                    } else {
+                                        Image("default_image")
+                                            .resizable()
+                                            .aspectRatio(contentMode: .fill)
+                                            .frame(width: 32, height: 32)
+                                            .clipShape(Circle())
+                                    }
+
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        HStack(spacing: 4) {
+                                            Text(comment.user)
+                                                .font(.system(size: 15, weight: .semibold))
+                                                .foregroundColor(.primary)
+                                            
+                                            Text("·")
+                                                .foregroundColor(.secondary)
+                                                .font(.system(size: 15))
+                                            
+                                            Text(timeAgo(from: comment.created_at))
+                                                .font(.system(size: 15))
+                                                .foregroundColor(.secondary)
+                                        }
+
+                                        Text(comment.text)
+                                            .font(.system(size: 15))
+                                            .foregroundColor(.primary)
+                                            .fixedSize(horizontal: false, vertical: true)
+                                    }
+                                    
+                                    Spacer()
                                 }
-
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(comment.user)
-                                        .font(.subheadline)
-                                        .fontWeight(.semibold)
-                                        .foregroundColor(.black)
-
-                                    Text(comment.text)
-                                        .font(.body)
-                                        .foregroundColor(.primary)
-                                }
-
-                                Spacer()
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 12)
+                                
+                                Divider()
+                                    .background(Color.gray.opacity(0.3))
                             }
                         }
                     }
-                    .padding()
                 }
+                .background(Color.white)
 
-                HStack {
-                    TextField("Add a comment...", text: $newComment)
+                // Comment Input
+                VStack(spacing: 0) {
+                    Divider()
+                    
+                    HStack(spacing: 12) {
+                        TextField("Post your reply", text: $newComment)
+                            .font(.system(size: 16))
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 12)
+                            .background(Color(UIColor.systemGray6))
+                            .cornerRadius(20)
+
+                        Button("Reply") {
+                            submitComment()
+                        }
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundColor(.white)
                         .padding(.horizontal, 16)
-                        .padding(.vertical, 10)
-                        .background(Color(.systemGray5))
-                        .cornerRadius(25)
-
-                    Button("Post") {
-                        submitComment()
+                        .padding(.vertical, 8)
+                        .background(
+                            newComment.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty 
+                            ? Color.gray.opacity(0.5)
+                            : Color(hex: "004aad")
+                        )
+                        .cornerRadius(16)
+                        .disabled(newComment.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                     }
+                    .padding()
+                    .background(Color.white)
                 }
-                .padding()
             }
-            .navigationBarTitle("Comments", displayMode: .inline)
-            .navigationBarItems(trailing:
-                Button(action: {
-                    isPresented = false
-                    onDismiss()
-                }) {
-                    Image(systemName: "chevron.down")
-                        .font(.system(size: 20, weight: .semibold))
-                        .foregroundColor(.blue)
-                }
-            )
+            .background(Color.white)
             .onAppear {
                 fetchComments()
             }

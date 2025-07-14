@@ -118,10 +118,10 @@ struct PageMyNetwork: View {
             // Base gradient
             LinearGradient(
                 colors: [
-                    Color(hexCode: "001a3d"),
-                    Color(hexCode: "004aad"),
-                    Color(hexCode: "0066ff"),
-                    Color(hexCode: "003d7a")
+                    Color(hex: "001a3d"),
+                    Color(hex: "004aad"),
+                    Color(hex: "0066ff"),
+                    Color(hex: "003d7a")
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -131,9 +131,9 @@ struct PageMyNetwork: View {
             LinearGradient(
                 colors: [
                     Color.clear,
-                    Color(hexCode: "0066ff").opacity(0.3),
+                    Color(hex: "0066ff").opacity(0.3),
                     Color.clear,
-                    Color(hexCode: "004aad").opacity(0.2),
+                    Color(hex: "004aad").opacity(0.2),
                     Color.clear
                 ],
                 startPoint: UnitPoint(
@@ -152,7 +152,7 @@ struct PageMyNetwork: View {
         VStack(spacing: 15) {
             HStack {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Wagwan Crodie, \(userFirstName)! 👋")
+                    Text("Hey, \(userFirstName)! 👋")
                         .font(.system(size: 22, weight: .bold))
                         .foregroundColor(.primary)
                     
@@ -218,7 +218,7 @@ struct PageMyNetwork: View {
                         subtitle: "Connections",
                         icon: "person.3.fill",
                         isSelected: true,
-                        color: Color(hexCode: "004aad")
+                        color: Color(hex: "004aad")
                     )
                 }
             }
@@ -298,7 +298,7 @@ struct PageMyNetwork: View {
                     Image(systemName: "magnifyingglass")
                         .foregroundColor(.white)
                         .frame(width: 40, height: 40)
-                        .background(Color(hexCode: "004aad"))
+                        .background(Color(hex: "004aad"))
                         .cornerRadius(8)
                 }
             }
@@ -434,7 +434,7 @@ struct PageMyNetwork: View {
                     .foregroundColor(.white)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 10)
-                    .background(Color(hexCode: "004aad"))
+                    .background(Color(hex: "004aad"))
                     .cornerRadius(20)
                 }
                 
@@ -444,10 +444,10 @@ struct PageMyNetwork: View {
                         Text("Find Mentors")
                     }
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(Color(hexCode: "004aad"))
+                    .foregroundColor(Color(hex: "004aad"))
                     .padding(.horizontal, 16)
                     .padding(.vertical, 10)
-                    .background(Color(hexCode: "004aad").opacity(0.1))
+                    .background(Color(hex: "004aad").opacity(0.1))
                     .cornerRadius(20)
                 }
             }
@@ -533,7 +533,7 @@ struct PageMyNetwork: View {
 
                         Divider()
 
-                        NavigationLink(destination: PageGroupchatsWrapper().navigationBarBackButtonHidden(true)) {
+                        NavigationLink(destination: PageCircles(showMyCircles: true).navigationBarBackButtonHidden(true)) {
                             MenuItem(icon: "circle.grid.2x2.fill", title: "Circles")
                         }
                     }
@@ -552,7 +552,7 @@ struct PageMyNetwork: View {
                 }) {
                     ZStack {
                         Circle()
-                            .fill(Color(hexCode: "004aad"))
+                            .fill(Color(hex: "004aad"))
                             .frame(width: 60, height: 60)
 
                         Image("CirclLogoButton")
@@ -1023,7 +1023,7 @@ struct InviteProfileLink: View {
                 .foregroundColor(.white)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 8)
-                .background(Color(hexCode: "004aad"))
+                .background(Color(hex: "004aad"))
                 .cornerRadius(20)
             }
         }

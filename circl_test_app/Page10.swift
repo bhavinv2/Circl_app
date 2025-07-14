@@ -9,7 +9,7 @@ struct Page10: View {
     var body: some View {
         ZStack {
             // Background Color
-            Color(hexCode: "004aad")
+            Color(hex: "004aad")
                 .edgesIgnoringSafeArea(.all)
 
             // Cloud background (same as before)
@@ -40,7 +40,7 @@ struct Page10: View {
 
                 Text("One Last Thing")
                     .font(.system(size: 32, weight: .bold))
-                    .foregroundColor(Color(hexCode: "ffde59"))
+                    .foregroundColor(Color(hex: "ffde59"))
 
                 Rectangle()
                     .frame(height: 2)
@@ -88,10 +88,10 @@ struct Page10: View {
                 }) {
                     Text("Next")
                         .font(.system(size: 24, weight: .bold))
-                        .foregroundColor(Color(hexCode: "004aad"))
+                        .foregroundColor(Color(hex: "004aad"))
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 15)
-                        .background(Color(hexCode: "ffde59"))
+                        .background(Color(hex: "ffde59"))
                         .cornerRadius(10)
                         .overlay(
                             RoundedRectangle(cornerRadius: 10)
@@ -193,11 +193,11 @@ struct FreeResponseField: View {
         ZStack(alignment: .topLeading) {
             TextEditor(text: $text)
                 .padding(10)
-                .background(Color(hexCode: "d9d9d9"))
+                .background(Color(hex: "d9d9d9"))
                 .cornerRadius(10)
                 .overlay(
                     RoundedRectangle(cornerRadius: 10)
-                        .stroke(Color(hexCode: "004aad"), lineWidth: 2)
+                        .stroke(Color(hex: "004aad"), lineWidth: 2)
                 )
                 .font(.system(size: 16))
                 .foregroundColor(.primary)

@@ -6,7 +6,7 @@ struct Page13: View {
     var body: some View {
         ZStack {
             // Background Color
-            Color(hexCode: "004aad")
+            Color(hex: "004aad")
                 .edgesIgnoringSafeArea(.all)
             
             ZStack {
@@ -124,7 +124,7 @@ struct Page13: View {
                 VStack(spacing: 8) {
                     Text("Notifications")
                         .font(.system(size: 32, weight: .bold))
-                        .foregroundColor(Color(hexCode: "ffde59"))
+                        .foregroundColor(Color(hex: "ffde59"))
 
                     // Separator Line
                     Rectangle()
@@ -153,7 +153,7 @@ struct Page13: View {
                     .onChange(of: notificationsEnabled) { newValue in
                         toggleNotifications(enabled: newValue)
                     }
-                    .toggleStyle(SwitchToggleStyle(tint: notificationsEnabled ? Color(hexCode: "00bf63") : Color(hexCode: "ffde59")))
+                    .toggleStyle(SwitchToggleStyle(tint: notificationsEnabled ? Color(hex: "00bf63") : Color(hex: "ffde59")))
                     .frame(width: 80)
                     .padding(.horizontal, 40)
                     .padding(.top, 10)
@@ -166,10 +166,10 @@ struct Page13: View {
                 NavigationLink(destination: Page10()) {
                     Text("Next")
                         .font(.system(size: 24, weight: .bold))
-                        .foregroundColor(Color(hexCode: "004aad"))
+                        .foregroundColor(Color(hex: "004aad"))
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 15)
-                        .background(Color(hexCode: "ffde59"))
+                        .background(Color(hex: "ffde59"))
                         .cornerRadius(10)
                         .overlay(
                             RoundedRectangle(cornerRadius: 10)
