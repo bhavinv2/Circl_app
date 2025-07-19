@@ -7,7 +7,7 @@ struct CirclApp: App {
 
     var body: some Scene {
         WindowGroup {
-            Page1()
+            AppLaunchView()
         }
     }
 }

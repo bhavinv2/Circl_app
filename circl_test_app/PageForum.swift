@@ -638,6 +638,7 @@ struct PageForum: View {
     @AppStorage("hasSeenForumTutorial") private var hasSeenTutorial = false
     @State private var showTutorial = false
     @State private var showCategoryAlert = false
+    @State private var showMoreMenu = false
 
     @State private var animateArrow = false
     @State private var currentUserProfile: FullProfile?
@@ -702,6 +703,9 @@ struct PageForum: View {
                         }
                         .frame(maxWidth: .infinity)
                     }
+                    .transaction { transaction in
+                        transaction.disablesAnimations = true
+                    }
                     
                     // Circles
                     NavigationLink(destination: PageCircles().navigationBarBackButtonHidden(true)) {
@@ -715,38 +719,32 @@ struct PageForum: View {
                         }
                         .frame(maxWidth: .infinity)
                     }
+                    .transaction { transaction in
+                        transaction.disablesAnimations = true
+                    }
                     
-                    // Messages
-                    NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
+                    // Business Profile
+                    NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true)) {
                         VStack(spacing: 4) {
-                            ZStack {
-                                Image(systemName: "envelope")
-                                    .font(.system(size: 22, weight: .medium))
-                                    .foregroundColor(Color(UIColor.label).opacity(0.6))
-                                
-                                if unreadMessageCount > 0 {
-                                    Text("\(unreadMessageCount)")
-                                        .font(.system(size: 10, weight: .bold))
-                                        .foregroundColor(.white)
-                                        .frame(minWidth: 16, minHeight: 16)
-                                        .background(Color.red)
-                                        .clipShape(Circle())
-                                        .offset(x: 12, y: -12)
-                                }
-                            }
-                            Text("Messages")
+                            Image(systemName: "building.2")
+                                .font(.system(size: 22, weight: .medium))
+                                .foregroundColor(Color(UIColor.label).opacity(0.6))
+                            Text("Business")
                                 .font(.system(size: 10, weight: .medium))
                                 .foregroundColor(Color(UIColor.label).opacity(0.6))
                         }
                         .frame(maxWidth: .infinity)
                     }
+                    .transaction { transaction in
+                        transaction.disablesAnimations = true
+                    }
                     
                     // More / Additional Resources
-                    NavigationLink(destination: PageMore(
-                        userFirstName: $userFirstName,
-                        userProfileImageURL: $userProfileImageURL,
-                        unreadMessageCount: $unreadMessageCount
-                    ).navigationBarBackButtonHidden(true)) {
+                    Button(action: {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            showMoreMenu.toggle()
+                        }
+                    }) {
                         VStack(spacing: 4) {
                             Image(systemName: "ellipsis")
                                 .font(.system(size: 22, weight: .medium))
@@ -777,6 +775,190 @@ struct PageForum: View {
             }
             .ignoresSafeArea(edges: .bottom)
             .zIndex(1)
+
+            // MARK: - More Menu Popup
+            if showMoreMenu {
+                VStack {
+                    Spacer()
+                    
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text("More Options")
+                            .font(.headline)
+                            .fontWeight(.bold)
+                            .padding(.horizontal, 20)
+                            .padding(.top, 20)
+                            .padding(.bottom, 10)
+                            .foregroundColor(.primary)
+                        
+                        Divider()
+                            .padding(.horizontal, 16)
+                        
+                        VStack(spacing: 0) {
+                            // Professional Services
+                            NavigationLink(destination: PageEntrepreneurResources().navigationBarBackButtonHidden(true)) {
+                                HStack(spacing: 16) {
+                                    Image(systemName: "briefcase.fill")
+                                        .font(.system(size: 20))
+                                        .foregroundColor(Color(hex: "004aad"))
+                                        .frame(width: 24)
+                                    
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("Professional Services")
+                                            .font(.system(size: 16, weight: .medium))
+                                            .foregroundColor(.primary)
+                                        Text("Find business services and experts")
+                                            .font(.system(size: 12))
+                                            .foregroundColor(.secondary)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    Image(systemName: "chevron.right")
+                                        .font(.system(size: 12, weight: .medium))
+                                        .foregroundColor(.secondary)
+                                }
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 16)
+                            }
+                            .transaction { transaction in
+                                transaction.disablesAnimations = true
+                            }
+                            
+                            Divider()
+                                .padding(.horizontal, 16)
+                            
+                            // News & Knowledge
+                            NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
+                                HStack(spacing: 16) {
+                                    Image(systemName: "newspaper.fill")
+                                        .font(.system(size: 20))
+                                        .foregroundColor(Color(hex: "004aad"))
+                                        .frame(width: 24)
+                                    
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("News & Knowledge")
+                                            .font(.system(size: 16, weight: .medium))
+                                            .foregroundColor(.primary)
+                                        Text("Stay updated with industry insights")
+                                            .font(.system(size: 12))
+                                            .foregroundColor(.secondary)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    Image(systemName: "chevron.right")
+                                        .font(.system(size: 12, weight: .medium))
+                                        .foregroundColor(.secondary)
+                                }
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 16)
+                            }
+                            .transaction { transaction in
+                                transaction.disablesAnimations = true
+                            }
+                            
+                            Divider()
+                                .padding(.horizontal, 16)
+                            
+                            // Circl Exchange
+                            NavigationLink(destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true)) {
+                                HStack(spacing: 16) {
+                                    Image(systemName: "dollarsign.circle.fill")
+                                        .font(.system(size: 20))
+                                        .foregroundColor(Color(hex: "004aad"))
+                                        .frame(width: 24)
+                                    
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("The Circl Exchange")
+                                            .font(.system(size: 16, weight: .medium))
+                                            .foregroundColor(.primary)
+                                        Text("Buy and sell skills and services")
+                                            .font(.system(size: 12))
+                                            .foregroundColor(.secondary)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    Image(systemName: "chevron.right")
+                                        .font(.system(size: 12, weight: .medium))
+                                        .foregroundColor(.secondary)
+                                }
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 16)
+                            }
+                            .transaction { transaction in
+                                transaction.disablesAnimations = true
+                            }
+                            
+                            Divider()
+                                .padding(.horizontal, 16)
+                            
+                            // Settings/Profile
+                            NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
+                                HStack(spacing: 16) {
+                                    Image(systemName: "gear.circle.fill")
+                                        .font(.system(size: 20))
+                                        .foregroundColor(Color(hex: "004aad"))
+                                        .frame(width: 24)
+                                    
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("Settings & Profile")
+                                            .font(.system(size: 16, weight: .medium))
+                                            .foregroundColor(.primary)
+                                        Text("Manage your account and preferences")
+                                            .font(.system(size: 12))
+                                            .foregroundColor(.secondary)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    Image(systemName: "chevron.right")
+                                        .font(.system(size: 12, weight: .medium))
+                                        .foregroundColor(.secondary)
+                                }
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 16)
+                            }
+                            .transaction { transaction in
+                                transaction.disablesAnimations = true
+                            }
+                        }
+                        
+                        // Close button
+                        Button(action: {
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                showMoreMenu = false
+                            }
+                        }) {
+                            Text("Close")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(Color(hex: "004aad"))
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 16)
+                        }
+                        .background(Color(UIColor.systemGray6))
+                    }
+                    .background(Color(UIColor.systemBackground))
+                    .cornerRadius(16)
+                    .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: -5)
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 100) // Leave space for bottom navigation
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+                .zIndex(2)
+            }
+
+            // Tap-out-to-dismiss layer
+            if showMoreMenu {
+                Color.black.opacity(0.001)
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            showMoreMenu = false
+                        }
+                    }
+                    .zIndex(1)
+            }
             
 
             }

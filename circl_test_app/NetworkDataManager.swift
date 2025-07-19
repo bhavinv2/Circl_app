@@ -35,7 +35,13 @@ class NetworkDataManager: ObservableObject {
         guard !isNetworkLoading else { return }
         isNetworkLoading = true
         
-        guard let url = URL(string: "https://circlapp.online/api/my-network/") else {
+        guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else {
+            print("❌ NetworkDataManager - No user_id found")
+            isNetworkLoading = false
+            return
+        }
+        
+        guard let url = URL(string: "https://circlapp.online/api/users/get_network/\(userId)/") else {
             isNetworkLoading = false
             return
         }
@@ -141,7 +147,13 @@ class NetworkDataManager: ObservableObject {
         guard !isFriendRequestsLoading else { return }
         isFriendRequestsLoading = true
         
-        guard let url = URL(string: "https://circlapp.online/api/friend-requests/") else {
+        guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else {
+            print("❌ NetworkDataManager - No user_id found for friend requests")
+            isFriendRequestsLoading = false
+            return
+        }
+        
+        guard let url = URL(string: "https://circlapp.online/api/users/get_friend_requests/\(userId)") else {
             isFriendRequestsLoading = false
             return
         }
@@ -270,7 +282,7 @@ class NetworkDataManager: ObservableObject {
     func fetchMentorsData() {
         let currentUserEmail = UserDefaults.standard.string(forKey: "user_email") ?? ""
         
-        guard let url = URL(string: "https://circlapp.online/api/users/get-mentors/") else {
+        guard let url = URL(string: "https://circlapp.online/api/users/approved_mentors/") else {
             print("❌ Invalid URL for mentors")
             return
         }
@@ -294,14 +306,32 @@ class NetworkDataManager: ObservableObject {
                 return
             }
             
-            if let decodedResponse = try? JSONDecoder().decode([MentorProfileData].self, from: data) {
-                DispatchQueue.main.async {
-                    if let strongSelf = self {
-                        strongSelf.mentors = decodedResponse.filter { mentor in
-                            return !strongSelf.userNetworkEmails.contains(mentor.email) && mentor.email != currentUserEmail
+            if let mentorList = try? JSONSerialization.jsonObject(with: data, options: []) as? [[String: Any]] {
+                DispatchQueue.main.async { [weak self] in
+                    guard let strongSelf = self else { return }
+                    
+                    strongSelf.mentors = mentorList.compactMap { mentor in
+                        let email = mentor["email"] as? String ?? ""
+                        guard email != currentUserEmail,
+                              !strongSelf.userNetworkEmails.contains(email),
+                              let user_id = mentor["id"] as? Int else {
+                            return nil
                         }
-                        print("✅ NetworkDataManager - Updated mentors count: \(strongSelf.mentors.count)")
+
+                        return MentorProfileData(
+                            user_id: user_id,
+                            name: "\(mentor["first_name"] ?? "") \(mentor["last_name"] ?? "")",
+                            username: mentor["username"] as? String ?? email,
+                            title: "Mentor",
+                            company: mentor["industry_interest"] as? String ?? "Unknown Industry",
+                            proficiency: mentor["main_usage"] as? String ?? "Unknown",
+                            tags: mentor["tags"] as? [String] ?? [],
+                            email: email,
+                            profileImage: mentor["profileImage"] as? String
+                        )
                     }
+                    
+                    print("✅ NetworkDataManager - Updated mentors count: \(strongSelf.mentors.count)")
                 }
             }
         }.resume()

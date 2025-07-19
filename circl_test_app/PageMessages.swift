@@ -20,15 +20,9 @@ struct PageMessages: View {
     @State private var selectedProfile: FullProfile? = nil
     @State private var showMenu = false
     @State private var rotationAngle: Double = 0
+    @State private var userProfileImageURL: String? = nil
 
     @State private var myNetwork: [NetworkUser] = [] // ✅ Correct type
-    
-    // User profile data for header
-    @State private var userFirstName: String = ""
-    @State private var userProfileImageURL: String = ""
-    @State private var unreadMessageCount: Int = 0
-    @State private var userMessages: [MessageModel] = [] // Separate from main messages
-    @AppStorage("user_id") private var userId: Int = 0
     
     var body: some View {
         NavigationView {
@@ -76,18 +70,18 @@ struct PageMessages: View {
                                     MenuItem(icon: "briefcase.fill", title: "Professional Services")
                                 }
                                 NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
-                                    MenuItem(icon: "envelope.fill", title: "Messages", badgeCount: unreadMessageCount)
+                                    MenuItem(icon: "envelope.fill", title: "Messages")
                                 }
-                                NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
-                                    MenuItem(icon: "newspaper.fill", title: "News & Knowledge")
-                                }
-                                NavigationLink(destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true)) {
-                                    MenuItem(icon: "person.3.fill", title: "The Circl Exchange")
-                                }
+//                                NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
+//                                    MenuItem(icon: "newspaper.fill", title: "News & Knowledge")
+//                                }
+//                                NavigationLink(destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true)) {
+//                                    MenuItem(icon: "person.3.fill", title: "The Circl Exchange")
+//                                }
 
                                 Divider()
 
-                                NavigationLink(destination: PageCircles(showMyCircles: true).navigationBarBackButtonHidden(true))
+                                NavigationLink(destination: PageGroupchatsWrapper().navigationBarBackButtonHidden(true))
  {
                                     MenuItem(icon: "circle.grid.2x2.fill", title: "Circles")
                                 }
@@ -107,7 +101,7 @@ struct PageMessages: View {
                         }) {
                             ZStack {
                                 Circle()
-                                    .fill(Color(hex: "004aad"))
+                                    .fill(Color.fromHex("004aad"))
                                     .frame(width: 60, height: 60)
 
                                 Image("CirclLogoButton")
@@ -134,6 +128,8 @@ struct PageMessages: View {
 
             .onAppear {
                 fetchNetworkUsers()
+                loadUserProfileImage()
+           
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                     fetchMessages()
                 }
@@ -141,9 +137,6 @@ struct PageMessages: View {
                 self.timer = Timer.scheduledTimer(withTimeInterval: 45, repeats: true) { _ in
                     fetchMessages()
                 }
-                
-                // Load user profile and messages
-                loadUserData()
             }
             .onDisappear {
                 DispatchQueue.main.async {
@@ -157,29 +150,47 @@ struct PageMessages: View {
     var headerSection: some View {
         VStack(spacing: 0) {
             HStack {
-                VStack(alignment: .leading, spacing: 5) {
-                    NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
-                        Text("Circl.")
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                            .foregroundColor(.white)
+                // Left side - Profile
+                NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
+                    AsyncImage(url: URL(string: userProfileImageURL ?? "")) { phase in
+                        switch phase {
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 32, height: 32)
+                                .clipShape(Circle())
+                        default:
+                            Image(systemName: "person.circle.fill")
+                                .font(.system(size: 32))
+                                .foregroundColor(.white)
+                        }
                     }
-
                 }
                 
                 Spacer()
                 
-                ProfileHeaderView(
-                    userFirstName: $userFirstName,
-                    userProfileImageURL: $userProfileImageURL,
-                    unreadMessageCount: $unreadMessageCount
-                )
+                // Center - Logo
+                Text("Circl.")
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundColor(.white)
+                
+                Spacer()
+                
+                // Right side - Forum link
+                NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
+                    Image(systemName: "house")
+                        .font(.system(size: 24))
+                        .foregroundColor(.white)
+                }
             }
-            .padding(.horizontal)
-            .padding(.top, 15)
-            .padding(.bottom, 10)
-            .background(Color(hex: "004aad"))
+            .padding(.horizontal, 16)
+            .padding(.bottom, 16)
+            .padding(.top, 8)
         }
+        .padding(.top, 50) // Add safe area padding for status bar and notch
+        .background(Color(hex: "004aad"))
+        .ignoresSafeArea(edges: .top)
     }
     
     
@@ -549,6 +560,21 @@ struct PageMessages: View {
         }.resume()
     }
 
+    func loadUserProfileImage() {
+        // Load profile image URL from UserDefaults or fetch from API
+        if let profileImageURL = UserDefaults.standard.string(forKey: "profile_image") {
+            userProfileImageURL = profileImageURL
+        } else {
+            // Fetch current user profile to get image URL
+            guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else { return }
+            fetchUserProfile(userId: userId) { profile in
+                DispatchQueue.main.async {
+                    self.userProfileImageURL = profile?.profile_image
+                }
+            }
+        }
+    }
+
     private func sendMessage(content: String, recipient: NetworkUser) {
         guard let senderId = UserDefaults.standard.value(forKey: "user_id") as? Int else { return }
 
@@ -615,105 +641,6 @@ struct PageMessages: View {
                 print("Mark as read error: \(error)")
             }
         }.resume()
-    }
-    
-    // MARK: - User Profile Functions
-    func loadUserData() {
-        fetchCurrentUserProfile()
-        loadUserMessages()
-    }
-    
-    func fetchCurrentUserProfile() {
-        guard userId > 0 else {
-            print("❌ No user_id in UserDefaults")
-            return
-        }
-
-        let urlString = "https://circlapp.online/api/users/profile/\(userId)/"
-        print("🌐 Fetching current user profile from:", urlString)
-
-        guard let url = URL(string: urlString) else {
-            print("❌ Invalid URL")
-            return
-        }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        if let token = UserDefaults.standard.string(forKey: "auth_token") {
-            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
-        }
-
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            if let error = error {
-                print("❌ Network error:", error.localizedDescription)
-                return
-            }
-
-            guard let data = data else {
-                print("❌ No data received")
-                return
-            }
-
-            do {
-                let decoded = try JSONDecoder().decode(FullProfile.self, from: data)
-                DispatchQueue.main.async {
-                    // Update profile image URL
-                    if let profileImage = decoded.profile_image, !profileImage.isEmpty {
-                        self.userProfileImageURL = profileImage
-                        print("✅ Profile image loaded: \(profileImage)")
-                    } else {
-                        self.userProfileImageURL = ""
-                        print("❌ No profile image found for current user")
-                    }
-                    
-                    // Update user name info
-                    self.userFirstName = decoded.first_name
-                }
-            } catch {
-                print("❌ Failed to decode current user profile:", error)
-            }
-        }.resume()
-    }
-    
-    func loadUserMessages() {
-        guard userId > 0 else { return }
-        
-        guard let url = URL(string: "https://circlapp.online/api/messages/user_messages/\(userId)/") else { return }
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        if let token = UserDefaults.standard.string(forKey: "auth_token") {
-            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
-        }
-        
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            guard let data = data else { return }
-            
-            do {
-                let response = try JSONDecoder().decode([String: [MessageModel]].self, from: data)
-                DispatchQueue.main.async {
-                    let allMessages = response["messages"] ?? []
-                    self.userMessages = allMessages
-                    self.calculateUnreadMessageCount()
-                }
-            } catch {
-                print("Error decoding messages:", error)
-            }
-        }.resume()
-    }
-    
-    func calculateUnreadMessageCount() {
-        guard userId > 0 else { return }
-        
-        let unreadMessages = userMessages.filter { message in
-            message.receiver_id == userId && !message.is_read && message.sender_id != userId
-        }
-        
-        unreadMessageCount = unreadMessages.count
     }
 }
 
@@ -940,7 +867,7 @@ struct ChatView: View {
         }
         .padding(.horizontal)
         .padding(.vertical, 25)
-        .background(Color(hex: "004aad"))
+        .background(Color.fromHex("004aad"))
     }
 
 
@@ -999,10 +926,27 @@ struct ChatView: View {
 
         HStack(alignment: .top) {
             if !isCurrentUser {
-                Image(systemName: "person.circle.fill")
-                    .resizable()
+                if let imageURL = user.profileImage, let url = URL(string: imageURL) {
+                    AsyncImage(url: url) { phase in
+                        if let image = phase.image {
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                        } else {
+                            Image("default_image")
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                        }
+                    }
                     .frame(width: 36, height: 36)
-                    .foregroundColor(.gray)
+                    .clipShape(Circle())
+                } else {
+                    Image("default_image")
+                        .resizable()
+                        .frame(width: 36, height: 36)
+                        .clipShape(Circle())
+                }
+
             }
 
             VStack(alignment: isCurrentUser ? .trailing : .leading, spacing: 4) {
@@ -1025,11 +969,23 @@ struct ChatView: View {
                     if !isCurrentUser { Spacer() }
                 }
 
-                Text(message.content)
-                    .padding(10)
-                    .background(isCurrentUser ? Color(hex: "004aad") : Color(.systemGray5))
-                    .foregroundColor(isCurrentUser ? .white : .black)
-                    .cornerRadius(12)
+                if let url = extractURL(from: message.content) {
+                    Link(destination: url) {
+                        Text(message.content)
+                            .underline()
+                            .padding(10)
+                            .background(isCurrentUser ? Color.fromHex("004aad") : Color(.systemGray5))
+                            .foregroundColor(.blue)
+                            .cornerRadius(12)
+                    }
+                } else {
+                    Text(message.content)
+                        .padding(10)
+                        .background(isCurrentUser ? Color.fromHex("004aad") : Color(.systemGray5))
+                        .foregroundColor(isCurrentUser ? .white : .black)
+                        .cornerRadius(12)
+                }
+
 
                 Text(message.displayTime)
                     .font(.caption2)
@@ -1037,16 +993,44 @@ struct ChatView: View {
             }
             .frame(maxWidth: UIScreen.main.bounds.width * 0.7, alignment: isCurrentUser ? .trailing : .leading)
 
-            if isCurrentUser {
-                Image(systemName: "person.circle.fill")
-                    .resizable()
-                    .frame(width: 36, height: 36)
-                    .foregroundColor(.gray)
-            }
+//            if isCurrentUser {
+//                if let imageURLString = UserDefaults.standard.string(forKey: "profile_image"),
+//                   !imageURLString.isEmpty,
+//                   imageURLString.lowercased() != "null",
+//                   let url = URL(string: imageURLString) {
+//
+//                    AsyncImage(url: url) { phase in
+//                        if let image = phase.image {
+//                            image
+//                                .resizable()
+//                                .aspectRatio(contentMode: .fill)
+//                        } else {
+//                            Image("default_image")
+//                                .resizable()
+//                                .aspectRatio(contentMode: .fill)
+//                        }
+//                    }
+//                    .frame(width: 36, height: 36)
+//                    .clipShape(Circle())
+//                } else {
+//                    Image("default_image")
+//                        .resizable()
+//                        .frame(width: 36, height: 36)
+//                        .clipShape(Circle())
+//                }
+//            }
+
         }
         .frame(maxWidth: .infinity, alignment: isCurrentUser ? .trailing : .leading)
     }
 
+    func extractURL(from text: String) -> URL? {
+        let types: NSTextCheckingResult.CheckingType = .link
+        guard let detector = try? NSDataDetector(types: types.rawValue) else { return nil }
+
+        let matches = detector.matches(in: text, options: [], range: NSMakeRange(0, text.utf16.count))
+        return matches.first?.url
+    }
 
     private var messageInputView: some View {
             HStack(spacing: 10) {
@@ -1134,6 +1118,8 @@ struct ChatView: View {
     }
 }
 
-#Preview {
-    PageMessages()
+struct PageMessages_Previews: PreviewProvider {
+    static var previews: some View {
+        PageMessages()
+    }
 }

@@ -23,29 +23,30 @@ struct PageCircles: View {
     @State private var selectedCircleToOpen: CircleData? = nil
     @State private var triggerOpenGroupChat = false
     @State private var showAboutPopup = false
-
+    
     @State private var showCreateCircleSheet = false
     @State private var circleName: String = ""
     @State private var circleIndustry: String = ""
     @State private var circleDescription: String = ""
     @State private var selectedJoinType: JoinType = JoinType.joinNow
-
+    
     @State private var showMyCircles = false
     @State private var myCircles: [CircleData] = []
     @State private var exploreCircles: [CircleData] = []
     @AppStorage("user_id") private var userId: Int = 0
-
+    
     @State private var selectedChannels: [String] = []
     let allChannelOptions = ["#Welcome", "#Founder-Chat", "#Introductions", "#Case-Studies"]
     
     @State private var userProfileImageURL: String = ""
     @State private var unreadMessageCount: Int = 0
     @State private var userFirstName: String = ""
-
+    @State private var showMoreMenu = false
+    
     init(showMyCircles: Bool = false) {
         self._showMyCircles = State(initialValue: showMyCircles)
     }
-
+    
     var body: some View {
         NavigationView {
             ZStack {
@@ -57,7 +58,7 @@ struct PageCircles: View {
                         }
                         .transition(.opacity)
                 }
-
+                
                 VStack(spacing: 0) {
                     // MARK: Header - Twitter/X style layout matching Forum
                     VStack(spacing: 0) {
@@ -167,7 +168,7 @@ struct PageCircles: View {
                     .padding(.top, 50)
                     .background(Color(hex: "004aad"))
                     .ignoresSafeArea(edges: .top)
-
+                    
                     // MARK: Search + Add
                     VStack(spacing: 0) {
                         HStack(spacing: 10) {
@@ -176,7 +177,7 @@ struct PageCircles: View {
                                 .background(Color(.systemGray5))
                                 .cornerRadius(25)
                             
-
+                            
                             Button(action: {}) {
                                 Image(systemName: "arrow.right.circle.fill")
                                     .resizable()
@@ -191,7 +192,7 @@ struct PageCircles: View {
                             let filtered = allCircles.filter {
                                 $0.name.lowercased().contains(searchText.lowercased())
                             }
-
+                            
                             // 2. Show results
                             ScrollView {
                                 VStack(alignment: .leading, spacing: 0) {
@@ -199,7 +200,7 @@ struct PageCircles: View {
                                         Button {
                                             selectedCircleToOpen = circle
                                             searchText = ""
-
+                                            
                                             let isMember = myCircles.contains(where: { $0.id == circle.id })
                                             if isMember {
                                                 triggerOpenGroupChat = true
@@ -207,7 +208,7 @@ struct PageCircles: View {
                                                 showAboutPopup = true
                                             }
                                         } label: {
-
+                                            
                                             HStack {
                                                 Text(circle.name)
                                                     .foregroundColor(.primary)
@@ -216,7 +217,7 @@ struct PageCircles: View {
                                             .padding(.vertical, 10)
                                             .padding(.horizontal, 16)
                                         }
-
+                                        
                                         Divider()                     // thin separator
                                     }
                                 }
@@ -230,7 +231,7 @@ struct PageCircles: View {
                         }
                     }
                     .padding(.horizontal, 16)
-
+                    
                     // MARK: Circle List
                     ScrollView {
                         VStack(spacing: 20) {
@@ -239,7 +240,7 @@ struct PageCircles: View {
                                     .font(.title2).bold()
                                     .padding(.leading)
                                     .frame(maxWidth: .infinity, alignment: .leading)
-
+                                
                                 if myCircles.isEmpty {
                                     Text("You haven't joined any Circles yet.")
                                         .foregroundColor(.gray)
@@ -248,15 +249,15 @@ struct PageCircles: View {
                                     ForEach(myCircles) { circle in
                                         renderMyCircleCard(for: circle)
                                     }
-
+                                    
                                 }
                             } else {
                                 HStack {
                                     Text("Explore")
                                         .font(.title2).bold()
-
+                                    
                                     Spacer()
-
+                                    
                                     Button(action: {
                                         withAnimation(.spring()) {
                                             showCreateCircleSheet.toggle()
@@ -275,10 +276,10 @@ struct PageCircles: View {
                                         .font(.headline)
                                         .padding(.top, 40)
                                 }
-
-
-
-
+                                
+                                
+                                
+                                
                                 ForEach(exploreCircles) { circle in
                                     CircleCardView(
                                         circle: circle,
@@ -288,7 +289,7 @@ struct PageCircles: View {
                                         showButtons: true,
                                         isMember: myCircles.contains(where: { $0.id == circle.id }) // ✅ Dynamic check
                                     )
-
+                                    
                                     .padding(.horizontal)
                                 }
                             }
@@ -314,6 +315,9 @@ struct PageCircles: View {
                             }
                             .frame(maxWidth: .infinity)
                         }
+                        .transaction { transaction in
+                            transaction.disablesAnimations = true
+                        }
                         
                         // Connect and Network
                         NavigationLink(destination: PageMyNetwork().navigationBarBackButtonHidden(true)) {
@@ -327,6 +331,9 @@ struct PageCircles: View {
                             }
                             .frame(maxWidth: .infinity)
                         }
+                        .transaction { transaction in
+                            transaction.disablesAnimations = true
+                        }
                         
                         // Circles (Current page - highlighted)
                         VStack(spacing: 4) {
@@ -339,37 +346,28 @@ struct PageCircles: View {
                         }
                         .frame(maxWidth: .infinity)
                         
-                        // Messages
-                        NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
+                        // Business Profile
+                        NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true)) {
                             VStack(spacing: 4) {
-                                ZStack {
-                                    Image(systemName: "envelope")
-                                        .font(.system(size: 22, weight: .medium))
-                                        .foregroundColor(Color(UIColor.label).opacity(0.6))
-                                    
-                                    if unreadMessageCount > 0 {
-                                        Text(unreadMessageCount > 99 ? "99+" : "\(unreadMessageCount)")
-                                            .font(.system(size: 10, weight: .bold))
-                                            .foregroundColor(.white)
-                                            .frame(minWidth: 16, minHeight: 16)
-                                            .background(Color.red)
-                                            .clipShape(Circle())
-                                            .offset(x: 12, y: -12)
-                                    }
-                                }
-                                Text("Messages")
+                                Image(systemName: "building.2")
+                                    .font(.system(size: 22, weight: .medium))
+                                    .foregroundColor(Color(UIColor.label).opacity(0.6))
+                                Text("Business")
                                     .font(.system(size: 10, weight: .medium))
                                     .foregroundColor(Color(UIColor.label).opacity(0.6))
                             }
                             .frame(maxWidth: .infinity)
                         }
+                        .transaction { transaction in
+                            transaction.disablesAnimations = true
+                        }
                         
                         // More / Additional Resources
-                        NavigationLink(destination: PageMore(
-                            userFirstName: $userFirstName,
-                            userProfileImageURL: $userProfileImageURL,
-                            unreadMessageCount: $unreadMessageCount
-                        ).navigationBarBackButtonHidden(true)) {
+                        Button(action: {
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                showMoreMenu.toggle()
+                            }
+                        }) {
                             VStack(spacing: 4) {
                                 Image(systemName: "ellipsis")
                                     .font(.system(size: 22, weight: .medium))
@@ -411,15 +409,15 @@ struct PageCircles: View {
             print("🔄 showMyCircles changed:", newValue)
             loadCircles()
         }
-       
-
+        
+        
         NavigationLink(
             destination: GroupChatWrapper(circle: selectedCircleToOpen),
             isActive: $triggerOpenGroupChat
         ) {
             EmptyView()
         }
-
+        
         NavigationLink(
             destination: GroupChatWrapper(circle: selectedCircleToOpen),
             isActive: $triggerOpenGroupChat
@@ -446,10 +444,212 @@ struct PageCircles: View {
                 }
             }
         }
+        
+        // MARK: - More Menu Popup
+        if showMoreMenu {
+            VStack {
+                Spacer()
+                
+                VStack(alignment: .leading, spacing: 0) {
+                    Text("More Options")
+                        .font(.system(size: 18, weight: .bold))
+                        .padding(.horizontal, 20)
+                        .padding(.top, 20)
+                        .padding(.bottom, 16)
+                        .foregroundColor(.primary)
+                    
+                    Divider()
+                        .padding(.horizontal, 16)
+                    
+                    VStack(spacing: 0) {
+                        // Professional Services
+                        NavigationLink(destination: PageEntrepreneurResources().navigationBarBackButtonHidden(true)) {
+                            HStack(spacing: 16) {
+                                Image(systemName: "briefcase.fill")
+                                    .font(.system(size: 20))
+                                    .foregroundColor(Color(hex: "004aad"))
+                                    .frame(width: 24)
+                                
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Professional Services")
+                                        .font(.system(size: 16, weight: .medium))
+                                        .foregroundColor(.primary)
+                                    Text("Find business services and experts")
+                                        .font(.system(size: 12))
+                                        .foregroundColor(.secondary)
+                                }
+                                
+                                Spacer()
+                                
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundColor(.secondary)
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 16)
+                        }
+                        .transaction { transaction in
+                            transaction.disablesAnimations = true
+                        }
+                        .onTapGesture {
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                showMoreMenu = false
+                            }
+                        }
+                        
+                        Divider()
+                            .padding(.horizontal, 16)
+                        
+                        // News & Knowledge
+                        NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
+                            HStack(spacing: 16) {
+                                Image(systemName: "newspaper.fill")
+                                    .font(.system(size: 20))
+                                    .foregroundColor(Color(hex: "004aad"))
+                                    .frame(width: 24)
+                                
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("News & Knowledge")
+                                        .font(.system(size: 16, weight: .medium))
+                                        .foregroundColor(.primary)
+                                    Text("Stay updated with industry insights")
+                                        .font(.system(size: 12))
+                                        .foregroundColor(.secondary)
+                                }
+                                
+                                Spacer()
+                                
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundColor(.secondary)
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 16)
+                        }
+                        .transaction { transaction in
+                            transaction.disablesAnimations = true
+                        }
+                        .onTapGesture {
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                showMoreMenu = false
+                            }
+                        }
+                        
+                        Divider()
+                            .padding(.horizontal, 16)
+                        
+                        // The Circl Exchange
+                        NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
+                            HStack(spacing: 16) {
+                                Image(systemName: "dollarsign.circle.fill")
+                                    .font(.system(size: 20))
+                                    .foregroundColor(Color(hex: "004aad"))
+                                    .frame(width: 24)
+                                
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("The Circl Exchange")
+                                        .font(.system(size: 16, weight: .medium))
+                                        .foregroundColor(.primary)
+                                    Text("Buy and sell skills and services")
+                                        .font(.system(size: 12))
+                                        .foregroundColor(.secondary)
+                                }
+                                
+                                Spacer()
+                                
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundColor(.secondary)
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 16)
+                        }
+                        .transaction { transaction in
+                            transaction.disablesAnimations = true
+                        }
+                        .onTapGesture {
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                showMoreMenu = false
+                            }
+                        }
+                        
+                        Divider()
+                            .padding(.horizontal, 16)
+                        
+                        // Settings & Profile
+                        Button(action: {
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                showMoreMenu = false
+                            }
+                            // Add settings navigation here
+                        }) {
+                            HStack(spacing: 16) {
+                                Image(systemName: "gearshape.fill")
+                                    .font(.system(size: 20))
+                                    .foregroundColor(Color(hex: "004aad"))
+                                    .frame(width: 24)
+                                
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Settings & Profile")
+                                        .font(.system(size: 16, weight: .medium))
+                                        .foregroundColor(.primary)
+                                    Text("Manage your account and preferences")
+                                        .font(.system(size: 12))
+                                        .foregroundColor(.secondary)
+                                }
+                                
+                                Spacer()
+                                
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundColor(.secondary)
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 16)
+                        }
+                        
+                        // Close Button
+                        Divider()
+                            .padding(.horizontal, 16)
+                        
+                        Button(action: {
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                showMoreMenu = false
+                            }
+                        }) {
+                            Text("Close")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(Color(hex: "004aad"))
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 16)
+                        }
+                    }
+                }
+                .background(Color(UIColor.systemBackground))
+                .cornerRadius(16)
+                .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: -5)
+                .padding(.horizontal, 16)
+                .padding(.bottom, 100) // Leave space for bottom navigation
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+            .zIndex(2)
+        }
 
-
+        // Tap-out-to-dismiss layer
+        if showMoreMenu {
+            Color.black.opacity(0.001)
+                .ignoresSafeArea()
+                .onTapGesture {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        showMoreMenu = false
+                    }
+                }
+                .zIndex(1)
+        }
+        
+        
     }
-
+    
     // MARK: - Load User Data
     func loadUserData() {
         // Load user profile image
@@ -502,7 +702,7 @@ struct PageCircles: View {
             }
         }.resume()
     }
-
+    
     // MARK: - Helpers
     func imageName(for name: String) -> String {
         switch name {
@@ -512,7 +712,7 @@ struct PageCircles: View {
         default: return "uhmarketing"
         }
     }
-
+    
     func membersString(for name: String) -> String {
         switch name {
         case "Lean Startup-ists": return "1.2k+"
@@ -523,34 +723,34 @@ struct PageCircles: View {
     }
     func joinCircleAndOpen(circle: CircleData) {
         guard let url = URL(string: "https://circlapp.online/api/circles/join_circle/") else { return }
-
+        
         let payload = [
             "user_id": userId,
             "circle_id": circle.id
         ]
-
+        
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
-
+        
         URLSession.shared.dataTask(with: request) { data, _, error in
             if let error = error {
                 print("❌ Join Circle error:", error.localizedDescription)
                 return
             }
-
+            
             print("✅ Joined circle:", circle.id)
-
+            
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
                 selectedCircleToOpen = circle
                 triggerOpenGroupChat = true
             }
-
+            
             loadCircles() // Refresh list
         }.resume()
     }
-
+    
     func joinCircle(circleId: Int) {
         guard let url = URL(string: "https://circlapp.online/api/circles/join_circle/") else { return }
         let payload = [
@@ -561,13 +761,13 @@ struct PageCircles: View {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
-
+        
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
                 print("❌ Join Circle error:", error.localizedDescription)
                 return
             }
-
+            
             print("✅ Joined circle:", circleId)
             print("🧠 PageCircles now sees userId:", userId)
             print("🧠 Loaded userId from UserDefaults:", userId)
@@ -576,46 +776,46 @@ struct PageCircles: View {
     }
     func createCircle() {
         guard let url = URL(string: "https://circlapp.online/api/circles/create_with_channels/") else { return }
-
+        
         let payload: [String: Any] = [
             "user_id": userId,
             "name": circleName,
             "industry": circleIndustry,
-         
+            
             "description": circleDescription,
             "join_type": selectedJoinType.rawValue.lowercased(),
             "channels": selectedChannels
         ]
-
+        
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
-
+        
         URLSession.shared.dataTask(with: request) { data, _, _ in
             DispatchQueue.main.async {
                 // ✅ Reset form fields here
                 circleName = ""
                 circleIndustry = ""
-             
+                
                 circleDescription = ""
                 selectedJoinType = JoinType.joinNow
                 selectedChannels = []
-
+                
                 showCreateCircleSheet = false
                 loadCircles()
             }
         }.resume()
     }
-
-
-
+    
+    
+    
     func loadCircles() {
         print("🔍 loadCircles() called with userId:", userId)
-
+        
         guard let urlMy = URL(string: "https://circlapp.online/api/circles/my_circles/\(userId)/"),
               let urlExplore = URL(string: "https://circlapp.online/api/circles/explore_circles/\(userId)/") else { return }
-
+        
         func convert(_ data: [APICircle]) -> [CircleData] {
             data.map {
                 CircleData(
@@ -633,24 +833,24 @@ struct PageCircles: View {
                 )
             }
         }
-
+        
         URLSession.shared.dataTask(with: urlMy) { data, response, error in
             if let error = error {
                 print("❌ Error loading MY circles:", error.localizedDescription)
             }
-
+            
             if let httpResponse = response as? HTTPURLResponse {
                 print("📡 MyCircles status code:", httpResponse.statusCode)
             }
-
+            
             if let data = data {
                 print("📥 MyCircles raw JSON:", String(data: data, encoding: .utf8) ?? "nil")
-
+                
                 if let decoded = try? JSONDecoder().decode([APICircle].self, from: data) {
                     DispatchQueue.main.async {
                         self.myCircles = convert(decoded)
                         print("✅ Loaded My Circles:", self.myCircles.map { $0.name })
-
+                        
                         for i in self.myCircles.indices {
                             let circleId = self.myCircles[i].id
                             self.fetchMembers(for: circleId) { count in
@@ -665,20 +865,20 @@ struct PageCircles: View {
                 }
             }
         }.resume()
-
-
+        
+        
         URLSession.shared.dataTask(with: urlExplore) { data, response, error in
             if let error = error {
                 print("❌ Error loading EXPLORE circles:", error.localizedDescription)
             }
-
+            
             if let httpResponse = response as? HTTPURLResponse {
                 print("📡 ExploreCircles status code:", httpResponse.statusCode)
             }
-
+            
             if let data = data {
                 print("📥 ExploreCircles raw JSON:", String(data: data, encoding: .utf8) ?? "nil")
-
+                
                 do {
                     let decoded = try JSONDecoder().decode([APICircle].self, from: data)
                     DispatchQueue.main.async {
@@ -691,7 +891,7 @@ struct PageCircles: View {
                                 }
                             }
                         }
-
+                        
                         print("✅ Loaded Explore Circles:", self.exploreCircles.map { $0.name })
                     }
                 } catch {
@@ -699,7 +899,7 @@ struct PageCircles: View {
                 }
             }
         }.resume()
-
+        
     }
     func fetchMembers(for circleId: Int, completion: @escaping (Int) -> Void) {
         
@@ -713,14 +913,14 @@ struct PageCircles: View {
             completion(0)
             return
         }
-
+        
         URLSession.shared.dataTask(with: url) { data, _, error in
             guard let data = data, error == nil else {
                 print("❌ Failed to load members for \(circleId):", error?.localizedDescription ?? "unknown")
                 completion(0)
                 return
             }
-
+            
             do {
                 let decoded = try JSONDecoder().decode([Member].self, from: data)
                 completion(decoded.count)
@@ -730,10 +930,10 @@ struct PageCircles: View {
             }
         }.resume()
     }
-
-
     
-
+    
+    
+    
     @ViewBuilder
     func renderMyCircleCard(for circle: CircleData) -> some View {
         CircleCardView(
@@ -747,150 +947,150 @@ struct PageCircles: View {
         )
         .padding(.horizontal) // ✅ This makes spacing match Explore
     }
-
-
-}
-
-struct GroupChatWrapper: View {
-    let circle: CircleData?
-
-    var body: some View {
-        if let circle = circle {
-            PageGroupchats(circle: circle).navigationBarBackButtonHidden(true)
-        } else {
-            EmptyView()
+    
+    
+    
+    
+    struct GroupChatWrapper: View {
+        let circle: CircleData?
+        
+        var body: some View {
+            if let circle = circle {
+                PageGroupchats(circle: circle).navigationBarBackButtonHidden(true)
+            } else {
+                EmptyView()
+            }
         }
     }
-}
-
-
+    
+    
     
     
     // MARK: - Circle Card View (template preserved)
-struct CircleCardView: View {
-    var onOpenCircle: (() -> Void)? = nil
-
-    var circle: CircleData
-    @State private var showAbout = false
-    @State private var selectedCircleToOpen: CircleData? = nil
-    @State private var triggerOpenGroupChat = false
-    var onJoinPressed: (() -> Void)? = nil
-    var showButtons: Bool = true // ✅ Default to true for explore
-    var isMember: Bool = false
-    var body: some View {
-        HStack(alignment: .center, spacing: 12) {
-            ZStack {
-                Image("CirclLogoButton") // Your blue circle logo
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 80, height: 80)
-                    .clipShape(Circle())
-                    .opacity(0.15)
-
-                Image(circle.imageName)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: 80, height: 80)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-            }
-
-
-            VStack(alignment: .leading, spacing: 6) {
-                HStack {
-                    Text(circle.name)
-                        .font(.system(size: 20, weight: .bold))
-                        .foregroundColor(.black)
-                    Spacer()
-                    if !circle.pricing.isEmpty {
-                        Text(circle.pricing)
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(.black)
-                    }
+    struct CircleCardView: View {
+        var onOpenCircle: (() -> Void)? = nil
+        
+        var circle: CircleData
+        @State private var showAbout = false
+        @State private var selectedCircleToOpen: CircleData? = nil
+        @State private var triggerOpenGroupChat = false
+        var onJoinPressed: (() -> Void)? = nil
+        var showButtons: Bool = true // ✅ Default to true for explore
+        var isMember: Bool = false
+        var body: some View {
+            HStack(alignment: .center, spacing: 12) {
+                ZStack {
+                    Image("CirclLogoButton") // Your blue circle logo
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 80, height: 80)
+                        .clipShape(Circle())
+                        .opacity(0.15)
+                    
+                    Image(circle.imageName)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: 80, height: 80)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
                 }
-
-                Text("Industry: \(circle.industry)")
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundColor(.black)
-
-                Text("\(circle.memberCount) Members")
-
-                    .font(.system(size: 15))
-                    .foregroundColor(.black)
-
-                HStack(spacing: 10) {
-                    Button(action: {
-                        showAbout = true
-                    }) {
-                        Text("About")
-                            .underline()
-                            .font(.system(size: 16))
-                            .foregroundColor(.blue)
+                
+                
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack {
+                        Text(circle.name)
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(.black)
+                        Spacer()
+                        if !circle.pricing.isEmpty {
+                            Text(circle.pricing)
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundColor(.black)
+                        }
                     }
-
-                    Spacer()
-
-                    if showButtons {
-//                        Button(action: {}) {
-//                            Image(systemName: "xmark.circle.fill")
-//                                .resizable()
-//                                .frame(width: 22, height: 22)
-//                                .foregroundColor(.red)
-//                        }
-
+                    
+                    Text("Industry: \(circle.industry)")
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundColor(.black)
+                    
+                    Text("\(circle.memberCount) Members")
+                    
+                        .font(.system(size: 15))
+                        .foregroundColor(.black)
+                    
+                    HStack(spacing: 10) {
                         Button(action: {
-                            onJoinPressed?()
+                            showAbout = true
                         }) {
-                            Text(circle.joinType.rawValue)
-                                .font(.system(size: 15, weight: .semibold))
-                                .padding(.vertical, 6)
-                                .padding(.horizontal, 16)
-                                .background(Color.green)
-                                .foregroundColor(.white)
-                                .cornerRadius(15)
+                            Text("About")
+                                .underline()
+                                .font(.system(size: 16))
+                                .foregroundColor(.blue)
+                        }
+                        
+                        Spacer()
+                        
+                        if showButtons {
+                            //                        Button(action: {}) {
+                            //                            Image(systemName: "xmark.circle.fill")
+                            //                                .resizable()
+                            //                                .frame(width: 22, height: 22)
+                            //                                .foregroundColor(.red)
+                            //                        }
+                            
+                            Button(action: {
+                                onJoinPressed?()
+                            }) {
+                                Text(circle.joinType.rawValue)
+                                    .font(.system(size: 15, weight: .semibold))
+                                    .padding(.vertical, 6)
+                                    .padding(.horizontal, 16)
+                                    .background(Color.green)
+                                    .foregroundColor(.white)
+                                    .cornerRadius(15)
+                            }
                         }
                     }
                 }
-            }
-
-            // ✅ Blue arrow on the far right, vertically centered
-            if isMember {
-                Spacer()
-                Button(action: {
-                    onOpenCircle?()
-                }) {
-                    Image(systemName: "arrow.right.circle.fill")
-                        .resizable()
-                        .frame(width: 26, height: 26)
-                        .foregroundColor(.blue)
+                
+                // ✅ Blue arrow on the far right, vertically centered
+                if isMember {
+                    Spacer()
+                    Button(action: {
+                        onOpenCircle?()
+                    }) {
+                        Image(systemName: "arrow.right.circle.fill")
+                            .resizable()
+                            .frame(width: 26, height: 26)
+                            .foregroundColor(.blue)
+                    }
+                    .padding(.trailing, 4)
                 }
-                .padding(.trailing, 4)
             }
+            
+            .padding()
+            .frame(height: 150) // ✅ Consistent card height for all
+            .background(RoundedRectangle(cornerRadius: 10).stroke(Color.blue, lineWidth: 1))
+            .frame(maxWidth: .infinity)
+            .sheet(isPresented: $showAbout) {
+                NavigationView {
+                    CirclPopupCard(
+                        circle: circle,
+                        isMember: isMember,
+                        onJoinPressed: onJoinPressed,
+                        onOpenCircle: {
+                            showAbout = false
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                                onOpenCircle?()
+                            }
+                        }
+                    )
+                    .navigationBarHidden(true)
+                }
+            }
+            
         }
-
-        .padding()
-        .frame(height: 150) // ✅ Consistent card height for all
-        .background(RoundedRectangle(cornerRadius: 10).stroke(Color.blue, lineWidth: 1))
-        .frame(maxWidth: .infinity)
-        .sheet(isPresented: $showAbout) {
-                                    NavigationView {
-                                        CirclPopupCard(
-                                            circle: circle,
-                                            isMember: isMember,
-                                            onJoinPressed: onJoinPressed,
-                                            onOpenCircle: {
-                                                showAbout = false
-                                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-                                                    onOpenCircle?()
-                                                }
-                                            }
-                                        )
-                                        .navigationBarHidden(true)
-                                    }
-                                }
-
     }
-}
-
+    
     
     // MARK: - Preview
     struct PageCircles_Previews: PreviewProvider {
@@ -898,4 +1098,5 @@ struct CircleCardView: View {
             PageCircles()
         }
     }
-
+    
+}
