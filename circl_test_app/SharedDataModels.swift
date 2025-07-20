@@ -10,7 +10,8 @@ import Foundation
 // MARK: - Data Models
 
 /// Model for mentor profile data from the mentors API
-struct MentorProfileData: Codable {
+struct MentorProfileData: Identifiable, Codable {
+    var id: Int { user_id }
     let user_id: Int
     let name: String
     let username: String
@@ -50,14 +51,30 @@ struct InviteProfileData: Identifiable, Codable {
     let tags: [String]
     let profileImage: String?
     
+    // Manual initializer
+    init(user_id: Int, name: String, username: String, email: String, 
+         title: String, company: String, proficiency: String, 
+         tags: [String], profileImage: String?) {
+        self.user_id = user_id
+        self.name = name
+        self.username = username
+        self.email = email
+        self.title = title
+        self.company = company
+        self.proficiency = proficiency
+        self.tags = tags
+        self.profileImage = profileImage
+    }
+    
     enum CodingKeys: String, CodingKey {
         case user_id, name, username, email, title, company, proficiency, tags, profileImage
     }
 }
 
 /// Model for entrepreneur profile data from the entrepreneurs API
-struct SharedEntrepreneurProfileData: Codable {
-    let id: Int
+struct SharedEntrepreneurProfileData: Identifiable, Codable {
+    var id: Int { user_id }
+    let user_id: Int
     let name: String
     let email: String
     let username: String
@@ -69,14 +86,13 @@ struct SharedEntrepreneurProfileData: Codable {
     let fundingRaised: String
     let lookingFor: [String]
     let isMentor: Bool
-    let user_id: Int
     
     // Standard initializer for manual creation
-    init(id: Int, name: String, email: String, username: String, profileImage: String?, 
+    init(user_id: Int, name: String, email: String, username: String, profileImage: String?, 
          businessName: String, businessStage: String, businessIndustry: String, 
          businessBio: String, fundingRaised: String, lookingFor: [String], 
-         isMentor: Bool, user_id: Int) {
-        self.id = id
+         isMentor: Bool) {
+        self.user_id = user_id
         self.name = name
         self.email = email
         self.username = username
@@ -88,7 +104,6 @@ struct SharedEntrepreneurProfileData: Codable {
         self.fundingRaised = fundingRaised
         self.lookingFor = lookingFor
         self.isMentor = isMentor
-        self.user_id = user_id
     }
     
     // Computed properties for compatibility with MentorProfileData  
@@ -99,8 +114,8 @@ struct SharedEntrepreneurProfileData: Codable {
     
     // Custom CodingKeys to exclude computed properties
     private enum CodingKeys: String, CodingKey {
-        case id, name, email, username, profileImage, businessName, businessStage
-        case businessIndustry, businessBio, fundingRaised, lookingFor, isMentor, user_id
+        case user_id, name, email, username, profileImage, businessName, businessStage
+        case businessIndustry, businessBio, fundingRaised, lookingFor, isMentor
     }
 }
 

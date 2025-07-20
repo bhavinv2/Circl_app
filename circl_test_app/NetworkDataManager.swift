@@ -7,6 +7,7 @@ class NetworkDataManager: ObservableObject {
     static let shared = NetworkDataManager()
     
     @Published var userNetworkEmails: [String] = []
+    @Published var networkConnections: [InviteProfileData] = []
     @Published var friendRequests: [InviteProfileData] = []
     @Published var entrepreneurs: [SharedEntrepreneurProfileData] = []
     @Published var mentors: [MentorProfileData] = []
@@ -26,6 +27,7 @@ class NetworkDataManager: ObservableObject {
     
     func loadAllData() {
         fetchUserNetwork()
+        fetchNetworkConnections()
         fetchFriendRequests()
         fetchEntrepreneursData()
         fetchMentorsData()
@@ -141,6 +143,81 @@ class NetworkDataManager: ObservableObject {
                 }
             }
         }.resume()
+    }
+    
+    func fetchNetworkConnections() {
+        print("🔄 NetworkDataManager - Fetching network connections")
+        
+        // First get the network emails
+        fetchUserNetwork()
+        
+        // Then convert emails to profile data after a delay
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            self.convertNetworkEmailsToProfiles()
+        }
+        
+        // Also get friend requests as additional network data
+        fetchFriendRequests()
+    }
+    
+    private func convertNetworkEmailsToProfiles() {
+        guard !userNetworkEmails.isEmpty else {
+            print("📧 NetworkDataManager - No network emails to convert")
+            // Add test data if no real network exists
+            addTestNetworkConnections()
+            return
+        }
+        
+        print("📧 NetworkDataManager - Converting \(userNetworkEmails.count) emails to profiles")
+        
+        var convertedProfiles: [InviteProfileData] = []
+        
+        for (index, email) in userNetworkEmails.enumerated() {
+            // Create a profile from the email (simplified approach)
+            let emailParts = email.components(separatedBy: "@")
+            let username = emailParts.first ?? "user"
+            let domain = emailParts.count > 1 ? emailParts[1] : "example.com"
+            
+            let profile = InviteProfileData(
+                user_id: 1000 + index,
+                name: username.capitalized,
+                username: username,
+                email: email,
+                title: "Professional",
+                company: domain.replacingOccurrences(of: ".com", with: "").capitalized,
+                proficiency: "Networking",
+                tags: ["Professional", "Network"],
+                profileImage: nil
+            )
+            
+            convertedProfiles.append(profile)
+        }
+        
+        DispatchQueue.main.async {
+            self.networkConnections = convertedProfiles
+            print("✅ NetworkDataManager - Converted \(convertedProfiles.count) network connections")
+        }
+    }
+    
+    private func addTestNetworkConnections() {
+        let testConnections = [
+            InviteProfileData(
+                user_id: 999,
+                name: "Test Connection",
+                username: "testuser",
+                email: "test@example.com",
+                title: "Software Engineer",
+                company: "Tech Corp",
+                proficiency: "iOS Development",
+                tags: ["Swift", "iOS"],
+                profileImage: nil
+            )
+        ]
+        
+        DispatchQueue.main.async {
+            self.networkConnections = testConnections
+            print("🧪 NetworkDataManager - Added test network connections: \(testConnections.count)")
+        }
     }
     
     func fetchFriendRequests() {
@@ -362,7 +439,7 @@ class NetworkDataManager: ObservableObject {
             let isMentor = dict["is_mentor"] as? Bool ?? false
             
             return SharedEntrepreneurProfileData(
-                id: id,
+                user_id: userId,
                 name: fullName,
                 email: email,
                 username: username,
@@ -373,8 +450,7 @@ class NetworkDataManager: ObservableObject {
                 businessBio: businessBio,
                 fundingRaised: fundingRaised,
                 lookingFor: lookingFor,
-                isMentor: isMentor,
-                user_id: userId
+                isMentor: isMentor
             )
         }
         

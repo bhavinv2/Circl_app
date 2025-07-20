@@ -4,13 +4,10 @@ import Foundation
 struct PageUnifiedNetworking: View {
     // MARK: - State Management
     @State private var selectedTab: NetworkingTab = .entrepreneurs
-    @State private var searchText: String = ""
-    @State private var searchedUser: InviteProfileData?
     @State private var myNetwork: [InviteProfileData] = []
     @State private var declinedEmails: Set<String> = []
     @State private var showConfirmation = false
     @State private var selectedEmailToAdd: String? = nil
-    @State private var selectedUserForPreview: InviteProfileData?
     @State private var showProfilePreview: Bool = false
     @State private var selectedFullProfile: FullProfile?
     @State private var showAlert = false
@@ -19,11 +16,24 @@ struct PageUnifiedNetworking: View {
     @State private var userProfileImageURL: String = ""
     @State private var unreadMessageCount: Int = 0
     @State private var showMoreMenu = false
+    @State private var showBottomMoreMenu = false // Separate state for bottom navigation menu
+    @State private var rotationAngle: Double = 0
+    @State private var isLoading = false
     @AppStorage("user_id") private var userId: Int = 0
     
+    // Local data arrays (instead of using NetworkDataManager)
+    @State private var entrepreneurs: [SharedEntrepreneurProfileData] = []
+    @State private var mentors: [MentorProfileData] = []
+    @State private var userNetworkEmails: [String] = []
+    
+    // Alert state
+    @State private var alertTitle = ""
+    @State private var alertIcon = "checkmark.circle"
+    
+    // NetworkDataManager integration
     @ObservedObject private var networkManager = NetworkDataManager.shared
 
-    // MARK: - Initializer
+        // MARK: - Initializer
     init(initialTab: NetworkingTab = .entrepreneurs) {
         self._selectedTab = State(initialValue: initialTab)
     }
@@ -52,109 +62,33 @@ struct PageUnifiedNetworking: View {
         var color: Color {
             return Color(hex: "004aad")
         }
+        
+        var buttonColor: Color {
+            switch self {
+            case .entrepreneurs: return .yellow
+            case .mentors: return .yellow
+            case .myNetwork: return .gray
+            }
+        }
     }
 
     var body: some View {
         NavigationView {
             ZStack {
                 VStack(spacing: 0) {
-                    enhancedHeaderSection
-                    welcomeSection
+                    headerSection
                     scrollableContent
-                }
-
-                // MARK: - Twitter/X Style Bottom Navigation
-                VStack {
-                    Spacer()
-                    
-                    HStack(spacing: 0) {
-                        // Forum / Home
-                        NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
-                            VStack(spacing: 4) {
-                                Image(systemName: "house")
-                                    .font(.system(size: 22, weight: .medium))
-                                    .foregroundColor(Color(UIColor.label).opacity(0.6))
-                                Text("Home")
-                                    .font(.system(size: 10, weight: .medium))
-                                    .foregroundColor(Color(UIColor.label).opacity(0.6))
-                            }
-                            .frame(maxWidth: .infinity)
-                        }
-                        .transaction { transaction in
-                            transaction.disablesAnimations = true
-                        }
-                        
-                        // Connect and Network (Current page - highlighted)
-                        VStack(spacing: 4) {
-                            Image(systemName: "person.2.fill")
-                                .font(.system(size: 22, weight: .medium))
-                                .foregroundColor(Color(hex: "004aad"))
-                            Text("Network")
-                                .font(.system(size: 10, weight: .medium))
-                                .foregroundColor(Color(hex: "004aad"))
-                        }
-                        .frame(maxWidth: .infinity)
-                        
-                        // Circles
-                        NavigationLink(destination: PageCircles().navigationBarBackButtonHidden(true)) {
-                            VStack(spacing: 4) {
-                                Image(systemName: "circle.grid.2x2")
-                                    .font(.system(size: 22, weight: .medium))
-                                    .foregroundColor(Color(UIColor.label).opacity(0.6))
-                                Text("Circles")
-                                    .font(.system(size: 10, weight: .medium))
-                                    .foregroundColor(Color(UIColor.label).opacity(0.6))
-                            }
-                            .frame(maxWidth: .infinity)
-                        }
-                        .transaction { transaction in
-                            transaction.disablesAnimations = true
-                        }
-                        
-                        // Business Profile
-                        NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true)) {
-                            VStack(spacing: 4) {
-                                Image(systemName: "building.2")
-                                    .font(.system(size: 22, weight: .medium))
-                                    .foregroundColor(Color(UIColor.label).opacity(0.6))
-                                Text("Business")
-                                    .font(.system(size: 10, weight: .medium))
-                                    .foregroundColor(Color(UIColor.label).opacity(0.6))
-                            }
-                            .frame(maxWidth: .infinity)
-                        }
-                        .transaction { transaction in
-                            transaction.disablesAnimations = true
-                        }
-                        
-                        // More Menu
-                        Button(action: {
-                            withAnimation(.easeInOut(duration: 0.3)) {
-                                showMoreMenu.toggle()
-                            }
-                        }) {
-                            VStack(spacing: 4) {
-                                Image(systemName: "ellipsis")
-                                    .font(.system(size: 22, weight: .medium))
-                                    .foregroundColor(Color(UIColor.label).opacity(0.6))
-                                Text("More")
-                                    .font(.system(size: 10, weight: .medium))
-                                    .foregroundColor(Color(UIColor.label).opacity(0.6))
-                            }
-                            .frame(maxWidth: .infinity)
-                        }
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 12)
-                    .padding(.bottom, 8)
-                    .background(
-                        Color(.systemBackground)
-                            .shadow(color: .black.opacity(0.1), radius: 1, x: 0, y: -1)
-                    )
+                    // Remove Spacer() to prevent layout issues
                 }
                 
-                // MARK: - More Menu Popup
-                if showMoreMenu {
+                // Bottom navigation as overlay
+                VStack {
+                    Spacer()
+                    bottomNavigationBar
+                }
+                
+                // MARK: - More Menu Popup (EXACT copy from Forum page)
+                if showBottomMoreMenu {
                     VStack {
                         Spacer()
                         
@@ -200,11 +134,6 @@ struct PageUnifiedNetworking: View {
                                 .transaction { transaction in
                                     transaction.disablesAnimations = true
                                 }
-                                .onTapGesture {
-                                    withAnimation(.easeInOut(duration: 0.3)) {
-                                        showMoreMenu = false
-                                    }
-                                }
                                 
                                 Divider()
                                     .padding(.horizontal, 16)
@@ -221,7 +150,7 @@ struct PageUnifiedNetworking: View {
                                             Text("News & Knowledge")
                                                 .font(.system(size: 16, weight: .medium))
                                                 .foregroundColor(.primary)
-                                            Text("Industry insights and articles")
+                                            Text("Stay updated with industry insights")
                                                 .font(.system(size: 12))
                                                 .foregroundColor(.secondary)
                                         }
@@ -237,29 +166,24 @@ struct PageUnifiedNetworking: View {
                                 }
                                 .transaction { transaction in
                                     transaction.disablesAnimations = true
-                                }
-                                .onTapGesture {
-                                    withAnimation(.easeInOut(duration: 0.3)) {
-                                        showMoreMenu = false
-                                    }
                                 }
                                 
                                 Divider()
                                     .padding(.horizontal, 16)
                                 
                                 // Circl Exchange
-                                NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
+                                NavigationLink(destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true)) {
                                     HStack(spacing: 16) {
-                                        Image(systemName: "arrow.2.squarepath")
+                                        Image(systemName: "dollarsign.circle.fill")
                                             .font(.system(size: 20))
                                             .foregroundColor(Color(hex: "004aad"))
                                             .frame(width: 24)
                                         
                                         VStack(alignment: .leading, spacing: 2) {
-                                            Text("Circl Exchange")
+                                            Text("The Circl Exchange")
                                                 .font(.system(size: 16, weight: .medium))
                                                 .foregroundColor(.primary)
-                                            Text("Trade services and resources")
+                                            Text("Buy and sell skills and services")
                                                 .font(.system(size: 12))
                                                 .foregroundColor(.secondary)
                                         }
@@ -276,33 +200,23 @@ struct PageUnifiedNetworking: View {
                                 .transaction { transaction in
                                     transaction.disablesAnimations = true
                                 }
-                                .onTapGesture {
-                                    withAnimation(.easeInOut(duration: 0.3)) {
-                                        showMoreMenu = false
-                                    }
-                                }
                                 
                                 Divider()
                                     .padding(.horizontal, 16)
                                 
-                                // Settings
-                                Button(action: {
-                                    withAnimation(.easeInOut(duration: 0.3)) {
-                                        showMoreMenu = false
-                                    }
-                                    // Add settings navigation here
-                                }) {
+                                // Settings/Profile
+                                NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
                                     HStack(spacing: 16) {
-                                        Image(systemName: "gearshape.fill")
+                                        Image(systemName: "gear.circle.fill")
                                             .font(.system(size: 20))
                                             .foregroundColor(Color(hex: "004aad"))
                                             .frame(width: 24)
                                         
                                         VStack(alignment: .leading, spacing: 2) {
-                                            Text("Settings")
+                                            Text("Settings & Profile")
                                                 .font(.system(size: 16, weight: .medium))
                                                 .foregroundColor(.primary)
-                                            Text("App preferences and account")
+                                            Text("Manage your account and preferences")
                                                 .font(.system(size: 12))
                                                 .foregroundColor(.secondary)
                                         }
@@ -316,23 +230,24 @@ struct PageUnifiedNetworking: View {
                                     .padding(.horizontal, 20)
                                     .padding(.vertical, 16)
                                 }
-                                
-                                Divider()
-                                    .padding(.horizontal, 16)
-                                
-                                // Close Button
-                                Button(action: {
-                                    withAnimation(.easeInOut(duration: 0.3)) {
-                                        showMoreMenu = false
-                                    }
-                                }) {
-                                    Text("Close")
-                                        .font(.system(size: 16, weight: .medium))
-                                        .foregroundColor(.secondary)
-                                        .frame(maxWidth: .infinity)
-                                        .padding(.vertical, 16)
+                                .transaction { transaction in
+                                    transaction.disablesAnimations = true
                                 }
                             }
+                            
+                            // Close button
+                            Button(action: {
+                                withAnimation(.easeInOut(duration: 0.3)) {
+                                    showBottomMoreMenu = false
+                                }
+                            }) {
+                                Text("Close")
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundColor(Color(hex: "004aad"))
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 16)
+                            }
+                            .background(Color(UIColor.systemGray6))
                         }
                         .background(Color(UIColor.systemBackground))
                         .cornerRadius(16)
@@ -344,13 +259,13 @@ struct PageUnifiedNetworking: View {
                     .zIndex(2)
                 }
 
-                // Tap-out-to-dismiss layer
-                if showMoreMenu {
+                // Tap-out-to-dismiss layer (EXACT copy from Forum page)
+                if showBottomMoreMenu {
                     Color.black.opacity(0.001)
                         .ignoresSafeArea()
                         .onTapGesture {
                             withAnimation(.easeInOut(duration: 0.3)) {
-                                showMoreMenu = false
+                                showBottomMoreMenu = false
                             }
                         }
                         .zIndex(1)
@@ -362,23 +277,76 @@ struct PageUnifiedNetworking: View {
                 let fullName = UserDefaults.standard.string(forKey: "user_fullname") ?? ""
                 userFirstName = fullName.components(separatedBy: " ").first ?? "Friend"
                 
-                loadUserData()
+                loadAllNetworkingData()
                 
-                // Debug NetworkDataManager state
-                print("🔍 NetworkDataManager State:")
-                print("  - Entrepreneurs count: \(networkManager.entrepreneurs.count)")
-                print("  - Mentors count: \(networkManager.mentors.count)")
-                print("  - Network emails count: \(networkManager.userNetworkEmails.count)")
+                // Force load test data immediately to check if cards work
+                print("🧪 Force loading test data on appear")
+                let testData = [
+                    InviteProfileData(
+                        user_id: 1001,
+                        name: "Test User 1",
+                        username: "testuser1",
+                        email: "test1@example.com",
+                        title: "CEO",
+                        company: "Test Corp",
+                        proficiency: "Business Strategy",
+                        tags: ["Leadership", "Strategy"],
+                        profileImage: nil
+                    ),
+                    InviteProfileData(
+                        user_id: 1002,
+                        name: "Test User 2",
+                        username: "testuser2",
+                        email: "test2@example.com",
+                        title: "CTO",
+                        company: "Tech Corp",
+                        proficiency: "Technology",
+                        tags: ["Tech", "Innovation"],
+                        profileImage: nil
+                    )
+                ]
+                self.myNetwork = testData
+                print("🧪 Test data loaded: \(self.myNetwork.count) items")
                 
-                networkManager.refreshAllData()
-                fetchMyNetwork()
-                
-                // Debug after refresh
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                    print("🔍 NetworkDataManager State After Refresh:")
-                    print("  - Entrepreneurs count: \(networkManager.entrepreneurs.count)")
-                    print("  - Mentors count: \(networkManager.mentors.count)")
-                    print("  - Network emails count: \(networkManager.userNetworkEmails.count)")
+                // Force fetch network connections after a short delay
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                    print("🔄 Force refreshing network connections after onAppear")
+                    networkManager.fetchNetworkConnections()
+                }
+            }
+            .onReceive(networkManager.$entrepreneurs) { entrepreneurs in
+                self.entrepreneurs = entrepreneurs
+            }
+            .onReceive(networkManager.$mentors) { mentors in
+                self.mentors = mentors
+            }
+            .onReceive(networkManager.$userNetworkEmails) { emails in
+                self.userNetworkEmails = emails
+            }
+            .onReceive(networkManager.$networkConnections) { connections in
+                print("🔄 Received network connections: \(connections.count)")
+                print("🔍 Connection details: \(connections.map { "\($0.name) (\($0.email))" })")
+                DispatchQueue.main.async {
+                    // Only update if we have real data OR if current myNetwork is empty
+                    if !connections.isEmpty || self.myNetwork.isEmpty {
+                        self.myNetwork = connections
+                        print("🎯 myNetwork updated to \(self.myNetwork.count) connections")
+                        print("🎯 myNetwork contents: \(self.myNetwork.map { "\($0.name) - \($0.email)" })")
+                    } else {
+                        print("🎯 Keeping existing myNetwork data (\(self.myNetwork.count) items) since connections is empty")
+                    }
+                }
+            }
+            .onReceive(networkManager.$friendRequests) { requests in
+                print("📩 Received \(requests.count) friend requests")
+                // Only use friend requests as fallback if we have no network connections AND no existing data
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    if self.myNetwork.isEmpty && !requests.isEmpty {
+                        print("🔄 Using friend requests as network connections fallback")
+                        self.myNetwork = requests
+                    } else if !requests.isEmpty {
+                        print("🔄 Keeping existing myNetwork data, but friend requests available: \(requests.count)")
+                    }
                 }
             }
             .alert(isPresented: $showAlert) {
@@ -390,14 +358,7 @@ struct PageUnifiedNetworking: View {
                     message: Text("Are you sure you want to connect with this professional?"),
                     primaryButton: .default(Text("Yes")) {
                         if let email = selectedEmailToAdd {
-                            networkManager.addToNetwork(email: email)
-                            if selectedTab == .mentors {
-                                networkManager.mentors.removeAll { $0.email == email }
-                            } else if selectedTab == .entrepreneurs {
-                                networkManager.entrepreneurs.removeAll { $0.email == email }
-                            }
-                            alertMessage = "Connection request sent!"
-                            showAlert = true
+                            addToNetwork(email: email)
                         }
                     },
                     secondaryButton: .cancel()
@@ -408,129 +369,177 @@ struct PageUnifiedNetworking: View {
                     DynamicProfilePreview(profileData: profile, isInNetwork: false)
                 }
             }
-            .onTapGesture {
-                if showMoreMenu {
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        showMoreMenu = false
-                    }
-                }
-            }
         }
     }
     
     // MARK: - Header Section
-    private var enhancedHeaderSection: some View {
+    private var headerSection: some View {
         VStack(spacing: 0) {
             HStack {
-                Text("CIRCL")
-                    .font(.system(size: 28, weight: .black, design: .rounded))
-                    .foregroundColor(Color(hex: "004aad"))
+                // Left side - Profile
+                NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
+                    if !userProfileImageURL.isEmpty {
+                        AsyncImage(url: URL(string: userProfileImageURL)) { image in
+                            image
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 32, height: 32)
+                                .clipShape(Circle())
+                        } placeholder: {
+                            Image(systemName: "person.circle.fill")
+                                .font(.system(size: 32))
+                                .foregroundColor(.white)
+                        }
+                    } else {
+                        Image(systemName: "person.circle.fill")
+                            .font(.system(size: 32))
+                            .foregroundColor(.white)
+                    }
+                }
                 
                 Spacer()
                 
-                Button(action: {
-                    print("🔔 Message bell tapped")
-                }) {
+                // Center - Logo
+                Text("Circl.")
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundColor(.white)
+                
+                Spacer()
+                
+                // Right side - Messages
+                NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
                     ZStack {
-                        Image(systemName: "bell")
-                            .font(.system(size: 20, weight: .medium))
-                            .foregroundColor(Color(UIColor.label))
+                        Image(systemName: "envelope")
+                            .font(.system(size: 24))
+                            .foregroundColor(.white)
                         
                         if unreadMessageCount > 0 {
-                            VStack {
-                                HStack {
-                                    Spacer()
-                                    Circle()
-                                        .fill(Color.red)
-                                        .frame(width: 16, height: 16)
-                                        .overlay(
-                                            Text("\(min(unreadMessageCount, 9))")
-                                                .font(.system(size: 10, weight: .bold))
-                                                .foregroundColor(.white)
-                                        )
-                                }
-                                Spacer()
-                            }
+                            Text(unreadMessageCount > 99 ? "99+" : "\(unreadMessageCount)")
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundColor(.white)
+                                .padding(4)
+                                .background(Color.red)
+                                .clipShape(Circle())
+                                .offset(x: 10, y: -10)
                         }
                     }
                 }
-                .frame(width: 44, height: 44)
             }
-            .padding(.horizontal, 20)
-            .padding(.top, 10)
+            .padding(.horizontal, 16)
+            .padding(.bottom, 16)
+            .padding(.top, 8)
+            
+            // Tab Buttons Row - Twitter/X style tabs
+            HStack(spacing: 0) {
+                Spacer()
+                
+                // Entrepreneurs Tab
+                HStack {
+                    VStack(spacing: 8) {
+                        Text("Entrepreneurs")
+                            .font(.system(size: 15, weight: selectedTab == .entrepreneurs ? .semibold : .regular))
+                            .foregroundColor(.white)
+                        
+                        Rectangle()
+                            .fill(selectedTab == .entrepreneurs ? Color.white : Color.clear)
+                            .frame(height: 3)
+                            .animation(.easeInOut(duration: 0.2), value: selectedTab)
+                    }
+                    .frame(width: 100)
+                }
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        selectedTab = .entrepreneurs
+                    }
+                }
+                
+                Spacer()
+                
+                // Mentors Tab
+                HStack {
+                    VStack(spacing: 8) {
+                        Text("Mentors")
+                            .font(.system(size: 15, weight: selectedTab == .mentors ? .semibold : .regular))
+                            .foregroundColor(.white)
+                        
+                        Rectangle()
+                            .fill(selectedTab == .mentors ? Color.white : Color.clear)
+                            .frame(height: 3)
+                            .animation(.easeInOut(duration: 0.2), value: selectedTab)
+                    }
+                    .frame(width: 70)
+                }
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        selectedTab = .mentors
+                    }
+                }
+                
+                Spacer()
+                
+                // My Network Tab
+                HStack {
+                    VStack(spacing: 8) {
+                        Text("My Network")
+                            .font(.system(size: 15, weight: selectedTab == .myNetwork ? .semibold : .regular))
+                            .foregroundColor(.white)
+                        
+                        Rectangle()
+                            .fill(selectedTab == .myNetwork ? Color.white : Color.clear)
+                            .frame(height: 3)
+                            .animation(.easeInOut(duration: 0.2), value: selectedTab)
+                    }
+                    .frame(width: 90)
+                }
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        selectedTab = .myNetwork
+                        // Force refresh network data when My Network tab is selected
+                        print("🔄 Switching to My Network tab - forcing refresh")
+                        networkManager.fetchNetworkConnections()
+                    }
+                }
+                
+                Spacer()
+            }
             .padding(.bottom, 8)
-            .background(Color(.systemBackground))
         }
+        .padding(.top, 50) // Add safe area padding for status bar and notch
+        .background(Color(hex: "004aad"))
     }
     
-    // MARK: - Welcome Section
-    private var welcomeSection: some View {
-        VStack(spacing: 16) {
-            VStack(spacing: 8) {
-                Text("Connect & Network")
-                    .font(.system(size: 28, weight: .bold))
-                    .foregroundColor(.primary)
-                
-                Text("Expand your professional circle")
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.secondary)
-            }
-            
-            // Debug section - can be removed later
-            VStack(spacing: 4) {
-                Text("Debug: E:\(networkManager.entrepreneurs.count) M:\(networkManager.mentors.count)")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                
-                Button("🔄 Refresh Data") {
-                    print("🔄 Manual refresh triggered")
-                    networkManager.refreshAllData()
-                }
-                .font(.caption)
-                .foregroundColor(.blue)
-            }
-            
-            HStack(spacing: 0) {
-                ForEach(NetworkingTab.allCases, id: \.self) { tab in
-                    Button(action: {
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            selectedTab = tab
+    // MARK: - Selection Buttons Section (DEPRECATED - now integrated into header)
+    /*
+    private var selectionButtonsSection: some View {
+        HStack(spacing: 10) {
+            ForEach(NetworkingTab.allCases, id: \.self) { tab in
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        selectedTab = tab
+                        // Force refresh network data when My Network tab is selected
+                        if tab == .myNetwork {
+                            print("🔄 Switching to My Network tab - forcing refresh")
+                            networkManager.fetchNetworkConnections()
                         }
-                    }) {
-                        VStack(spacing: 8) {
-                            Image(systemName: tab.icon)
-                                .font(.system(size: 20, weight: .medium))
-                                .foregroundColor(selectedTab == tab ? tab.color : .secondary)
-                            
-                            VStack(spacing: 2) {
-                                Text(tab.rawValue)
-                                    .font(.system(size: 14, weight: .semibold))
-                                    .foregroundColor(selectedTab == tab ? tab.color : .secondary)
-                                
-                                Text(tab.subtitle)
-                                    .font(.system(size: 10, weight: .medium))
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(selectedTab == tab ? tab.color.opacity(0.1) : Color.clear)
-                        )
                     }
+                }) {
+                    Text(tab.rawValue)
+                        .font(.system(size: 12))
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(selectedTab == tab ? tab.buttonColor : Color.gray)
+                        .foregroundColor(.black)
+                        .cornerRadius(10)
                 }
             }
-            .padding(.horizontal, 4)
-            .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Color(.systemGray6).opacity(0.5))
-            )
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 16)
-        .background(Color(.systemBackground))
+        .padding(.horizontal)
+        .padding(.vertical, 10)
     }
+    */
     
     // MARK: - Scrollable Content
     private var scrollableContent: some View {
@@ -545,86 +554,326 @@ struct PageUnifiedNetworking: View {
                     myNetworkContent
                 }
             }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 16)
+            .padding(.horizontal, 16)
+            .padding(.top, 12)
+            .padding(.bottom, 120) // Add significant bottom padding to clear the bottom navigation
+        }
+        .refreshable {
+            networkManager.refreshAllData()
         }
     }
     
     // MARK: - Tab Content Views
     private var entrepreneursContent: some View {
         LazyVStack(spacing: 16) {
-            ForEach(networkManager.entrepreneurs.filter { !declinedEmails.contains($0.email) }, id: \.user_id) { entrepreneur in
-                enhancedEntrepreneurCard(for: entrepreneur)
-            }
-            
-            if networkManager.entrepreneurs.isEmpty {
-                VStack(spacing: 16) {
-                    Image(systemName: "person.2.slash")
-                        .font(.system(size: 48))
-                        .foregroundColor(.secondary)
-                    
-                    Text("No entrepreneurs found")
-                        .font(.system(size: 18, weight: .medium))
-                        .foregroundColor(.secondary)
-                    
-                    Text("Check back later for new connections")
-                        .font(.system(size: 14))
-                        .foregroundColor(.secondary)
+            if isLoading {
+                ProgressView("Loading entrepreneurs...")
+                    .padding(.vertical, 40)
+            } else {
+                ForEach(entrepreneurs.filter { !declinedEmails.contains($0.email) }, id: \.user_id) { entrepreneur in
+                    enhancedEntrepreneurCard(for: entrepreneur)
                 }
-                .padding(.vertical, 40)
+                
+                if entrepreneurs.isEmpty {
+                    VStack(spacing: 16) {
+                        Image(systemName: "person.2.slash")
+                            .font(.system(size: 48))
+                            .foregroundColor(.secondary)
+                        
+                        Text("No entrepreneurs found")
+                            .font(.system(size: 18, weight: .medium))
+                            .foregroundColor(.secondary)
+                        
+                        Text("Check back later for new connections")
+                            .font(.system(size: 14))
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.vertical, 40)
+                }
             }
         }
     }
     
     private var mentorsContent: some View {
         LazyVStack(spacing: 16) {
-            ForEach(networkManager.mentors, id: \.user_id) { mentor in
-                enhancedMentorCard(for: mentor)
-            }
-            
-            if networkManager.mentors.isEmpty {
-                VStack(spacing: 16) {
-                    Image(systemName: "graduationcap.slash")
-                        .font(.system(size: 48))
-                        .foregroundColor(.secondary)
-                    
-                    Text("No mentors available")
-                        .font(.system(size: 18, weight: .medium))
-                        .foregroundColor(.secondary)
-                    
-                    Text("Mentors will appear here when available")
-                        .font(.system(size: 14))
-                        .foregroundColor(.secondary)
+            if isLoading {
+                ProgressView("Loading mentors...")
+                    .padding(.vertical, 40)
+            } else {
+                ForEach(mentors.filter { !declinedEmails.contains($0.email) }, id: \.user_id) { mentor in
+                    enhancedMentorCard(for: mentor)
                 }
-                .padding(.vertical, 40)
+                
+                if mentors.isEmpty {
+                    VStack(spacing: 16) {
+                        Image(systemName: "graduationcap.slash")
+                            .font(.system(size: 48))
+                            .foregroundColor(.secondary)
+                        
+                        Text("No mentors available")
+                            .font(.system(size: 18, weight: .medium))
+                            .foregroundColor(.secondary)
+                        
+                        Text("Mentors will appear here when available")
+                            .font(.system(size: 14))
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.vertical, 40)
+                }
             }
         }
     }
     
     private var myNetworkContent: some View {
         LazyVStack(spacing: 16) {
-            ForEach(myNetwork, id: \.email) { connection in
-                enhancedNetworkConnectionCard(for: connection)
-            }
-            
-            if myNetwork.isEmpty {
-                VStack(spacing: 16) {
-                    Image(systemName: "person.3.slash")
-                        .font(.system(size: 48))
+            if isLoading {
+                ProgressView("Loading your network...")
+                    .padding(.vertical, 40)
+            } else {
+                // Debug information (can be removed later)
+                VStack(spacing: 4) {
+                    Text("Network: \(myNetwork.count) connections")
+                        .font(.caption)
                         .foregroundColor(.secondary)
                     
-                    Text("Your network is empty")
-                        .font(.system(size: 18, weight: .medium))
-                        .foregroundColor(.secondary)
-                    
-                    Text("Connect with entrepreneurs and mentors to build your network")
-                        .font(.system(size: 14))
-                        .foregroundColor(.secondary)
-                        .multilineTextAlignment(.center)
+                    if !myNetwork.isEmpty {
+                        Text("Connected: \(myNetwork.map { $0.name }.joined(separator: ", "))")
+                            .font(.caption2)
+                            .foregroundColor(.blue)
+                            .lineLimit(2)
+                    }
                 }
-                .padding(.vertical, 40)
+                .padding(.bottom, 8)
+                
+                ForEach(myNetwork) { connection in
+                    enhancedNetworkConnectionCard(for: connection)
+                }
+                
+                if myNetwork.isEmpty {
+                    VStack(spacing: 16) {
+                        Image(systemName: "person.3.slash")
+                            .font(.system(size: 48))
+                            .foregroundColor(.secondary)
+                        
+                        Text("Your network is empty")
+                            .font(.system(size: 18, weight: .medium))
+                            .foregroundColor(.secondary)
+                        
+                        Text("Connect with entrepreneurs and mentors to build your network")
+                            .font(.system(size: 14))
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                        
+                        // Debug button to test network loading
+                        Button("Refresh Network") {
+                            print("🔄 Manual refresh network connections")
+                            networkManager.fetchNetworkConnections()
+                        }
+                        .padding(.top, 16)
+                        .foregroundColor(.blue)
+                        
+                        // Force load test data button
+                        Button("Load Test Data") {
+                            print("🧪 Loading test network data")
+                            let testData = [
+                                InviteProfileData(
+                                    user_id: 1001,
+                                    name: "John Doe",
+                                    username: "johndoe",
+                                    email: "john@example.com",
+                                    title: "CEO",
+                                    company: "Example Corp",
+                                    proficiency: "Business Strategy",
+                                    tags: ["Leadership", "Strategy"],
+                                    profileImage: nil
+                                )
+                            ]
+                            self.myNetwork = testData
+                        }
+                        .padding(.top, 8)
+                        .foregroundColor(.green)
+                    }
+                    .padding(.vertical, 40)
+                }
             }
         }
+    }
+    
+    // MARK: - Footer Section with Floating Menu
+    private var footerSection: some View {
+        ZStack(alignment: .bottomTrailing) {
+            if showMoreMenu {
+                // Tap-to-dismiss layer
+                Color.clear
+                    .ignoresSafeArea()
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        withAnimation {
+                            showMoreMenu = false
+                        }
+                    }
+                    .zIndex(0)
+            }
+
+            VStack(alignment: .trailing, spacing: 8) {
+                if showMoreMenu {
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text("Welcome to your resources")
+                            .font(.headline)
+                            .padding()
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(Color(.systemGray5))
+
+                        NavigationLink(destination: PageUnifiedNetworking().navigationBarBackButtonHidden(true)) {
+                            MenuItem(icon: "person.2.fill", title: "Connect and Network")
+                        }
+                        NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true)) {
+                            MenuItem(icon: "person.crop.square.fill", title: "Your Business Profile")
+                        }
+                        NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
+                            MenuItem(icon: "text.bubble.fill", title: "The Forum Feed")
+                        }
+                        NavigationLink(destination: PageEntrepreneurResources().navigationBarBackButtonHidden(true)) {
+                            MenuItem(icon: "briefcase.fill", title: "Professional Services")
+                        }
+                        NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
+                            MenuItem(icon: "envelope.fill", title: "Messages")
+                        }
+
+                        Divider()
+
+                        NavigationLink(destination: PageCircles().navigationBarBackButtonHidden(true)) {
+                            MenuItem(icon: "circle.grid.2x2.fill", title: "Circles")
+                        }
+                    }
+                    .background(Color(.systemGray6))
+                    .cornerRadius(12)
+                    .shadow(radius: 5)
+                    .frame(width: 250)
+                    .transition(.scale.combined(with: .opacity))
+                }
+
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.4)) {
+                        showMoreMenu.toggle()
+                        rotationAngle += 360
+                    }
+                }) {
+                    ZStack {
+                        Circle()
+                            .fill(Color(hex: "004aad"))
+                            .frame(width: 60, height: 60)
+
+                        Image("CirclLogoButton")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 32, height: 32)
+                            .clipShape(Circle())
+                            .rotationEffect(.degrees(rotationAngle))
+                    }
+                }
+                .shadow(radius: 4)
+                .padding(.bottom, 35)
+            }
+            .padding(.trailing, 20)
+            .zIndex(1)
+        }
+    }
+    
+    // MARK: - Bottom Navigation Bar (EXACT copy from Forum page)
+    private var bottomNavigationBar: some View {
+        HStack(spacing: 0) {
+            // Messages
+            NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
+                VStack(spacing: 4) {
+                    Image(systemName: "envelope")
+                        .font(.system(size: 22, weight: .medium))
+                        .foregroundColor(Color(UIColor.label).opacity(0.6))
+                    Text("Messages")
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundColor(Color(UIColor.label).opacity(0.6))
+                }
+                .frame(maxWidth: .infinity)
+            }
+            .transaction { transaction in
+                transaction.disablesAnimations = true
+            }
+            
+            // Connect and Network (Current page - highlighted)
+            VStack(spacing: 4) {
+                Image(systemName: "person.2.fill")
+                    .font(.system(size: 22, weight: .medium))
+                    .foregroundColor(Color(hex: "004aad"))
+                Text("Network")
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundColor(Color(hex: "004aad"))
+            }
+            .frame(maxWidth: .infinity)
+            
+            // Circles
+            NavigationLink(destination: PageCircles().navigationBarBackButtonHidden(true)) {
+                VStack(spacing: 4) {
+                    Image(systemName: "circle.grid.2x2")
+                        .font(.system(size: 22, weight: .medium))
+                        .foregroundColor(Color(UIColor.label).opacity(0.6))
+                    Text("Circles")
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundColor(Color(UIColor.label).opacity(0.6))
+                }
+                .frame(maxWidth: .infinity)
+            }
+            .transaction { transaction in
+                transaction.disablesAnimations = true
+            }
+            
+            // Business Profile
+            NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true)) {
+                VStack(spacing: 4) {
+                    Image(systemName: "building.2")
+                        .font(.system(size: 22, weight: .medium))
+                        .foregroundColor(Color(UIColor.label).opacity(0.6))
+                    Text("Business")
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundColor(Color(UIColor.label).opacity(0.6))
+                }
+                .frame(maxWidth: .infinity)
+            }
+            .transaction { transaction in
+                transaction.disablesAnimations = true
+            }
+            
+            // More / Additional Resources
+            Button(action: {
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    showBottomMoreMenu.toggle()
+                }
+            }) {
+                VStack(spacing: 4) {
+                    Image(systemName: "ellipsis")
+                        .font(.system(size: 22, weight: .medium))
+                        .foregroundColor(Color(UIColor.label).opacity(0.6))
+                    Text("More")
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundColor(Color(UIColor.label).opacity(0.6))
+                }
+                .frame(maxWidth: .infinity)
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(
+            Rectangle()
+                .fill(Color(UIColor.systemBackground))
+                .shadow(color: .black.opacity(0.1), radius: 1, x: 0, y: -1)
+                .ignoresSafeArea(edges: .bottom)
+        )
+        .overlay(
+            Rectangle()
+                .frame(height: 0.5)
+                .foregroundColor(Color(UIColor.separator))
+                .padding(.horizontal, 16),
+            alignment: .top
+        )
     }
     
     // MARK: - Card Views
@@ -711,7 +960,14 @@ struct PageUnifiedNetworking: View {
     
     private func enhancedMentorCard(for mentor: MentorProfileData) -> some View {
         Button(action: {
-            print("🎯 Mentor card tapped for: \(mentor.name)")
+            fetchUserProfile(userId: mentor.user_id) { profile in
+                if let profile = profile {
+                    selectedFullProfile = profile
+                    showProfilePreview = true
+                } else {
+                    print("🎯 No profile data available for mentor: \(mentor.name)")
+                }
+            }
         }) {
             VStack(alignment: .leading, spacing: 12) {
                 HStack(spacing: 12) {
@@ -744,7 +1000,9 @@ struct PageUnifiedNetworking: View {
                 
                 HStack(spacing: 12) {
                     Button(action: {
-                        print("Mentor declined: \(mentor.email)")
+                        withAnimation {
+                            _ = declinedEmails.insert(mentor.email)
+                        }
                     }) {
                         Text("Pass")
                             .font(.system(size: 14, weight: .semibold))
@@ -784,44 +1042,58 @@ struct PageUnifiedNetworking: View {
     }
     
     private func enhancedNetworkConnectionCard(for connection: InviteProfileData) -> some View {
-        Button(action: {
-            print("🎯 Network connection tapped for: \(connection.name)")
+        print("🃏 Creating card for: \(connection.name) - \(connection.email)")
+        return Button(action: {
+            fetchUserProfile(userId: connection.user_id) { profile in
+                if let profile = profile {
+                    selectedFullProfile = profile
+                    showProfilePreview = true
+                } else {
+                    print("🎯 No profile data available for connection: \(connection.name)")
+                }
+            }
         }) {
-            VStack(alignment: .leading, spacing: 12) {
-                HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 10) { // Reduced from 12 to 10
+                HStack(spacing: 10) { // Reduced from 12 to 10
                     Circle()
                         .fill(Color(.systemGray5))
-                        .frame(width: 50, height: 50)
+                        .frame(width: 45, height: 45) // Reduced from 50x50 to 45x45
                         .overlay(
                             Image(systemName: "person.fill")
+                                .font(.system(size: 18)) // Slightly smaller icon
                                 .foregroundColor(.secondary)
                         )
                     
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: 3) { // Reduced spacing from 4 to 3
                         Text(connection.name)
-                            .font(.system(size: 16, weight: .semibold))
+                            .font(.system(size: 15, weight: .semibold)) // Reduced from 16
                             .foregroundColor(.primary)
+                            .lineLimit(1)
                         
                         Text("@\(connection.username)")
-                            .font(.system(size: 14))
+                            .font(.system(size: 13)) // Reduced from 14
                             .foregroundColor(.secondary)
+                            .lineLimit(1)
                         
                         if !connection.company.isEmpty {
                             Text(connection.company)
-                                .font(.system(size: 13))
+                                .font(.system(size: 12)) // Reduced from 13
                                 .foregroundColor(.secondary)
+                                .lineLimit(1)
                         }
                     }
                     
                     Spacer()
                     
                     Button(action: {
-                        print("Message \(connection.name)")
+                        // Navigate to messages with this user
+                        print("📱 Opening message conversation with \(connection.name)")
+                        // You could add navigation to messages page here
                     }) {
                         Image(systemName: "message.fill")
-                            .font(.system(size: 16))
+                            .font(.system(size: 14)) // Reduced from 16
                             .foregroundColor(Color(hex: "004aad"))
-                            .padding(8)
+                            .padding(6) // Reduced from 8
                             .background(
                                 Circle()
                                     .fill(Color(hex: "004aad").opacity(0.1))
@@ -829,17 +1101,29 @@ struct PageUnifiedNetworking: View {
                     }
                 }
             }
-            .padding(12)
+            .padding(10) // Reduced from 12
         }
         .buttonStyle(PlainButtonStyle())
         .background(
-            RoundedRectangle(cornerRadius: 16)
+            RoundedRectangle(cornerRadius: 12) // Reduced from 16
                 .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
+                .shadow(color: .black.opacity(0.05), radius: 6, x: 0, y: 1) // Reduced shadow
         )
     }
 
     // MARK: - API Functions
+    func loadAllNetworkingData() {
+        isLoading = true
+        loadUserData()
+        // Use NetworkDataManager for all data loading
+        networkManager.refreshAllData()
+        
+        // Set loading to false after a brief delay to allow data to load
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            isLoading = false
+        }
+    }
+    
     func loadUserData() {
         fetchCurrentUserProfile()
         fetchUnreadMessageCount()
@@ -895,8 +1179,34 @@ struct PageUnifiedNetworking: View {
     }
     
     func fetchMyNetwork() {
+        // Use NetworkDataManager for network connections (which fetches the actual connected profiles)
+        networkManager.fetchNetworkConnections()
+    }
+    
+    func fetchEntrepreneurs() {
+        // Use NetworkDataManager for entrepreneurs data
+        networkManager.fetchEntrepreneursData()
+    }
+    
+    func fetchMentors() {
+        // Use NetworkDataManager for mentors data
+        networkManager.fetchMentorsData()
+    }
+    
+    func fetchUserNetwork(completion: @escaping () -> Void) {
+        // Use NetworkDataManager for user network emails
+        networkManager.fetchUserNetwork()
+        completion()
+    }
+    
+    func addToNetwork(email: String) {
+        // Use NetworkDataManager for adding connections
+        networkManager.addToNetwork(email: email)
+        
+        // Show feedback to user
         DispatchQueue.main.async {
-            myNetwork = []
+            self.alertMessage = "Connection request sent to \(email)!"
+            self.showAlert = true
         }
     }
     
