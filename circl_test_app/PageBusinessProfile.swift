@@ -327,8 +327,8 @@ struct PageBusinessProfile: View {
                                 Divider()
                                     .padding(.horizontal, 16)
                                 
-                                // Settings/Profile
-                                NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
+                                // Settings
+                                NavigationLink(destination: PageSettings().navigationBarBackButtonHidden(true)) {
                                     HStack(spacing: 16) {
                                         Image(systemName: "gear.circle.fill")
                                             .font(.system(size: 20))
@@ -336,7 +336,7 @@ struct PageBusinessProfile: View {
                                             .frame(width: 24)
                                         
                                         VStack(alignment: .leading, spacing: 2) {
-                                            Text("Settings & Profile")
+                                            Text("Settings")
                                                 .font(.system(size: 16, weight: .medium))
                                                 .foregroundColor(.primary)
                                             Text("Manage your account and preferences")
@@ -376,7 +376,7 @@ struct PageBusinessProfile: View {
                         .cornerRadius(16)
                         .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: -5)
                         .padding(.horizontal, 16)
-                        .padding(.bottom, 100) // Leave space for bottom navigation
+                        .padding(.bottom, 80) // Leave space for bottom navigation
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                     }
                     .zIndex(2)

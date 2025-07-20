@@ -398,64 +398,19 @@ struct PageCircles: View {
                 }
                 .ignoresSafeArea(edges: .bottom)
                 .zIndex(1)
-            }
-        }
-        .navigationBarHidden(true)
-        .onAppear {
-            loadCircles()
-            loadUserData()
-        }
-        .onChange(of: showMyCircles) { newValue in
-            print("🔄 showMyCircles changed:", newValue)
-            loadCircles()
-        }
-        
-        
-        NavigationLink(
-            destination: GroupChatWrapper(circle: selectedCircleToOpen),
-            isActive: $triggerOpenGroupChat
-        ) {
-            EmptyView()
-        }
-        
-        NavigationLink(
-            destination: GroupChatWrapper(circle: selectedCircleToOpen),
-            isActive: $triggerOpenGroupChat
-        ) {
-            EmptyView()
-        }
-        .sheet(isPresented: $showAboutPopup) {
-            if let circle = selectedCircleToOpen {
-                NavigationView {
-                    CirclPopupCard(
-                        circle: circle,
-                        isMember: myCircles.contains(where: { $0.id == circle.id }),
-                        onJoinPressed: {
-                            joinCircleAndOpen(circle: circle)
-                            showAboutPopup = false
-                        },
-                        onOpenCircle: {
-                            selectedCircleToOpen = circle
-                            triggerOpenGroupChat = true
-                            showAboutPopup = false
-                        }
-                    )
-                    .navigationBarHidden(true)
-                }
-            }
-        }
-        
-        // MARK: - More Menu Popup
-        if showMoreMenu {
+                
+                // MARK: - More Menu Popup
+                if showMoreMenu {
             VStack {
                 Spacer()
                 
                 VStack(alignment: .leading, spacing: 0) {
                     Text("More Options")
-                        .font(.system(size: 18, weight: .bold))
+                        .font(.headline)
+                        .fontWeight(.bold)
                         .padding(.horizontal, 20)
                         .padding(.top, 20)
-                        .padding(.bottom, 16)
+                        .padding(.bottom, 10)
                         .foregroundColor(.primary)
                     
                     Divider()
@@ -491,11 +446,6 @@ struct PageCircles: View {
                         .transaction { transaction in
                             transaction.disablesAnimations = true
                         }
-                        .onTapGesture {
-                            withAnimation(.easeInOut(duration: 0.3)) {
-                                showMoreMenu = false
-                            }
-                        }
                         
                         Divider()
                             .padding(.horizontal, 16)
@@ -528,11 +478,6 @@ struct PageCircles: View {
                         }
                         .transaction { transaction in
                             transaction.disablesAnimations = true
-                        }
-                        .onTapGesture {
-                            withAnimation(.easeInOut(duration: 0.3)) {
-                                showMoreMenu = false
-                            }
                         }
                         
                         Divider()
@@ -567,30 +512,20 @@ struct PageCircles: View {
                         .transaction { transaction in
                             transaction.disablesAnimations = true
                         }
-                        .onTapGesture {
-                            withAnimation(.easeInOut(duration: 0.3)) {
-                                showMoreMenu = false
-                            }
-                        }
                         
                         Divider()
                             .padding(.horizontal, 16)
                         
-                        // Settings & Profile
-                        Button(action: {
-                            withAnimation(.easeInOut(duration: 0.3)) {
-                                showMoreMenu = false
-                            }
-                            // Add settings navigation here
-                        }) {
+                        // Settings
+                        NavigationLink(destination: PageSettings().navigationBarBackButtonHidden(true)) {
                             HStack(spacing: 16) {
-                                Image(systemName: "gearshape.fill")
+                                Image(systemName: "gear.circle.fill")
                                     .font(.system(size: 20))
                                     .foregroundColor(Color(hex: "004aad"))
                                     .frame(width: 24)
                                 
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text("Settings & Profile")
+                                    Text("Settings")
                                         .font(.system(size: 16, weight: .medium))
                                         .foregroundColor(.primary)
                                     Text("Manage your account and preferences")
@@ -607,23 +542,24 @@ struct PageCircles: View {
                             .padding(.horizontal, 20)
                             .padding(.vertical, 16)
                         }
-                        
-                        // Close Button
-                        Divider()
-                            .padding(.horizontal, 16)
-                        
-                        Button(action: {
-                            withAnimation(.easeInOut(duration: 0.3)) {
-                                showMoreMenu = false
-                            }
-                        }) {
-                            Text("Close")
-                                .font(.system(size: 16, weight: .medium))
-                                .foregroundColor(Color(hex: "004aad"))
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 16)
+                        .transaction { transaction in
+                            transaction.disablesAnimations = true
                         }
                     }
+                    
+                    // Close button
+                    Button(action: {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            showMoreMenu = false
+                        }
+                    }) {
+                        Text("Close")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(Color(hex: "004aad"))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                    }
+                    .background(Color(UIColor.systemGray6))
                 }
                 .background(Color(UIColor.systemBackground))
                 .cornerRadius(16)
@@ -646,8 +582,51 @@ struct PageCircles: View {
                 }
                 .zIndex(1)
         }
+        }
+        .navigationBarHidden(true)
+        .onAppear {
+            loadCircles()
+            loadUserData()
+        }
+        .onChange(of: showMyCircles) { newValue in
+            print("🔄 showMyCircles changed:", newValue)
+            loadCircles()
+        }
+        }
         
+        NavigationLink(
+            destination: GroupChatWrapper(circle: selectedCircleToOpen),
+            isActive: $triggerOpenGroupChat
+        ) {
+            EmptyView()
+        }
         
+        NavigationLink(
+            destination: GroupChatWrapper(circle: selectedCircleToOpen),
+            isActive: $triggerOpenGroupChat
+        ) {
+            EmptyView()
+        }
+        .sheet(isPresented: $showAboutPopup) {
+            if let circle = selectedCircleToOpen {
+                NavigationView {
+                    CirclPopupCard(
+                        circle: circle,
+                        isMember: myCircles.contains(where: { $0.id == circle.id }),
+                        onJoinPressed: {
+                            joinCircleAndOpen(circle: circle)
+                            showAboutPopup = false
+                        },
+                        onOpenCircle: {
+                            selectedCircleToOpen = circle
+                            triggerOpenGroupChat = true
+                            showAboutPopup = false
+                        }
+                    )
+                    .navigationBarHidden(true)
+                }
+            }
+        }
     }
     
     // MARK: - Load User Data

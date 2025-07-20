@@ -1,4 +1,6 @@
 import SwiftUI
+import AVKit
+import AVFoundation
 
 
 struct BlockedUser: Identifiable, Hashable {
@@ -12,6 +14,11 @@ struct PageSettings: View {
     @State private var showLogoutAlert = false
     @State private var isLogoutConfirmed = false
     @State private var isAnimating = false
+    
+    // Easter egg variables
+    @State private var settingsClickCount = 0
+    @State private var showEasterEggVideo = false
+    @State private var player: AVPlayer?
 
     private var animatedBackground: some View {
         ZStack {
@@ -108,10 +115,29 @@ struct PageSettings: View {
                     
                     Spacer()
                     
-                    // Center - Settings Title
+                    // Center - Settings Title (Easter Egg!)
                     Text("Settings")
                         .font(.system(size: 24, weight: .bold))
                         .foregroundColor(.white)
+                        .onTapGesture {
+                            settingsClickCount += 1
+                            
+                            // Add haptic feedback for fun
+                            let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                            impactFeedback.impactOccurred()
+                            
+                            // Reset counter after 5 seconds of no clicking
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+                                if settingsClickCount < 10 {
+                                    settingsClickCount = 0
+                                }
+                            }
+                            
+                            // Activate easter egg after 10 clicks
+                            if settingsClickCount >= 10 {
+                                triggerEasterEgg()
+                            }
+                        }
                     
                     Spacer()
                     
@@ -233,6 +259,100 @@ struct PageSettings: View {
                 secondaryButton: .cancel()
             )
         }
+        }
+        .fullScreenCover(isPresented: $showEasterEggVideo) {
+            EasterEggVideoPlayer(player: player)
+                .onDisappear {
+                    // Reset player and counter when video is closed
+                    player?.pause()
+                    player?.seek(to: .zero)
+                    player = nil // Reset the player completely
+                    settingsClickCount = 0 // Reset click count after video
+                }
+        }
+    }
+    
+    // MARK: - Easter Egg Functions
+    private func triggerEasterEgg() {
+        // Reset any existing player first
+        player?.pause()
+        player = nil
+        
+        // Try multiple approaches to find the video
+        var videoURL: URL?
+        
+        // Method 1: Try the copied file in main bundle
+        videoURL = Bundle.main.url(forResource: "ssstik.io_1753048469521", withExtension: "mp4")
+        
+        // Method 2: Try without extension
+        if videoURL == nil {
+            videoURL = Bundle.main.url(forResource: "ssstik.io_1753048469521", withExtension: nil)
+        }
+        
+        // Method 3: Try NSDataAsset for Assets.xcassets
+        if videoURL == nil {
+            if let asset = NSDataAsset(name: "myamazingceo") {
+                let tempDirectory = FileManager.default.temporaryDirectory
+                let tempFileURL = tempDirectory.appendingPathComponent("easter_egg_video_\(Date().timeIntervalSince1970).mp4")
+                
+                do {
+                    try asset.data.write(to: tempFileURL)
+                    videoURL = tempFileURL
+                } catch {
+                    print("❌ Could not write asset to temp file: \(error)")
+                }
+            }
+        }
+        
+        // If we found a video URL, create a fresh player
+        if let url = videoURL {
+            print("🎬 Creating fresh player with URL: \(url)")
+            
+            // Create a completely new player instance
+            let playerItem = AVPlayerItem(url: url)
+            player = AVPlayer(playerItem: playerItem)
+            
+            // Configure audio session for video playback
+            do {
+                try AVAudioSession.sharedInstance().setCategory(.playback, mode: .moviePlayback, options: [])
+                try AVAudioSession.sharedInstance().setActive(true)
+                print("🎬 Audio session configured for video playback")
+            } catch {
+                print("⚠️ Could not configure audio session: \(error)")
+            }
+            
+            // Set up player properties
+            if let configuredPlayer = player {
+                configuredPlayer.volume = 1.0
+                configuredPlayer.actionAtItemEnd = .pause // Change to pause instead of none
+                print("🎬 Fresh player configured successfully")
+            }
+            
+            showEasterEggVideo = true
+            
+            // Add celebration haptic feedback
+            let notificationFeedback = UINotificationFeedbackGenerator()
+            notificationFeedback.notificationOccurred(.success)
+            
+            print("🎉 Easter egg activated! Playing CEO video from: \(url.lastPathComponent)")
+        } else {
+            print("❌ Could not find video file anywhere!")
+            
+            // Debug: List available files
+            if let resourcePath = Bundle.main.resourcePath {
+                print("📂 Bundle resources:")
+                do {
+                    let files = try FileManager.default.contentsOfDirectory(atPath: resourcePath)
+                    for file in files.filter({ $0.contains("ssstik") || $0.contains("mp4") || $0.contains("video") }) {
+                        print("  - \(file)")
+                    }
+                } catch {
+                    print("  Could not list files: \(error)")
+                }
+            }
+            
+            // Show a fallback message instead
+            showEasterEggVideo = true // This will show the player with no content, but at least the message
         }
     }
 
@@ -1261,7 +1381,163 @@ struct ContactSupportPage: View {
     }
 }
 
-
+// MARK: - Easter Egg Video Player
+struct EasterEggVideoPlayer: View {
+    let player: AVPlayer?
+    @Environment(\.presentationMode) var presentationMode
+    @State private var isPlayerReady = false
+    @State private var playerStatus = "Initializing..."
+    
+    var body: some View {
+        ZStack {
+            Color.black.ignoresSafeArea()
+            
+            if let player = player {
+                VideoPlayer(player: player)
+                    .onAppear {
+                        print("🎬 VideoPlayer appeared")
+                        
+                        // Log current item info
+                        if let currentItem = player.currentItem {
+                            print("🎬 Current item: \(currentItem)")
+                            print("🎬 Asset: \(currentItem.asset)")
+                            
+                            // Check if asset is playable
+                            let asset = currentItem.asset
+                            asset.loadValuesAsynchronously(forKeys: ["playable", "duration"]) {
+                                DispatchQueue.main.async {
+                                    var error: NSError?
+                                    let playableStatus = asset.statusOfValue(forKey: "playable", error: &error)
+                                    let durationStatus = asset.statusOfValue(forKey: "duration", error: &error)
+                                    
+                                    print("🎬 Playable status: \(playableStatus.rawValue)")
+                                    print("🎬 Duration status: \(durationStatus.rawValue)")
+                                    
+                                    if playableStatus == .loaded {
+                                        print("🎬 Asset is playable: \(asset.isPlayable)")
+                                        print("🎬 Asset duration: \(asset.duration)")
+                                        playerStatus = "Ready to play"
+                                    }
+                                    
+                                    if let error = error {
+                                        print("❌ Asset loading error: \(error)")
+                                        playerStatus = "Error: \(error.localizedDescription)"
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // Configure player for better playback
+                        player.volume = 1.0
+                        player.actionAtItemEnd = .none
+                        
+                        // Start playing with a delay to ensure everything is loaded
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                            print("🎬 Attempting to start playback...")
+                            player.play()
+                            isPlayerReady = true
+                            
+                            // Check player rate after attempting to play
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                                print("🎬 Player rate after play(): \(player.rate)")
+                                print("🎬 Player status: \(player.status.rawValue)")
+                                print("🎬 Player error: \(player.error?.localizedDescription ?? "none")")
+                                
+                                if player.rate == 0 {
+                                    playerStatus = "Video failed to play"
+                                } else {
+                                    playerStatus = "Playing"
+                                }
+                            }
+                        }
+                    }
+                    .onDisappear {
+                        player.pause()
+                        player.seek(to: .zero)
+                    }
+            } else {
+                // Fallback content when video isn't available
+                VStack(spacing: 20) {
+                    Image(systemName: "play.circle.fill")
+                        .font(.system(size: 80))
+                        .foregroundColor(.white)
+                    
+                    Text("🎉 Easter Egg Activated! 🎉")
+                        .font(.title)
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                    
+                    Text("You found the secret!")
+                        .font(.title2)
+                        .foregroundColor(.white)
+                    
+                    Text("Video temporarily unavailable")
+                        .font(.body)
+                        .foregroundColor(.gray)
+                }
+            }
+            
+            // Debug status overlay (can be removed later)
+            VStack {
+                HStack {
+                    Text(playerStatus)
+                        .font(.caption)
+                        .padding(8)
+                        .background(Color.black.opacity(0.7))
+                        .foregroundColor(.white)
+                        .cornerRadius(8)
+                    Spacer()
+                }
+                .padding(.top, 60)
+                Spacer()
+            }
+            
+            // Loading indicator while player is setting up
+            if !isPlayerReady && player != nil {
+                VStack {
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        .scaleEffect(1.5)
+                    
+                    Text("Loading video...")
+                        .foregroundColor(.white)
+                        .padding(.top, 10)
+                }
+            }
+            
+            // Close button in top-right corner
+            VStack {
+                HStack {
+                    Spacer()
+                    Button(action: {
+                        presentationMode.wrappedValue.dismiss()
+                    }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 30))
+                            .foregroundColor(.white)
+                            .background(Color.black.opacity(0.6))
+                            .clipShape(Circle())
+                    }
+                    .padding()
+                }
+                Spacer()
+            }
+            
+            // Fun easter egg message at the bottom
+            VStack {
+                Spacer()
+                Text("🎉 You found the secret! 🎉")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                    .background(Color.black.opacity(0.6))
+                    .padding()
+                    .cornerRadius(10)
+                    .padding(.bottom, 50)
+            }
+        }
+    }
+}
 
 
 struct PageSettings_Previews: PreviewProvider {
