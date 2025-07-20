@@ -31,6 +31,9 @@ class NetworkDataManager: ObservableObject {
         fetchFriendRequests()
         fetchEntrepreneursData()
         fetchMentorsData()
+        
+        // Add test data for demonstration
+        addTestEntrepreneursAndMentors()
     }
     
     func fetchUserNetwork() {
@@ -187,7 +190,7 @@ class NetworkDataManager: ObservableObject {
                 company: domain.replacingOccurrences(of: ".com", with: "").capitalized,
                 proficiency: "Networking",
                 tags: ["Professional", "Network"],
-                profileImage: nil
+                profileImage: "https://picsum.photos/100/100?random=\(20 + index)"
             )
             
             convertedProfiles.append(profile)
@@ -203,14 +206,36 @@ class NetworkDataManager: ObservableObject {
         let testConnections = [
             InviteProfileData(
                 user_id: 999,
-                name: "Test Connection",
-                username: "testuser",
-                email: "test@example.com",
+                name: "Alex Johnson",
+                username: "alexj",
+                email: "alex@techcorp.com",
                 title: "Software Engineer",
                 company: "Tech Corp",
                 proficiency: "iOS Development",
                 tags: ["Swift", "iOS"],
-                profileImage: nil
+                profileImage: "https://picsum.photos/100/100?random=10"
+            ),
+            InviteProfileData(
+                user_id: 998,
+                name: "Sarah Chen",
+                username: "sarahc",
+                email: "sarah@designstudio.com",
+                title: "UX Designer",
+                company: "Design Studio",
+                proficiency: "User Experience",
+                tags: ["Design", "UX"],
+                profileImage: "https://picsum.photos/100/100?random=11"
+            ),
+            InviteProfileData(
+                user_id: 997,
+                name: "Michael Rodriguez",
+                username: "mikr",
+                email: "michael@startup.co",
+                title: "Product Manager",
+                company: "Startup Co",
+                proficiency: "Product Strategy",
+                tags: ["Product", "Strategy"],
+                profileImage: "https://picsum.photos/100/100?random=12"
             )
         ]
         
@@ -459,5 +484,73 @@ class NetworkDataManager: ObservableObject {
             return !self.userNetworkEmails.contains(entrepreneur.email) && entrepreneur.email != currentUserEmail
         }
         print("✅ NetworkDataManager - Updated entrepreneurs count: \(self.entrepreneurs.count)")
+    }
+    
+    // MARK: - Test Data
+    func addTestEntrepreneursAndMentors() {
+        // Add test entrepreneurs with profile images
+        let testEntrepreneurs = [
+            SharedEntrepreneurProfileData(
+                user_id: 9001,
+                name: "Sarah Johnson",
+                email: "sarah@testentrepreneur.com",
+                username: "sarahj",
+                profileImage: "https://picsum.photos/seed/sarah/200/200",
+                businessName: "TechStartup Inc",
+                businessStage: "Series A",
+                businessIndustry: "Technology",
+                businessBio: "Building the future of AI-powered solutions",
+                fundingRaised: "$2.5M",
+                lookingFor: ["Technical Co-founder"],
+                isMentor: false
+            ),
+            SharedEntrepreneurProfileData(
+                user_id: 9002,
+                name: "Mike Chen",
+                email: "mike@testentrepreneur.com",
+                username: "mikec",
+                profileImage: "https://picsum.photos/seed/mike/200/200",
+                businessName: "GreenEnergy Solutions",
+                businessStage: "Seed",
+                businessIndustry: "Clean Energy",
+                businessBio: "Revolutionizing renewable energy storage",
+                fundingRaised: "$500K",
+                lookingFor: ["Marketing Partner"],
+                isMentor: false
+            )
+        ]
+        
+        // Add test mentors with profile images
+        let testMentors = [
+            MentorProfileData(
+                user_id: 9003,
+                name: "Dr. Emily Rodriguez",
+                username: "emilyrod",
+                title: "Partner",
+                company: "TopTier Ventures",
+                proficiency: "Venture Capital",
+                tags: ["VC", "Funding", "Strategy"],
+                email: "emily@testmentor.com",
+                profileImage: "https://picsum.photos/seed/emily/200/200"
+            ),
+            MentorProfileData(
+                user_id: 9004,
+                name: "James Wilson",
+                username: "jameswilson",
+                title: "Former CMO",
+                company: "Fortune 500 Corp",
+                proficiency: "Marketing Strategy",
+                tags: ["Marketing", "Digital", "Growth"],
+                email: "james@testmentor.com",
+                profileImage: "https://picsum.photos/seed/james/200/200"
+            )
+        ]
+        
+        // Add to existing arrays
+        self.entrepreneurs.append(contentsOf: testEntrepreneurs)
+        self.mentors.append(contentsOf: testMentors)
+        
+        print("✅ Added test entrepreneurs: \(testEntrepreneurs.count)")
+        print("✅ Added test mentors: \(testMentors.count)")
     }
 }

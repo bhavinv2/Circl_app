@@ -893,8 +893,8 @@ struct PageForum: View {
                             Divider()
                                 .padding(.horizontal, 16)
                             
-                            // Settings/Profile
-                            NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
+                            // Settings
+                            NavigationLink(destination: PageSettings().navigationBarBackButtonHidden(true)) {
                                 HStack(spacing: 16) {
                                     Image(systemName: "gear.circle.fill")
                                         .font(.system(size: 20))
@@ -902,7 +902,7 @@ struct PageForum: View {
                                         .frame(width: 24)
                                     
                                     VStack(alignment: .leading, spacing: 2) {
-                                        Text("Settings & Profile")
+                                        Text("Settings")
                                             .font(.system(size: 16, weight: .medium))
                                             .foregroundColor(.primary)
                                         Text("Manage your account and preferences")

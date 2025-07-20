@@ -86,6 +86,8 @@ struct PageUnifiedNetworking: View {
                     Spacer()
                     bottomNavigationBar
                 }
+                .ignoresSafeArea(edges: .bottom)
+                .zIndex(1)
                 
                 // MARK: - More Menu Popup (EXACT copy from Forum page)
                 if showBottomMoreMenu {
@@ -205,7 +207,7 @@ struct PageUnifiedNetworking: View {
                                     .padding(.horizontal, 16)
                                 
                                 // Settings/Profile
-                                NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
+                                NavigationLink(destination: PageSettings().navigationBarBackButtonHidden(true)) {
                                     HStack(spacing: 16) {
                                         Image(systemName: "gear.circle.fill")
                                             .font(.system(size: 20))
@@ -213,7 +215,7 @@ struct PageUnifiedNetworking: View {
                                             .frame(width: 24)
                                         
                                         VStack(alignment: .leading, spacing: 2) {
-                                            Text("Settings & Profile")
+                                            Text("Settings")
                                                 .font(.system(size: 16, weight: .medium))
                                                 .foregroundColor(.primary)
                                             Text("Manage your account and preferences")
@@ -291,7 +293,7 @@ struct PageUnifiedNetworking: View {
                         company: "Test Corp",
                         proficiency: "Business Strategy",
                         tags: ["Leadership", "Strategy"],
-                        profileImage: nil
+                        profileImage: "https://picsum.photos/100/100?random=1"
                     ),
                     InviteProfileData(
                         user_id: 1002,
@@ -302,7 +304,7 @@ struct PageUnifiedNetworking: View {
                         company: "Tech Corp",
                         proficiency: "Technology",
                         tags: ["Tech", "Innovation"],
-                        profileImage: nil
+                        profileImage: "https://picsum.photos/100/100?random=2"
                     )
                 ]
                 self.myNetwork = testData
@@ -685,7 +687,18 @@ struct PageUnifiedNetworking: View {
                                     company: "Example Corp",
                                     proficiency: "Business Strategy",
                                     tags: ["Leadership", "Strategy"],
-                                    profileImage: nil
+                                    profileImage: "https://picsum.photos/100/100?random=3"
+                                ),
+                                InviteProfileData(
+                                    user_id: 1003,
+                                    name: "Jane Smith",
+                                    username: "janesmith",
+                                    email: "jane@example.com",
+                                    title: "Designer",
+                                    company: "Design Co",
+                                    proficiency: "UI/UX Design",
+                                    tags: ["Design", "Creative"],
+                                    profileImage: "https://picsum.photos/100/100?random=4"
                                 )
                             ]
                             self.myNetwork = testData
@@ -783,13 +796,13 @@ struct PageUnifiedNetworking: View {
     // MARK: - Bottom Navigation Bar (EXACT copy from Forum page)
     private var bottomNavigationBar: some View {
         HStack(spacing: 0) {
-            // Messages
-            NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
+            // Forum / Home
+            NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
                 VStack(spacing: 4) {
-                    Image(systemName: "envelope")
+                    Image(systemName: "house")
                         .font(.system(size: 22, weight: .medium))
                         .foregroundColor(Color(UIColor.label).opacity(0.6))
-                    Text("Messages")
+                    Text("Home")
                         .font(.system(size: 10, weight: .medium))
                         .foregroundColor(Color(UIColor.label).opacity(0.6))
                 }
@@ -860,7 +873,8 @@ struct PageUnifiedNetworking: View {
             }
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+        .padding(.vertical, 20)
+        .padding(.bottom, 8)
         .background(
             Rectangle()
                 .fill(Color(UIColor.systemBackground))
@@ -888,13 +902,33 @@ struct PageUnifiedNetworking: View {
         }) {
             VStack(alignment: .leading, spacing: 12) {
                 HStack(spacing: 12) {
-                    Circle()
-                        .fill(Color(.systemGray5))
-                        .frame(width: 60, height: 60)
-                        .overlay(
-                            Image(systemName: "person.fill")
-                                .foregroundColor(.secondary)
-                        )
+                    // Profile Image with AsyncImage
+                    if let profileImageURL = entrepreneur.profileImage, !profileImageURL.isEmpty {
+                        AsyncImage(url: URL(string: profileImageURL)) { image in
+                            image
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 60, height: 60)
+                                .clipShape(Circle())
+                        } placeholder: {
+                            Circle()
+                                .fill(Color(.systemGray5))
+                                .frame(width: 60, height: 60)
+                                .overlay(
+                                    ProgressView()
+                                        .scaleEffect(0.8)
+                                )
+                        }
+                    } else {
+                        Circle()
+                            .fill(Color(.systemGray5))
+                            .frame(width: 60, height: 60)
+                            .overlay(
+                                Image(systemName: "person.fill")
+                                    .font(.system(size: 24))
+                                    .foregroundColor(.secondary)
+                            )
+                    }
                     
                     VStack(alignment: .leading, spacing: 4) {
                         Text(entrepreneur.name)
@@ -971,13 +1005,33 @@ struct PageUnifiedNetworking: View {
         }) {
             VStack(alignment: .leading, spacing: 12) {
                 HStack(spacing: 12) {
-                    Circle()
-                        .fill(Color(.systemGray5))
-                        .frame(width: 60, height: 60)
-                        .overlay(
-                            Image(systemName: "graduationcap.fill")
-                                .foregroundColor(.secondary)
-                        )
+                    // Profile Image with AsyncImage
+                    if let profileImageURL = mentor.profileImage, !profileImageURL.isEmpty {
+                        AsyncImage(url: URL(string: profileImageURL)) { image in
+                            image
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 60, height: 60)
+                                .clipShape(Circle())
+                        } placeholder: {
+                            Circle()
+                                .fill(Color(.systemGray5))
+                                .frame(width: 60, height: 60)
+                                .overlay(
+                                    ProgressView()
+                                        .scaleEffect(0.8)
+                                )
+                        }
+                    } else {
+                        Circle()
+                            .fill(Color(.systemGray5))
+                            .frame(width: 60, height: 60)
+                            .overlay(
+                                Image(systemName: "graduationcap.fill")
+                                    .font(.system(size: 24))
+                                    .foregroundColor(.secondary)
+                            )
+                    }
                     
                     VStack(alignment: .leading, spacing: 4) {
                         Text(mentor.name)
@@ -1055,14 +1109,33 @@ struct PageUnifiedNetworking: View {
         }) {
             VStack(alignment: .leading, spacing: 10) { // Reduced from 12 to 10
                 HStack(spacing: 10) { // Reduced from 12 to 10
-                    Circle()
-                        .fill(Color(.systemGray5))
-                        .frame(width: 45, height: 45) // Reduced from 50x50 to 45x45
-                        .overlay(
-                            Image(systemName: "person.fill")
-                                .font(.system(size: 18)) // Slightly smaller icon
-                                .foregroundColor(.secondary)
-                        )
+                    // Profile Image with AsyncImage
+                    if let profileImageURL = connection.profileImage, !profileImageURL.isEmpty {
+                        AsyncImage(url: URL(string: profileImageURL)) { image in
+                            image
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 45, height: 45)
+                                .clipShape(Circle())
+                        } placeholder: {
+                            Circle()
+                                .fill(Color(.systemGray5))
+                                .frame(width: 45, height: 45)
+                                .overlay(
+                                    ProgressView()
+                                        .scaleEffect(0.6)
+                                )
+                        }
+                    } else {
+                        Circle()
+                            .fill(Color(.systemGray5))
+                            .frame(width: 45, height: 45)
+                            .overlay(
+                                Image(systemName: "person.fill")
+                                    .font(.system(size: 18))
+                                    .foregroundColor(.secondary)
+                            )
+                    }
                     
                     VStack(alignment: .leading, spacing: 3) { // Reduced spacing from 4 to 3
                         Text(connection.name)

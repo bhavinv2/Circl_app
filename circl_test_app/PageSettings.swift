@@ -94,31 +94,38 @@ struct PageSettings: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
-            // Header with animated background
+            // Header - matching home page style exactly
             VStack(spacing: 0) {
                 HStack {
+                    // Left side - Back Button
                     Button(action: {
                         presentationMode.wrappedValue.dismiss()
                     }) {
-                        HStack(spacing: 8) {
-                            Image(systemName: "chevron.left")
-                                .font(.system(size: 18, weight: .semibold))
-                                .foregroundColor(.white)
-                            
-                            Text("Settings")
-                                .font(.system(size: 28, weight: .bold))
-                                .foregroundColor(.white)
-                        }
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 24))
+                            .foregroundColor(.white)
                     }
                     
                     Spacer()
+                    
+                    // Center - Settings Title
+                    Text("Settings")
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(.white)
+                    
+                    Spacer()
+                    
+                    // Right side - Empty spacer to center the title
+                    Spacer()
+                        .frame(width: 24) // Match the width of the back button
                 }
-                .padding(.horizontal, 20)
-                .padding(.bottom, 15)
+                .padding(.horizontal, 16)
+                .padding(.bottom, 16)
+                .padding(.top, 8)
             }
-            .padding(.top, (UIApplication.shared.windows.first?.safeAreaInsets.top ?? 0) + 15)
-            .background(animatedBackground.ignoresSafeArea())
-            .clipped()
+            .padding(.top, 50) // Add safe area padding for status bar and notch
+            .background(Color(hex: "004aad"))
+            .ignoresSafeArea(edges: .top)
 
             // Content with modern cards
             ScrollView {
