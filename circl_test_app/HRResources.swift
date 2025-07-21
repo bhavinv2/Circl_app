@@ -1,4 +1,5 @@
 import SwiftUI
+import Foundation
 
 struct HRResources: View {
     var quizAnswers: HRQuizAnswers
@@ -32,7 +33,7 @@ struct HRResources: View {
     func fetchResources(keyword: String) {
         guard let encodedKeyword = keyword.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
               let encodedLocation = quizAnswers.locationPref.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
-              let url = URL(string: "https://circlapp.online/api/legal-resources/?keyword=\(encodedKeyword)&location=\(encodedLocation)") else { return }
+              let url = URL(string: "\(baseURL)legal-resources/?keyword=\(encodedKeyword)&location=\(encodedLocation)") else { return }
 
         URLSession.shared.dataTask(with: url) { data, response, error in
             guard let data = data, error == nil else {

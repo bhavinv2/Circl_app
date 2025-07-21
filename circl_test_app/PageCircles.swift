@@ -1,5 +1,5 @@
 import SwiftUI
-
+import Foundation
 
 // MARK: - API Model
 struct APICircle: Identifiable, Decodable {
@@ -773,7 +773,7 @@ struct PageCircles: View {
     // MARK: - Load User Data
     func loadUserData() {
         // Load user profile image
-        guard let profileUrl = URL(string: "https://circlapp.online/api/users/profile/\(userId)/") else { return }
+        guard let profileUrl = URL(string: "\(baseURL)users/profile/\(userId)/") else { return }
         
         URLSession.shared.dataTask(with: profileUrl) { data, response, error in
             guard let data = data, error == nil else {
@@ -802,7 +802,7 @@ struct PageCircles: View {
         }.resume()
         
         // Load unread message count
-        guard let messagesUrl = URL(string: "https://circlapp.online/api/messages/unread_count/\(userId)/") else { return }
+        guard let messagesUrl = URL(string: "\(baseURL)messages/unread_count/\(userId)/") else { return }
         
         URLSession.shared.dataTask(with: messagesUrl) { data, response, error in
             guard let data = data, error == nil else {
@@ -842,7 +842,7 @@ struct PageCircles: View {
         }
     }
     func joinCircleAndOpen(circle: CircleData) {
-        guard let url = URL(string: "https://circlapp.online/api/circles/join_circle/") else { return }
+        guard let url = URL(string: "\(baseURL)circles/join_circle/") else { return }
         
         let payload = [
             "user_id": userId,
@@ -872,7 +872,7 @@ struct PageCircles: View {
     }
     
     func joinCircle(circleId: Int) {
-        guard let url = URL(string: "https://circlapp.online/api/circles/join_circle/") else { return }
+        guard let url = URL(string: "\(baseURL)circles/join_circle/") else { return }
         let payload = [
             "user_id": userId,
             "circle_id": circleId
@@ -895,7 +895,7 @@ struct PageCircles: View {
         }.resume()
     }
     func createCircle() {
-        guard let url = URL(string: "https://circlapp.online/api/circles/create_with_channels/") else { return }
+        guard let url = URL(string: "\(baseURL)circles/create_with_channels/") else { return }
         
         let payload: [String: Any] = [
             "user_id": userId,
@@ -933,8 +933,8 @@ struct PageCircles: View {
     func loadCircles() {
         print("🔍 loadCircles() called with userId:", userId)
         
-        guard let urlMy = URL(string: "https://circlapp.online/api/circles/my_circles/\(userId)/"),
-              let urlExplore = URL(string: "https://circlapp.online/api/circles/explore_circles/\(userId)/") else { return }
+        guard let urlMy = URL(string: "\(baseURL)circles/my_circles/\(userId)/"),
+              let urlExplore = URL(string: "\(baseURL)circles/explore_circles/\(userId)/") else { return }
         
         func convert(_ data: [APICircle]) -> [CircleData] {
             data.map {
@@ -1029,7 +1029,7 @@ struct PageCircles: View {
             let profile_image: String?
             let user_id: Int
         }
-        guard let url = URL(string: "https://circlapp.online/api/circles/members/\(circleId)/") else {
+        guard let url = URL(string: "\(baseURL)circles/members/\(circleId)/") else {
             completion(0)
             return
         }

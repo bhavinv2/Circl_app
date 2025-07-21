@@ -771,7 +771,7 @@ struct ProfileField: View {
     // Image the upload function
     func uploadProfileImage(image: UIImage) {
         guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else { return }
-        let urlString = "https://circlapp.online/api/users/upload_profile_image/"
+        let urlString = "\(baseURL)users/upload_profile_image/"
 
         guard let url = URL(string: urlString) else { return }
 
@@ -823,7 +823,7 @@ struct ProfileField: View {
             return
         }
 
-        let urlString = "https://circlapp.online/api/users/get_network/\(userId)/"
+        let urlString = "\(baseURL)users/get_network/\(userId)/"
         guard let url = URL(string: urlString) else {
             print("❌ Invalid URL")
             return
@@ -853,7 +853,7 @@ struct ProfileField: View {
             return
         }
 
-        let urlString = "https://circlapp.online/api/users/profile/\(userId)/"
+        let urlString = "\(baseURL)users/profile/\(userId)/"
         print("🌐 Fetching profile from:", urlString)
 
         guard let url = URL(string: urlString) else {
@@ -922,12 +922,12 @@ struct ProfileField: View {
             URLSession.shared.dataTask(with: request).resume()
         }
         
-        post("https://circlapp.online/api/users/update-user-bio/", [
+        post("\(baseURL)users/update-user-bio/", [
             "user_id": userId,
             "bio": updatedBio
         ])
         
-        post("https://circlapp.online/api/users/update-personal-details/", [
+        post("\(baseURL)users/update-personal-details/", [
             "user_id": userId,
             "personality_type": updatedPersonalityType,
 //            "education_level": updatedEducationLevel,
@@ -937,7 +937,7 @@ struct ProfileField: View {
             "birthday": updatedBirthday
         ])
         
-        post("https://circlapp.online/api/users/update-skills-interests/", [
+        post("\(baseURL)users/update-skills-interests/", [
             "user_id": userId,
             "locations": updatedLocations.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespaces) },
             
@@ -947,7 +947,7 @@ struct ProfileField: View {
             "hobbies": updatedHobbies.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespaces) }
         ])
         
-        post("https://circlapp.online/api/users/update-entrepreneurial-history/", [
+        post("\(baseURL)users/update-entrepreneurial-history/", [
             "user_id": userId,
             "entrepreneurial_history": updatedEntrepreneurialHistory
         ])

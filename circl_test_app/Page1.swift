@@ -1,4 +1,5 @@
 import SwiftUI
+import Foundation
 
 struct Page1: View {
     @State private var email: String = ""
@@ -313,7 +314,7 @@ struct Page1: View {
     
     // Test network connectivity
     func testConnection() {
-        guard let url = URL(string: "https://circlapp.online/api/login/") else {
+        guard let url = URL(string: "\(baseURL)login/") else {
             print("❌ Invalid URL")
             return
         }
@@ -363,7 +364,7 @@ struct Page1: View {
             return
         }
         
-        guard let url = URL(string: "https://circlapp.online/api/login/") else {
+        guard let url = URL(string: "\(baseURL)login/") else {
             print("❌ Invalid login URL")
             showLoginError(title: "Connection Error", message: "Unable to connect to login server.")
             return
@@ -544,7 +545,7 @@ struct Page1: View {
     }
     
     func submitForgotPasswordRequest() {
-        guard let url = URL(string: "https://circlapp.online/api/forgot-password/") else {
+        guard let url = URL(string: "\(baseURL)forgot-password/") else {
             print("Invalid forgot password URL")
             return
         }

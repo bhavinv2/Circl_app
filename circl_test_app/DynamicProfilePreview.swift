@@ -515,7 +515,7 @@ struct DynamicProfilePreview: View {
     
     func blockUser() {
         print("🚨 blockUser() called")
-        guard let url = URL(string: "https://circlapp.online/api/users/block_user/") else {
+        guard let url = URL(string: "\(baseURL)users/block_user/") else {
             print("❌ Invalid block URL")
             return
         }
@@ -551,7 +551,7 @@ struct DynamicProfilePreview: View {
         print("🚨 removeFriend() called")
         print("🔥 Remove friend called with user_id=\(loggedInUserId), friend_id=\(profileData.user_id)")
         
-        guard let url = URL(string: "https://circlapp.online/api/users/remove_friend/") else {
+        guard let url = URL(string: "\(baseURL)users/remove_friend/") else {
             print("❌ Invalid URL")
             return
         }

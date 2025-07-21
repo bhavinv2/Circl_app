@@ -1,7 +1,7 @@
 import SwiftUI
 import AVKit
 import AVFoundation
-
+import Foundation
 
 struct BlockedUser: Identifiable, Hashable {
     let id: Int
@@ -579,7 +579,7 @@ struct BecomeMentorPage: View {
             "reason": reason
         ]
 
-        guard let url = URL(string: "https://circlapp.online/api/users/apply_mentor/") else { return }
+        guard let url = URL(string: "\(baseURL)users/apply_mentor/") else { return }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -646,7 +646,7 @@ struct BlockedUsersPage: View {
     }
 
     func fetchBlockedUsers() {
-        guard let url = URL(string: "https://circlapp.online/api/users/get_blocked_users/"),
+        guard let url = URL(string: "\(baseURL)users/get_blocked_users/"),
               let token = UserDefaults.standard.string(forKey: "auth_token") else { return }
 
         var request = URLRequest(url: url)
@@ -670,7 +670,7 @@ struct BlockedUsersPage: View {
     }
 
     func unblock(userId: Int) {
-        guard let url = URL(string: "https://circlapp.online/api/users/unblock_user/"),
+        guard let url = URL(string: "\(baseURL)users/unblock_user/"),
               let token = UserDefaults.standard.string(forKey: "auth_token") else { return }
 
         var request = URLRequest(url: url)
@@ -804,7 +804,7 @@ struct ChangePasswordPage: View {
             return
         }
 
-        guard let url = URL(string: "https://circlapp.online/api/users/change_password/") else { return }
+        guard let url = URL(string: "\(baseURL)users/change_password/") else { return }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -878,7 +878,7 @@ struct DeleteAccountPage: View {
     }
 
     func submitDeleteRequest() {
-        guard let url = URL(string: "https://circlapp.online/api/users/request_delete_account/") else { return }
+        guard let url = URL(string: "\(baseURL)users/request_delete_account/") else { return }
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -960,7 +960,7 @@ struct SuggestFeaturePage: View {
         ]
 
         // Send to backend (create a new table `app_feedback`)
-        guard let url = URL(string: "https://circlapp.online/api/users/submit_feedback/") else { return }
+        guard let url = URL(string: "\(baseURL)users/submit_feedback/") else { return }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -1043,7 +1043,7 @@ struct ReportProblemPage: View {
         ]
 
         // Send to backend (create a new table `app_feedback`)
-        guard let url = URL(string: "https://circlapp.online/api/users/submit_feedback/") else { return }
+        guard let url = URL(string: "\(baseURL)users/submit_feedback/") else { return }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")

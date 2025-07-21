@@ -46,7 +46,7 @@ class NetworkDataManager: ObservableObject {
             return
         }
         
-        guard let url = URL(string: "https://circlapp.online/api/users/get_network/\(userId)/") else {
+        guard let url = URL(string: "\(baseURL)users/get_network/\(userId)/") else {
             isNetworkLoading = false
             return
         }
@@ -255,7 +255,7 @@ class NetworkDataManager: ObservableObject {
             return
         }
         
-        guard let url = URL(string: "https://circlapp.online/api/users/get_friend_requests/\(userId)") else {
+        guard let url = URL(string: "\(baseURL)users/get_friend_requests/\(userId)") else {
             isFriendRequestsLoading = false
             return
         }
@@ -286,7 +286,7 @@ class NetworkDataManager: ObservableObject {
     
     func addToNetwork(email: String) {
         guard let senderId = UserDefaults.standard.value(forKey: "user_id") as? Int,
-              let url = URL(string: "https://circlapp.online/api/users/send_friend_request/") else {
+              let url = URL(string: "\(baseURL)users/send_friend_request/") else {
             print("❌ NetworkDataManager - Missing sender ID or bad URL")
             return
         }
@@ -346,7 +346,7 @@ class NetworkDataManager: ObservableObject {
     func fetchEntrepreneursData() {
         let currentUserEmail = UserDefaults.standard.string(forKey: "user_email") ?? ""
         
-        guard let url = URL(string: "https://circlapp.online/api/users/get-entrepreneurs/") else { 
+        guard let url = URL(string: "\(baseURL)users/get-entrepreneurs/") else { 
             print("❌ Invalid URL for entrepreneurs")
             return 
         }
@@ -384,7 +384,7 @@ class NetworkDataManager: ObservableObject {
     func fetchMentorsData() {
         let currentUserEmail = UserDefaults.standard.string(forKey: "user_email") ?? ""
         
-        guard let url = URL(string: "https://circlapp.online/api/users/approved_mentors/") else {
+        guard let url = URL(string: "\(baseURL)users/approved_mentors/") else {
             print("❌ Invalid URL for mentors")
             return
         }

@@ -276,7 +276,7 @@ struct ReportPostView: View {
     }
 
     func submitReport() {
-        guard let url = URL(string: "https://circlapp.online/api/report_post/") else { return }
+        guard let url = URL(string: "\(baseURL)report_post/") else { return }
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -1025,7 +1025,7 @@ struct PageForum: View {
     }
     
     private func fetchPostsInternal() {
-        guard let url = URL(string: "https://circlapp.online/api/forum/get_posts/?filter=\(selectedFilter)") else {
+        guard let url = URL(string: "\(baseURL)forum/get_posts/?filter=\(selectedFilter)") else {
             showPageLoading = false
             return
         }
@@ -1064,7 +1064,7 @@ struct PageForum: View {
             return
         }
 
-        let urlString = "https://circlapp.online/api/users/profile/\(userId)/"
+        let urlString = "\(baseURL)users/profile/\(userId)/"
         print("🌐 Fetching current user profile from:", urlString)
 
         guard let url = URL(string: urlString) else {
@@ -1117,7 +1117,7 @@ struct PageForum: View {
     // MARK: - Other Network Functions
     
     func fetchUserProfile(userId: Int, completion: @escaping (FullProfile?) -> Void) {
-        guard let url = URL(string: "https://circlapp.online/api/users/profile/\(userId)/") else {
+        guard let url = URL(string: "\(baseURL)users/profile/\(userId)/") else {
             completion(nil)
             return
         }
@@ -1149,7 +1149,7 @@ struct PageForum: View {
     }
 
     func submitPost() {
-        guard let url = URL(string: "https://circlapp.online/api/forum/create_post/") else { return }
+        guard let url = URL(string: "\(baseURL)forum/create_post/") else { return }
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -1199,7 +1199,7 @@ struct PageForum: View {
     
     func fetchUserNetworkIds() {
         let userId = UserDefaults.standard.integer(forKey: "user_id")
-        guard let url = URL(string: "https://circlapp.online/api/users/get_network/\(userId)/") else { return }
+        guard let url = URL(string: "\(baseURL)users/get_network/\(userId)/") else { return }
 
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
@@ -1221,7 +1221,7 @@ struct PageForum: View {
 
     func toggleLike(_ post: ForumPostModel) {
         let endpoint = post.liked_by_user ? "unlike" : "like"
-        guard let url = URL(string: "https://circlapp.online/api/forum/posts/\(post.id)/\(endpoint)/") else { return }
+        guard let url = URL(string: "\(baseURL)forum/posts/\(post.id)/\(endpoint)/") else { return }
 
         // 🔁 Immediately update the UI locally
         if let index = posts.firstIndex(where: { $0.id == post.id }) {
@@ -1255,7 +1255,7 @@ struct PageForum: View {
     }
 
     func deletePost(_ postId: Int) {
-        guard let url = URL(string: "https://circlapp.online/api/forum/delete_post/\(postId)/") else { return }
+        guard let url = URL(string: "\(baseURL)forum/delete_post/\(postId)/") else { return }
 
         var request = URLRequest(url: url)
         request.httpMethod = "DELETE"
@@ -1279,7 +1279,7 @@ extension PageForum {
     func fetchMessagesForNotification() {
         guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else { return }
 
-        guard let url = URL(string: "https://circlapp.online/api/users/get_messages/\(userId)/") else { return }
+        guard let url = URL(string: "\(baseURL)users/get_messages/\(userId)/") else { return }
 
         URLSession.shared.dataTask(with: url) { data, _, error in
             if let data = data {
@@ -1492,7 +1492,7 @@ struct CommentSheet: View {
     }
 
     func fetchComments() {
-        guard let url = URL(string: "https://circlapp.online/api/forum/comments/\(postId)/") else { return }
+        guard let url = URL(string: "\(baseURL)forum/comments/\(postId)/") else { return }
 
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
@@ -1513,7 +1513,7 @@ struct CommentSheet: View {
     }
 
     func submitComment() {
-        guard let url = URL(string: "https://circlapp.online/api/forum/comments/add/") else { return }
+        guard let url = URL(string: "\(baseURL)forum/comments/add/") else { return }
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"

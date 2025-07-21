@@ -814,7 +814,7 @@ struct PageGroupchats: View {
             
 
             func fetchMyCircles(userId: Int) {
-                URLSession.shared.dataTask(with: URL(string: "https://circlapp.online/api/circles/get_my_circles/")!) { data, _, _ in
+                URLSession.shared.dataTask(with: URL(string: "\(baseURL)circles/get_my_circles/")!) { data, _, _ in
                     guard let data = data else {
                         DispatchQueue.main.async {
                             self.loading = false
@@ -839,7 +839,7 @@ struct PageGroupchats: View {
     }
 
     func fetchChannels(for circleId: Int) {
-        guard let url = URL(string: "https://circlapp.online/api/circles/get_channels/\(circleId)/") else { return }
+        guard let url = URL(string: "\(baseURL)circles/get_channels/\(circleId)/") else { return }
 
         URLSession.shared.dataTask(with: url) { data, _, _ in
             if let data = data {
@@ -855,7 +855,7 @@ struct PageGroupchats: View {
     }
     
     func postNewThread() {
-        guard let url = URL(string: "https://circlapp.online/api/circles/create_thread/") else { return }
+        guard let url = URL(string: "\(baseURL)circles/create_thread/") else { return }
 
         let body: [String: Any] = [
             "user_id": userId,
@@ -883,7 +883,7 @@ struct PageGroupchats: View {
     }
 
     func leaveCircle() {
-        guard let url = URL(string: "https://circlapp.online/api/circles/leave_circle/") else { return }
+        guard let url = URL(string: "\(baseURL)circles/leave_circle/") else { return }
 
         let payload: [String: Any] = [
             "user_id": userId,
@@ -904,7 +904,7 @@ struct PageGroupchats: View {
     }
     
     func deleteCircle() {
-        guard let url = URL(string: "https://circlapp.online/api/circles/delete_circle/") else { return }
+        guard let url = URL(string: "\(baseURL)circles/delete_circle/") else { return }
 
         let payload: [String: Any] = [
             "circle_id": circle.id,
@@ -925,7 +925,7 @@ struct PageGroupchats: View {
     }
 
     func fetchThreads(for circleId: Int) {
-        guard let url = URL(string: "https://circlapp.online/api/circles/get_threads/\(circleId)/") else { return }
+        guard let url = URL(string: "\(baseURL)circles/get_threads/\(circleId)/") else { return }
 
         URLSession.shared.dataTask(with: url) { data, _, _ in
             if let data = data {
@@ -1216,7 +1216,7 @@ struct PageGroupchatsWrapper: View {
             let member_count: Int?
         }
         
-        guard let url = URL(string: "https://circlapp.online/api/circles/my_circles/\(userId)/") else { return }
+        guard let url = URL(string: "\(baseURL)circles/my_circles/\(userId)/") else { return }
 
         URLSession.shared.dataTask(with: url) { data, _, _ in
             if let data = data,

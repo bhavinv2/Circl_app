@@ -1,5 +1,5 @@
 import SwiftUI
-
+import Foundation
 struct Page9: View {
     @State private var businessName: String = ""
     @State private var selectedScaleType: String? = nil
@@ -91,7 +91,7 @@ struct Page9: View {
     ]
     
     func submitBusinessInfo() {
-        guard let url = URL(string: "https://circlapp.online/api/users/update-business-info/") else {
+        guard let url = URL(string: "\(baseURL)users/update-business-info/") else {
             print("❌ Invalid API URL")
             return
         }

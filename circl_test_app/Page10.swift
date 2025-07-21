@@ -1,5 +1,5 @@
 import SwiftUI
-
+import Foundation
 struct Page10: View {
     @State private var answer1: String = ""
     @State private var answer2: String = ""
@@ -133,7 +133,7 @@ struct Page10: View {
 
     // ✅ Backend save functionality
     func submitAnswers() {
-        guard let url = URL(string: "https://circlapp.online/api/users/update-business-details/") else {
+        guard let url = URL(string: "\(baseURL)users/update-business-details/") else {
             print("❌ Invalid URL")
             return
         }

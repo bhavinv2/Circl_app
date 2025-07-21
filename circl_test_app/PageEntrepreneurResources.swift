@@ -1,5 +1,5 @@
 import SwiftUI
-
+import Foundation
 struct PageEntrepreneurResources: View {
     @State private var showMenu = false
     @State private var rotationAngle: Double = 0
@@ -231,7 +231,7 @@ struct PageEntrepreneurResources: View {
     }
 
     private func fetchUnreadMessageCount() {
-        guard let url = URL(string: "https://circlapp.online/api/unread_message_count/\(userId)/") else {
+        guard let url = URL(string: "\(baseURL)unread_message_count/\(userId)/") else {
             print("Invalid URL for unread message count")
             return
         }

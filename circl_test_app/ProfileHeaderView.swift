@@ -1,5 +1,5 @@
 import SwiftUI
-
+import Foundation
 // MARK: - Shared Header Component
 struct ProfileHeaderView: View {
     @Binding var userFirstName: String
@@ -127,7 +127,7 @@ class UserDataManager: ObservableObject {
             return
         }
 
-        let urlString = "https://circlapp.online/api/users/profile/\(userId)/"
+        let urlString = "\(baseURL)users/profile/\(userId)/"
         print("🌐 Fetching current user profile from:", urlString)
 
         guard let url = URL(string: urlString) else {
@@ -178,7 +178,7 @@ class UserDataManager: ObservableObject {
     func loadMessages() {
         guard userId > 0 else { return }
         
-        guard let url = URL(string: "https://circlapp.online/api/messages/user_messages/\(userId)/") else { return }
+        guard let url = URL(string: "\(baseURL)messages/user_messages/\(userId)/") else { return }
         
         var request = URLRequest(url: url)
         request.httpMethod = "GET"

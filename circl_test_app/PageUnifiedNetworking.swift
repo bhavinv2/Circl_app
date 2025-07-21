@@ -1208,7 +1208,7 @@ struct PageUnifiedNetworking: View {
             return
         }
 
-        let urlString = "https://circlapp.online/api/users/profile/\(userId)/"
+        let urlString = "\(baseURL)users/profile/\(userId)/"
         guard let url = URL(string: urlString) else {
             print("❌ Invalid URL")
             return
@@ -1284,7 +1284,7 @@ struct PageUnifiedNetworking: View {
     }
     
     func fetchUserProfile(userId: Int, completion: @escaping (FullProfile?) -> Void) {
-        let urlString = "https://circlapp.online/api/users/profile/\(userId)/"
+        let urlString = "\(baseURL)users/profile/\(userId)/"
         guard let url = URL(string: urlString) else {
             completion(nil)
             return

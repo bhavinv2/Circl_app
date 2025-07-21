@@ -1,5 +1,5 @@
 import SwiftUI
-
+import Foundation
 // MARK: - Data Models
 struct UnreadMessagesCountResponse: Codable {
     let unread_count: Int
@@ -213,7 +213,7 @@ struct PageInvites: View {
     }
 
     private func fetchUnreadMessageCount() {
-        guard let url = URL(string: "https://circlapp.online/api/unread-messages/count/") else {
+        guard let url = URL(string: "\(baseURL)unread-messages/count/") else {
             print("Invalid URL")
             return
         }

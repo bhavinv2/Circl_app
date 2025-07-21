@@ -1,5 +1,5 @@
 import SwiftUI
-
+import Foundation
 struct BusinessProfile: Codable {
     let id: Int?
     let business_name: String?
@@ -466,7 +466,7 @@ struct PageBusinessProfile: View {
     }
     
     private func fetchUnreadMessageCount() {
-        guard let url = URL(string: "https://circlapp.online/api/unread_message_count/\(userId)/") else {
+        guard let url = URL(string: "\(baseURL)unread_message_count/\(userId)/") else {
             print("Invalid URL for unread message count")
             return
         }

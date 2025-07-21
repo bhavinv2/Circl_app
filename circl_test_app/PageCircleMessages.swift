@@ -1,5 +1,5 @@
 import SwiftUI
-
+import Foundation
 struct PageCircleMessages: View {
     let channel: Channel
     let circleName: String
@@ -291,7 +291,7 @@ struct PageCircleMessages: View {
         .background(Color(UIColor.systemBackground))
     }
     func fetchMembers() {
-        guard let url = URL(string: "https://circlapp.online/api/circles/members/\(channel.circleId)/") else { return }
+        guard let url = URL(string: "\(baseURL)circles/members/\(channel.circleId)/") else { return }
 
 
         URLSession.shared.dataTask(with: url) { data, _, error in
@@ -312,7 +312,7 @@ struct PageCircleMessages: View {
     }
 
     func fetchMessages() {
-        let urlString = "https://circlapp.online/api/circles/get_messages/\(currentChannel.id)/?user_id=\(userId)"
+        let urlString = "\(baseURL)circles/get_messages/\(currentChannel.id)/?user_id=\(userId)"
 
         print("📡 Fetching from: \(urlString)")
 
@@ -345,7 +345,7 @@ struct PageCircleMessages: View {
 
     
     func fetchChannelsInCircle() {
-        guard let url = URL(string: "https://circlapp.online/api/circles/get_channels/\(channel.circleId)/") else { return }
+        guard let url = URL(string: "\(baseURL)circles/get_channels/\(channel.circleId)/") else { return }
 
         URLSession.shared.dataTask(with: url) { data, _, error in
             guard let data = data, error == nil else {
@@ -550,7 +550,7 @@ struct PageCircleMessages: View {
     }
     
     func leaveCircle() {
-        guard let url = URL(string: "https://circlapp.online/api/circles/leave_circle/") else { return }
+        guard let url = URL(string: "\(baseURL)circles/leave_circle/") else { return }
 
         let payload: [String: Any] = [
             "user_id": userId,
@@ -586,7 +586,7 @@ struct PageCircleMessages: View {
             "content": newMessage
         ]
 
-        let urlString = "https://circlapp.online/api/circles/send_message/"
+        let urlString = "\(baseURL)circles/send_message/"
         print("📤 Sending POST to:", urlString)
         print("📦 Payload:", messageData)
 

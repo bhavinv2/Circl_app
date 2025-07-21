@@ -1,4 +1,5 @@
 import SwiftUI
+import Foundation
 // Copy this from PageCircleMessages.swift
 struct Member: Identifiable, Decodable, Hashable {
     let id: Int
@@ -95,7 +96,7 @@ struct MemberListPage: View {
 
 
     func fetchMembers() {
-        guard let url = URL(string: "https://circlapp.online/api/circles/members/\(circleId)/") else { return }
+        guard let url = URL(string: "\(baseURL)circles/members/\(circleId)/") else { return }
 
         URLSession.shared.dataTask(with: url) { data, _, error in
             guard let data = data, error == nil else {

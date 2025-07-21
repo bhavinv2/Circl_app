@@ -1,4 +1,5 @@
 import SwiftUI
+import Foundation
 
 struct LegalResource: Codable, Identifiable {
     var id: String { displayName.text }
@@ -47,7 +48,7 @@ struct LegalTeamResources: View {
 
     func fetchLegalResources(keyword: String) {
         guard let encodedKeyword = keyword.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
-              let url = URL(string: "https://circlapp.online/api/legal-resources/?keyword=\(encodedKeyword)") else { return }
+              let url = URL(string: "\(baseURL)legal-resources/?keyword=\(encodedKeyword)") else { return }
 
         URLSession.shared.dataTask(with: url) { data, response, error in
             guard let data = data, error == nil else {

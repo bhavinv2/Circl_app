@@ -1,5 +1,5 @@
 import SwiftUI
-
+import Foundation
 struct Page11: View {
     @State private var successDefinition: String = ""
     @State private var businessUniqueness: String = ""
@@ -114,7 +114,7 @@ struct Page11: View {
     
     // Function to send data to the backend
     func saveBusinessDetails() {
-        guard let url = URL(string: "https://circlapp.online/api/users/update-business-details/") else { return }
+        guard let url = URL(string: "\(baseURL)users/update-business-details/") else { return }
         
         let user_id = UserDefaults.standard.integer(forKey: "user_id")
         
