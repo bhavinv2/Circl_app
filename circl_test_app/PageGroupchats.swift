@@ -124,6 +124,7 @@ struct PageGroupchats: View {
                         }
                         .padding(.horizontal, 20)
                         .padding(.top, 16)
+                        .padding(.bottom, -40)
 
                         // Enhanced Moderator label with modern badge styling
                         HStack {
@@ -152,22 +153,23 @@ struct PageGroupchats: View {
                         .frame(height: 28)
                         .padding(.bottom, 8)
                     }
-                    .padding(.top, 16)
+                    .padding(.top, 5)
 
 
 
 
-//                    // Announcement Banner
+//                    Announcement Banner
 //                    Text("Announcements: Group Call Tonight 8:00 PM")
 //                        .font(.subheadline)
 //                        .foregroundColor(.white)
 //                        .padding(8)
 //                        .frame(maxWidth: .infinity)
-//                        .background(Color.fromHex("004aad"))
+//                       .background(Color.fromHex("004aad"))
 //                        .cornerRadius(10)
 //                        .padding(.horizontal)
 //                        .padding(.vertical, 5)
-                    // Enhanced Circle Threads Section
+                
+                //Enhanced Circle Threads Section
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {
