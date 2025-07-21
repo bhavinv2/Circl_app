@@ -50,6 +50,10 @@ struct PageCircles: View {
     var body: some View {
         NavigationView {
             ZStack {
+                // Clean background
+                Color(.systemBackground)
+                    .ignoresSafeArea()
+                
                 if showCreateCircleSheet {
                     Color.black.opacity(0.3)
                         .edgesIgnoringSafeArea(.all)
@@ -60,10 +64,10 @@ struct PageCircles: View {
                 }
                 
                 VStack(spacing: 0) {
-                    // MARK: Header - Twitter/X style layout matching Forum
+                    // MARK: Enhanced Header with gradient
                     VStack(spacing: 0) {
                         HStack {
-                            // Left side - Profile
+                            // Left side - Enhanced Profile
                             NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
                                 AsyncImage(url: URL(string: userProfileImageURL)) { phase in
                                     switch phase {
@@ -71,69 +75,82 @@ struct PageCircles: View {
                                         image
                                             .resizable()
                                             .scaledToFill()
-                                            .frame(width: 32, height: 32)
+                                            .frame(width: 34, height: 34)
                                             .clipShape(Circle())
+                                            .overlay(
+                                                Circle()
+                                                    .stroke(Color.white.opacity(0.3), lineWidth: 2)
+                                            )
+                                            .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
                                     default:
                                         Image(systemName: "person.circle.fill")
-                                            .font(.system(size: 32))
+                                            .font(.system(size: 34))
                                             .foregroundColor(.white)
+                                            .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
                                     }
                                 }
                             }
                             
                             Spacer()
                             
-                            // Center - Logo
+                            // Center - Enhanced Logo
                             Text("Circl.")
-                                .font(.system(size: 24, weight: .bold))
+                                .font(.system(size: 26, weight: .bold))
                                 .foregroundColor(.white)
+                                .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
                             
                             Spacer()
                             
-                            // Right side - Messages
+                            // Right side - Enhanced Messages
                             NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
                                 ZStack {
-                                    Image(systemName: "envelope")
+                                    Image(systemName: "envelope.fill")
                                         .font(.system(size: 24))
                                         .foregroundColor(.white)
+                                        .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
                                     
                                     if unreadMessageCount > 0 {
                                         Text(unreadMessageCount > 99 ? "99+" : "\(unreadMessageCount)")
                                             .font(.system(size: 10, weight: .bold))
                                             .foregroundColor(.white)
-                                            .padding(4)
-                                            .background(Color.red)
-                                            .clipShape(Circle())
-                                            .offset(x: 10, y: -10)
+                                            .padding(5)
+                                            .background(
+                                                Circle()
+                                                    .fill(Color.red)
+                                                    .shadow(color: .red.opacity(0.3), radius: 4, x: 0, y: 2)
+                                            )
+                                            .offset(x: 12, y: -12)
                                     }
                                 }
                             }
                         }
-                        .padding(.horizontal, 16)
-                        .padding(.bottom, 16)
-                        .padding(.top, 8)
+                        .padding(.horizontal, 18)
+                        .padding(.bottom, 18)
+                        .padding(.top, 10)
                         
-                        // Tab Buttons Row - Twitter/X style tabs
+                        // Enhanced Tab Buttons Row with modern styling
                         HStack(spacing: 0) {
                             Spacer()
                             
                             // Explore Tab
                             HStack {
-                                VStack(spacing: 8) {
+                                VStack(spacing: 6) {
                                     Text("Explore")
-                                        .font(.system(size: 15, weight: !showMyCircles ? .semibold : .regular))
+                                        .font(.system(size: 16, weight: !showMyCircles ? .bold : .medium))
                                         .foregroundColor(.white)
                                     
-                                    Rectangle()
+                                    RoundedRectangle(cornerRadius: 2)
                                         .fill(!showMyCircles ? Color.white : Color.clear)
                                         .frame(height: 3)
-                                        .animation(.easeInOut(duration: 0.2), value: showMyCircles)
+                                        .frame(width: 40)
+                                        .shadow(color: .white.opacity(0.3), radius: 2, x: 0, y: 1)
+                                        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: showMyCircles)
                                 }
-                                .frame(width: 70)
+                                .frame(width: 80)
                             }
                             .contentShape(Rectangle())
                             .onTapGesture {
-                                withAnimation(.easeInOut(duration: 0.2)) {
+                                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                                     showMyCircles = false
                                 }
                             }
@@ -142,50 +159,69 @@ struct PageCircles: View {
                             
                             // My Circles Tab
                             HStack {
-                                VStack(spacing: 8) {
+                                VStack(spacing: 6) {
                                     Text("My Circles")
-                                        .font(.system(size: 15, weight: showMyCircles ? .semibold : .regular))
+                                        .font(.system(size: 16, weight: showMyCircles ? .bold : .medium))
                                         .foregroundColor(.white)
                                     
-                                    Rectangle()
+                                    RoundedRectangle(cornerRadius: 2)
                                         .fill(showMyCircles ? Color.white : Color.clear)
                                         .frame(height: 3)
-                                        .animation(.easeInOut(duration: 0.2), value: showMyCircles)
+                                        .frame(width: 60)
+                                        .shadow(color: .white.opacity(0.3), radius: 2, x: 0, y: 1)
+                                        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: showMyCircles)
                                 }
-                                .frame(width: 90)
+                                .frame(width: 100)
                             }
                             .contentShape(Rectangle())
                             .onTapGesture {
-                                withAnimation(.easeInOut(duration: 0.2)) {
+                                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                                     showMyCircles = true
                                 }
                             }
                             
                             Spacer()
                         }
-                        .padding(.bottom, 8)
+                        .padding(.bottom, 12)
                     }
                     .padding(.top, 50)
                     .background(Color(hex: "004aad"))
                     .ignoresSafeArea(edges: .top)
                     
-                    // MARK: Search + Add
-                    VStack(spacing: 0) {
-                        HStack(spacing: 10) {
+                    // MARK: Enhanced Search Section
+                    VStack(spacing: 12) {
+                        HStack(spacing: 12) {
                             TextField("Search for a Circle (keywords or name)...", text: $searchText)
-                                .padding()
-                                .background(Color(.systemGray5))
-                                .cornerRadius(25)
-                            
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 14)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 25)
+                                        .fill(Color(.systemGray6))
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 25)
+                                                .stroke(Color(hex: "004aad").opacity(0.1), lineWidth: 1)
+                                        )
+                                        .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
+                                )
+                                .overlay(
+                                    HStack {
+                                        Image(systemName: "magnifyingglass")
+                                            .foregroundColor(.secondary)
+                                            .padding(.leading, 20)
+                                        Spacer()
+                                    }
+                                )
+                                .padding(.leading, 35)
                             
                             Button(action: {}) {
                                 Image(systemName: "arrow.right.circle.fill")
                                     .resizable()
-                                    .frame(width: 30, height: 30)
-                                    .foregroundColor(.blue)
+                                    .frame(width: 32, height: 32)
+                                    .foregroundColor(Color(hex: "004aad"))
+                                    .shadow(color: Color(hex: "004aad").opacity(0.3), radius: 4, x: 0, y: 2)
                             }
                         }
-                        // ▼︙ suggestions list – OUTSIDE the HStack
+                        // Enhanced suggestions list
                         if !searchText.isEmpty {
                             // 1. Filter once
                             let allCircles = exploreCircles + myCircles
@@ -193,7 +229,7 @@ struct PageCircles: View {
                                 $0.name.lowercased().contains(searchText.lowercased())
                             }
                             
-                            // 2. Show results
+                            // 2. Enhanced results display
                             ScrollView {
                                 VStack(alignment: .leading, spacing: 0) {
                                     ForEach(filtered) { circle in
@@ -208,77 +244,183 @@ struct PageCircles: View {
                                                 showAboutPopup = true
                                             }
                                         } label: {
-                                            
-                                            HStack {
-                                                Text(circle.name)
-                                                    .foregroundColor(.primary)
+                                            HStack(spacing: 12) {
+                                                Image(systemName: "circle.grid.2x2")
+                                                    .font(.system(size: 16))
+                                                    .foregroundColor(Color(hex: "004aad"))
+                                                    .frame(width: 20)
+                                                
+                                                VStack(alignment: .leading, spacing: 2) {
+                                                    Text(circle.name)
+                                                        .font(.system(size: 15, weight: .medium))
+                                                        .foregroundColor(.primary)
+                                                    
+                                                    Text(circle.industry)
+                                                        .font(.system(size: 13))
+                                                        .foregroundColor(.secondary)
+                                                }
+                                                
                                                 Spacer()
+                                                
+                                                Image(systemName: "chevron.right")
+                                                    .font(.system(size: 12))
+                                                    .foregroundColor(.secondary)
                                             }
-                                            .padding(.vertical, 10)
+                                            .padding(.vertical, 12)
                                             .padding(.horizontal, 16)
                                         }
                                         
-                                        Divider()                     // thin separator
+                                        if circle.id != filtered.last?.id {
+                                            Divider()
+                                        }
                                     }
                                 }
                             }
-                            .frame(maxHeight: 180)                   // keeps list compact
-                            .background(Color(.systemBackground))
-                            .cornerRadius(12)
-                            .shadow(radius: 4)
-                            .padding(.horizontal)
-                            .zIndex(1)                               // sit above other views
+                            .frame(maxHeight: 200)
+                            .background(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .fill(Color(.systemBackground))
+                                    .shadow(color: .black.opacity(0.1), radius: 12, x: 0, y: 4)
+                            )
+                            .padding(.horizontal, 4)
+                            .zIndex(1)
                         }
                     }
-                    .padding(.horizontal, 16)
+                    .padding(.horizontal, 18)
+                    .padding(.top, 2)
                     
-                    // MARK: Circle List
+                    // MARK: Enhanced Circle List
                     ScrollView {
-                        VStack(spacing: 20) {
+                        VStack(spacing: 18) {
                             if showMyCircles {
-                                Text("My Circles")
-                                    .font(.title2).bold()
-                                    .padding(.leading)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                // Enhanced My Circles Header
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("My Circles")
+                                            .font(.system(size: 24, weight: .bold))
+                                            .foregroundColor(.primary)
+                                        
+                                        Text("\(myCircles.count) joined circles")
+                                            .font(.system(size: 14, weight: .medium))
+                                            .foregroundColor(.secondary)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    if !myCircles.isEmpty {
+                                        Text("\(myCircles.count)")
+                                            .font(.system(size: 13, weight: .semibold))
+                                            .foregroundColor(Color(hex: "004aad"))
+                                            .padding(.horizontal, 12)
+                                            .padding(.vertical, 6)
+                                            .background(
+                                                Capsule()
+                                                    .fill(Color(hex: "004aad").opacity(0.1))
+                                            )
+                                    }
+                                }
+                                .padding(.horizontal, 20)
                                 
                                 if myCircles.isEmpty {
-                                    Text("You haven't joined any Circles yet.")
-                                        .foregroundColor(.gray)
-                                        .padding(.top, 40)
+                                    // Enhanced empty state
+                                    VStack(spacing: 16) {
+                                        Image(systemName: "circle.grid.2x2")
+                                            .font(.system(size: 48))
+                                            .foregroundColor(Color(hex: "004aad").opacity(0.4))
+                                        
+                                        Text("No circles joined yet")
+                                            .font(.system(size: 18, weight: .semibold))
+                                            .foregroundColor(.primary)
+                                        
+                                        Text("Explore and join circles to see them here")
+                                            .font(.system(size: 14))
+                                            .foregroundColor(.secondary)
+                                            .multilineTextAlignment(.center)
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 50)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 16)
+                                            .fill(Color(hex: "004aad").opacity(0.05))
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 16)
+                                                    .stroke(Color(hex: "004aad").opacity(0.1), lineWidth: 1)
+                                            )
+                                    )
+                                    .padding(.horizontal, 20)
                                 } else {
                                     ForEach(myCircles) { circle in
                                         renderMyCircleCard(for: circle)
                                     }
-                                    
                                 }
                             } else {
+                                // Enhanced Explore Header
                                 HStack {
-                                    Text("Explore")
-                                        .font(.title2).bold()
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("Explore")
+                                            .font(.system(size: 24, weight: .bold))
+                                            .foregroundColor(.primary)
+                                        
+                                        Text("Discover new circles")
+                                            .font(.system(size: 14, weight: .medium))
+                                            .foregroundColor(.secondary)
+                                    }
                                     
                                     Spacer()
                                     
                                     Button(action: {
-                                        withAnimation(.spring()) {
+                                        withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
                                             showCreateCircleSheet.toggle()
                                         }
                                     }) {
-                                        Image(systemName: "plus.circle.fill")
-                                            .resizable()
-                                            .frame(width: 25, height: 25)
-                                            .foregroundColor(.green)
+                                        HStack(spacing: 6) {
+                                            Image(systemName: "plus")
+                                                .font(.system(size: 14, weight: .semibold))
+                                            Text("Create")
+                                                .font(.system(size: 14, weight: .semibold))
+                                        }
+                                        .foregroundColor(.white)
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 10)
+                                        .background(
+                                            Capsule()
+                                                .fill(Color.green)
+                                                .shadow(color: Color.green.opacity(0.3), radius: 8, x: 0, y: 4)
+                                        )
                                     }
+                                    .scaleEffect(showCreateCircleSheet ? 0.95 : 1.0)
+                                    .animation(.spring(response: 0.3, dampingFraction: 0.6), value: showCreateCircleSheet)
                                 }
-                                .padding(.horizontal)
+                                .padding(.horizontal, 20)
+                                
                                 if exploreCircles.isEmpty {
-                                    Text("No Circls? Create one!")
-                                        .foregroundColor(.gray)
-                                        .font(.headline)
-                                        .padding(.top, 40)
+                                    // Enhanced empty state
+                                    VStack(spacing: 16) {
+                                        Image(systemName: "magnifyingglass.circle")
+                                            .font(.system(size: 48))
+                                            .foregroundColor(Color(hex: "004aad").opacity(0.4))
+                                        
+                                        Text("No circles to explore")
+                                            .font(.system(size: 18, weight: .semibold))
+                                            .foregroundColor(.primary)
+                                        
+                                        Text("Create a new circle to get started!")
+                                            .font(.system(size: 14))
+                                            .foregroundColor(.secondary)
+                                            .multilineTextAlignment(.center)
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 50)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 16)
+                                            .fill(Color.green.opacity(0.05))
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 16)
+                                                    .stroke(Color.green.opacity(0.1), lineWidth: 1)
+                                            )
+                                    )
+                                    .padding(.horizontal, 20)
                                 }
-                                
-                                
-                                
                                 
                                 ForEach(exploreCircles) { circle in
                                     CircleCardView(
@@ -287,14 +429,13 @@ struct PageCircles: View {
                                             joinCircleAndOpen(circle: circle)
                                         },
                                         showButtons: true,
-                                        isMember: myCircles.contains(where: { $0.id == circle.id }) // ✅ Dynamic check
+                                        isMember: myCircles.contains(where: { $0.id == circle.id })
                                     )
-                                    
-                                    .padding(.horizontal)
+                                    .padding(.horizontal, 20)
                                 }
                             }
                         }
-                        .padding(.bottom, 80) // Add space for bottom navigation
+                        .padding(.bottom, 100) // Space for bottom navigation
                     }
                 }
                 
@@ -380,8 +521,8 @@ struct PageCircles: View {
                         }
                     }
                     .padding(.horizontal, 16)
-                    .padding(.vertical, 20)
-                    .padding(.bottom, 8)
+                    .padding(.vertical, 16)
+                    .padding(.bottom, 6)
                     .background(
                         Rectangle()
                             .fill(Color(UIColor.systemBackground))
@@ -945,7 +1086,7 @@ struct PageCircles: View {
     
     
     
-    // MARK: - Circle Card View (template preserved)
+    // MARK: - Enhanced Circle Card View
     struct CircleCardView: View {
         var onOpenCircle: (() -> Void)? = nil
         
@@ -954,101 +1095,125 @@ struct PageCircles: View {
         @State private var selectedCircleToOpen: CircleData? = nil
         @State private var triggerOpenGroupChat = false
         var onJoinPressed: (() -> Void)? = nil
-        var showButtons: Bool = true // ✅ Default to true for explore
+        var showButtons: Bool = true
         var isMember: Bool = false
+        
         var body: some View {
-            HStack(alignment: .center, spacing: 12) {
+            HStack(alignment: .center, spacing: 16) {
+                // Enhanced circle image
                 ZStack {
-                    Image("CirclLogoButton") // Your blue circle logo
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 80, height: 80)
-                        .clipShape(Circle())
-                        .opacity(0.15)
+                    // Background circle
+                    Circle()
+                        .fill(Color(hex: "004aad").opacity(0.1))
+                        .frame(width: 90, height: 90)
                     
                     Image(circle.imageName)
                         .resizable()
                         .aspectRatio(contentMode: .fill)
                         .frame(width: 80, height: 80)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                        .clipShape(Circle())
+                        .overlay(
+                            Circle()
+                                .stroke(Color(hex: "004aad").opacity(0.3), lineWidth: 2)
+                        )
+                        .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
                 }
                 
-                
-                VStack(alignment: .leading, spacing: 6) {
+                VStack(alignment: .leading, spacing: 8) {
                     HStack {
                         Text(circle.name)
-                            .font(.system(size: 20, weight: .bold))
-                            .foregroundColor(.black)
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundColor(.primary)
+                            .lineLimit(1)
                         Spacer()
                         if !circle.pricing.isEmpty {
                             Text(circle.pricing)
-                                .font(.system(size: 16, weight: .semibold))
-                                .foregroundColor(.black)
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(Color(hex: "004aad"))
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(
+                                    Capsule()
+                                        .fill(Color(hex: "004aad").opacity(0.1))
+                                )
                         }
                     }
                     
-                    Text("Industry: \(circle.industry)")
-                        .font(.system(size: 15, weight: .medium))
-                        .foregroundColor(.black)
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "building.2")
+                                .font(.system(size: 12))
+                                .foregroundColor(Color(hex: "004aad"))
+                            Text("Industry: \(circle.industry)")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        HStack(spacing: 6) {
+                            Image(systemName: "person.2")
+                                .font(.system(size: 12))
+                                .foregroundColor(Color(hex: "004aad"))
+                            Text("\(circle.memberCount) Members")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(.secondary)
+                        }
+                    }
                     
-                    Text("\(circle.memberCount) Members")
-                    
-                        .font(.system(size: 15))
-                        .foregroundColor(.black)
-                    
-                    HStack(spacing: 10) {
+                    HStack(spacing: 12) {
                         Button(action: {
                             showAbout = true
                         }) {
                             Text("About")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(Color(hex: "004aad"))
                                 .underline()
-                                .font(.system(size: 16))
-                                .foregroundColor(.blue)
                         }
                         
                         Spacer()
                         
                         if showButtons {
-                            //                        Button(action: {}) {
-                            //                            Image(systemName: "xmark.circle.fill")
-                            //                                .resizable()
-                            //                                .frame(width: 22, height: 22)
-                            //                                .foregroundColor(.red)
-                            //                        }
-                            
                             Button(action: {
                                 onJoinPressed?()
                             }) {
                                 Text(circle.joinType.rawValue)
-                                    .font(.system(size: 15, weight: .semibold))
-                                    .padding(.vertical, 6)
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .padding(.vertical, 8)
                                     .padding(.horizontal, 16)
-                                    .background(Color.green)
+                                    .background(
+                                        Capsule()
+                                            .fill(Color.green)
+                                            .shadow(color: Color.green.opacity(0.3), radius: 6, x: 0, y: 3)
+                                    )
                                     .foregroundColor(.white)
-                                    .cornerRadius(15)
                             }
                         }
                     }
                 }
                 
-                // ✅ Blue arrow on the far right, vertically centered
+                // Enhanced navigation arrow for members
                 if isMember {
-                    Spacer()
                     Button(action: {
                         onOpenCircle?()
                     }) {
                         Image(systemName: "arrow.right.circle.fill")
                             .resizable()
-                            .frame(width: 26, height: 26)
-                            .foregroundColor(.blue)
+                            .frame(width: 28, height: 28)
+                            .foregroundColor(Color(hex: "004aad"))
+                            .shadow(color: Color(hex: "004aad").opacity(0.3), radius: 4, x: 0, y: 2)
                     }
                     .padding(.trailing, 4)
                 }
             }
-            
-            .padding()
-            .frame(height: 150) // ✅ Consistent card height for all
-            .background(RoundedRectangle(cornerRadius: 10).stroke(Color.blue, lineWidth: 1))
+            .padding(20)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color(.systemBackground))
+                    .shadow(color: .black.opacity(0.06), radius: 12, x: 0, y: 4)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(Color(hex: "004aad").opacity(0.08), lineWidth: 1)
+                    )
+            )
             .frame(maxWidth: .infinity)
             .sheet(isPresented: $showAbout) {
                 NavigationView {
@@ -1066,7 +1231,6 @@ struct PageCircles: View {
                     .navigationBarHidden(true)
                 }
             }
-            
         }
     }
     

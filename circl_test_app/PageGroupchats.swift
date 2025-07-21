@@ -168,15 +168,15 @@ struct PageGroupchats: View {
 //                        .padding(.horizontal)
 //                        .padding(.vertical, 5)
                     // Enhanced Circle Threads Section
-                    VStack(alignment: .leading, spacing: 16) {
+                    VStack(alignment: .leading, spacing: 12) {
                         HStack {
-                            VStack(alignment: .leading, spacing: 4) {
+                            VStack(alignment: .leading, spacing: 2) {
                                 Text("Circle Threads")
-                                    .font(.system(size: 22, weight: .bold))
+                                    .font(.system(size: 20, weight: .bold))
                                     .foregroundColor(.primary)
                                 
                                 Text("Share ideas and discussions")
-                                    .font(.system(size: 14, weight: .medium))
+                                    .font(.system(size: 13, weight: .medium))
                                     .foregroundColor(.secondary)
                             }
 
@@ -192,8 +192,8 @@ struct PageGroupchats: View {
                                         .font(.system(size: 14, weight: .semibold))
                                 }
                                 .foregroundColor(.white)
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 10)
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 8)
                                 .background(
                                     Capsule()
                                         .fill(
@@ -203,7 +203,7 @@ struct PageGroupchats: View {
                                                 endPoint: .trailing
                                             )
                                         )
-                                        .shadow(color: Color(hex: "004aad").opacity(0.3), radius: 8, x: 0, y: 4)
+                                        .shadow(color: Color(hex: "004aad").opacity(0.3), radius: 6, x: 0, y: 3)
                                 )
                             }
                             .scaleEffect(showCreateThreadPopup ? 0.95 : 1.0)
@@ -212,7 +212,7 @@ struct PageGroupchats: View {
                         .padding(.horizontal, 20)
                         
                         ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 16) {
+                            HStack(spacing: 12) {
                                 ForEach(threads) { thread in
                                     ThreadCard(thread: thread)
                                         .frame(width: 300)
@@ -220,21 +220,21 @@ struct PageGroupchats: View {
                                 
                                 // Empty state card when no threads
                                 if threads.isEmpty {
-                                    VStack(spacing: 12) {
+                                    VStack(spacing: 8) {
                                         Image(systemName: "bubble.left.and.bubble.right")
-                                            .font(.system(size: 32))
+                                            .font(.system(size: 28))
                                             .foregroundColor(Color(hex: "004aad").opacity(0.4))
                                         
                                         Text("No threads yet")
-                                            .font(.system(size: 16, weight: .medium))
+                                            .font(.system(size: 15, weight: .medium))
                                             .foregroundColor(.secondary)
                                         
                                         Text("Be the first to start a discussion!")
-                                            .font(.system(size: 14))
+                                            .font(.system(size: 13))
                                             .foregroundColor(.secondary)
                                             .multilineTextAlignment(.center)
                                     }
-                                    .frame(width: 280, height: 140)
+                                    .frame(width: 260, height: 120)
                                     .background(
                                         RoundedRectangle(cornerRadius: 16)
                                             .fill(Color(hex: "004aad").opacity(0.05))
@@ -249,7 +249,7 @@ struct PageGroupchats: View {
                             .padding(.horizontal, 20)
                         }
                     }
-                    .padding(.vertical, 8)
+                    .padding(.vertical, 6)
 
                     // Enhanced Divider
                     Rectangle()
@@ -262,30 +262,30 @@ struct PageGroupchats: View {
                         )
                         .frame(height: 1)
                         .padding(.horizontal, 20)
-                        .padding(.vertical, 12)
+                        .padding(.vertical, 8)
                     
                     // Enhanced Channels Section
                     ScrollView {
-                        VStack(alignment: .leading, spacing: 24) {
+                        VStack(alignment: .leading, spacing: 18) {
                             // Channels Header
                             HStack {
-                                VStack(alignment: .leading, spacing: 4) {
+                                VStack(alignment: .leading, spacing: 2) {
                                     Text("Channels")
-                                        .font(.system(size: 22, weight: .bold))
+                                        .font(.system(size: 20, weight: .bold))
                                         .foregroundColor(.primary)
                                     
                                     Text("Join conversations by topic")
-                                        .font(.system(size: 14, weight: .medium))
+                                        .font(.system(size: 13, weight: .medium))
                                         .foregroundColor(.secondary)
                                 }
                                 
                                 Spacer()
                                 
                                 Text("\(channels.count) channels")
-                                    .font(.system(size: 13, weight: .medium))
+                                    .font(.system(size: 12, weight: .medium))
                                     .foregroundColor(Color(hex: "004aad"))
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 6)
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 4)
                                     .background(
                                         Capsule()
                                             .fill(Color(hex: "004aad").opacity(0.1))
@@ -296,11 +296,11 @@ struct PageGroupchats: View {
                             if !channels.isEmpty {
                                 ForEach(groupedChannels.keys.sorted(), id: \.self) { category in
                                     if let categoryChannels = groupedChannels[category] {
-                                        VStack(alignment: .leading, spacing: 12) {
+                                        VStack(alignment: .leading, spacing: 8) {
                                             // Category Header
                                             HStack {
                                                 Text(category)
-                                                    .font(.system(size: 18, weight: .semibold))
+                                                    .font(.system(size: 16, weight: .semibold))
                                                     .foregroundColor(.primary)
                                                 
                                                 Rectangle()
@@ -311,15 +311,15 @@ struct PageGroupchats: View {
                                             .padding(.horizontal, 20)
 
                                             // Enhanced Channel Cards
-                                            VStack(spacing: 8) {
+                                            VStack(spacing: 6) {
                                                 ForEach(categoryChannels) { channel in
                                                     NavigationLink(destination: PageCircleMessages(channel: channel, circleName: circle.name)) {
-                                                        HStack(spacing: 12) {
+                                                        HStack(spacing: 10) {
                                                             // Channel icon
                                                             Image(systemName: "number")
-                                                                .font(.system(size: 16, weight: .medium))
+                                                                .font(.system(size: 14, weight: .medium))
                                                                 .foregroundColor(Color(hex: "004aad"))
-                                                                .frame(width: 32, height: 32)
+                                                                .frame(width: 28, height: 28)
                                                                 .background(
                                                                     Circle()
                                                                         .fill(Color(hex: "004aad").opacity(0.1))
@@ -327,32 +327,32 @@ struct PageGroupchats: View {
                                                             
                                                             VStack(alignment: .leading, spacing: 2) {
                                                                 Text(channel.name)
-                                                                    .font(.system(size: 16, weight: .medium))
+                                                                    .font(.system(size: 15, weight: .medium))
                                                                     .foregroundColor(.primary)
                                                                 
                                                                 Text("Tap to join conversation")
-                                                                    .font(.system(size: 13))
+                                                                    .font(.system(size: 12))
                                                                     .foregroundColor(.secondary)
                                                             }
                                                             
                                                             Spacer()
                                                             
                                                             Image(systemName: "chevron.right")
-                                                                .font(.system(size: 12, weight: .medium))
+                                                                .font(.system(size: 11, weight: .medium))
                                                                 .foregroundColor(.secondary)
                                                         }
-                                                        .padding(.horizontal, 20)
-                                                        .padding(.vertical, 16)
+                                                        .padding(.horizontal, 16)
+                                                        .padding(.vertical, 12)
                                                         .background(
-                                                            RoundedRectangle(cornerRadius: 12)
+                                                            RoundedRectangle(cornerRadius: 10)
                                                                 .fill(Color.white)
-                                                                .shadow(color: Color.black.opacity(0.04), radius: 6, x: 0, y: 2)
+                                                                .shadow(color: Color.black.opacity(0.04), radius: 4, x: 0, y: 1)
                                                         )
                                                         .overlay(
-                                                            RoundedRectangle(cornerRadius: 12)
+                                                            RoundedRectangle(cornerRadius: 10)
                                                                 .stroke(Color(hex: "004aad").opacity(0.08), lineWidth: 1)
                                                         )
-                                                        .padding(.horizontal, 20)
+                                                        .padding(.horizontal, 16)
                                                     }
                                                     .buttonStyle(PlainButtonStyle())
                                                 }
@@ -362,23 +362,23 @@ struct PageGroupchats: View {
                                 }
                             } else {
                                 // Enhanced Empty State
-                                VStack(spacing: 16) {
+                                VStack(spacing: 12) {
                                     Image(systemName: "bubble.left.and.bubble.right.fill")
-                                        .font(.system(size: 48))
+                                        .font(.system(size: 40))
                                         .foregroundColor(Color(hex: "004aad").opacity(0.4))
                                     
                                     Text("No channels available")
-                                        .font(.system(size: 18, weight: .semibold))
+                                        .font(.system(size: 16, weight: .semibold))
                                         .foregroundColor(.primary)
                                     
                                     Text("Channels will appear here once they're created by moderators")
-                                        .font(.system(size: 14))
+                                        .font(.system(size: 13))
                                         .foregroundColor(.secondary)
                                         .multilineTextAlignment(.center)
-                                        .padding(.horizontal, 40)
+                                        .padding(.horizontal, 30)
                                 }
                                 .frame(maxWidth: .infinity)
-                                .padding(.vertical, 40)
+                                .padding(.vertical, 30)
                                 .background(
                                     RoundedRectangle(cornerRadius: 16)
                                         .fill(Color(hex: "004aad").opacity(0.05))
@@ -387,11 +387,11 @@ struct PageGroupchats: View {
                                                 .stroke(Color(hex: "004aad").opacity(0.1), lineWidth: 1)
                                         )
                                 )
-                                .padding(.horizontal, 20)
+                                .padding(.horizontal, 16)
                             }
                         }
-                        .padding(.top, 8)
-                        .padding(.bottom, 120) // Space for bottom navigation
+                        .padding(.top, 6)
+                        .padding(.bottom, 100) // Space for bottom navigation
                     }
 
 
@@ -587,8 +587,8 @@ struct PageGroupchats: View {
                         }
                     }
                     .padding(.horizontal, 16)
-                    .padding(.vertical, 20)
-                    .padding(.bottom, 8)
+                    .padding(.vertical, 16)
+                    .padding(.bottom, 6)
                     .background(
                         Rectangle()
                             .fill(Color(UIColor.systemBackground))
