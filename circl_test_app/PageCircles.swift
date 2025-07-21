@@ -207,7 +207,7 @@ struct PageCircles: View {
                                     HStack {
                                         Image(systemName: "magnifyingglass")
                                             .foregroundColor(.secondary)
-                                            .padding(.leading, 20)
+                                            .padding(.leading, -35)
                                         Spacer()
                                     }
                                 )
@@ -287,8 +287,8 @@ struct PageCircles: View {
                         }
                     }
                     .padding(.horizontal, 18)
-                    .padding(.top, 2)
-                    
+                    .padding(.top, -45)
+                    .padding(.bottom, 10)
                     // MARK: Enhanced Circle List
                     ScrollView {
                         VStack(spacing: 18) {
