@@ -50,14 +50,24 @@ struct PageGroupchats: View {
 
     var body: some View {
         ZStack {
+            // Enhanced background gradient
+            LinearGradient(
+                gradient: Gradient(colors: [
+                    Color(.systemBackground),
+                    Color(hex: "004aad").opacity(0.02)
+                ]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
+            
             VStack(spacing: 0) {
                 headerSection
 
                     // Group Selector
-                    // Group Selector
-                    VStack(alignment: .center, spacing: 6) {
-                        HStack(spacing: 12) {
-                            // ⬇️ Dropdown menu (resized, but still big and clean)
+                    VStack(alignment: .center, spacing: 12) {
+                        HStack(spacing: 16) {
+                            // Enhanced Dropdown menu with gradient and shadow
                             Menu {
                                 ForEach(myCircles, id: \.id) { circl in
                                     NavigationLink(destination: PageGroupchats(circle: circl).navigationBarBackButtonHidden(true)) {
@@ -65,60 +75,84 @@ struct PageGroupchats: View {
                                     }
                                 }
                             } label: {
-                                HStack(spacing: 6) {
+                                HStack(spacing: 8) {
                                     Text(circle.name)
-                                        .foregroundColor(.black)
-                                        .font(.headline)
+                                        .foregroundColor(.primary)
+                                        .font(.system(size: 18, weight: .semibold))
 
                                     Image(systemName: "chevron.down")
-                                        .foregroundColor(.black)
+                                        .foregroundColor(Color(hex: "004aad"))
+                                        .font(.system(size: 14, weight: .medium))
                                 }
-                                .padding(.horizontal, 18)
-                                .padding(.vertical, 12)
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 16)
                                 .frame(minWidth: 0, maxWidth: .infinity)
-                                .background(Color(.systemGray5))
-                                .cornerRadius(20)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .fill(Color.white)
+                                        .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 2)
+                                )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .stroke(Color(hex: "004aad").opacity(0.1), lineWidth: 1)
+                                )
                             }
-                            .frame(maxWidth: UIScreen.main.bounds.width * 0.75) // ✅ about 75% width
+                            .frame(maxWidth: UIScreen.main.bounds.width * 0.72)
 
-                            // ⬇️ Gear icon on right
+                            // Enhanced Gear icon with modern styling
                             Button(action: {
-                                withAnimation(.spring()) {
+                                withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
                                     showSettingsMenu.toggle()
                                 }
                             }) {
                                 Image(systemName: "gearshape.fill")
-                                    .font(.title3)
-                                    .foregroundColor(.gray)
-                                    .padding(10)
-                                    .background(Color(.systemGray5))
-                                    .clipShape(Circle())
+                                    .font(.system(size: 18, weight: .medium))
+                                    .foregroundColor(Color(hex: "004aad"))
+                                    .frame(width: 48, height: 48)
+                                    .background(
+                                        Circle()
+                                            .fill(Color.white)
+                                            .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 2)
+                                    )
+                                    .overlay(
+                                        Circle()
+                                            .stroke(Color(hex: "004aad").opacity(0.1), lineWidth: 1)
+                                    )
                             }
-
+                            .scaleEffect(showSettingsMenu ? 1.1 : 1.0)
+                            .animation(.spring(response: 0.3, dampingFraction: 0.6), value: showSettingsMenu)
                         }
-                        .padding(.horizontal)
-                        .padding(.top, 10)
+                        .padding(.horizontal, 20)
+                        .padding(.top, 16)
 
-
-
-                        // Moderator label row (centered)
-                        HStack(spacing: 6) {
+                        // Enhanced Moderator label with modern badge styling
+                        HStack {
                             if userId == circle.creatorId {
-                                Spacer()
-                                Text("You are a moderator for this Circl")
-                                    .font(.footnote)
-                                    .foregroundColor(.gray)
-
-                                
-                                Spacer()
-                            } else {
-                                Spacer()
+                                HStack(spacing: 6) {
+                                    Image(systemName: "crown.fill")
+                                        .font(.system(size: 12, weight: .medium))
+                                        .foregroundColor(Color(hex: "004aad"))
+                                    
+                                    Text("Circle Moderator")
+                                        .font(.system(size: 13, weight: .medium))
+                                        .foregroundColor(Color(hex: "004aad"))
+                                }
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(
+                                    Capsule()
+                                        .fill(Color(hex: "004aad").opacity(0.1))
+                                )
+                                .overlay(
+                                    Capsule()
+                                        .stroke(Color(hex: "004aad").opacity(0.2), lineWidth: 1)
+                                )
                             }
                         }
-                        .frame(height: 20)
-                        .padding(.bottom, 16)
+                        .frame(height: 28)
+                        .padding(.bottom, 8)
                     }
-                    .padding(.top, 10)
+                    .padding(.top, 16)
 
 
 
@@ -133,83 +167,231 @@ struct PageGroupchats: View {
 //                        .cornerRadius(10)
 //                        .padding(.horizontal)
 //                        .padding(.vertical, 5)
-                    // 🟨 2. Then Circle Threads
-                    VStack(alignment: .leading, spacing: 10) {
+                    // Enhanced Circle Threads Section
+                    VStack(alignment: .leading, spacing: 16) {
                         HStack {
-                            Text("Circle Threads")
-                                .font(.title3)
-                                .fontWeight(.bold)
-
-                            
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Circle Threads")
+                                    .font(.system(size: 22, weight: .bold))
+                                    .foregroundColor(.primary)
+                                
+                                Text("Share ideas and discussions")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(.secondary)
+                            }
 
                             Spacer()
 
                             Button(action: {
                                 showCreateThreadPopup = true
                             }) {
-                                Image(systemName: "plus.circle.fill")
-                                    .font(.title2)
-                                    .foregroundColor(.blue)
+                                HStack(spacing: 6) {
+                                    Image(systemName: "plus")
+                                        .font(.system(size: 14, weight: .semibold))
+                                    Text("New")
+                                        .font(.system(size: 14, weight: .semibold))
+                                }
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 10)
+                                .background(
+                                    Capsule()
+                                        .fill(
+                                            LinearGradient(
+                                                gradient: Gradient(colors: [Color(hex: "004aad"), Color(hex: "0066dd")]),
+                                                startPoint: .leading,
+                                                endPoint: .trailing
+                                            )
+                                        )
+                                        .shadow(color: Color(hex: "004aad").opacity(0.3), radius: 8, x: 0, y: 4)
+                                )
                             }
+                            .scaleEffect(showCreateThreadPopup ? 0.95 : 1.0)
+                            .animation(.spring(response: 0.3, dampingFraction: 0.6), value: showCreateThreadPopup)
                         }
-
-                        .padding(.horizontal)
+                        .padding(.horizontal, 20)
                         
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 16) {
                                 ForEach(threads) { thread in
                                     ThreadCard(thread: thread)
-                                        .frame(width: 280)
+                                        .frame(width: 300)
+                                }
+                                
+                                // Empty state card when no threads
+                                if threads.isEmpty {
+                                    VStack(spacing: 12) {
+                                        Image(systemName: "bubble.left.and.bubble.right")
+                                            .font(.system(size: 32))
+                                            .foregroundColor(Color(hex: "004aad").opacity(0.4))
+                                        
+                                        Text("No threads yet")
+                                            .font(.system(size: 16, weight: .medium))
+                                            .foregroundColor(.secondary)
+                                        
+                                        Text("Be the first to start a discussion!")
+                                            .font(.system(size: 14))
+                                            .foregroundColor(.secondary)
+                                            .multilineTextAlignment(.center)
+                                    }
+                                    .frame(width: 280, height: 140)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 16)
+                                            .fill(Color(hex: "004aad").opacity(0.05))
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 16)
+                                                    .strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [8, 4]))
+                                                    .foregroundColor(Color(hex: "004aad").opacity(0.1))
+                                            )
+                                    )
                                 }
                             }
-                            .padding(.horizontal)
+                            .padding(.horizontal, 20)
                         }
-
                     }
+                    .padding(.vertical, 8)
 
-                    Divider().padding(.horizontal)
-                    // ✅ Show grouped + tappable channels
+                    // Enhanced Divider
+                    Rectangle()
+                        .fill(
+                            LinearGradient(
+                                gradient: Gradient(colors: [Color.clear, Color(hex: "004aad").opacity(0.2), Color.clear]),
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .frame(height: 1)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 12)
+                    
+                    // Enhanced Channels Section
                     ScrollView {
-                        VStack(alignment: .leading, spacing: 25) {
-                            // 🟦 1. Channels first
+                        VStack(alignment: .leading, spacing: 24) {
+                            // Channels Header
+                            HStack {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Channels")
+                                        .font(.system(size: 22, weight: .bold))
+                                        .foregroundColor(.primary)
+                                    
+                                    Text("Join conversations by topic")
+                                        .font(.system(size: 14, weight: .medium))
+                                        .foregroundColor(.secondary)
+                                }
+                                
+                                Spacer()
+                                
+                                Text("\(channels.count) channels")
+                                    .font(.system(size: 13, weight: .medium))
+                                    .foregroundColor(Color(hex: "004aad"))
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 6)
+                                    .background(
+                                        Capsule()
+                                            .fill(Color(hex: "004aad").opacity(0.1))
+                                    )
+                            }
+                            .padding(.horizontal, 20)
+                            
                             if !channels.isEmpty {
                                 ForEach(groupedChannels.keys.sorted(), id: \.self) { category in
                                     if let categoryChannels = groupedChannels[category] {
-                                        Text(category)
-                                            .font(.title3)
-                                            .fontWeight(.bold)
-                                            .padding(.horizontal)
-
-                                        ForEach(categoryChannels) { channel in
-                                            NavigationLink(destination: PageCircleMessages(channel: channel, circleName: circle.name)) {
-                                                Text(channel.name)
-                                                    .font(.subheadline)
-                                                    .padding(.vertical, 6)
-                                                    .padding(.horizontal, 12)
-                                                    .background(Color(hex: "004aad").opacity(0.1))
-                                                    .foregroundColor(Color(hex: "004aad"))
-                                                    .cornerRadius(12)
-                                                    .padding(.horizontal)
+                                        VStack(alignment: .leading, spacing: 12) {
+                                            // Category Header
+                                            HStack {
+                                                Text(category)
+                                                    .font(.system(size: 18, weight: .semibold))
+                                                    .foregroundColor(.primary)
+                                                
+                                                Rectangle()
+                                                    .fill(Color(hex: "004aad").opacity(0.2))
+                                                    .frame(height: 1)
+                                                    .frame(maxWidth: .infinity)
                                             }
+                                            .padding(.horizontal, 20)
 
+                                            // Enhanced Channel Cards
+                                            VStack(spacing: 8) {
+                                                ForEach(categoryChannels) { channel in
+                                                    NavigationLink(destination: PageCircleMessages(channel: channel, circleName: circle.name)) {
+                                                        HStack(spacing: 12) {
+                                                            // Channel icon
+                                                            Image(systemName: "number")
+                                                                .font(.system(size: 16, weight: .medium))
+                                                                .foregroundColor(Color(hex: "004aad"))
+                                                                .frame(width: 32, height: 32)
+                                                                .background(
+                                                                    Circle()
+                                                                        .fill(Color(hex: "004aad").opacity(0.1))
+                                                                )
+                                                            
+                                                            VStack(alignment: .leading, spacing: 2) {
+                                                                Text(channel.name)
+                                                                    .font(.system(size: 16, weight: .medium))
+                                                                    .foregroundColor(.primary)
+                                                                
+                                                                Text("Tap to join conversation")
+                                                                    .font(.system(size: 13))
+                                                                    .foregroundColor(.secondary)
+                                                            }
+                                                            
+                                                            Spacer()
+                                                            
+                                                            Image(systemName: "chevron.right")
+                                                                .font(.system(size: 12, weight: .medium))
+                                                                .foregroundColor(.secondary)
+                                                        }
+                                                        .padding(.horizontal, 20)
+                                                        .padding(.vertical, 16)
+                                                        .background(
+                                                            RoundedRectangle(cornerRadius: 12)
+                                                                .fill(Color.white)
+                                                                .shadow(color: Color.black.opacity(0.04), radius: 6, x: 0, y: 2)
+                                                        )
+                                                        .overlay(
+                                                            RoundedRectangle(cornerRadius: 12)
+                                                                .stroke(Color(hex: "004aad").opacity(0.08), lineWidth: 1)
+                                                        )
+                                                        .padding(.horizontal, 20)
+                                                    }
+                                                    .buttonStyle(PlainButtonStyle())
+                                                }
+                                            }
                                         }
-
-                                        Divider().padding(.horizontal)
                                     }
                                 }
                             } else {
-                                Text("No channels available.")
-                                    .font(.subheadline)
-                                    .foregroundColor(.gray)
-                                    .padding(.horizontal)
+                                // Enhanced Empty State
+                                VStack(spacing: 16) {
+                                    Image(systemName: "bubble.left.and.bubble.right.fill")
+                                        .font(.system(size: 48))
+                                        .foregroundColor(Color(hex: "004aad").opacity(0.4))
+                                    
+                                    Text("No channels available")
+                                        .font(.system(size: 18, weight: .semibold))
+                                        .foregroundColor(.primary)
+                                    
+                                    Text("Channels will appear here once they're created by moderators")
+                                        .font(.system(size: 14))
+                                        .foregroundColor(.secondary)
+                                        .multilineTextAlignment(.center)
+                                        .padding(.horizontal, 40)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 40)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .fill(Color(hex: "004aad").opacity(0.05))
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 16)
+                                                .stroke(Color(hex: "004aad").opacity(0.1), lineWidth: 1)
+                                        )
+                                )
+                                .padding(.horizontal, 20)
                             }
-
-                            
                         }
-                        .padding(.top)
-                        .padding(.bottom, 100) // Add bottom padding for footer navigation
-                        .font(.system(size: 18))
-                        .foregroundColor(.black)
+                        .padding(.top, 8)
+                        .padding(.bottom, 120) // Space for bottom navigation
                     }
 
 
@@ -672,13 +854,7 @@ struct PageGroupchats: View {
                 }
             }
         }.resume()
-        
-        
-        
     }
-    
-    
-    
     
     func postNewThread() {
         guard let url = URL(string: "https://circlapp.online/api/circles/create_thread/") else { return }
@@ -694,9 +870,7 @@ struct PageGroupchats: View {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
 
-        // Explicitly define the type of the URLSession data task
         let task: URLSessionDataTask = URLSession.shared.dataTask(with: request) { data, response, error in
-            // Handle the response and error
             guard let data = data, error == nil else {
                 print("Error: \(error?.localizedDescription ?? "Unknown error")")
                 return
@@ -707,12 +881,9 @@ struct PageGroupchats: View {
                 fetchThreads(for: circle.id)
             }
         }
-
-        // Start the task
         task.resume()
     }
 
-    
     func leaveCircle() {
         guard let url = URL(string: "https://circlapp.online/api/circles/leave_circle/") else { return }
 
@@ -726,10 +897,8 @@ struct PageGroupchats: View {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
 
-        // Added explicit type annotation to resolve ambiguity
         let task: URLSessionDataTask = URLSession.shared.dataTask(with: request) { data, response, error in
             DispatchQueue.main.async {
-                // Optional: navigate back or reload UI
                 presentationMode.wrappedValue.dismiss()
             }
         }
@@ -749,16 +918,13 @@ struct PageGroupchats: View {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
 
-        // Added explicit type annotation to resolve ambiguity
         let task: URLSessionDataTask = URLSession.shared.dataTask(with: request) { data, _, _ in
             DispatchQueue.main.async {
-                // Navigate back to PageCircles after deletion
                 presentationMode.wrappedValue.dismiss()
             }
         }
         task.resume()
     }
-
 
     func fetchThreads(for circleId: Int) {
         guard let url = URL(string: "https://circlapp.online/api/circles/get_threads/\(circleId)/") else { return }
@@ -778,9 +944,6 @@ struct PageGroupchats: View {
             }
         }.resume()
     }
-
-
-
 
     var headerSection: some View {
         VStack(spacing: 0) {
@@ -829,39 +992,93 @@ struct ThreadPost: Identifiable, Decodable {
     let comments: Int
 }
 
-// MARK: - Thread Card View
+// MARK: - Enhanced Thread Card View
 struct ThreadCard: View {
     let thread: ThreadPost
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 12) {
+            // Header with author and engagement stats
             HStack {
-                Text(thread.author)
-                    .fontWeight(.bold)
-                Spacer()
-                HStack(spacing: 12) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "hand.thumbsup")
-                        Text("\(thread.likes)")
-                    }
-                    HStack(spacing: 4) {
-                        Image(systemName: "bubble.right")
-                        Text("\(thread.comments)")
+                HStack(spacing: 8) {
+                    // Author avatar placeholder
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                gradient: Gradient(colors: [Color(hex: "004aad"), Color(hex: "0066dd")]),
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 32, height: 32)
+                        .overlay(
+                            Text(String(thread.author.prefix(1)).uppercased())
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(.white)
+                        )
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(thread.author)
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(.primary)
+                        
+                        Text("2 hours ago") // You can make this dynamic later
+                            .font(.system(size: 12))
+                            .foregroundColor(.secondary)
                     }
                 }
-                .font(.caption)
-                .foregroundColor(.gray)
+                
+                Spacer()
             }
 
+            // Thread content
             Text(thread.content)
-                .font(.body)
+                .font(.system(size: 15))
+                .foregroundColor(.primary)
+                .lineLimit(4)
+                .multilineTextAlignment(.leading)
 
-            Divider()
+            // Engagement section
+            HStack(spacing: 16) {
+                HStack(spacing: 6) {
+                    Image(systemName: thread.likes > 0 ? "heart.fill" : "heart")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(thread.likes > 0 ? .red : .secondary)
+                    Text("\(thread.likes)")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(.secondary)
+                }
+                
+                HStack(spacing: 6) {
+                    Image(systemName: "bubble.right")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(.secondary)
+                    Text("\(thread.comments)")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(.secondary)
+                }
+                
+                Spacer()
+                
+                Button(action: {
+                    // Share action
+                }) {
+                    Image(systemName: "square.and.arrow.up")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(.secondary)
+                }
+            }
         }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
-        .shadow(radius: 2)
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.white)
+                .shadow(color: Color.black.opacity(0.06), radius: 10, x: 0, y: 4)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(Color(hex: "004aad").opacity(0.1), lineWidth: 1)
+        )
     }
 }
 
