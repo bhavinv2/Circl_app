@@ -124,36 +124,32 @@ struct PageGroupchats: View {
                         }
                         .padding(.horizontal, 20)
                         .padding(.top, 16)
-                        .padding(.bottom, -40)
 
                         // Enhanced Moderator label with modern badge styling
-                        HStack {
-                            if userId == circle.creatorId {
-                                HStack(spacing: 6) {
-                                    Image(systemName: "crown.fill")
-                                        .font(.system(size: 12, weight: .medium))
-                                        .foregroundColor(Color(hex: "004aad"))
-                                    
-                                    Text("Circle Moderator")
-                                        .font(.system(size: 13, weight: .medium))
-                                        .foregroundColor(Color(hex: "004aad"))
-                                }
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 6)
-                                .background(
-                                    Capsule()
-                                        .fill(Color(hex: "004aad").opacity(0.1))
-                                )
-                                .overlay(
-                                    Capsule()
-                                        .stroke(Color(hex: "004aad").opacity(0.2), lineWidth: 1)
-                                )
+                        if userId == circle.creatorId {
+                            HStack(spacing: 6) {
+                                Image(systemName: "crown.fill")
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundColor(Color(hex: "004aad"))
+                                
+                                Text("Circle Moderator")
+                                    .font(.system(size: 13, weight: .medium))
+                                    .foregroundColor(Color(hex: "004aad"))
                             }
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(
+                                Capsule()
+                                    .fill(Color(hex: "004aad").opacity(0.1))
+                            )
+                            .overlay(
+                                Capsule()
+                                    .stroke(Color(hex: "004aad").opacity(0.2), lineWidth: 1)
+                            )
+                            .padding(.top, 8)
                         }
-                        .frame(height: 28)
-                        .padding(.bottom, 8)
                     }
-                    .padding(.top, 5)
+                    .padding(.bottom, 16)
 
 
 
