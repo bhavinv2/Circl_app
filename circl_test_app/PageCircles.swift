@@ -188,6 +188,109 @@ struct PageCircles: View {
                     .background(Color(hex: "004aad"))
                     .ignoresSafeArea(edges: .top)
                     
+                    // MARK: Create Circle Sheet
+                    .sheet(isPresented: $showCreateCircleSheet) {
+                        NavigationView {
+                            ScrollView {
+                                VStack(spacing: 24) {
+                                    // Header
+                                    VStack(spacing: 8) {
+                                        Text("Create New Circle")
+                                            .font(.title)
+                                            .bold()
+                                        Text("Build a community around your interests")
+                                            .foregroundColor(.secondary)
+                                    }
+                                    .padding(.top)
+
+                                    // Name
+                                    VStack(alignment: .leading, spacing: 8) {
+                                        Text("Circle Name")
+                                            .font(.headline)
+                                        TextField("Enter circle name", text: $circleName)
+                                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                                    }
+
+                                    // Industry
+                                    VStack(alignment: .leading, spacing: 8) {
+                                        Text("Industry")
+                                            .font(.headline)
+                                        TextField("Enter industry", text: $circleIndustry)
+                                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                                    }
+
+                                    // Description
+                                    VStack(alignment: .leading, spacing: 8) {
+                                        Text("Description")
+                                            .font(.headline)
+                                        TextEditor(text: $circleDescription)
+                                            .frame(height: 100)
+                                            .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.gray.opacity(0.2)))
+                                    }
+
+                                    // Join Type
+                                    VStack(alignment: .leading, spacing: 8) {
+                                        Text("Join Type")
+                                            .font(.headline)
+                                        Picker("Join Type", selection: $selectedJoinType) {
+                                            Text("Join Now").tag(JoinType.joinNow)
+                                            Text("Apply Now").tag(JoinType.applyNow)
+                                        }
+                                        .pickerStyle(SegmentedPickerStyle())
+                                    }
+
+                                    // Channels
+                                    VStack(alignment: .leading, spacing: 12) {
+                                        Text("Default Channels")
+                                            .font(.headline)
+                                        
+                                        ForEach(allChannelOptions, id: \.self) { channel in
+                                            HStack {
+                                                Image(systemName: selectedChannels.contains(channel) ? "checkmark.circle.fill" : "circle")
+                                                    .foregroundColor(selectedChannels.contains(channel) ? .blue : .gray)
+                                                Text(channel)
+                                                Spacer()
+                                            }
+                                            .contentShape(Rectangle())
+                                            .onTapGesture {
+                                                if selectedChannels.contains(channel) {
+                                                    selectedChannels.removeAll { $0 == channel }
+                                                } else {
+                                                    selectedChannels.append(channel)
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    // Create Button
+                                    Button(action: {
+                                        createCircle()
+                                    }) {
+                                        Text("Create Circle")
+                                            .font(.headline)
+                                            .foregroundColor(.white)
+                                            .frame(maxWidth: .infinity)
+                                            .padding()
+                                            .background(Color.blue)
+                                            .cornerRadius(10)
+                                    }
+                                    .padding(.top, 16)
+                                }
+                                .padding()
+                            }
+                            .navigationBarTitleDisplayMode(.inline)
+                            .toolbar {
+                                ToolbarItem(placement: .navigationBarLeading) {
+                                    Button("Cancel") {
+                                        showCreateCircleSheet = false
+                                    }
+                                    .foregroundColor(Color(hex: "004aad"))
+                                }
+                            }
+                        }
+                        .presentationDetents([.large])
+                    }
+                    
                     // MARK: Enhanced Search Section
                     VStack(spacing: 12) {
                         HStack(spacing: 12) {

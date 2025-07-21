@@ -146,15 +146,13 @@ struct PageGroupchats: View {
                                 Capsule()
                                     .stroke(Color(hex: "004aad").opacity(0.2), lineWidth: 1)
                             )
-                            .padding(.top, 8)
+                            .padding(.vertical, 5)
                         }
                     }
-                    .padding(.bottom, 16)
+                    .padding(.bottom, 5)
 
 
-
-
-//                    Announcement Banner
+                //                    Announcement Banner
 //                    Text("Announcements: Group Call Tonight 8:00 PM")
 //                        .font(.subheadline)
 //                        .foregroundColor(.white)
