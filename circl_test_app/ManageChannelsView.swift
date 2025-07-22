@@ -330,8 +330,8 @@ struct ManageChannelsView: View {
     
     // MARK: - Backend API Functions
     private func createChannelOnServer(channelName: String, completion: @escaping (Bool, Channel?) -> Void) {
-        guard let url = URL(string: "\(baseURL)circles/create_channel/") else {
-            completion(false, nil)
+        guard let url = URL(string: "http://localhost:8000/api/circles/create_channel/") else {
+            completion(false, nil as Channel?)
             return
         }
         
@@ -349,7 +349,7 @@ struct ManageChannelsView: View {
         URLSession.shared.dataTask(with: request) { data, response, error in
             guard let data = data, error == nil else {
                 print("❌ Create channel error:", error?.localizedDescription ?? "unknown")
-                completion(false, nil)
+                completion(false, nil as Channel?)
                 return
             }
             
@@ -362,21 +362,21 @@ struct ManageChannelsView: View {
                 } else if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                           let channelId = json["channel_id"] as? Int ?? json["id"] as? Int {
                     let position = json["position"] as? Int ?? localChannels.count + 1
-                    let newChannel = Channel(id: channelId, name: channelName, circleId: circleId, position: position)
-                    completion(true, newChannel)
-                } else {
-                    // Fallback: create channel with temporary ID
-                    let newChannel = Channel(id: Int.random(in: 10000...99999), name: channelName, circleId: circleId, position: localChannels.count + 1)
-                    completion(true, newChannel)
+                                         let newChannel = Channel(id: channelId, name: channelName, circleId: circleId, position: position)
+                     completion(true, newChannel)
+                 } else {
+                     // Fallback: create channel with temporary ID
+                     let newChannel = Channel(id: Int.random(in: 10000...99999), name: channelName, circleId: circleId, position: localChannels.count + 1)
+                     completion(true, newChannel)
                 }
             } else {
-                completion(false, nil)
+                completion(false, nil as Channel?)
             }
         }.resume()
     }
     
     private func deleteChannelOnServer(channelId: Int, completion: @escaping (Bool) -> Void) {
-        guard let url = URL(string: "\(baseURL)circles/delete_channel/") else {
+        guard let url = URL(string: "http://localhost:8000/api/circles/delete_channel/") else {
             completion(false)
             return
         }
@@ -408,7 +408,7 @@ struct ManageChannelsView: View {
     }
     
     private func updateChannelOrderOnServer() {
-        guard let url = URL(string: "\(baseURL)circles/channels/update_positions/") else { return }
+        guard let url = URL(string: "http://localhost:8000/api/circles/channels/update_positions/") else { return }
         
         let positions = localChannels.enumerated().map { (index, channel) in
             ["id": channel.id, "position": index + 1] // Start from 1, not 0
@@ -420,17 +420,39 @@ struct ManageChannelsView: View {
             "positions": positions
         ]
         
+        // ADD DEBUG LOGGING
+        print("🌐 Updating channel positions")
+        print("📤 URL: \(url.absoluteString)")
+        print("📤 Payload: \(payload)")
+        
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
         
         URLSession.shared.dataTask(with: request) { data, response, error in
-            if let error = error {
-                print("❌ Update channel order error:", error.localizedDescription)
-            } else if let httpResponse = response as? HTTPURLResponse,
-                      httpResponse.statusCode == 200 {
-                print("✅ Channel order updated successfully")
+            DispatchQueue.main.async {
+                if let error = error {
+                    print("❌ Network error: \(error.localizedDescription)")
+                    return
+                }
+                
+                guard let httpResponse = response as? HTTPURLResponse else {
+                    print("❌ Invalid response")
+                    return
+                }
+                
+                print("📊 Status code: \(httpResponse.statusCode)")
+                
+                if let data = data, let responseString = String(data: data, encoding: .utf8) {
+                    print("📥 Response: \(responseString)")
+                }
+                
+                if httpResponse.statusCode == 200 {
+                    print("✅ Channel order updated successfully")
+                } else {
+                    print("❌ Server error: \(httpResponse.statusCode)")
+                }
             }
         }.resume()
     }

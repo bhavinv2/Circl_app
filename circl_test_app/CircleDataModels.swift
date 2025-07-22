@@ -35,7 +35,8 @@ struct Channel: Identifiable, Codable, Hashable {
     }
     
     private enum CodingKeys: String, CodingKey {
-        case id, name, circleId, position
+        case id, name, position
+        case circleId = "circle_id"
     }
 }
 

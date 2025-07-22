@@ -820,6 +820,7 @@ struct PageGroupchats: View {
     
 
         .onAppear {
+            print("🔄 PageGroupchats appeared - Circle ID: \(circle.id), User ID: \(userId)")
             fetchChannels(for: circle.id)
             fetchThreads(for: circle.id)
             fetchMyCircles(userId: userId)
@@ -828,11 +829,7 @@ struct PageGroupchats: View {
             
 
             func fetchMyCircles(userId: Int) {
-<<<<<<< Updated upstream
-                URLSession.shared.dataTask(with: URL(string: "https://circlapp.online/api/circles/get_my_circles/")!) { data, _, _ in
-=======
-                URLSession.shared.dataTask(with: URL(string: "\(baseURL)circles/my_circles/\(userId)/")!) { data, _, _ in
->>>>>>> Stashed changes
+                URLSession.shared.dataTask(with: URL(string: "http://localhost:8000/api/circles/my_circles/\(userId)/")!) { data, _, _ in
                     guard let data = data else {
                         DispatchQueue.main.async {
                             self.loading = false
@@ -857,16 +854,50 @@ struct PageGroupchats: View {
     }
 
     func fetchChannels(for circleId: Int) {
-        guard let url = URL(string: "https://circlapp.online/api/circles/get_channels/\(circleId)/") else { return }
+        guard let url = URL(string: "http://localhost:8000/api/circles/get_channels/\(circleId)/") else { 
+            print("❌ Invalid URL for fetchChannels")
+            return 
+        }
 
-        URLSession.shared.dataTask(with: url) { data, _, _ in
-            if let data = data {
-                if let decoded = try? JSONDecoder().decode([Channel].self, from: data) {
-                    DispatchQueue.main.async {
+        print("🌐 Fetching channels for circle: \(circleId)")
+        print("📤 URL: \(url.absoluteString)")
+
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    print("❌ Network error fetching channels: \(error.localizedDescription)")
+                    return
+                }
+                
+                guard let httpResponse = response as? HTTPURLResponse else {
+                    print("❌ Invalid response for fetchChannels")
+                    return
+                }
+                
+                print("📊 Channels API Status code: \(httpResponse.statusCode)")
+                
+                guard let data = data else {
+                    print("❌ No data received for channels")
+                    return
+                }
+                
+                if let responseString = String(data: data, encoding: .utf8) {
+                    print("📥 Channels API Response: \(responseString)")
+                }
+                
+                if httpResponse.statusCode == 200 {
+                    if let decoded = try? JSONDecoder().decode([Channel].self, from: data) {
+                        print("✅ Successfully decoded \(decoded.count) channels")
                         self.channels = decoded
+                    } else {
+                        print("❌ Failed to decode channels JSON")
+                        // Try to see the raw data structure
+                        if let json = try? JSONSerialization.jsonObject(with: data) {
+                            print("📋 Raw JSON structure: \(json)")
+                        }
                     }
                 } else {
-                    print("❌ Failed to decode channels")
+                    print("❌ Server error fetching channels: \(httpResponse.statusCode)")
                 }
             }
         }.resume()
@@ -943,7 +974,7 @@ struct PageGroupchats: View {
     }
 
     func fetchThreads(for circleId: Int) {
-        guard let url = URL(string: "https://circlapp.online/api/circles/get_threads/\(circleId)/") else { return }
+        guard let url = URL(string: "http://localhost:8000/api/circles/get_threads/\(circleId)/") else { return }
 
         URLSession.shared.dataTask(with: url) { data, _, _ in
             if let data = data {
@@ -1234,7 +1265,7 @@ struct PageGroupchatsWrapper: View {
             let member_count: Int?
         }
         
-        guard let url = URL(string: "https://circlapp.online/api/circles/my_circles/\(userId)/") else { return }
+        guard let url = URL(string: "http://localhost:8000/api/circles/my_circles/\(userId)/") else { return }
 
         URLSession.shared.dataTask(with: url) { data, _, _ in
             if let data = data,
