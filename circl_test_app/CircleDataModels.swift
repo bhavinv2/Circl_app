@@ -15,6 +15,28 @@ struct Channel: Identifiable, Codable, Hashable {
     let id: Int
     let name: String
     let circleId: Int
+    var position: Int
+    
+    // For decoding from backend that might not include position
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(Int.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        circleId = try container.decode(Int.self, forKey: .circleId)
+        position = try container.decodeIfPresent(Int.self, forKey: .position) ?? 0
+    }
+    
+    // For manual creation
+    init(id: Int, name: String, circleId: Int, position: Int = 0) {
+        self.id = id
+        self.name = name
+        self.circleId = circleId
+        self.position = position
+    }
+    
+    private enum CodingKeys: String, CodingKey {
+        case id, name, circleId, position
+    }
 }
 
 // MARK: - Circle Data

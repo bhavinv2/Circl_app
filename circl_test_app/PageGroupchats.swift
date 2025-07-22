@@ -15,6 +15,7 @@ struct PageGroupchats: View {
     
     @State private var showDeleteConfirmation = false
     @State private var deleteInputText = ""
+    @State private var showManageChannels = false
 
     @State private var myCircles: [CircleData] = []
 
@@ -418,6 +419,13 @@ struct PageGroupchats: View {
                 .sheet(isPresented: $showCircleAboutPopup) {
                     CirclPopupCard(circle: circle, isMember: true)
                 }
+                .sheet(isPresented: $showManageChannels) {
+                    ManageChannelsView(circleId: circle.id, channels: $channels)
+                        .onDisappear {
+                            // Refresh channels when returning from manage view
+                            fetchChannels(for: circle.id)
+                        }
+                }
 
                 // 🔻 Add this just ABOVE `floatingButton` inside the ZStack
                 if showSettingsMenu {
@@ -476,7 +484,13 @@ struct PageGroupchats: View {
                                     .padding(.horizontal)
                                     .padding(.top, 8)
 
-                               
+                                Button(action: {
+                                    showManageChannels = true
+                                    showSettingsMenu = false
+                                }) {
+                                    GroupMenuItem(icon: "slider.horizontal.3", title: "Manage Channels")
+                                }
+                                .buttonStyle(PlainButtonStyle())
                                 
                                 Button(action: {
                                     showDeleteConfirmation = true
@@ -812,7 +826,11 @@ struct PageGroupchats: View {
             
 
             func fetchMyCircles(userId: Int) {
+<<<<<<< Updated upstream
                 URLSession.shared.dataTask(with: URL(string: "https://circlapp.online/api/circles/get_my_circles/")!) { data, _, _ in
+=======
+                URLSession.shared.dataTask(with: URL(string: "\(baseURL)circles/my_circles/\(userId)/")!) { data, _, _ in
+>>>>>>> Stashed changes
                     guard let data = data else {
                         DispatchQueue.main.async {
                             self.loading = false
