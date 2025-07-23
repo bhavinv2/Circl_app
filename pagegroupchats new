@@ -53,6 +53,12 @@ struct PageGroupchats: View {
     @State private var pollTitle: String = ""
     @State private var pollOptions: [String] = ["", ""]
     @State private var showAddOption = false
+    
+    // Announcement states
+    @State private var announcements: [AnnouncementModel] = []
+    @State private var showCreateAnnouncementPopup = false
+    @State private var newAnnouncementTitle: String = ""
+    @State private var newAnnouncementContent: String = ""
 
 
     var body: some View {
@@ -158,18 +164,17 @@ struct PageGroupchats: View {
                     }
                     .padding(.bottom, 5)
 
+                // Announcements Section
+                if !announcements.isEmpty {
+                    VStack(spacing: 8) {
+                        ForEach(announcements.prefix(3)) { announcement in
+                            AnnouncementBanner(announcement: announcement)
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 8)
+                }
 
-                //                    Announcement Banner
-//                    Text("Announcements: Group Call Tonight 8:00 PM")
-//                        .font(.subheadline)
-//                        .foregroundColor(.white)
-//                        .padding(8)
-//                        .frame(maxWidth: .infinity)
-//                       .background(Color.fromHex("004aad"))
-//                        .cornerRadius(10)
-//                        .padding(.horizontal)
-//                        .padding(.vertical, 5)
-                
                 //Enhanced Circle Threads Section
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
@@ -591,6 +596,83 @@ struct PageGroupchats: View {
                             fetchChannels(for: circle.id)
                         }
                 }
+                .sheet(isPresented: $showCreateAnnouncementPopup) {
+                    NavigationView {
+                        VStack(spacing: 20) {
+                            // Header
+                            HStack {
+                                Button("Cancel") {
+                                    resetAnnouncementForm()
+                                    showCreateAnnouncementPopup = false
+                                }
+                                .foregroundColor(.secondary)
+                                
+                                Spacer()
+                                
+                                Text("Create Announcement")
+                                    .font(.headline)
+                                    .fontWeight(.semibold)
+                                
+                                Spacer()
+                                
+                                Button("Post") {
+                                    postNewAnnouncement()
+                                    resetAnnouncementForm()
+                                    showCreateAnnouncementPopup = false
+                                }
+                                .foregroundColor(canPostAnnouncement ? Color(hex: "004aad") : .secondary)
+                                .fontWeight(.semibold)
+                                .disabled(!canPostAnnouncement)
+                            }
+                            .padding(.horizontal)
+                            
+                            ScrollView {
+                                VStack(spacing: 16) {
+                                    // Title field
+                                    VStack(alignment: .leading, spacing: 8) {
+                                        Text("Announcement Title")
+                                            .font(.system(size: 14, weight: .medium))
+                                            .foregroundColor(.secondary)
+                                        
+                                        TextField("Enter announcement title...", text: $newAnnouncementTitle)
+                                            .padding(12)
+                                            .background(Color(.systemGray6))
+                                            .cornerRadius(12)
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 12)
+                                                    .stroke(Color(.systemGray4), lineWidth: 1)
+                                            )
+                                    }
+                                    .padding(.horizontal)
+                                    
+                                    // Content field
+                                    VStack(alignment: .leading, spacing: 8) {
+                                        Text("Announcement Content")
+                                            .font(.system(size: 14, weight: .medium))
+                                            .foregroundColor(.secondary)
+                                        
+                                        TextEditor(text: $newAnnouncementContent)
+                                            .frame(minHeight: 120)
+                                            .padding(12)
+                                            .background(Color(.systemGray6))
+                                            .cornerRadius(12)
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 12)
+                                                    .stroke(Color(.systemGray4), lineWidth: 1)
+                                            )
+                                    }
+                                    .padding(.horizontal)
+                                }
+                            }
+                            
+                            Spacer()
+                        }
+                        .background(Color(.systemBackground))
+                    }
+                    .onDisappear {
+                        resetAnnouncementForm()
+                    }
+                }
 
                 // 🔻 Add this just ABOVE `floatingButton` inside the ZStack
                 if showSettingsMenu {
@@ -654,6 +736,14 @@ struct PageGroupchats: View {
                                     showSettingsMenu = false
                                 }) {
                                     GroupMenuItem(icon: "slider.horizontal.3", title: "Manage Channels")
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                                
+                                Button(action: {
+                                    showCreateAnnouncementPopup = true
+                                    showSettingsMenu = false
+                                }) {
+                                    GroupMenuItem(icon: "megaphone.fill", title: "Create Announcement")
                                 }
                                 .buttonStyle(PlainButtonStyle())
                                 
@@ -986,7 +1076,11 @@ struct PageGroupchats: View {
             print("🔄 PageGroupchats appeared - Circle ID: \(circle.id), User ID: \(userId)")
             fetchChannels(for: circle.id)
             fetchThreads(for: circle.id)
+            fetchAnnouncements(for: circle.id)
             fetchMyCircles(userId: userId)
+            
+            // Add dummy announcement for preview
+            addDummyAnnouncement()
             
             
             
@@ -1026,12 +1120,22 @@ struct PageGroupchats: View {
         }
     }
     
+    var canPostAnnouncement: Bool {
+        return !newAnnouncementTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+               !newAnnouncementContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+    
     // MARK: - Helper Functions
     func resetPostForm() {
         newThreadContent = ""
         isCreatingPoll = false
         pollTitle = ""
         pollOptions = ["", ""]
+    }
+    
+    func resetAnnouncementForm() {
+        newAnnouncementTitle = ""
+        newAnnouncementContent = ""
     }
 
     func fetchChannels(for circleId: Int) {
@@ -1141,6 +1245,70 @@ struct PageGroupchats: View {
             }
         }
         task.resume()
+    }
+    
+    func postNewAnnouncement() {
+        guard let url = URL(string: "http://localhost:8000/api/circles/create_announcement/") else { return }
+        
+        let body: [String: Any] = [
+            "user_id": userId,
+            "circle_id": circle.id,
+            "title": newAnnouncementTitle,
+            "content": newAnnouncementContent
+        ]
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+        
+        let task: URLSessionDataTask = URLSession.shared.dataTask(with: request) { data, response, error in
+            guard let data = data, error == nil else {
+                print("Error creating announcement: \(error?.localizedDescription ?? "Unknown error")")
+                return
+            }
+            
+            DispatchQueue.main.async {
+                fetchAnnouncements(for: circle.id)
+            }
+        }
+        task.resume()
+    }
+    
+    func fetchAnnouncements(for circleId: Int) {
+        guard let url = URL(string: "http://localhost:8000/api/circles/get_announcements/\(circleId)/") else { return }
+        
+        URLSession.shared.dataTask(with: url) { data, _, _ in
+            if let data = data {
+                print("📥 Raw Announcements JSON:")
+                print(String(data: data, encoding: .utf8) ?? "nil")
+                
+                if let decoded = try? JSONDecoder().decode([AnnouncementModel].self, from: data) {
+                    DispatchQueue.main.async {
+                        self.announcements = decoded
+                    }
+                } else {
+                    print("❌ Failed to decode announcements")
+                }
+            }
+        }.resume()
+    }
+    
+    func addDummyAnnouncement() {
+        // Add a dummy announcement for preview
+        let dummyAnnouncement = AnnouncementModel(
+            id: 999,
+            user: "Circle Moderator",
+            title: "Welcome to our Circle! 🎉",
+            content: "Hello everyone! We're excited to have you join our community. Please take a moment to introduce yourself in the general channel and let us know what brings you here. Don't forget to check out our community guidelines and feel free to ask any questions!",
+            announced_at: "2024-01-15T10:30:00Z"
+        )
+        
+        DispatchQueue.main.async {
+            if self.announcements.isEmpty {
+                self.announcements = [dummyAnnouncement]
+            }
+        }
     }
 
     func leaveCircle() {
@@ -1605,7 +1773,65 @@ struct PageGroupchats_Previews: PreviewProvider {
     }
 }
 
-
+// MARK: - Announcement Banner Component
+struct AnnouncementBanner: View {
+    let announcement: AnnouncementModel
+    @State private var isExpanded = false
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 12) {
+                // Megaphone icon
+                Image(systemName: "megaphone.fill")
+                    .font(.system(size: 18, weight: .medium))
+                    .foregroundColor(.white)
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text(announcement.title)
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.white)
+                        
+                        Spacer()
+                        
+                        Button(action: {
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                isExpanded.toggle()
+                            }
+                        }) {
+                            Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(.white.opacity(0.8))
+                        }
+                    }
+                    
+                    Text("By \(announcement.user)")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(.white.opacity(0.8))
+                }
+            }
+            
+            if isExpanded {
+                Text(announcement.content)
+                    .font(.system(size: 14))
+                    .foregroundColor(.white)
+                    .lineLimit(nil)
+                    .padding(.leading, 30) // Align with title
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(
+            LinearGradient(
+                gradient: Gradient(colors: [Color(hex: "004aad"), Color(hex: "0066dd")]),
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+        )
+        .cornerRadius(12)
+        .shadow(color: Color(hex: "004aad").opacity(0.3), radius: 6, x: 0, y: 3)
+    }
+}
 
 // Placeholder views for navigation destinations
 struct PageMessages2: View {
