@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Error Diagnosis: Backend Authentication Issue</title>
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            color: #333;
+        }
+        .diagnosis {
+            background-color: #f8f9fa;
+            border-left: 4px solid #0066dd;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .solution {
+            background-color: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .error {
+            background-color: #ffebee;
+            border-left: 4px solid #f44336;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        code {
+            background: #f4f4f4;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Monaco', 'Menlo', monospace;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Error Diagnosis: Backend Authentication Issue</h1>
+
+    <div class="diagnosis">
+        <h2>Diagnosis</h2>
+        <p>This is confirmed to be a <strong>backend authentication issue</strong>. Here's the evidence:</p>
+        <ol>
+            <li>The backend server is running and responding (good)</li>
+            <li>The backend returns a 401 Unauthorized error (authentication problem)</li>
+            <li>The error message states: "Authentication credentials were not provided"</li>
+        </ol>
+    </div>
+
+    <div class="error">
+        <h2>Current Issues</h2>
+        <ol>
+            <li>The frontend is attempting to use a token from UserDefaults but:
+                <ul>
+                    <li>The token might not be stored properly</li>
+                    <li>The token format might be incorrect (using "Bearer" prefix when server expects "Token")</li>
+                    <li>The token might be expired or invalid</li>
+                </ul>
+            </li>
+            <li>The backend requires authentication but rejects the current requests</li>
+        </ol>
+    </div>
+
+    <div class="solution">
+        <h2>Solution Steps</h2>
+        <ol>
+            <li>First, verify token storage:
+                <pre><code>// In your login success handler:
+UserDefaults.standard.set(receivedToken, forKey: "auth_token")
+
+// Add this debug code temporarily to PollsViewModel:
+print("Stored token:", UserDefaults.standard.string(forKey: "auth_token") ?? "No token found")</code></pre>
+            </li>
+            <li>Update the authentication header format:
+                <pre><code>// In PollsViewModel.swift
+if let token = UserDefaults.standard.string(forKey: "auth_token") {
+    // Change from "Bearer" to "Token" if using Django's TokenAuthentication
+    request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+}</code></pre>
+            </li>
+            <li>Test the API with a valid token:
+                <pre><code>curl -i -H "Authorization: Token YOUR_TOKEN_HERE" \
+    "http://localhost:8000/api/polls/?circle_id=39"</code></pre>
+            </li>
+        </ol>
+    </div>
+
+    <div class="diagnosis">
+        <h2>Next Steps</h2>
+        <ol>
+            <li>Check Django settings.py to verify authentication settings:
+                <pre><code>REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+}</code></pre>
+            </li>
+            <li>Ensure the login endpoint is properly saving and returning the token</li>
+            <li>Add proper error handling in the frontend to handle authentication failures</li>
+        </ol>
+    </div>
+</body>
+</html>

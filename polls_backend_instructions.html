@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Polls Backend Setup Instructions</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        code {
+            font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+        }
+        .note {
+            background-color: #e8f4fd;
+            padding: 15px;
+            border-left: 4px solid #0066dd;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Setting up the Polls Backend</h1>
+    
+    <h2>1. Django Models Setup</h2>
+    <p>First, create the Poll model in your Django backend. Create or update <code>models.py</code>:</p>
+    <pre><code>from django.db import models
+
+class Poll(models.Model):
+    title = models.CharField(max_length=200)
+    options = models.JSONField()  # Store options as a JSON array
+    circle_id = models.IntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+
+class Vote(models.Model):
+    poll = models.ForeignKey(Poll, on_delete=models.CASCADE, related_name='votes')
+    option = models.CharField(max_length=200)
+    user_id = models.IntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)</code></pre>
+
+    <h2>2. Django Views Setup</h2>
+    <p>Create the views in <code>views.py</code>:</p>
+    <pre><code>from rest_framework import viewsets, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from .models import Poll, Vote
+from .serializers import PollSerializer
+
+class PollViewSet(viewsets.ModelViewSet):
+    serializer_class = PollSerializer
+    
+    def get_queryset(self):
+        circle_id = self.request.query_params.get('circle_id')
+        return Poll.objects.filter(circle_id=circle_id)
+    
+    def create(self, request):
+        data = request.data.copy()
+        data['circle_id'] = request.data.get('circle_id')
+        serializer = self.serializer_class(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=True, methods=['post'])
+    def vote(self, request, pk=None):
+        poll = self.get_object()
+        option = request.data.get('option')
+        user_id = request.user.id  # Assuming you have authentication set up
+        
+        if not option:
+            return Response({'error': 'Option is required'}, 
+                          status=status.HTTP_400_BAD_REQUEST)
+        
+        # Prevent duplicate votes
+        existing_vote = Vote.objects.filter(poll=poll, user_id=user_id).first()
+        if existing_vote:
+            return Response({'error': 'Already voted'}, 
+                          status=status.HTTP_400_BAD_REQUEST)
+        
+        Vote.objects.create(poll=poll, option=option, user_id=user_id)
+        return Response({'message': 'Vote recorded'}, status=status.HTTP_201_CREATED)</code></pre>
+
+    <h2>3. URL Configuration</h2>
+    <p>Update your <code>urls.py</code>:</p>
+    <pre><code>from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import PollViewSet
+
+router = DefaultRouter()
+router.register(r'polls', PollViewSet, basename='poll')
+
+urlpatterns = [
+    path('api/', include(router.urls)),
+]</code></pre>
+
+    <h2>4. API Endpoints</h2>
+    <p>The following endpoints will be available:</p>
+    <ul>
+        <li><code>GET /api/polls/?circle_id={id}</code> - List polls for a circle</li>
+        <li><code>POST /api/polls/</code> - Create a new poll</li>
+        <li><code>POST /api/polls/{id}/vote/</code> - Vote on a poll</li>
+    </ul>
+
+    <div class="note">
+        <strong>Note:</strong> Make sure CORS is properly configured in your Django settings:
+        <pre><code>INSTALLED_APPS = [
+    ...
+    'corsheaders',
+    ...
+]
+
+MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    ...
+]
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",  # Add your iOS app's domain
+]</code></pre>
+    </div>
+
+    <h2>5. Authentication</h2>
+    <p>If you're using token authentication, make sure to:</p>
+    <ol>
+        <li>Include the authentication classes in your ViewSet:
+            <pre><code>from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import IsAuthenticated
+
+class PollViewSet(viewsets.ModelViewSet):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    ...</code></pre>
+        </li>
+        <li>Send the token in your iOS app's requests:
+            <pre><code>request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")</code></pre>
+        </li>
+    </ol>
+
+    <h2>Testing the API</h2>
+    <p>You can test the API using curl:</p>
+    <pre><code># List polls
+curl http://localhost:8000/api/polls/?circle_id=1
+
+# Create a poll
+curl -X POST http://localhost:8000/api/polls/ \
+    -H "Content-Type: application/json" \
+    -d '{"title": "Test Poll", "options": ["Option 1", "Option 2"], "circle_id": 1}'
+
+# Vote on a poll
+curl -X POST http://localhost:8000/api/polls/1/vote/ \
+    -H "Content-Type: application/json" \
+    -d '{"option": "Option 1"}'</code></pre>
+
+    <div class="note">
+        <strong>Troubleshooting:</strong>
+        <ol>
+            <li>Check if Django server is running on port 8000</li>
+            <li>Verify database migrations are applied: <code>python manage.py migrate</code></li>
+            <li>Check Django debug logs for detailed error messages</li>
+            <li>Ensure authentication tokens are valid and not expired</li>
+            <li>Verify CORS settings if getting CORS-related errors</li>
+        </ol>
+    </div>
+</body>
+</html>

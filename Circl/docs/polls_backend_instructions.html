@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Polls Backend Implementation Guide</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 2em; line-height: 1.6; }
+        h1, h2, h3 { color: #2c3e50; }
+        code, pre { background: #f4f4f4; padding: 0.2em 0.4em; border-radius: 4px; }
+        pre { padding: 1em; overflow-x: auto; }
+        .note { background: #e1f5fe; padding: 1em; border-radius: 4px; }
+        .warning { background: #fff3e0; padding: 1em; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h1>Polls Backend Implementation Guide</h1>
+
+    <h2>1. Models Setup</h2>
+    <p>Create a new file <code>polls/models.py</code>:</p>
+    <pre><code>from django.db import models
+from users.models import UserInfo
+from circles.models import Circle
+
+class Poll(models.Model):
+    circle = models.ForeignKey(Circle, on_delete=models.CASCADE, related_name='polls')
+    creator = models.ForeignKey(UserInfo, on_delete=models.CASCADE, related_name='created_polls')
+    title = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.title} - {self.circle.name}"
+
+class PollOption(models.Model):
+    poll = models.ForeignKey(Poll, on_delete=models.CASCADE, related_name='options')
+    text = models.CharField(max_length=255)
+    
+    def __str__(self):
+        return self.text
+
+class PollVote(models.Model):
+    poll = models.ForeignKey(Poll, on_delete=models.CASCADE, related_name='votes')
+    option = models.ForeignKey(PollOption, on_delete=models.CASCADE, related_name='votes')
+    user = models.ForeignKey(UserInfo, on_delete=models.CASCADE, related_name='poll_votes')
+    voted_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['poll', 'user']  # One vote per user per poll</code></pre>
+
+    <h2>2. Serializers Setup</h2>
+    <p>Create <code>polls/serializers.py</code>:</p>
+    <pre><code>from rest_framework import serializers
+from .models import Poll, PollOption, PollVote
+
+class PollOptionSerializer(serializers.ModelSerializer):
+    vote_count = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = PollOption
+        fields = ['id', 'text', 'vote_count']
+    
+    def get_vote_count(self, obj):
+        return obj.votes.count()
+
+class PollSerializer(serializers.ModelSerializer):
+    options = PollOptionSerializer(many=True, read_only=True)
+    has_voted = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Poll
+        fields = ['id', 'title', 'created_at', 'options', 'has_voted']
+    
+    def get_has_voted(self, obj):
+        user = self.context['request'].user
+        return obj.votes.filter(user=user).exists()</code></pre>
+
+    <h2>3. Views Setup</h2>
+    <p>Create <code>polls/views.py</code>:</p>
+    <pre><code>from rest_framework import viewsets, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from .models import Poll, PollOption, PollVote
+from .serializers import PollSerializer
+
+class PollViewSet(viewsets.ModelViewSet):
+    serializer_class = PollSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        circle_id = self.request.query_params.get('circle_id')
+        if circle_id:
+            return Poll.objects.filter(circle_id=circle_id)
+        return Poll.objects.none()
+
+    def create(self, request):
+        circle_id = request.data.get('circle_id')
+        title = request.data.get('title')
+        options = request.data.get('options', [])
+
+        if not all([circle_id, title, options]):
+            return Response(
+                {'error': 'Missing required fields'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        poll = Poll.objects.create(
+            circle_id=circle_id,
+            creator=request.user,
+            title=title
+        )
+
+        for option_text in options:
+            PollOption.objects.create(poll=poll, text=option_text)
+
+        return Response(
+            PollSerializer(poll, context={'request': request}).data,
+            status=status.HTTP_201_CREATED
+        )
+
+    @action(detail=True, methods=['post'])
+    def vote(self, request, pk=None):
+        poll = self.get_object()
+        option_id = request.data.get('option_id')
+
+        if not option_id:
+            return Response(
+                {'error': 'Option ID is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            option = PollOption.objects.get(id=option_id, poll=poll)
+        except PollOption.DoesNotExist:
+            return Response(
+                {'error': 'Invalid option'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Remove any existing vote
+        PollVote.objects.filter(poll=poll, user=request.user).delete()
+
+        # Create new vote
+        PollVote.objects.create(
+            poll=poll,
+            option=option,
+            user=request.user
+        )
+
+        return Response(
+            PollSerializer(poll, context={'request': request}).data
+        )</code></pre>
+
+    <h2>4. URLs Configuration</h2>
+    <p>Add to <code>polls/urls.py</code>:</p>
+    <pre><code>from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import PollViewSet
+
+router = DefaultRouter()
+router.register(r'polls', PollViewSet, basename='poll')
+
+urlpatterns = [
+    path('api/', include(router.urls)),
+]</code></pre>
+
+    <h2>5. Add to Main URLs</h2>
+    <p>Add to your project's <code>urls.py</code>:</p>
+    <pre><code>urlpatterns = [
+    ...
+    path('', include('polls.urls')),
+    ...
+]</code></pre>
+
+    <h2>6. API Endpoints</h2>
+    <ul>
+        <li><code>GET /api/polls/?circle_id=123</code> - List polls for a circle</li>
+        <li><code>POST /api/polls/</code> - Create a new poll
+            <pre><code>{
+    "circle_id": 123,
+    "title": "Your poll question",
+    "options": ["Option 1", "Option 2", "Option 3"]
+}</code></pre>
+        </li>
+        <li><code>POST /api/polls/{poll_id}/vote/</code> - Vote on a poll
+            <pre><code>{
+    "option_id": 456
+}</code></pre>
+        </li>
+    </ul>
+
+    <h2>7. Testing</h2>
+    <p>Create <code>polls/tests.py</code>:</p>
+    <pre><code>from django.test import TestCase
+from rest_framework.test import APIClient
+from users.models import UserInfo
+from circles.models import Circle
+from .models import Poll, PollOption
+
+class PollsAPITest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = UserInfo.objects.create(username='testuser')
+        self.circle = Circle.objects.create(name='Test Circle')
+        self.client.force_authenticate(user=self.user)
+
+    def test_create_poll(self):
+        response = self.client.post('/api/polls/', {
+            'circle_id': self.circle.id,
+            'title': 'Test Poll',
+            'options': ['Option 1', 'Option 2']
+        })
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(Poll.objects.count(), 1)
+        self.assertEqual(PollOption.objects.count(), 2)</code></pre>
+
+    <div class="note">
+        <h3>Important Notes:</h3>
+        <ul>
+            <li>Run migrations after setting up models: <code>python manage.py makemigrations polls</code> and <code>python manage.py migrate</code></li>
+            <li>Add 'polls' to INSTALLED_APPS in settings.py</li>
+            <li>Ensure proper authentication is set up</li>
+            <li>Consider adding rate limiting for votes</li>
+            <li>Add proper error handling and validation</li>
+        </ul>
+    </div>
+
+    <div class="warning">
+        <h3>Security Considerations:</h3>
+        <ul>
+            <li>Validate circle membership before allowing poll creation/voting</li>
+            <li>Add permission checks for poll deletion/modification</li>
+            <li>Consider adding spam prevention measures</li>
+            <li>Implement proper request throttling</li>
+        </ul>
+    </div>
+</body>
+</html>

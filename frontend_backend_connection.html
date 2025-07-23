@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Frontend-Backend Connection Guide for Polls</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            color: #333;
+        }
+        .step {
+            background-color: #f8f9fa;
+            border-left: 4px solid #0066dd;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .code {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Menlo', monospace;
+        }
+        .note {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .test {
+            background-color: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 15px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Reconnecting Frontend to Backend: Polls Feature</h1>
+
+    <div class="step">
+        <h2>1. Update Poll Model</h2>
+        <p>First, ensure your Poll model in Swift matches your Django model:</p>
+        <div class="code">
+<pre>
+struct Poll: Identifiable, Codable {
+    let id: Int
+    let title: String
+    let options: [String]
+    let createdAt: String
+    let votes: [String: Int]?  // Add this if you want to track votes
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case title
+        case options
+        case createdAt = "created_at"
+        case votes
+    }
+}</pre>
+        </div>
+    </div>
+
+    <div class="step">
+        <h2>2. Update PollsViewModel</h2>
+        <p>Update your PollsViewModel to handle authentication and proper API calls:</p>
+        <div class="code">
+<pre>
+class PollsViewModel: ObservableObject {
+    @Published var polls: [Poll] = []
+    private let baseURL = "http://localhost:8000"
+    
+    func fetchPolls(for circleId: Int) {
+        guard let url = URL(string: "\(baseURL)/api/polls/?circle_id=\(circleId)") else {
+            print("❌ Invalid URL")
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        
+        // Add authentication token
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+        
+        URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+            if let error = error {
+                print("❌ Network error: \(error)")
+                return
+            }
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                print("❌ Invalid response type")
+                return
+            }
+            
+            print("📡 Response status: \(httpResponse.statusCode)")
+            
+            guard let data = data else {
+                print("❌ No data received")
+                return
+            }
+            
+            // Print raw response for debugging
+            if let responseStr = String(data: data, encoding: .utf8) {
+                print("📦 Raw response: \(responseStr)")
+            }
+            
+            do {
+                let decodedPolls = try JSONDecoder().decode([Poll].self, from: data)
+                DispatchQueue.main.async {
+                    self?.polls = decodedPolls
+                    print("✅ Loaded \(decodedPolls.count) polls")
+                }
+            } catch {
+                print("❌ Decoding error: \(error)")
+            }
+        }.resume()
+    }
+    
+    func createPoll(title: String, options: [String], circleId: Int) {
+        guard let url = URL(string: "\(baseURL)/api/polls/") else { return }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+        
+        let pollData = [
+            "title": title,
+            "options": options,
+            "circle_id": circleId
+        ] as [String : Any]
+        
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: pollData)
+        } catch {
+            print("❌ Error encoding poll data: \(error)")
+            return
+        }
+        
+        URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+            if let error = error {
+                print("❌ Error creating poll: \(error)")
+                return
+            }
+            
+            guard let httpResponse = response as? HTTPURLResponse else { return }
+            print("📡 Create poll response: \(httpResponse.statusCode)")
+            
+            if httpResponse.statusCode == 201 {
+                self?.fetchPolls(for: circleId)
+            }
+        }.resume()
+    }
+}</pre>
+        </div>
+    </div>
+
+    <div class="step">
+        <h2>3. Update PageGroupchats</h2>
+        <p>Ensure your PageGroupchats is properly initialized and refreshing polls:</p>
+        <div class="code">
+<pre>
+// In PageGroupchats.swift
+.onAppear {
+    print("🔄 PageGroupchats appeared - Circle ID: \(circle.id)")
+    pollsViewModel.fetchPolls(for: circle.id)
+}</pre>
+        </div>
+    </div>
+
+    <div class="note">
+        <h3>Important Notes:</h3>
+        <ul>
+            <li>The authentication token should be stored in UserDefaults when the user logs in</li>
+            <li>The token format should match what your Django backend expects (usually "Token" prefix)</li>
+            <li>Make sure CORS is properly configured on your Django backend</li>
+            <li>The circle_id parameter must match what your backend expects</li>
+        </ul>
+    </div>
+
+    <div class="test">
+        <h2>Testing the Connection</h2>
+        <ol>
+            <li>First, verify your token is stored:
+                <div class="code">print("🔑 Auth Token:", UserDefaults.standard.string(forKey: "auth_token") ?? "No token found")</div>
+            </li>
+            <li>Test the API directly:
+                <div class="code">curl -H "Authorization: Token YOUR_TOKEN" http://localhost:8000/api/polls/?circle_id=CIRCLE_ID</div>
+            </li>
+            <li>Check Django server logs for any errors</li>
+            <li>Monitor Xcode console for the debug prints we added</li>
+        </ol>
+    </div>
+
+    <div class="note">
+        <h3>Common Issues:</h3>
+        <ul>
+            <li>401 Unauthorized: Check if token is being sent and is valid</li>
+            <li>404 Not Found: Verify API endpoint URL is correct</li>
+            <li>Empty response: Make sure circle_id is correct and polls exist</li>
+            <li>Decoding errors: Check if response JSON matches Poll struct</li>
+        </ul>
+    </div>
+</body>
+</html>
