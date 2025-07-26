@@ -40,6 +40,14 @@ struct Channel: Identifiable, Codable, Hashable {
     }
 }
 
+struct ChannelCategoryResponse: Decodable, Identifiable {
+    let id: Int?   // null for Uncategorized
+    let name: String
+    let position: Int
+    let channels: [Channel]
+}
+
+
 // MARK: - Circle Data
 enum JoinType: String, CaseIterable {
     case applyNow = "Apply Now"
@@ -97,4 +105,18 @@ struct CircleData: Identifiable, Decodable {
     private enum CodingKeys: String, CodingKey {
         case id, name, industry, memberCount, imageName, pricing, description, joinType, channels, creatorId, isModerator
     }
+}
+
+struct CategoryWithChannels: Identifiable {
+    let id: Int?   // nil for "Uncategorized"
+    let name: String
+    let position: Int
+    var channels: [Channel]
+}
+
+struct ChannelCategory: Identifiable, Codable {
+    let id: Int?
+    let name: String
+    let position: Int
+    let channels: [Channel]
 }

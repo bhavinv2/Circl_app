@@ -15,6 +15,20 @@ struct ManageChannelsView: View {
     @State private var errorMessage: String = ""
     @State private var showingError = false
     @State private var isEditMode = false
+    @State private var categories: [ChannelCategory] = []
+    private var uncategorizedChannels: [Channel] {
+        let categorizedChannelIDs = Set(categories.flatMap { $0.channels.map { $0.id } })
+        return localChannels.filter { !categorizedChannelIDs.contains($0.id) }
+    }
+    @State private var newCategoryName: String = ""
+    @State private var isCreatingCategory = false
+    @State private var channelNameForCategory: [Int: String] = [:]
+    @State private var showAddPopup = false
+    @State private var selectedCategoryId: Int? = nil
+
+
+
+
     
     var body: some View {
         NavigationView {
@@ -25,7 +39,7 @@ struct ManageChannelsView: View {
                 // Content
                 VStack(spacing: 20) {
                     // Add Channel Section
-                    addChannelSection
+                
                     
                     // Channels List
                     channelsListSection
@@ -49,24 +63,31 @@ struct ManageChannelsView: View {
         }
         .onAppear {
             localChannels = channels.sorted(by: { $0.position < $1.position })
+            fetchCategories()
         }
         .alert("Error", isPresented: $showingError) {
             Button("OK") { }
         } message: {
             Text(errorMessage)
         }
+
+        // Custom channel name popup
+        
+
+        // Loading overlay
         .overlay(
             Group {
                 if isLoading {
                     Color.black.opacity(0.3)
                         .ignoresSafeArea()
-                    
+
                     ProgressView()
                         .scaleEffect(1.2)
                         .progressViewStyle(CircularProgressViewStyle(tint: Color(hex: "004aad")))
                 }
             }
         )
+
     }
     
     // MARK: - Header Section
@@ -103,8 +124,64 @@ struct ManageChannelsView: View {
                 .frame(height: 0)
         }
     }
-    
+    private func createCategoryOnServer(name: String, completion: @escaping (Bool) -> Void) {
+        guard let url = URL(string: "\(baseURL)circles/create_category/") else {
+
+            completion(false)
+            return
+        }
+
+        let payload: [String: Any] = [
+            "circle_id": circleId,
+            "name": name,
+            "user_id": userId  // ✅ Required for authorization
+        ]
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    print("❌ Category creation error:", error.localizedDescription)
+                    completion(false)
+                    return
+                }
+
+                if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 || httpResponse.statusCode == 201 {
+                    fetchCategories()
+                    newCategoryName = ""
+                    completion(true)
+                } else {
+                    print("❌ Server rejected category creation")
+                    completion(false)
+                }
+            }
+        }.resume()
+    }
     // MARK: - Add Channel Section
+    private func fetchCategories() {
+        guard let url = URL(string: "\(baseURL)circles/get_categories/\(circleId)/") else { return }
+
+        
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            guard let data = data, error == nil else {
+                print("❌ Error fetching categories:", error?.localizedDescription ?? "unknown")
+                return
+            }
+            do {
+                let decoded = try JSONDecoder().decode([ChannelCategory].self, from: data)
+                DispatchQueue.main.async {
+                    self.categories = decoded
+                }
+            } catch {
+                print("❌ JSON Decode Error:", error)
+            }
+        }.resume()
+    }
+
     private var addChannelSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Add New Channel")
@@ -166,54 +243,91 @@ struct ManageChannelsView: View {
         )
     }
     
-    // MARK: - Channels List Section
     private var channelsListSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-                         HStack {
-                Text("Current Channels")
+        VStack(alignment: .leading, spacing: 20) {
+
+            // MARK: - Add Category Section
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Add New Category")
                     .font(.system(size: 18, weight: .semibold))
                     .foregroundColor(.primary)
                 
-                Spacer()
-                
-                Button(action: {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        isEditMode.toggle()
+                HStack(spacing: 12) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "folder.badge.plus")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(Color(hex: "004aad"))
+                        
+                        TextField("Enter category name", text: $newCategoryName)
+                            .font(.system(size: 16))
+                            .textFieldStyle(PlainTextFieldStyle())
                     }
-                }) {
-                    Text(isEditMode ? "Done" : "Reorder")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(Color(hex: "004aad"))
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(
-                            Capsule()
-                                .fill(Color(hex: "004aad").opacity(0.1))
-                        )
-                }
-                
-                Text("\(localChannels.count) channels")
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(Color(hex: "004aad"))
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 4)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
                     .background(
-                        Capsule()
-                            .fill(Color(hex: "004aad").opacity(0.1))
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color.white)
+                            .shadow(color: Color.black.opacity(0.06), radius: 4, x: 0, y: 2)
                     )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color(hex: "004aad").opacity(0.2), lineWidth: 1)
+                    )
+                    
+                    Button(action: {
+                        isCreatingCategory = true
+                        createCategoryOnServer(name: newCategoryName) { success in
+                            isCreatingCategory = false
+                            if !success {
+                                errorMessage = "Failed to create category"
+                                showingError = true
+                            }
+                        }
+                    }) {
+                        Image(systemName: "plus")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.white)
+                            .frame(width: 44, height: 44)
+                            .background(
+                                Circle()
+                                    .fill(
+                                        LinearGradient(
+                                            gradient: Gradient(colors: [Color(hex: "004aad"), Color(hex: "0066dd")]),
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                    )
+                                    .shadow(color: Color(hex: "004aad").opacity(0.3), radius: 4, x: 0, y: 2)
+                            )
+                    }
+                    .disabled(newCategoryName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    .opacity(newCategoryName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.6 : 1.0)
+                }
             }
-            
-            if localChannels.isEmpty {
+            .padding(.horizontal, 16)
+            .padding(.vertical, 16)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color(hex: "004aad").opacity(0.05))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(Color(hex: "004aad").opacity(0.1), lineWidth: 1)
+                    )
+            )
+
+
+            if categories.isEmpty && uncategorizedChannels.isEmpty {
+
                 VStack(spacing: 12) {
-                    Image(systemName: "number")
+                    Image(systemName: "square.stack.3d.down.right")
                         .font(.system(size: 40))
                         .foregroundColor(Color(hex: "004aad").opacity(0.4))
                     
-                    Text("No channels yet")
+                    Text("No categories yet")
                         .font(.system(size: 16, weight: .medium))
                         .foregroundColor(.secondary)
                     
-                    Text("Add your first channel above")
+                    Text("Add a category to organize your channels")
                         .font(.system(size: 14))
                         .foregroundColor(.secondary)
                 }
@@ -230,31 +344,150 @@ struct ManageChannelsView: View {
                         .foregroundColor(Color(hex: "004aad").opacity(0.2))
                 )
             } else {
-                List {
-                    ForEach(localChannels) { channel in
-                        ChannelManagementRow(
-                            channel: channel,
-                            onDelete: { deleteChannel(channel) },
-                            onMove: { from, to in moveChannel(from: from, to: to) },
-                            showDeleteButton: !isEditMode
-                        )
-                        .listRowBackground(Color.clear)
-                        .listRowSeparator(.hidden)
-                        .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
-                    }
-                    .onMove(perform: isEditMode ? moveChannel : nil)
-                    .onDelete(perform: isEditMode ? { indexSet in
-                        for index in indexSet {
-                            deleteChannel(localChannels[index])
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 16) {
+                        ForEach(categories.sorted(by: { $0.position < $1.position })) { category in
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack {
+                                    Text(category.name)
+                                        .font(.system(size: 16, weight: .semibold))
+                                        .foregroundColor(.primary)
+
+                                    Spacer()
+
+                                    if selectedCategoryId != category.id {
+                                        Text("Channel")
+                                            .font(.system(size: 14))
+                                            .foregroundColor(.gray)
+                                            .padding(.trailing, 6)
+                                    }
+
+                                    Button(action: {
+                                        if selectedCategoryId == category.id {
+                                            selectedCategoryId = nil  // hide input
+                                        } else {
+                                            selectedCategoryId = category.id  // show input
+                                        }
+                                    }) {
+                                        Image(systemName: selectedCategoryId == category.id ? "xmark.circle.fill" : "plus.circle.fill")
+                                            .font(.system(size: 20))
+                                            .foregroundColor(selectedCategoryId == category.id ? .red : Color(hex: "004aad"))
+                                    }
+                                }
+
+
+
+                                // ✅ INSERTED INLINE CHANNEL CREATION BOX
+                                if selectedCategoryId == category.id {
+                                    HStack(spacing: 12) {
+                                        HStack(spacing: 8) {
+                                            Image(systemName: "number")
+                                                .foregroundColor(Color(hex: "004aad"))
+
+                                            TextField("Enter channel name", text: Binding(
+                                                get: { channelNameForCategory[category.id ?? -1] ?? "" },
+                                                set: { channelNameForCategory[category.id ?? -1] = $0 }
+                                            ))
+                                            .font(.system(size: 16))
+                                            .textFieldStyle(PlainTextFieldStyle())
+                                        }
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 10)
+                                        .background(RoundedRectangle(cornerRadius: 12).fill(Color.white))
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 12)
+                                                .stroke(Color(hex: "004aad").opacity(0.2), lineWidth: 1)
+                                        )
+
+                                        // ✅ Submit Button moved inline here
+                                        Button(action: {
+                                            let raw = channelNameForCategory[category.id ?? -1]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                                            guard !raw.isEmpty else { return }
+
+                                            let channelName = raw.hasPrefix("#") ? raw : "#\(raw)"
+
+                                            if localChannels.contains(where: { $0.name.lowercased() == channelName.lowercased() }) {
+                                                errorMessage = "A channel with this name already exists"
+                                                showingError = true
+                                                return
+                                            }
+
+                                            isLoading = true
+
+                                            createChannelOnServer(channelName: channelName, categoryId: category.id) { success, _ in
+                                                DispatchQueue.main.async {
+                                                    isLoading = false
+                                                    if success {
+                                                        channelNameForCategory[category.id ?? -1] = ""
+                                                        selectedCategoryId = nil
+                                                        fetchCategories()
+                                                    } else {
+                                                        errorMessage = "Failed to add channel"
+                                                        showingError = true
+                                                    }
+                                                }
+                                            }
+                                        }) {
+                                            Image(systemName: "plus")
+                                                .font(.system(size: 18, weight: .semibold))
+                                                .foregroundColor(.white)
+                                                .frame(width: 44, height: 44)
+                                                .background(Circle().fill(Color(hex: "004aad")))
+                                        }
+                                    }
+                                    .padding(.vertical, 4)
+                                }
+
+
+                                // Existing channel rows
+                                ForEach(category.channels) { channel in
+                                    ChannelManagementRow(
+                                        channel: channel,
+                                        onDelete: { deleteChannel(channel) },
+                                        onMove: { _, _ in },
+                                        showDeleteButton: !isEditMode
+                                    )
+                                }
+                            }
+                            .padding()
+                            .background(Color.white)
+                            .cornerRadius(12)
+                            .shadow(radius: 2)
                         }
-                    } : nil)
+
+                        // Show uncategorized channels
+                        let categorizedChannelIDs = Set(categories.flatMap { $0.channels.map { $0.id } })
+                        let uncategorizedChannels = localChannels.filter { !categorizedChannelIDs.contains($0.id) }
+
+                        if !uncategorizedChannels.isEmpty {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Uncategorized")
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundColor(.primary)
+
+                                ForEach(uncategorizedChannels.sorted(by: { $0.position < $1.position })) { channel in
+                                    ChannelManagementRow(
+                                        channel: channel,
+                                        onDelete: { deleteChannel(channel) },
+                                        onMove: { _, _ in },
+                                        showDeleteButton: !isEditMode
+                                    )
+                                }
+                            }
+                            .padding()
+                            .background(Color.white)
+                            .cornerRadius(12)
+                            .shadow(radius: 2)
+                        }
+                    }
+                    .padding(.bottom, 16)
                 }
-                .listStyle(PlainListStyle())
-                .environment(\.editMode, .constant(isEditMode ? .active : .inactive))
+
+
             }
         }
     }
-    
+
     // MARK: - Channel Management Functions
     private func addChannel() {
         let trimmedName = newChannelName.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -329,17 +562,24 @@ struct ManageChannelsView: View {
     }
     
     // MARK: - Backend API Functions
-    private func createChannelOnServer(channelName: String, completion: @escaping (Bool, Channel?) -> Void) {
-        guard let url = URL(string: "http://localhost:8000/api/circles/create_channel/") else {
+    private func createChannelOnServer(channelName: String, categoryId: Int? = nil, completion: @escaping (Bool, Channel?) -> Void)
+{
+    guard let url = URL(string: "\(baseURL)circles/create_channel/") else {
+
             completion(false, nil as Channel?)
             return
         }
         
-        let payload: [String: Any] = [
-            "circle_id": circleId,
-            "name": channelName,
-            "position": localChannels.count + 1
-        ]
+    var payload: [String: Any] = [
+        "circle_id": circleId,
+        "name": channelName,
+        "position": localChannels.count + 1
+    ]
+
+    if let categoryId = categoryId {
+        payload["category_id"] = categoryId
+    }
+
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -376,39 +616,44 @@ struct ManageChannelsView: View {
     }
     
     private func deleteChannelOnServer(channelId: Int, completion: @escaping (Bool) -> Void) {
-        guard let url = URL(string: "http://localhost:8000/api/circles/delete_channel/") else {
+        let urlString = "\(baseURL)circles/delete_channels/"
+        guard let url = URL(string: urlString) else {
             completion(false)
             return
         }
-        
+
         let payload: [String: Any] = [
-            "channel_id": channelId,
+            "circle_id": circleId,
+            "channel_ids": [channelId],
             "user_id": userId
         ]
-        
+
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
-        
+
         URLSession.shared.dataTask(with: request) { data, response, error in
             guard error == nil else {
                 print("❌ Delete channel error:", error?.localizedDescription ?? "unknown")
                 completion(false)
                 return
             }
-            
+
             if let httpResponse = response as? HTTPURLResponse,
                httpResponse.statusCode == 200 || httpResponse.statusCode == 204 {
                 completion(true)
             } else {
+                print("❌ Failed with status: \(response.debugDescription)")
                 completion(false)
             }
         }.resume()
     }
+
     
     private func updateChannelOrderOnServer() {
-        guard let url = URL(string: "http://localhost:8000/api/circles/channels/update_positions/") else { return }
+        guard let url = URL(string: "\(baseURL)circles/channels/update_positions/") else { return }
+
         
         let positions = localChannels.enumerated().map { (index, channel) in
             ["id": channel.id, "position": index + 1] // Start from 1, not 0
