@@ -66,7 +66,7 @@ class PushNotificationManager: NSObject, UIApplicationDelegate, UNUserNotificati
 
 
 func sendDeviceTokenToBackend(token: String) {
-    guard let url = URL(string: "https://circlapp.online/api/notifications/register-token/") else { return }
+    guard let url = URL(string: "\(baseURL)notifications/register-token/") else { return }
 
     let userId = UserDefaults.standard.integer(forKey: "user_id")
 
