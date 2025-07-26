@@ -10,6 +10,7 @@ struct PageGroupchats: View {
     @State private var showMoreMenu = false
     @State private var userProfileImageURL: String = ""
     @State private var unreadMessageCount: Int = 0
+    @State private var selectedTab: String = "Home" // Track which tab is selected
 
     let circle: CircleData
     
@@ -48,9 +49,17 @@ struct PageGroupchats: View {
     @State private var showCreateThreadPopup = false
     @State private var newThreadContent: String = ""
     
+<<<<<<< Updated upstream:circl_test_app/PageGroupchats.swift
     // Polls Feature
     @StateObject private var pollsViewModel = PollsViewModel()
     @State private var showCreatePollPopup = false
+=======
+    // Announcement states
+    @State private var announcements: [AnnouncementModel] = []
+    @State private var showCreateAnnouncementPopup = false
+    @State private var newAnnouncementTitle: String = ""
+    @State private var newAnnouncementContent: String = ""
+>>>>>>> Stashed changes:circl_test_app/circles/PageGroupchats.swift
 
 
     var body: some View {
@@ -68,61 +77,48 @@ struct PageGroupchats: View {
             
             VStack(spacing: 0) {
                 headerSection
-
-                    // Group Selector
-                    VStack(alignment: .center, spacing: 12) {
-                        HStack(spacing: 16) {
-                            // Enhanced Dropdown menu with gradient and shadow
-                            Menu {
-                                ForEach(myCircles, id: \.id) { circl in
-                                    NavigationLink(destination: PageGroupchats(circle: circl).navigationBarBackButtonHidden(true)) {
-                                        Text(circl.name)
+                
+                // Conditional content based on selected tab
+                if selectedTab == "Calendar" {
+                    CalendarView()
+                } else if selectedTab == "Dashboard" {
+                    DashboardView()
+                } else {
+                    // Default Home content (existing channels and threads)
+                    VStack(spacing: 0) {
+                        // Group Selector
+                        VStack(alignment: .center, spacing: 12) {
+                            HStack(spacing: 16) {
+                                // Enhanced Dropdown menu with gradient and shadow
+                                Menu {
+                                    ForEach(myCircles, id: \.id) { circl in
+                                        NavigationLink(destination: PageGroupchats(circle: circl).navigationBarBackButtonHidden(true)) {
+                                            Text(circl.name)
+                                        }
                                     }
-                                }
-                            } label: {
-                                HStack(spacing: 8) {
-                                    Text(circle.name)
-                                        .foregroundColor(.primary)
-                                        .font(.system(size: 18, weight: .semibold))
+                                } label: {
+                                    HStack(spacing: 8) {
+                                        Text(circle.name)
+                                            .foregroundColor(.primary)
+                                            .font(.system(size: 18, weight: .semibold))
 
-                                    Image(systemName: "chevron.down")
-                                        .foregroundColor(Color(hex: "004aad"))
-                                        .font(.system(size: 14, weight: .medium))
-                                }
-                                .padding(.horizontal, 20)
-                                .padding(.vertical, 16)
-                                .frame(minWidth: 0, maxWidth: .infinity)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 16)
-                                        .fill(Color.white)
-                                        .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 2)
-                                )
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 16)
-                                        .stroke(Color(hex: "004aad").opacity(0.1), lineWidth: 1)
-                                )
-                            }
-                            .frame(maxWidth: UIScreen.main.bounds.width * 0.72)
-
-                            // Enhanced Gear icon with modern styling
-                            Button(action: {
-                                withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
-                                    showSettingsMenu.toggle()
-                                }
-                            }) {
-                                Image(systemName: "gearshape.fill")
-                                    .font(.system(size: 18, weight: .medium))
-                                    .foregroundColor(Color(hex: "004aad"))
-                                    .frame(width: 48, height: 48)
+                                        Image(systemName: "chevron.down")
+                                            .foregroundColor(Color(hex: "004aad"))
+                                            .font(.system(size: 14, weight: .medium))
+                                    }
+                                    .padding(.horizontal, 20)
+                                    .padding(.vertical, 16)
+                                    .frame(minWidth: 0, maxWidth: .infinity)
                                     .background(
-                                        Circle()
+                                        RoundedRectangle(cornerRadius: 16)
                                             .fill(Color.white)
                                             .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 2)
                                     )
                                     .overlay(
-                                        Circle()
+                                        RoundedRectangle(cornerRadius: 16)
                                             .stroke(Color(hex: "004aad").opacity(0.1), lineWidth: 1)
                                     )
+<<<<<<< Updated upstream:circl_test_app/PageGroupchats.swift
                             }
                             .scaleEffect(showSettingsMenu ? 1.1 : 1.0)
                             .animation(.spring(response: 0.3, dampingFraction: 0.6), value: showSettingsMenu)
@@ -191,65 +187,304 @@ struct PageGroupchats: View {
                                         .font(.system(size: 14, weight: .semibold))
                                     Text("New")
                                         .font(.system(size: 14, weight: .semibold))
+=======
+>>>>>>> Stashed changes:circl_test_app/circles/PageGroupchats.swift
                                 }
-                                .foregroundColor(.white)
-                                .padding(.horizontal, 14)
-                                .padding(.vertical, 8)
+                                .frame(maxWidth: UIScreen.main.bounds.width * 0.72)
+
+                                // Enhanced Gear icon with modern styling
+                                Button(action: {
+                                    withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                                        showSettingsMenu.toggle()
+                                    }
+                                }) {
+                                    Image(systemName: "gearshape.fill")
+                                        .font(.system(size: 18, weight: .medium))
+                                        .foregroundColor(Color(hex: "004aad"))
+                                        .frame(width: 48, height: 48)
+                                        .background(
+                                            Circle()
+                                                .fill(Color.white)
+                                                .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 2)
+                                        )
+                                        .overlay(
+                                            Circle()
+                                                .stroke(Color(hex: "004aad").opacity(0.1), lineWidth: 1)
+                                        )
+                                }
+                                .scaleEffect(showSettingsMenu ? 1.1 : 1.0)
+                                .animation(.spring(response: 0.3, dampingFraction: 0.6), value: showSettingsMenu)
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.top, 16)
+
+                            // Enhanced Moderator label with modern badge styling
+                            if userId == circle.creatorId {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "crown.fill")
+                                        .font(.system(size: 12, weight: .medium))
+                                        .foregroundColor(Color(hex: "004aad"))
+                                    
+                                    Text("Circle Moderator")
+                                        .font(.system(size: 13, weight: .medium))
+                                        .foregroundColor(Color(hex: "004aad"))
+                                }
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
                                 .background(
                                     Capsule()
-                                        .fill(
-                                            LinearGradient(
-                                                gradient: Gradient(colors: [Color(hex: "004aad"), Color(hex: "0066dd")]),
-                                                startPoint: .leading,
-                                                endPoint: .trailing
-                                            )
-                                        )
-                                        .shadow(color: Color(hex: "004aad").opacity(0.3), radius: 6, x: 0, y: 3)
+                                        .fill(Color(hex: "004aad").opacity(0.1))
                                 )
+                                .overlay(
+                                    Capsule()
+                                        .stroke(Color(hex: "004aad").opacity(0.2), lineWidth: 1)
+                                )
+                                .padding(.top, 8)
                             }
-                            .scaleEffect(showCreateThreadPopup ? 0.95 : 1.0)
-                            .animation(.spring(response: 0.3, dampingFraction: 0.6), value: showCreateThreadPopup)
                         }
-                        .padding(.horizontal, 20)
-                        
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 12) {
-                                ForEach(threads) { thread in
-                                    ThreadCard(thread: thread)
-                                        .frame(width: 300)
+                        .padding(.bottom, 16)
+
+                        // Announcements Section
+                        if !announcements.isEmpty {
+                            VStack(spacing: 12) {
+                                ForEach(announcements) { announcement in
+                                    AnnouncementBanner(announcement: announcement)
                                 }
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.bottom, 16)
+                        }
+
+                        //Enhanced Circle Threads Section
+                        VStack(alignment: .leading, spacing: 12) {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Circle Threads")
+                                        .font(.system(size: 20, weight: .bold))
+                                        .foregroundColor(.primary)
+                                    
+                                    Text("Share ideas and discussions")
+                                        .font(.system(size: 13, weight: .medium))
+                                        .foregroundColor(.secondary)
+                                }
+
+                                Spacer()
+
+                                Button(action: {
+                                    showCreateThreadPopup = true
+                                }) {
+                                    HStack(spacing: 6) {
+                                        Image(systemName: "plus")
+                                            .font(.system(size: 14, weight: .semibold))
+                                        Text("New")
+                                            .font(.system(size: 14, weight: .semibold))
+                                    }
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 14)
+                                    .padding(.vertical, 8)
+                                    .background(
+                                        Capsule()
+                                            .fill(
+                                                LinearGradient(
+                                                    gradient: Gradient(colors: [Color(hex: "004aad"), Color(hex: "0066dd")]),
+                                                    startPoint: .leading,
+                                                    endPoint: .trailing
+                                                )
+                                            )
+                                            .shadow(color: Color(hex: "004aad").opacity(0.3), radius: 6, x: 0, y: 3)
+                                    )
+                                }
+                                .scaleEffect(showCreateThreadPopup ? 0.95 : 1.0)
+                                .animation(.spring(response: 0.3, dampingFraction: 0.6), value: showCreateThreadPopup)
+                            }
+                            .padding(.horizontal, 20)
+                            
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 12) {
+                                    ForEach(threads) { thread in
+                                        ThreadCard(thread: thread)
+                                            .frame(width: 300)
+                                    }
+                                    
+                                    // Empty state card when no threads
+                                    if threads.isEmpty {
+                                        VStack(spacing: 8) {
+                                            Image(systemName: "bubble.left.and.bubble.right")
+                                                .font(.system(size: 28))
+                                                .foregroundColor(Color(hex: "004aad").opacity(0.4))
+                                            
+                                            Text("No threads yet")
+                                                .font(.system(size: 15, weight: .medium))
+                                                .foregroundColor(.secondary)
+                                            
+                                            Text("Be the first to start a discussion!")
+                                                .font(.system(size: 13))
+                                                .foregroundColor(.secondary)
+                                                .multilineTextAlignment(.center)
+                                        }
+                                        .frame(width: 260, height: 120)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 16)
+                                                .fill(Color(hex: "004aad").opacity(0.05))
+                                                .overlay(
+                                                    RoundedRectangle(cornerRadius: 16)
+                                                        .strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [8, 4]))
+                                                        .foregroundColor(Color(hex: "004aad").opacity(0.1))
+                                                )
+                                        )
+                                    }
+                                }
+                                .padding(.horizontal, 20)
+                            }
+                        }
+                        .padding(.vertical, 6)
+
+                        // Enhanced Divider
+                        Rectangle()
+                            .fill(
+                                LinearGradient(
+                                    gradient: Gradient(colors: [Color.clear, Color(hex: "004aad").opacity(0.2), Color.clear]),
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .frame(height: 1)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 8)
+                        
+                        // Enhanced Channels Section
+                        ScrollView {
+                            VStack(alignment: .leading, spacing: 18) {
+                                // Channels Header
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("Channels")
+                                            .font(.system(size: 20, weight: .bold))
+                                            .foregroundColor(.primary)
+                                        
+                                        Text("Join conversations by topic")
+                                            .font(.system(size: 13, weight: .medium))
+                                            .foregroundColor(.secondary)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    Text("\(channels.count) channels")
+                                        .font(.system(size: 12, weight: .medium))
+                                        .foregroundColor(Color(hex: "004aad"))
+                                        .padding(.horizontal, 10)
+                                        .padding(.vertical, 4)
+                                        .background(
+                                            Capsule()
+                                                .fill(Color(hex: "004aad").opacity(0.1))
+                                        )
+                                }
+                                .padding(.horizontal, 20)
                                 
-                                // Empty state card when no threads
-                                if threads.isEmpty {
-                                    VStack(spacing: 8) {
-                                        Image(systemName: "bubble.left.and.bubble.right")
-                                            .font(.system(size: 28))
+                                if !channels.isEmpty {
+                                    ForEach(groupedChannels.keys.sorted(), id: \.self) { category in
+                                        if let categoryChannels = groupedChannels[category] {
+                                            VStack(alignment: .leading, spacing: 8) {
+                                                // Category Header
+                                                HStack {
+                                                    Text(category)
+                                                        .font(.system(size: 16, weight: .semibold))
+                                                        .foregroundColor(.primary)
+                                                    
+                                                    Rectangle()
+                                                        .fill(Color(hex: "004aad").opacity(0.2))
+                                                        .frame(height: 1)
+                                                        .frame(maxWidth: .infinity)
+                                                }
+                                                .padding(.horizontal, 20)
+
+                                                // Enhanced Channel Cards
+                                                VStack(spacing: 6) {
+                                                    ForEach(categoryChannels) { channel in
+                                                        NavigationLink(destination: PageCircleMessages(channel: channel, circleName: circle.name)) {
+                                                            HStack(spacing: 10) {
+                                                                // Channel icon
+                                                                Image(systemName: "number")
+                                                                    .font(.system(size: 14, weight: .medium))
+                                                                    .foregroundColor(Color(hex: "004aad"))
+                                                                    .frame(width: 28, height: 28)
+                                                                    .background(
+                                                                        Circle()
+                                                                            .fill(Color(hex: "004aad").opacity(0.1))
+                                                                    )
+                                                                
+                                                                VStack(alignment: .leading, spacing: 2) {
+                                                                    Text(channel.name)
+                                                                        .font(.system(size: 15, weight: .medium))
+                                                                        .foregroundColor(.primary)
+                                                                    
+                                                                    Text("Tap to join conversation")
+                                                                        .font(.system(size: 12))
+                                                                        .foregroundColor(.secondary)
+                                                                }
+                                                                
+                                                                Spacer()
+                                                                
+                                                                Image(systemName: "chevron.right")
+                                                                    .font(.system(size: 11, weight: .medium))
+                                                                    .foregroundColor(.secondary)
+                                                            }
+                                                            .padding(.horizontal, 16)
+                                                            .padding(.vertical, 12)
+                                                            .background(
+                                                                RoundedRectangle(cornerRadius: 10)
+                                                                    .fill(Color.white)
+                                                                    .shadow(color: Color.black.opacity(0.04), radius: 4, x: 0, y: 1)
+                                                            )
+                                                            .overlay(
+                                                                RoundedRectangle(cornerRadius: 10)
+                                                                    .stroke(Color(hex: "004aad").opacity(0.08), lineWidth: 1)
+                                                            )
+                                                            .padding(.horizontal, 16)
+                                                        }
+                                                        .buttonStyle(PlainButtonStyle())
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    // Enhanced Empty State
+                                    VStack(spacing: 12) {
+                                        Image(systemName: "bubble.left.and.bubble.right.fill")
+                                            .font(.system(size: 40))
                                             .foregroundColor(Color(hex: "004aad").opacity(0.4))
                                         
-                                        Text("No threads yet")
-                                            .font(.system(size: 15, weight: .medium))
-                                            .foregroundColor(.secondary)
+                                        Text("No channels available")
+                                            .font(.system(size: 16, weight: .semibold))
+                                            .foregroundColor(.primary)
                                         
-                                        Text("Be the first to start a discussion!")
+                                        Text("Channels will appear here once they're created by moderators")
                                             .font(.system(size: 13))
                                             .foregroundColor(.secondary)
                                             .multilineTextAlignment(.center)
+                                            .padding(.horizontal, 30)
                                     }
-                                    .frame(width: 260, height: 120)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 30)
                                     .background(
                                         RoundedRectangle(cornerRadius: 16)
                                             .fill(Color(hex: "004aad").opacity(0.05))
                                             .overlay(
                                                 RoundedRectangle(cornerRadius: 16)
-                                                    .strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [8, 4]))
-                                                    .foregroundColor(Color(hex: "004aad").opacity(0.1))
+                                                    .stroke(Color(hex: "004aad").opacity(0.1), lineWidth: 1)
                                             )
                                     )
+                                    .padding(.horizontal, 16)
                                 }
                             }
-                            .padding(.horizontal, 20)
+                            .padding(.top, 6)
+                            .padding(.bottom, 100) // Space for bottom navigation
                         }
+
+                        Spacer()
                     }
+<<<<<<< Updated upstream:circl_test_app/PageGroupchats.swift
                     .padding(.vertical, 6)
 
                     // Enhanced Divider
@@ -480,7 +715,10 @@ struct PageGroupchats: View {
 
 
                     Spacer()
+=======
+>>>>>>> Stashed changes:circl_test_app/circles/PageGroupchats.swift
                 }
+            }
                 .sheet(isPresented: $showCreateThreadPopup) {
                     VStack(spacing: 16) {
                         Text("New Thread")
@@ -513,6 +751,7 @@ struct PageGroupchats: View {
                             fetchChannels(for: circle.id)
                         }
                 }
+<<<<<<< Updated upstream:circl_test_app/PageGroupchats.swift
                 .sheet(isPresented: $showCreatePollPopup) {
                     CreatePollView(isPresented: $showCreatePollPopup) { title, options in
                         pollsViewModel.createPoll(title: title, options: options, circleId: circle.id)
@@ -520,6 +759,53 @@ struct PageGroupchats: View {
                 }
                 .onAppear {
                     pollsViewModel.fetchPolls(for: circle.id)
+=======
+                .sheet(isPresented: $showCreateAnnouncementPopup) {
+                    VStack(spacing: 20) {
+                        Text("New Announcement")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Title")
+                                .font(.headline)
+                            TextField("Enter announcement title", text: $newAnnouncementTitle)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Content")
+                                .font(.headline)
+                            TextEditor(text: $newAnnouncementContent)
+                                .frame(height: 120)
+                                .padding(8)
+                                .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.gray.opacity(0.3)))
+                        }
+                        
+                        HStack(spacing: 16) {
+                            Button("Cancel") {
+                                resetAnnouncementForm()
+                                showCreateAnnouncementPopup = false
+                            }
+                            .foregroundColor(.red)
+                            
+                            Spacer()
+                            
+                            Button("Post Announcement") {
+                                postNewAnnouncement()
+                                showCreateAnnouncementPopup = false
+                            }
+                            .disabled(!canPostAnnouncement)
+                            .padding()
+                            .background(canPostAnnouncement ? Color(hex: "004aad") : Color.gray)
+                            .foregroundColor(.white)
+                            .cornerRadius(10)
+                        }
+                        
+                        Spacer()
+                    }
+                    .padding()
+>>>>>>> Stashed changes:circl_test_app/circles/PageGroupchats.swift
                 }
 
                 // 🔻 Add this just ABOVE `floatingButton` inside the ZStack
@@ -584,6 +870,14 @@ struct PageGroupchats: View {
                                     showSettingsMenu = false
                                 }) {
                                     GroupMenuItem(icon: "slider.horizontal.3", title: "Manage Channels")
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                                
+                                Button(action: {
+                                    showCreateAnnouncementPopup = true
+                                    showSettingsMenu = false
+                                }) {
+                                    GroupMenuItem(icon: "megaphone.fill", title: "Create Announcement")
                                 }
                                 .buttonStyle(PlainButtonStyle())
                                 
@@ -916,6 +1210,7 @@ struct PageGroupchats: View {
             print("🔄 PageGroupchats appeared - Circle ID: \(circle.id), User ID: \(userId)")
             fetchChannels(for: circle.id)
             fetchThreads(for: circle.id)
+            fetchAnnouncements(for: circle.id)
             fetchMyCircles(userId: userId)
             
             
@@ -1084,6 +1379,87 @@ struct PageGroupchats: View {
             }
         }.resume()
     }
+    
+    // MARK: - Announcement Functions
+    func fetchAnnouncements(for circleId: Int) {
+        guard let url = URL(string: "http://localhost:8000/api/circles/get_announcements/\(circleId)/") else { return }
+        
+        URLSession.shared.dataTask(with: url) { data, _, _ in
+            if let data = data {
+                print("📥 Announcements Raw JSON:")
+                print(String(data: data, encoding: .utf8) ?? "nil")
+                
+                if let decoded = try? JSONDecoder().decode([AnnouncementModel].self, from: data) {
+                    DispatchQueue.main.async {
+                        self.announcements = decoded
+                    }
+                } else {
+                    print("❌ Failed to decode announcements")
+                    // Add dummy announcement for demo
+                    DispatchQueue.main.async {
+                        self.addDummyAnnouncement()
+                    }
+                }
+            }
+        }.resume()
+    }
+    
+    func postNewAnnouncement() {
+        guard let url = URL(string: "http://localhost:8000/api/circles/create_announcement/") else { return }
+        
+        let body: [String: Any] = [
+            "user_id": userId,
+            "circle_id": circle.id,
+            "title": newAnnouncementTitle,
+            "content": newAnnouncementContent
+        ]
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+        
+        let task: URLSessionDataTask = URLSession.shared.dataTask(with: request) { data, response, error in
+            guard let data = data, error == nil else {
+                print("Error creating announcement: \(error?.localizedDescription ?? "Unknown error")")
+                return
+            }
+            
+            DispatchQueue.main.async {
+                self.resetAnnouncementForm()
+                self.fetchAnnouncements(for: self.circle.id)
+            }
+        }
+        task.resume()
+    }
+    
+    // MARK: - Helper Functions
+    var canPostAnnouncement: Bool {
+        return !newAnnouncementTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+               !newAnnouncementContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+    
+    func resetAnnouncementForm() {
+        newAnnouncementTitle = ""
+        newAnnouncementContent = ""
+    }
+    
+    func addDummyAnnouncement() {
+        // Add a dummy announcement for preview
+        let dummyAnnouncement = AnnouncementModel(
+            id: 999,
+            user: "Circle Moderator",
+            title: "Welcome to our Circle! 🎉",
+            content: "Hello everyone! We're excited to have you join our community. Please take a moment to introduce yourself in the general channel and let us know what brings you here. Don't forget to check out our community guidelines and feel free to ask any questions!",
+            announced_at: "2024-01-15T10:30:00Z"
+        )
+        
+        DispatchQueue.main.async {
+            if self.announcements.isEmpty {
+                self.announcements = [dummyAnnouncement]
+            }
+        }
+    }
 
     var headerSection: some View {
         VStack(spacing: 0) {
@@ -1113,6 +1489,81 @@ struct PageGroupchats: View {
             .padding(.horizontal, 16)
             .padding(.top, 8)
             .padding(.bottom, 16)
+            
+            // Three-tab navigation section
+            HStack(spacing: 0) {
+                Spacer()
+                
+                // Dashboard Tab
+                VStack(spacing: 6) {
+                    Text("Dashboard")
+                        .font(.system(size: 16, weight: selectedTab == "Dashboard" ? .bold : .medium))
+                        .foregroundColor(.white)
+                    
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(selectedTab == "Dashboard" ? Color.white : Color.clear)
+                        .frame(height: 3)
+                        .frame(width: 50)
+                        .shadow(color: .white.opacity(0.3), radius: 2, x: 0, y: 1)
+                        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: selectedTab)
+                }
+                .frame(width: 100)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                        selectedTab = "Dashboard"
+                    }
+                }
+                
+                Spacer()
+                
+                // Home Tab (default selected)
+                VStack(spacing: 6) {
+                    Text("Home")
+                        .font(.system(size: 16, weight: selectedTab == "Home" ? .bold : .medium))
+                        .foregroundColor(.white)
+                    
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(selectedTab == "Home" ? Color.white : Color.clear)
+                        .frame(height: 3)
+                        .frame(width: 40)
+                        .shadow(color: .white.opacity(0.3), radius: 2, x: 0, y: 1)
+                        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: selectedTab)
+                }
+                .frame(width: 80)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                        selectedTab = "Home"
+                    }
+                }
+                
+                Spacer()
+                
+                // Calendar Tab
+                VStack(spacing: 6) {
+                    Text("Calendar")
+                        .font(.system(size: 16, weight: selectedTab == "Calendar" ? .bold : .medium))
+                        .foregroundColor(.white)
+                    
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(selectedTab == "Calendar" ? Color.white : Color.clear)
+                        .frame(height: 3)
+                        .frame(width: 50)
+                        .shadow(color: .white.opacity(0.3), radius: 2, x: 0, y: 1)
+                        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: selectedTab)
+                }
+                .frame(width: 100)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                        selectedTab = "Calendar"
+                    }
+                }
+                
+                Spacer()
+            }
+            .padding(.bottom, 12)
         }
         .background(Color(hex: "004aad"))
         .safeAreaInset(edge: .top) {
@@ -1130,6 +1581,20 @@ struct ThreadPost: Identifiable, Decodable {
     let content: String
     let likes: Int
     let comments: Int
+}
+
+// MARK: - Announcement Model
+struct AnnouncementModel: Identifiable, Decodable {
+    let id: Int
+    let user: String
+    let title: String
+    let content: String
+    let announced_at: String
+    
+    enum CodingKeys: String, CodingKey {
+        case id, user, title, content
+        case announced_at = "announced_at"
+    }
 }
 
 // MARK: - Enhanced Thread Card View
@@ -1244,6 +1709,95 @@ struct MenuItem2: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(PlainButtonStyle())
+    }
+}
+
+// MARK: - Announcement Banner Component
+struct AnnouncementBanner: View {
+    let announcement: AnnouncementModel
+    @State private var isExpanded = false
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 12) {
+                // Announcement icon
+                Image(systemName: "megaphone.fill")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.white)
+                    .frame(width: 32, height: 32)
+                    .background(
+                        Circle()
+                            .fill(Color(hex: "004aad"))
+                    )
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text(announcement.title)
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(.primary)
+                        
+                        Spacer()
+                        
+                        Text("By \(announcement.user)")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    Text(isExpanded ? announcement.content : String(announcement.content.prefix(100)) + (announcement.content.count > 100 ? "..." : ""))
+                        .font(.system(size: 14))
+                        .foregroundColor(.primary)
+                        .lineLimit(isExpanded ? nil : 2)
+                        .animation(.easeInOut(duration: 0.3), value: isExpanded)
+                }
+                
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        isExpanded.toggle()
+                    }
+                }) {
+                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(.secondary)
+                }
+            }
+            
+            if isExpanded {
+                HStack {
+                    Spacer()
+                    Text(formatDate(announcement.announced_at))
+                        .font(.system(size: 11))
+                        .foregroundColor(.secondary)
+                }
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(
+            LinearGradient(
+                gradient: Gradient(colors: [
+                    Color(hex: "004aad").opacity(0.1),
+                    Color(hex: "004aad").opacity(0.05)
+                ]),
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+        )
+        .cornerRadius(12)
+        .shadow(color: Color(hex: "004aad").opacity(0.3), radius: 6, x: 0, y: 3)
+    }
+    
+    private func formatDate(_ dateString: String) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'"
+        
+        if let date = formatter.date(from: dateString) {
+            let displayFormatter = DateFormatter()
+            displayFormatter.dateStyle = .medium
+            displayFormatter.timeStyle = .short
+            return displayFormatter.string(from: date)
+        }
+        
+        return dateString
     }
 }
 
