@@ -1,12 +1,14 @@
 import SwiftUI
 import Foundation
+import AVKit
 
 struct PageCircleMessages: View {
     let channel: Channel
     let circleName: String
     @Environment(\.presentationMode) var presentationMode
     @Environment(\.colorScheme) var colorScheme // Auto-detect dark/light mode
-    @State private var allChannelsInCircle: [Channel] = []
+    @State private var channelCategories: [ChannelCategory] = []
+    @State private var selectedCategory: ChannelCategory? = nil
     @State private var showMembersPopup = false
     struct Member: Identifiable, Decodable, Hashable {
         let id: Int
@@ -23,6 +25,9 @@ struct PageCircleMessages: View {
 
     @State private var showLeaveConfirmation = false
 
+    @State private var selectedImage: UIImage?
+    @State private var selectedVideoURL: URL?
+    @State private var showingMediaPicker = false
 
     @State private var newMessage: String = ""
     @AppStorage("user_id") private var userId: Int = 0
@@ -51,9 +56,41 @@ struct PageCircleMessages: View {
         ZStack(alignment: .top) {
             VStack(spacing: 0) {
                 header
+
+                // NEW: Channel buttons row
+                if let selected = selectedCategory {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            ForEach(selected.channels) { ch in
+                                Button(action: {
+                                    withAnimation {
+                                        currentChannel = ch
+                                        fetchMessages()
+                                        fetchMembers()
+                                    }
+                                }) {
+                                    Text(ch.name)
+                                        .font(.system(size: 13, weight: .medium))
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 6)
+                                        .background(currentChannel.id == ch.id ? Color.white : Color.white.opacity(0.2))
+                                        .foregroundColor(currentChannel.id == ch.id ? Color(hex: "004aad") : .white)
+                                        .clipShape(Capsule())
+                                }
+                            }
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.bottom, 6)
+                        .padding(.top, 4)
+                    }
+                    .background(Color(hex: "004aad")) // Same blue as header
+                }
+
                 messagesScrollView
                 inputBar
             }
+
+
             .zIndex(0)
 
             // Tap-out background
@@ -193,7 +230,8 @@ struct PageCircleMessages: View {
                                     .foregroundColor(Color(hex: "004aad"))
                                     .font(.system(size: 12))
 
-                                Text(currentChannel.name)
+                                Text(selectedCategory?.name ?? "Select")
+
                                     .font(.system(size: 13, weight: .semibold, design: .rounded))
                                     .foregroundColor(Color(hex: "004aad"))
                                     .lineLimit(1)
@@ -235,22 +273,7 @@ struct PageCircleMessages: View {
 
                 Spacer(minLength: 6)
 
-                // Settings button
-                Button(action: {
-                    withAnimation {
-                        closeOtherMenus(except: &showMenu)
-                    }
-                }) {
-                    Circle()
-                        .fill(Color.white)
-                        .frame(width: 38, height: 38)
-                        .overlay(
-                            Image(systemName: "ellipsis")
-                                .rotationEffect(.degrees(showMenu ? 90 : 0))
-                                .font(.system(size: 17, weight: .bold))
-                                .foregroundColor(Color(hex: "004aad"))
-                        )
-                }
+            
             }
             .padding(.horizontal, 12)
             .padding(.top, 12)
@@ -334,9 +357,12 @@ struct PageCircleMessages: View {
                             sender: raw.sender,
                             content: raw.content,
                             isCurrentUser: raw.isCurrentUser,
-                            timestamp: Self.dateFormatter.date(from: raw.timestamp) ?? Date()
+                            timestamp: Self.dateFormatter.date(from: raw.timestamp) ?? Date(),
+                            mediaURL: raw.media_url  // ✅ Add this line exactly here
                         )
                     }
+
+
                 }
             } catch {
                 print("❌ Failed to decode messages:", error)
@@ -344,23 +370,25 @@ struct PageCircleMessages: View {
         }.resume()
     }
 
-    
     func fetchChannelsInCircle() {
-        guard let url = URL(string: "\(baseURL)circles/get_channels/\(channel.circleId)/") else { return }
+        guard let url = URL(string: "\(baseURL)circles/get_categories/\(channel.circleId)/") else { return }
 
         URLSession.shared.dataTask(with: url) { data, _, error in
             guard let data = data, error == nil else {
-                print("❌ Failed to load channels:", error?.localizedDescription ?? "unknown")
+                print("❌ Failed to load categories:", error?.localizedDescription ?? "unknown")
                 return
             }
 
             do {
-                let decoded = try JSONDecoder().decode([Channel].self, from: data)
+                let decoded = try JSONDecoder().decode([ChannelCategory].self, from: data)
                 DispatchQueue.main.async {
-                    allChannelsInCircle = decoded
+                    channelCategories = decoded
+                    if selectedCategory == nil {
+                        selectedCategory = decoded.first
+                    }
                 }
             } catch {
-                print("❌ Failed to decode channels for this circle:", error)
+                print("❌ Failed to decode categories:", error)
             }
         }.resume()
     }
@@ -369,27 +397,45 @@ struct PageCircleMessages: View {
 
     // MARK: - Input Bar
     private var inputBar: some View {
-        HStack {
-            TextField("Message \(currentChannel.name)...", text: $newMessage)
+        HStack(spacing: 8) {
+            // + button to open media picker
+            Button(action: {
+                showingMediaPicker = true
+            }) {
+                Image(systemName: "plus.circle.fill")
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundColor(Color(hex: "004aad"))
+            }
 
+            // Message text field
+            TextField("Message \(currentChannel.name)...", text: $newMessage)
                 .textFieldStyle(.plain)
                 .padding(12)
                 .background(Color(.systemGray6))
                 .cornerRadius(20)
 
+            // Send button
             Button(action: {
-                sendMessage()
+                sendMessageWithMedia()
             }) {
                 Image(systemName: "paperplane.fill")
                     .rotationEffect(.degrees(45))
                     .font(.title2)
-                    .foregroundColor(newMessage.isEmpty ? .gray : Color(hex: "004aad"))
+                    .foregroundColor(
+                        newMessage.isEmpty && selectedImage == nil && selectedVideoURL == nil
+                        ? .gray
+                        : Color(hex: "004aad")
+                    )
             }
-            .disabled(newMessage.isEmpty)
+            .disabled(newMessage.isEmpty && selectedImage == nil && selectedVideoURL == nil)
         }
         .padding()
         .background(Color.white)
+        .sheet(isPresented: $showingMediaPicker) {
+            MediaPicker(image: $selectedImage, videoURL: $selectedVideoURL)
+        }
     }
+
 
     // MARK: - Circle Menu
     private var circleMenu: some View {
@@ -497,22 +543,49 @@ struct PageCircleMessages: View {
     // MARK: - Category Menu
     private var categoryMenu: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("Channels")
+            Text("Select Category")
                 .font(.title3)
                 .fontWeight(.bold)
-                .padding(.vertical, 4)
+                .padding(.bottom, 4)
 
-            ForEach(allChannelsInCircle) { ch in
-                channelRow(ch, notifications: 0)
+            ForEach(channelCategories) { cat in
+                Button(action: {
+                    withAnimation {
+                        selectedCategory = cat
+                        showCategoryMenu = false
+
+                        // ✅ Automatically switch to the first channel in this category
+                        if let first = cat.channels.first {
+                            currentChannel = first
+                            fetchMessages()
+                            fetchMembers()
+                        }
+                    }
+                }) {
+                    HStack {
+                        Text(cat.name)
+                            .foregroundColor(.primary)
+                        Spacer()
+                        if selectedCategory?.id == cat.id {
+                            Image(systemName: "checkmark")
+                                .foregroundColor(Color(hex: "004aad"))
+                        }
+                    }
+                    .padding(.vertical, 6)
+                }
+
+                .buttonStyle(PlainButtonStyle())
             }
 
             Divider()
+
+           
         }
         .padding()
         .background(Color(.systemGray6))
         .cornerRadius(12)
         .shadow(radius: 5)
-        .frame(width: 250)
+        .frame(width: 270)
         .padding(.leading, 16)
         .offset(y: 80)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -613,6 +686,57 @@ struct PageCircleMessages: View {
         }.resume()
     }
 
+    func sendMessageWithMedia() {
+        guard let url = URL(string: "\(baseURL)circles/send_message/") else { return }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+
+        let boundary = UUID().uuidString
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+
+        var body = Data()
+        let fields: [String: String] = [
+            "user_id": "\(userId)",
+            "channel_id": "\(currentChannel.id)",
+            "content": newMessage
+        ]
+
+        for (key, value) in fields {
+            body.append("--\(boundary)\r\n")
+            body.append("Content-Disposition: form-data; name=\"\(key)\"\r\n\r\n")
+            body.append("\(value)\r\n")
+        }
+
+        if let image = selectedImage, let imageData = image.jpegData(compressionQuality: 0.75) {
+            body.append("--\(boundary)\r\n")
+            body.append("Content-Disposition: form-data; name=\"media\"; filename=\"image.jpg\"\r\n")
+            body.append("Content-Type: image/jpeg\r\n\r\n")
+            body.append(imageData)
+            body.append("\r\n")
+        }
+
+        if let videoURL = selectedVideoURL,
+           let videoData = try? Data(contentsOf: videoURL) {
+            body.append("--\(boundary)\r\n")
+            body.append("Content-Disposition: form-data; name=\"media\"; filename=\"video.mov\"\r\n")
+            body.append("Content-Type: video/quicktime\r\n\r\n")
+            body.append(videoData)
+            body.append("\r\n")
+        }
+
+        body.append("--\(boundary)--\r\n")
+        request.httpBody = body
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                newMessage = ""
+                selectedImage = nil
+                selectedVideoURL = nil
+                fetchMessages()
+            }
+        }.resume()
+    }
 
 
     private func closeOtherMenus(except menu: inout Bool) {
@@ -631,6 +755,7 @@ struct ChatMessage: Identifiable {
     let content: String
     let isCurrentUser: Bool
     let timestamp: Date
+    let mediaURL: String?  // ✅ Add this
 
     var timeString: String {
         let formatter = DateFormatter()
@@ -639,12 +764,14 @@ struct ChatMessage: Identifiable {
     }
 }
 
+
 struct RawChatMessage: Decodable {
     let id: Int
     let sender: String
     let content: String
     let isCurrentUser: Bool
     let timestamp: String
+    let media_url: String?  // ✅ add this
 }
 
 extension PageCircleMessages {
@@ -655,9 +782,13 @@ extension PageCircleMessages {
     }()
 }
 
-
 struct ChatBubble: View {
     let message: ChatMessage
+    init(message: ChatMessage) {
+        self.message = message
+        print("🧾 Rendering message:", message.content, "| media:", message.mediaURL ?? "none")
+    }
+
 
     var body: some View {
         HStack(alignment: .top) {
@@ -666,6 +797,7 @@ struct ChatBubble: View {
             }
 
             VStack(alignment: message.isCurrentUser ? .trailing : .leading, spacing: 4) {
+                // Sender name
                 HStack(spacing: 4) {
                     if message.isCurrentUser { Spacer() }
 
@@ -686,21 +818,44 @@ struct ChatBubble: View {
                     if !message.isCurrentUser { Spacer() }
                 }
 
-                if let attributed = try? AttributedString(markdown: message.content) {
-                    Text(attributed)
-                        .padding(10)
-                        .background(message.isCurrentUser ? Color(hex: "004aad") : Color(.systemGray5))
-                        .foregroundColor(message.isCurrentUser ? .white : .black)
-                        .cornerRadius(12)
-                } else {
-                    Text(message.content)
-                        .padding(10)
-                        .background(message.isCurrentUser ? Color(hex: "004aad") : Color(.systemGray5))
-                        .foregroundColor(message.isCurrentUser ? .white : .black)
-                        .cornerRadius(12)
+                // Message bubble
+                VStack(alignment: .leading, spacing: 8) {
+                    // ✅ Render text if present
+                    if let attributed = try? AttributedString(markdown: message.content), !message.content.trimmingCharacters(in: .whitespaces).isEmpty {
+                        Text(attributed)
+                            .foregroundColor(message.isCurrentUser ? .white : .black)
+                    }
+
+                    // ✅ Render media if present
+                    if let mediaURL = message.mediaURL, let url = URL(string: mediaURL) {
+                        if mediaURL.contains(".mov") || mediaURL.contains(".mp4") || mediaURL.contains("/video") {
+                            VideoPlayer(player: AVPlayer(url: url))
+                                .frame(width: 250, height: 200)
+                                .cornerRadius(10)
+                        } else {
+                            AsyncImage(url: url) { phase in
+                                switch phase {
+                                case .empty:
+                                    ProgressView().frame(width: 200, height: 200)
+                                case .success(let image):
+                                    image.resizable().scaledToFill().frame(width: 200, height: 200).clipped().cornerRadius(10)
+                                case .failure(_):
+                                    Image(systemName: "photo.fill")
+                                        .resizable()
+                                        .frame(width: 100, height: 100)
+                                        .foregroundColor(.gray)
+                                @unknown default:
+                                    EmptyView()
+                                }
+                            }
+                        }
+                    }
                 }
+                .padding(10)
+                .background(message.isCurrentUser ? Color(hex: "004aad") : Color(.systemGray5))
+                .cornerRadius(12)
 
-
+                // Timestamp
                 Text(message.timeString)
                     .font(.caption2)
                     .foregroundColor(.gray)
@@ -787,3 +942,12 @@ struct PageCircleMessages_Previews: PreviewProvider {
         )
     }
 }
+
+extension Data {
+    mutating func append(_ string: String) {
+        if let data = string.data(using: .utf8) {
+            append(data)
+        }
+    }
+}
+

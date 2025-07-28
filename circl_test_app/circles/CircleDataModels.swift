@@ -8,6 +8,7 @@ struct MessageModel: Identifiable, Codable {
     let content: String
     let timestamp: String
     let is_read: Bool
+    var mediaURL: String?  // ✅ Add this
 }
 
 // MARK: - Channel Model

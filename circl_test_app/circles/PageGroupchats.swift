@@ -10,6 +10,7 @@ struct PageGroupchats: View {
     @State private var showMoreMenu = false
     @State private var userProfileImageURL: String = ""
     @State private var unreadMessageCount: Int = 0
+    @State private var categories: [ChannelCategory] = []
 
     let circle: CircleData
     
@@ -264,135 +265,88 @@ struct PageGroupchats: View {
                         .padding(.vertical, 8)
                     
                     // Enhanced Channels Section
-                    ScrollView {
-                        VStack(alignment: .leading, spacing: 18) {
-                            // Channels Header
-                            HStack {
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text("Channels")
-                                        .font(.system(size: 20, weight: .bold))
-                                        .foregroundColor(.primary)
-                                    
-                                    Text("Join conversations by topic")
-                                        .font(.system(size: 13, weight: .medium))
-                                        .foregroundColor(.secondary)
-                                }
-                                
-                                Spacer()
-                                
-                                Text("\(channels.count) channels")
-                                    .font(.system(size: 12, weight: .medium))
-                                    .foregroundColor(Color(hex: "004aad"))
-                                    .padding(.horizontal, 10)
-                                    .padding(.vertical, 4)
-                                    .background(
-                                        Capsule()
-                                            .fill(Color(hex: "004aad").opacity(0.1))
-                                    )
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 18) {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Channels")
+                                    .font(.system(size: 20, weight: .bold))
+                                    .foregroundColor(.primary)
+                                Text("Join conversations by topic")
+                                    .font(.system(size: 13, weight: .medium))
+                                    .foregroundColor(.secondary)
                             }
-                            .padding(.horizontal, 20)
-                            
-                            if !channels.isEmpty {
-                                ForEach(groupedChannels.keys.sorted(), id: \.self) { category in
-                                    if let categoryChannels = groupedChannels[category] {
-                                        VStack(alignment: .leading, spacing: 8) {
-                                            // Category Header
-                                            HStack {
-                                                Text(category)
-                                                    .font(.system(size: 16, weight: .semibold))
-                                                    .foregroundColor(.primary)
-                                                
-                                                Rectangle()
-                                                    .fill(Color(hex: "004aad").opacity(0.2))
-                                                    .frame(height: 1)
-                                                    .frame(maxWidth: .infinity)
-                                            }
-                                            .padding(.horizontal, 20)
 
-                                            // Enhanced Channel Cards
-                                            VStack(spacing: 6) {
-                                                ForEach(categoryChannels) { channel in
-                                                    NavigationLink(destination: PageCircleMessages(channel: channel, circleName: circle.name)) {
-                                                        HStack(spacing: 10) {
-                                                            // Channel icon
-                                                            Image(systemName: "number")
-                                                                .font(.system(size: 14, weight: .medium))
-                                                                .foregroundColor(Color(hex: "004aad"))
-                                                                .frame(width: 28, height: 28)
-                                                                .background(
-                                                                    Circle()
-                                                                        .fill(Color(hex: "004aad").opacity(0.1))
-                                                                )
-                                                            
-                                                            VStack(alignment: .leading, spacing: 2) {
-                                                                Text(channel.name)
-                                                                    .font(.system(size: 15, weight: .medium))
-                                                                    .foregroundColor(.primary)
-                                                                
-                                                                Text("Tap to join conversation")
-                                                                    .font(.system(size: 12))
-                                                                    .foregroundColor(.secondary)
-                                                            }
-                                                            
-                                                            Spacer()
-                                                            
-                                                            Image(systemName: "chevron.right")
-                                                                .font(.system(size: 11, weight: .medium))
-                                                                .foregroundColor(.secondary)
-                                                        }
-                                                        .padding(.horizontal, 16)
-                                                        .padding(.vertical, 12)
-                                                        .background(
-                                                            RoundedRectangle(cornerRadius: 10)
-                                                                .fill(Color.white)
-                                                                .shadow(color: Color.black.opacity(0.04), radius: 4, x: 0, y: 1)
-                                                        )
-                                                        .overlay(
-                                                            RoundedRectangle(cornerRadius: 10)
-                                                                .stroke(Color(hex: "004aad").opacity(0.08), lineWidth: 1)
-                                                        )
-                                                        .padding(.horizontal, 16)
-                                                    }
-                                                    .buttonStyle(PlainButtonStyle())
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            } else {
-                                // Enhanced Empty State
-                                VStack(spacing: 12) {
-                                    Image(systemName: "bubble.left.and.bubble.right.fill")
-                                        .font(.system(size: 40))
-                                        .foregroundColor(Color(hex: "004aad").opacity(0.4))
-                                    
-                                    Text("No channels available")
+                            Spacer()
+
+                            Text("\(channels.count) channels")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(Color(hex: "004aad"))
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 4)
+                                .background(Capsule().fill(Color(hex: "004aad").opacity(0.1)))
+                        }
+                        .padding(.horizontal, 20)
+
+                        if categories.isEmpty {
+                            Text("No channels created yet.")
+                                .foregroundColor(.secondary)
+                                .padding(.horizontal, 20)
+                        } else {
+                            ForEach(categories) { category in
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text(category.name)
                                         .font(.system(size: 16, weight: .semibold))
                                         .foregroundColor(.primary)
-                                    
-                                    Text("Channels will appear here once they're created by moderators")
-                                        .font(.system(size: 13))
-                                        .foregroundColor(.secondary)
-                                        .multilineTextAlignment(.center)
-                                        .padding(.horizontal, 30)
+                                        .padding(.horizontal, 20)
+
+                                    ForEach(category.channels) { channel in
+                                        NavigationLink(destination: PageCircleMessages(channel: channel, circleName: circle.name)) {
+                                            HStack(spacing: 10) {
+                                                Image(systemName: "number")
+                                                    .font(.system(size: 14, weight: .medium))
+                                                    .foregroundColor(Color(hex: "004aad"))
+                                                    .frame(width: 28, height: 28)
+                                                    .background(Circle().fill(Color(hex: "004aad").opacity(0.1)))
+
+                                                VStack(alignment: .leading, spacing: 2) {
+                                                    Text(channel.name)
+                                                        .font(.system(size: 15, weight: .medium))
+                                                        .foregroundColor(.primary)
+
+                                                    Text("Tap to join conversation")
+                                                        .font(.system(size: 12))
+                                                        .foregroundColor(.secondary)
+                                                }
+
+                                                Spacer()
+
+                                                Image(systemName: "chevron.right")
+                                                    .font(.system(size: 11, weight: .medium))
+                                                    .foregroundColor(.secondary)
+                                            }
+                                            .padding(.horizontal, 16)
+                                            .padding(.vertical, 12)
+                                            .background(
+                                                RoundedRectangle(cornerRadius: 10)
+                                                    .fill(Color.white)
+                                                    .shadow(color: Color.black.opacity(0.04), radius: 4, x: 0, y: 1)
+                                            )
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 10)
+                                                    .stroke(Color(hex: "004aad").opacity(0.08), lineWidth: 1)
+                                            )
+                                            .padding(.horizontal, 16)
+                                        }
+                                        .buttonStyle(PlainButtonStyle())
+                                    }
                                 }
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 30)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 16)
-                                        .fill(Color(hex: "004aad").opacity(0.05))
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 16)
-                                                .stroke(Color(hex: "004aad").opacity(0.1), lineWidth: 1)
-                                        )
-                                )
-                                .padding(.horizontal, 16)
                             }
                         }
-                        .padding(.top, 6)
-                        .padding(.bottom, 100) // Space for bottom navigation
                     }
-
+                    .padding(.top, 6)
+                    .padding(.bottom, 100)
+                }
 
                     Spacer()
                 }
@@ -425,7 +379,8 @@ struct PageGroupchats: View {
                     ManageChannelsView(circleId: circle.id, channels: $channels)
                         .onDisappear {
                             // Refresh channels when returning from manage view
-                            fetchChannels(for: circle.id)
+                            fetchCategoriesAndChannels(for: circle.id)
+
                         }
                 }
 
@@ -821,7 +776,8 @@ struct PageGroupchats: View {
 
         .onAppear {
             print("🔄 PageGroupchats appeared - Circle ID: \(circle.id), User ID: \(userId)")
-            fetchChannels(for: circle.id)
+            fetchCategoriesAndChannels(for: circle.id)
+
             fetchThreads(for: circle.id)
             fetchMyCircles(userId: userId)
             
@@ -853,56 +809,40 @@ struct PageGroupchats: View {
         }
     }
 
-    func fetchChannels(for circleId: Int) {
-        guard let url = URL(string: "http://localhost:8000/api/circles/get_channels/\(circleId)/") else { 
-            print("❌ Invalid URL for fetchChannels")
-            return 
+    func fetchCategoriesAndChannels(for circleId: Int) {
+        guard let url = URL(string: "http://localhost:8000/api/circles/get_categories/\(circleId)/") else {
+            print("❌ Invalid URL for get_categories")
+            return
         }
 
-        print("🌐 Fetching channels for circle: \(circleId)")
-        print("📤 URL: \(url.absoluteString)")
+        print("🌐 Fetching categories + channels for circle: \(circleId)")
 
         URLSession.shared.dataTask(with: url) { data, response, error in
             DispatchQueue.main.async {
                 if let error = error {
-                    print("❌ Network error fetching channels: \(error.localizedDescription)")
+                    print("❌ Network error: \(error.localizedDescription)")
                     return
                 }
-                
-                guard let httpResponse = response as? HTTPURLResponse else {
-                    print("❌ Invalid response for fetchChannels")
-                    return
-                }
-                
-                print("📊 Channels API Status code: \(httpResponse.statusCode)")
-                
+
                 guard let data = data else {
-                    print("❌ No data received for channels")
+                    print("❌ No data")
                     return
                 }
-                
-                if let responseString = String(data: data, encoding: .utf8) {
-                    print("📥 Channels API Response: \(responseString)")
-                }
-                
-                if httpResponse.statusCode == 200 {
-                    if let decoded = try? JSONDecoder().decode([Channel].self, from: data) {
-                        print("✅ Successfully decoded \(decoded.count) channels")
-                        self.channels = decoded
-                    } else {
-                        print("❌ Failed to decode channels JSON")
-                        // Try to see the raw data structure
-                        if let json = try? JSONSerialization.jsonObject(with: data) {
-                            print("📋 Raw JSON structure: \(json)")
-                        }
-                    }
+
+                if let decoded = try? JSONDecoder().decode([ChannelCategory].self, from: data) {
+                    print("✅ Decoded \(decoded.count) categories")
+                    self.categories = decoded
+                    self.channels = decoded.flatMap { $0.channels } // ← for the count + legacy use
                 } else {
-                    print("❌ Server error fetching channels: \(httpResponse.statusCode)")
+                    print("❌ Failed to decode categories")
+                    if let str = String(data: data, encoding: .utf8) {
+                        print("Raw response:\n\(str)")
+                    }
                 }
             }
         }.resume()
     }
-    
+
     func postNewThread() {
         guard let url = URL(string: "\(baseURL)circles/create_thread/") else { return }
 

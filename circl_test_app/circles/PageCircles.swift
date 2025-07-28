@@ -36,7 +36,7 @@ struct PageCircles: View {
     @AppStorage("user_id") private var userId: Int = 0
     
     @State private var selectedChannels: [String] = []
-    let allChannelOptions = ["#Welcome", "#Founder-Chat", "#Introductions", "#Case-Studies"]
+    let allChannelOptions = ["#Welcome", "#Chats", "#Moderators", "#News"]
     
     @State private var userProfileImageURL: String = ""
     @State private var unreadMessageCount: Int = 0

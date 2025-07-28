@@ -242,7 +242,41 @@ struct ManageChannelsView: View {
                 )
         )
     }
-    
+    private func deleteCategoryFromServer(categoryId: Int, completion: @escaping (Bool) -> Void) {
+        guard let url = URL(string: "\(baseURL)circles/delete_category/") else {
+            completion(false)
+            return
+        }
+
+        let payload: [String: Any] = [
+            "category_id": categoryId,
+            "user_id": userId
+        ]
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    print("❌ Delete category error:", error.localizedDescription)
+                    completion(false)
+                    return
+                }
+
+                if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
+                    print("✅ Category deleted")
+                    completion(true)
+                } else {
+                    print("❌ Failed with status: \(response.debugDescription)")
+                    completion(false)
+                }
+            }
+        }.resume()
+    }
+
     private var channelsListSection: some View {
         VStack(alignment: .leading, spacing: 20) {
 
@@ -262,13 +296,17 @@ struct ManageChannelsView: View {
                             .font(.system(size: 16))
                             .textFieldStyle(PlainTextFieldStyle())
                     }
+                    .frame(maxWidth: .infinity)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 12)
                     .background(
-                        RoundedRectangle(cornerRadius: 12)
+                        RoundedRectangle(cornerRadius: 16)
                             .fill(Color.white)
-                            .shadow(color: Color.black.opacity(0.06), radius: 4, x: 0, y: 2)
+                            .shadow(color: Color.black.opacity(0.08), radius: 6, x: 0, y: 2)
                     )
+                    .padding(.horizontal, 4) // prevents cutoff on sides
+                    .frame(maxWidth: .infinity)
+
                     .overlay(
                         RoundedRectangle(cornerRadius: 12)
                             .stroke(Color(hex: "004aad").opacity(0.2), lineWidth: 1)
@@ -348,26 +386,41 @@ struct ManageChannelsView: View {
                     VStack(alignment: .leading, spacing: 16) {
                         ForEach(categories.sorted(by: { $0.position < $1.position })) { category in
                             VStack(alignment: .leading, spacing: 8) {
-                                HStack {
+                                HStack(spacing: 8) {
                                     Text(category.name)
                                         .font(.system(size: 16, weight: .semibold))
                                         .foregroundColor(.primary)
 
+                                    Menu {
+                                        Button(role: .destructive) {
+                                            deleteCategoryFromServer(categoryId: category.id ?? -1) { success in
+                                                if success {
+                                                    fetchCategories()
+                                                } else {
+                                                    errorMessage = "Failed to delete category"
+                                                    showingError = true
+                                                }
+                                            }
+                                        } label: {
+                                            Label("Delete Category", systemImage: "trash")
+                                        }
+                                    } label: {
+                                        Image(systemName: "ellipsis")
+                                            .font(.system(size: 16, weight: .medium))
+                                            .foregroundColor(.gray)
+                                    }
+
                                     Spacer()
 
                                     if selectedCategoryId != category.id {
-                                        Text("Channel")
+                                        Text("Add Channel")
                                             .font(.system(size: 14))
                                             .foregroundColor(.gray)
                                             .padding(.trailing, 6)
                                     }
 
                                     Button(action: {
-                                        if selectedCategoryId == category.id {
-                                            selectedCategoryId = nil  // hide input
-                                        } else {
-                                            selectedCategoryId = category.id  // show input
-                                        }
+                                        selectedCategoryId = (selectedCategoryId == category.id) ? nil : category.id
                                     }) {
                                         Image(systemName: selectedCategoryId == category.id ? "xmark.circle.fill" : "plus.circle.fill")
                                             .font(.system(size: 20))
@@ -377,7 +430,7 @@ struct ManageChannelsView: View {
 
 
 
-                                // ✅ INSERTED INLINE CHANNEL CREATION BOX
+                                // ✅ INLINE CHANNEL CREATION BOX
                                 if selectedCategoryId == category.id {
                                     HStack(spacing: 12) {
                                         HStack(spacing: 8) {
@@ -399,11 +452,9 @@ struct ManageChannelsView: View {
                                                 .stroke(Color(hex: "004aad").opacity(0.2), lineWidth: 1)
                                         )
 
-                                        // ✅ Submit Button moved inline here
                                         Button(action: {
                                             let raw = channelNameForCategory[category.id ?? -1]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
                                             guard !raw.isEmpty else { return }
-
                                             let channelName = raw.hasPrefix("#") ? raw : "#\(raw)"
 
                                             if localChannels.contains(where: { $0.name.lowercased() == channelName.lowercased() }) {
@@ -413,7 +464,6 @@ struct ManageChannelsView: View {
                                             }
 
                                             isLoading = true
-
                                             createChannelOnServer(channelName: channelName, categoryId: category.id) { success, _ in
                                                 DispatchQueue.main.async {
                                                     isLoading = false
@@ -438,8 +488,6 @@ struct ManageChannelsView: View {
                                     .padding(.vertical, 4)
                                 }
 
-
-                                // Existing channel rows
                                 ForEach(category.channels) { channel in
                                     ChannelManagementRow(
                                         channel: channel,
@@ -451,11 +499,12 @@ struct ManageChannelsView: View {
                             }
                             .padding()
                             .background(Color.white)
-                            .cornerRadius(12)
-                            .shadow(radius: 2)
+                            .cornerRadius(16)
+                            .shadow(color: Color.black.opacity(0.08), radius: 6, x: 0, y: 2)
+                            .padding(.horizontal, 4)
                         }
 
-                        // Show uncategorized channels
+                        // Uncategorized channels
                         let categorizedChannelIDs = Set(categories.flatMap { $0.channels.map { $0.id } })
                         let uncategorizedChannels = localChannels.filter { !categorizedChannelIDs.contains($0.id) }
 
@@ -476,12 +525,18 @@ struct ManageChannelsView: View {
                             }
                             .padding()
                             .background(Color.white)
-                            .cornerRadius(12)
-                            .shadow(radius: 2)
+                            .cornerRadius(16)
+                            .shadow(color: Color.black.opacity(0.08), radius: 6, x: 0, y: 2)
+                            .padding(.horizontal, 4)
                         }
                     }
+                    .padding(.top, 8)
                     .padding(.bottom, 16)
+                    .frame(maxWidth: 600)
+                    .frame(maxWidth: .infinity)
+                    .padding(.horizontal, 16)
                 }
+
 
 
             }
