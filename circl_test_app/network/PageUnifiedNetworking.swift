@@ -59,6 +59,14 @@ struct PageUnifiedNetworking: View {
             }
         }
         
+        var compactTitle: String {
+            switch self {
+            case .entrepreneurs: return "Connect"
+            case .mentors: return "Mentors"
+            case .myNetwork: return "My Network"
+            }
+        }
+        
         var color: Color {
             return Color(hex: "004aad")
         }
@@ -75,6 +83,18 @@ struct PageUnifiedNetworking: View {
     var body: some View {
         NavigationView {
             ZStack {
+                // Enhanced background gradient inspired by PageGroupchats
+                LinearGradient(
+                    gradient: Gradient(colors: [
+                        Color(.systemBackground),
+                        Color(hex: "004aad").opacity(0.02),
+                        Color(hex: "004aad").opacity(0.01)
+                    ]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
+                
                 VStack(spacing: 0) {
                     headerSection
                     scrollableContent
@@ -378,139 +398,117 @@ struct PageUnifiedNetworking: View {
     private var headerSection: some View {
         VStack(spacing: 0) {
             HStack {
-                // Left side - Profile
+                // Left side - Enhanced Profile with shadow
                 NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
-                    if !userProfileImageURL.isEmpty {
-                        AsyncImage(url: URL(string: userProfileImageURL)) { image in
-                            image
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 32, height: 32)
-                                .clipShape(Circle())
-                        } placeholder: {
+                    ZStack {
+                        if !userProfileImageURL.isEmpty {
+                            AsyncImage(url: URL(string: userProfileImageURL)) { image in
+                                image
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 36, height: 36)
+                                    .clipShape(Circle())
+                            } placeholder: {
+                                Image(systemName: "person.circle.fill")
+                                    .font(.system(size: 36))
+                                    .foregroundColor(.white)
+                            }
+                        } else {
                             Image(systemName: "person.circle.fill")
-                                .font(.system(size: 32))
+                                .font(.system(size: 36))
                                 .foregroundColor(.white)
                         }
-                    } else {
-                        Image(systemName: "person.circle.fill")
-                            .font(.system(size: 32))
-                            .foregroundColor(.white)
+                        
+                        // Online indicator
+                        Circle()
+                            .fill(Color.green)
+                            .frame(width: 10, height: 10)
+                            .overlay(
+                                Circle()
+                                    .stroke(Color.white, lineWidth: 2)
+                            )
+                            .offset(x: 12, y: -12)
                     }
+                    .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
                 }
                 
                 Spacer()
                 
-                // Center - Logo
-                Text("Circl.")
-                    .font(.system(size: 24, weight: .bold))
-                    .foregroundColor(.white)
+                // Center - Enhanced Logo with subtle glow
+                VStack(spacing: 2) {
+                    Text("Circl.")
+                        .font(.system(size: 28, weight: .bold))
+                        .foregroundColor(.white)
+                        .shadow(color: .white.opacity(0.3), radius: 8, x: 0, y: 0)
+                }
                 
                 Spacer()
                 
-                // Right side - Messages
+                // Right side - Enhanced Messages with notification
                 NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
                     ZStack {
-                        Image(systemName: "envelope")
-                            .font(.system(size: 24))
+                        Image(systemName: "envelope.fill")
+                            .font(.system(size: 24, weight: .medium))
                             .foregroundColor(.white)
+                            .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
                         
                         if unreadMessageCount > 0 {
                             Text(unreadMessageCount > 99 ? "99+" : "\(unreadMessageCount)")
                                 .font(.system(size: 10, weight: .bold))
                                 .foregroundColor(.white)
                                 .padding(4)
-                                .background(Color.red)
-                                .clipShape(Circle())
-                                .offset(x: 10, y: -10)
+                                .background(
+                                    Circle()
+                                        .fill(Color.red)
+                                        .shadow(color: Color.red.opacity(0.4), radius: 4, x: 0, y: 2)
+                                )
+                                .offset(x: 12, y: -12)
                         }
                     }
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 16)
-            .padding(.top, 8)
+            .padding(.horizontal, 20)
+            .padding(.bottom, 30)
+            .padding(.top, 12)
             
-            // Tab Buttons Row - Twitter/X style tabs
+            // Clean tab design matching the example
             HStack(spacing: 0) {
-                Spacer()
-                
-                // Entrepreneurs Tab
-                HStack {
+                ForEach(NetworkingTab.allCases, id: \.self) { tab in
                     VStack(spacing: 8) {
-                        Text("Entrepreneurs")
-                            .font(.system(size: 15, weight: selectedTab == .entrepreneurs ? .semibold : .regular))
+                        Text(tab.compactTitle)
+                            .font(.system(size: 18, weight: selectedTab == tab ? .bold : .medium))
                             .foregroundColor(.white)
+                            .opacity(selectedTab == tab ? 1.0 : 0.7)
                         
+                        // Clean underline indicator
                         Rectangle()
-                            .fill(selectedTab == .entrepreneurs ? Color.white : Color.clear)
-                            .frame(height: 3)
+                            .fill(Color.white)
+                            .frame(height: selectedTab == tab ? 3 : 0)
                             .animation(.easeInOut(duration: 0.2), value: selectedTab)
                     }
-                    .frame(width: 100)
-                }
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        selectedTab = .entrepreneurs
+                    .frame(maxWidth: .infinity)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            selectedTab = tab
+                        }
                     }
                 }
-                
-                Spacer()
-                
-                // Mentors Tab
-                HStack {
-                    VStack(spacing: 8) {
-                        Text("Mentors")
-                            .font(.system(size: 15, weight: selectedTab == .mentors ? .semibold : .regular))
-                            .foregroundColor(.white)
-                        
-                        Rectangle()
-                            .fill(selectedTab == .mentors ? Color.white : Color.clear)
-                            .frame(height: 3)
-                            .animation(.easeInOut(duration: 0.2), value: selectedTab)
-                    }
-                    .frame(width: 70)
-                }
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        selectedTab = .mentors
-                    }
-                }
-                
-                Spacer()
-                
-                // My Network Tab
-                HStack {
-                    VStack(spacing: 8) {
-                        Text("My Network")
-                            .font(.system(size: 15, weight: selectedTab == .myNetwork ? .semibold : .regular))
-                            .foregroundColor(.white)
-                        
-                        Rectangle()
-                            .fill(selectedTab == .myNetwork ? Color.white : Color.clear)
-                            .frame(height: 3)
-                            .animation(.easeInOut(duration: 0.2), value: selectedTab)
-                    }
-                    .frame(width: 90)
-                }
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        selectedTab = .myNetwork
-                        // Force refresh network data when My Network tab is selected
-                        print("🔄 Switching to My Network tab - forcing refresh")
-                        networkManager.fetchNetworkConnections()
-                    }
-                }
-                
-                Spacer()
             }
-            .padding(.bottom, 8)
+            .padding(.horizontal, 20)
+            .padding(.bottom, 16)
         }
         .padding(.top, 50) // Add safe area padding for status bar and notch
-        .background(Color(hex: "004aad"))
+        .background(
+            LinearGradient(
+                gradient: Gradient(colors: [
+                    Color(hex: "004aad"),
+                    Color(hex: "004aad").opacity(0.95)
+                ]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        )
     }
     
     // MARK: - Selection Buttons Section (DEPRECATED - now integrated into header)
@@ -546,7 +544,7 @@ struct PageUnifiedNetworking: View {
     // MARK: - Scrollable Content
     private var scrollableContent: some View {
         ScrollView {
-            LazyVStack(spacing: 16) {
+            LazyVStack(spacing: 20) {
                 switch selectedTab {
                 case .entrepreneurs:
                     entrepreneursContent
@@ -556,157 +554,298 @@ struct PageUnifiedNetworking: View {
                     myNetworkContent
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.top, 12)
+            .padding(.horizontal, 20)
+            .padding(.top, 16)
             .padding(.bottom, 120) // Add significant bottom padding to clear the bottom navigation
         }
         .refreshable {
-            networkManager.refreshAllData()
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                networkManager.refreshAllData()
+            }
         }
     }
     
     // MARK: - Tab Content Views
     private var entrepreneursContent: some View {
-        LazyVStack(spacing: 16) {
+        LazyVStack(spacing: 20) {
             if isLoading {
-                ProgressView("Loading entrepreneurs...")
-                    .padding(.vertical, 40)
+                VStack(spacing: 20) {
+                    ProgressView()
+                        .scaleEffect(1.2)
+                        .tint(Color(hex: "004aad"))
+                    
+                    Text("Discovering entrepreneurs...")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.secondary)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 60)
+                .background(
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(Color(.systemBackground))
+                        .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 4)
+                )
             } else {
                 ForEach(entrepreneurs.filter { !declinedEmails.contains($0.email) }, id: \.user_id) { entrepreneur in
                     enhancedEntrepreneurCard(for: entrepreneur)
+                        .transition(.asymmetric(
+                            insertion: .scale.combined(with: .opacity),
+                            removal: .scale.combined(with: .opacity)
+                        ))
                 }
                 
                 if entrepreneurs.isEmpty {
-                    VStack(spacing: 16) {
-                        Image(systemName: "person.2.slash")
-                            .font(.system(size: 48))
-                            .foregroundColor(.secondary)
+                    VStack(spacing: 20) {
+                        ZStack {
+                            Circle()
+                                .fill(
+                                    LinearGradient(
+                                        gradient: Gradient(colors: [
+                                            Color(hex: "004aad").opacity(0.1),
+                                            Color(hex: "004aad").opacity(0.05)
+                                        ]),
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                                .frame(width: 80, height: 80)
+                            
+                            Image(systemName: "person.2.fill")
+                                .font(.system(size: 32, weight: .medium))
+                                .foregroundColor(Color(hex: "004aad").opacity(0.6))
+                        }
                         
-                        Text("No entrepreneurs found")
-                            .font(.system(size: 18, weight: .medium))
-                            .foregroundColor(.secondary)
-                        
-                        Text("Check back later for new connections")
-                            .font(.system(size: 14))
-                            .foregroundColor(.secondary)
+                        VStack(spacing: 8) {
+                            Text("No entrepreneurs found")
+                                .font(.system(size: 20, weight: .bold))
+                                .foregroundColor(.primary)
+                            
+                            Text("Check back later for new connections and growth partners")
+                                .font(.system(size: 15, weight: .medium))
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.center)
+                        }
                     }
-                    .padding(.vertical, 40)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 60)
+                    .background(
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(Color(.systemBackground))
+                            .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 4)
+                    )
                 }
             }
         }
     }
     
     private var mentorsContent: some View {
-        LazyVStack(spacing: 16) {
+        LazyVStack(spacing: 20) {
             if isLoading {
-                ProgressView("Loading mentors...")
-                    .padding(.vertical, 40)
+                VStack(spacing: 20) {
+                    ProgressView()
+                        .scaleEffect(1.2)
+                        .tint(.orange)
+                    
+                    Text("Finding expert mentors...")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.secondary)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 60)
+                .background(
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(Color(.systemBackground))
+                        .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 4)
+                )
             } else {
                 ForEach(mentors.filter { !declinedEmails.contains($0.email) }, id: \.user_id) { mentor in
                     enhancedMentorCard(for: mentor)
+                        .transition(.asymmetric(
+                            insertion: .scale.combined(with: .opacity),
+                            removal: .scale.combined(with: .opacity)
+                        ))
                 }
                 
                 if mentors.isEmpty {
-                    VStack(spacing: 16) {
-                        Image(systemName: "graduationcap.slash")
-                            .font(.system(size: 48))
-                            .foregroundColor(.secondary)
+                    VStack(spacing: 20) {
+                        ZStack {
+                            Circle()
+                                .fill(
+                                    LinearGradient(
+                                        gradient: Gradient(colors: [
+                                            Color.orange.opacity(0.1),
+                                            Color.orange.opacity(0.05)
+                                        ]),
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                                .frame(width: 80, height: 80)
+                            
+                            Image(systemName: "graduationcap.fill")
+                                .font(.system(size: 32, weight: .medium))
+                                .foregroundColor(.orange.opacity(0.6))
+                        }
                         
-                        Text("No mentors available")
-                            .font(.system(size: 18, weight: .medium))
-                            .foregroundColor(.secondary)
-                        
-                        Text("Mentors will appear here when available")
-                            .font(.system(size: 14))
-                            .foregroundColor(.secondary)
+                        VStack(spacing: 8) {
+                            Text("No mentors available")
+                                .font(.system(size: 20, weight: .bold))
+                                .foregroundColor(.primary)
+                            
+                            Text("Expert mentors will appear here when available to guide your journey")
+                                .font(.system(size: 15, weight: .medium))
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.center)
+                        }
                     }
-                    .padding(.vertical, 40)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 60)
+                    .background(
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(Color(.systemBackground))
+                            .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 4)
+                    )
                 }
             }
         }
     }
     
     private var myNetworkContent: some View {
-        LazyVStack(spacing: 16) {
+        LazyVStack(spacing: 20) {
             if isLoading {
-                ProgressView("Loading your network...")
-                    .padding(.vertical, 40)
-            } else {
-                // Debug information (can be removed later)
-                VStack(spacing: 4) {
-                    Text("Network: \(myNetwork.count) connections")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                VStack(spacing: 20) {
+                    ProgressView()
+                        .scaleEffect(1.2)
+                        .tint(.green)
                     
-                    if !myNetwork.isEmpty {
-                        Text("Connected: \(myNetwork.map { $0.name }.joined(separator: ", "))")
-                            .font(.caption2)
-                            .foregroundColor(.blue)
-                            .lineLimit(2)
+                    Text("Loading your network...")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.secondary)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 60)
+                .background(
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(Color(.systemBackground))
+                        .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 4)
+                )
+            } else {
+                // Network stats card
+                HStack(spacing: 20) {
+                    VStack(spacing: 6) {
+                        Text("\(myNetwork.count)")
+                            .font(.system(size: 24, weight: .bold))
+                            .foregroundColor(Color(hex: "004aad"))
+                        
+                        Text("Connections")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(.secondary)
                     }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(Color(hex: "004aad").opacity(0.1))
+                    )
+                    
+                    VStack(spacing: 6) {
+                        Text("\(userNetworkEmails.count)")
+                            .font(.system(size: 24, weight: .bold))
+                            .foregroundColor(.green)
+                        
+                        Text("Active")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(.secondary)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(Color.green.opacity(0.1))
+                    )
                 }
                 .padding(.bottom, 8)
                 
                 ForEach(myNetwork) { connection in
                     enhancedNetworkConnectionCard(for: connection)
+                        .transition(.asymmetric(
+                            insertion: .scale.combined(with: .opacity),
+                            removal: .scale.combined(with: .opacity)
+                        ))
                 }
                 
                 if myNetwork.isEmpty {
-                    VStack(spacing: 16) {
-                        Image(systemName: "person.3.slash")
-                            .font(.system(size: 48))
-                            .foregroundColor(.secondary)
-                        
-                        Text("Your network is empty")
-                            .font(.system(size: 18, weight: .medium))
-                            .foregroundColor(.secondary)
-                        
-                        Text("Connect with entrepreneurs and mentors to build your network")
-                            .font(.system(size: 14))
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
-                        
-                        // Debug button to test network loading
-                        Button("Refresh Network") {
-                            print("🔄 Manual refresh network connections")
-                            networkManager.fetchNetworkConnections()
-                        }
-                        .padding(.top, 16)
-                        .foregroundColor(.blue)
-                        
-                        // Force load test data button
-                        Button("Load Test Data") {
-                            print("🧪 Loading test network data")
-                            let testData = [
-                                InviteProfileData(
-                                    user_id: 1001,
-                                    name: "John Doe",
-                                    username: "johndoe",
-                                    email: "john@example.com",
-                                    title: "CEO",
-                                    company: "Example Corp",
-                                    proficiency: "Business Strategy",
-                                    tags: ["Leadership", "Strategy"],
-                                    profileImage: "https://picsum.photos/100/100?random=3"
-                                ),
-                                InviteProfileData(
-                                    user_id: 1003,
-                                    name: "Jane Smith",
-                                    username: "janesmith",
-                                    email: "jane@example.com",
-                                    title: "Designer",
-                                    company: "Design Co",
-                                    proficiency: "UI/UX Design",
-                                    tags: ["Design", "Creative"],
-                                    profileImage: "https://picsum.photos/100/100?random=4"
+                    VStack(spacing: 20) {
+                        ZStack {
+                            Circle()
+                                .fill(
+                                    LinearGradient(
+                                        gradient: Gradient(colors: [
+                                            Color.green.opacity(0.1),
+                                            Color.green.opacity(0.05)
+                                        ]),
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
                                 )
-                            ]
-                            self.myNetwork = testData
+                                .frame(width: 80, height: 80)
+                            
+                            Image(systemName: "person.3.fill")
+                                .font(.system(size: 32, weight: .medium))
+                                .foregroundColor(.green.opacity(0.6))
                         }
-                        .padding(.top, 8)
-                        .foregroundColor(.green)
+                        
+                        VStack(spacing: 8) {
+                            Text("No connections yet")
+                                .font(.system(size: 20, weight: .bold))
+                                .foregroundColor(.primary)
+                            
+                            Text("Start connecting with entrepreneurs and mentors to build your network")
+                                .font(.system(size: 15, weight: .medium))
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.center)
+                        }
+                        
+                        // Call to action button
+                        Button(action: {
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                selectedTab = .entrepreneurs
+                            }
+                        }) {
+                            HStack(spacing: 8) {
+                                Image(systemName: "person.badge.plus")
+                                    .font(.system(size: 14, weight: .medium))
+                                
+                                Text("Find Connections")
+                                    .font(.system(size: 15, weight: .semibold))
+                            }
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 24)
+                            .padding(.vertical, 12)
+                            .background(
+                                RoundedRectangle(cornerRadius: 25)
+                                    .fill(
+                                        LinearGradient(
+                                            gradient: Gradient(colors: [
+                                                Color(hex: "004aad"),
+                                                Color(hex: "004aad").opacity(0.8)
+                                            ]),
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                    )
+                                    .shadow(color: Color(hex: "004aad").opacity(0.3), radius: 8, x: 0, y: 4)
+                            )
+                        }
+                        .padding(.top, 12)
                     }
-                    .padding(.vertical, 40)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 60)
+                    .background(
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(Color(.systemBackground))
+                            .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 4)
+                    )
                 }
             }
         }
@@ -900,95 +1039,271 @@ struct PageUnifiedNetworking: View {
                 }
             }
         }) {
-            VStack(alignment: .leading, spacing: 12) {
-                HStack(spacing: 12) {
-                    // Profile Image with AsyncImage
-                    if let profileImageURL = entrepreneur.profileImage, !profileImageURL.isEmpty {
-                        AsyncImage(url: URL(string: profileImageURL)) { image in
-                            image
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 60, height: 60)
-                                .clipShape(Circle())
-                        } placeholder: {
+            VStack(alignment: .leading, spacing: 16) {
+                HStack(spacing: 16) {
+                    // Enhanced Profile Image with gradient border
+                    ZStack {
+                        // Gradient border ring
+                        Circle()
+                            .stroke(
+                                LinearGradient(
+                                    gradient: Gradient(colors: [
+                                        Color(hex: "004aad").opacity(0.8),
+                                        Color(hex: "004aad").opacity(0.3)
+                                    ]),
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 2
+                            )
+                            .frame(width: 68, height: 68)
+                        
+                        // Profile Image with AsyncImage
+                        if let profileImageURL = entrepreneur.profileImage, !profileImageURL.isEmpty {
+                            AsyncImage(url: URL(string: profileImageURL)) { image in
+                                image
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 64, height: 64)
+                                    .clipShape(Circle())
+                            } placeholder: {
+                                Circle()
+                                    .fill(
+                                        LinearGradient(
+                                            gradient: Gradient(colors: [
+                                                Color(.systemGray6),
+                                                Color(.systemGray5)
+                                            ]),
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                    )
+                                    .frame(width: 64, height: 64)
+                                    .overlay(
+                                        ProgressView()
+                                            .scaleEffect(0.8)
+                                    )
+                            }
+                        } else {
                             Circle()
-                                .fill(Color(.systemGray5))
-                                .frame(width: 60, height: 60)
+                                .fill(
+                                    LinearGradient(
+                                        gradient: Gradient(colors: [
+                                            Color(.systemGray6),
+                                            Color(.systemGray5)
+                                        ]),
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                                .frame(width: 64, height: 64)
                                 .overlay(
-                                    ProgressView()
-                                        .scaleEffect(0.8)
+                                    Image(systemName: "person.fill")
+                                        .font(.system(size: 26))
+                                        .foregroundColor(.secondary)
                                 )
                         }
-                    } else {
-                        Circle()
-                            .fill(Color(.systemGray5))
-                            .frame(width: 60, height: 60)
-                            .overlay(
-                                Image(systemName: "person.fill")
-                                    .font(.system(size: 24))
-                                    .foregroundColor(.secondary)
-                            )
                     }
                     
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: 6) {
                         Text(entrepreneur.name)
-                            .font(.system(size: 18, weight: .semibold))
+                            .font(.system(size: 19, weight: .bold))
                             .foregroundColor(.primary)
+                            .lineLimit(1)
                         
-                        Text("@\(entrepreneur.username)")
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(.secondary)
+                        HStack(spacing: 6) {
+                            Image(systemName: "briefcase")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(Color(hex: "004aad"))
+                            
+                            Text(entrepreneur.businessStage.isEmpty ? "Entrepreneur" : entrepreneur.businessStage)
+                                .font(.system(size: 15, weight: .medium))
+                                .foregroundColor(Color(hex: "004aad"))
+                                .lineLimit(1)
+                        }
                         
                         if !entrepreneur.businessName.isEmpty {
-                            Text(entrepreneur.businessName)
-                                .font(.system(size: 14))
-                                .foregroundColor(.secondary)
+                            HStack(spacing: 6) {
+                                Image(systemName: "building.2")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.secondary)
+                                
+                                Text(entrepreneur.businessName)
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(.secondary)
+                                    .lineLimit(1)
+                            }
                         }
                     }
                     
                     Spacer()
+                    
+                    // Status indicator with online/location info
+                    VStack(spacing: 4) {
+                        Circle()
+                            .fill(Color.green)
+                            .frame(width: 8, height: 8)
+                        
+                        Text("Online")
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundColor(.secondary)
+                    }
                 }
                 
+                // Quick profile insights section
+                VStack(alignment: .leading, spacing: 10) {
+                    // Industry & Experience
+                    HStack(spacing: 12) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Industry")
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(.secondary)
+                                .textCase(.uppercase)
+                                .tracking(0.5)
+                            
+                            Text(entrepreneur.businessIndustry.isEmpty ? "Startup" : entrepreneur.businessIndustry)
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(.primary)
+                                .lineLimit(1)
+                        }
+                        
+                        Spacer()
+                        
+                        VStack(alignment: .trailing, spacing: 4) {
+                            Text("Stage")
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(.secondary)
+                                .textCase(.uppercase)
+                                .tracking(0.5)
+                            
+                            Text("Growth")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(.orange)
+                                .lineLimit(1)
+                        }
+                    }
+                    
+                    // Skills/Interests tags
+                    if !entrepreneur.tags.isEmpty {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 8) {
+                                ForEach(entrepreneur.tags.prefix(3), id: \.self) { tag in
+                                    Text(tag)
+                                        .font(.system(size: 12, weight: .medium))
+                                        .foregroundColor(Color(hex: "004aad"))
+                                        .padding(.horizontal, 10)
+                                        .padding(.vertical, 4)
+                                        .background(
+                                            Capsule()
+                                                .fill(Color(hex: "004aad").opacity(0.1))
+                                        )
+                                }
+                                
+                                if entrepreneur.tags.count > 3 {
+                                    Text("+\(entrepreneur.tags.count - 3)")
+                                        .font(.system(size: 12, weight: .medium))
+                                        .foregroundColor(.secondary)
+                                        .padding(.horizontal, 10)
+                                        .padding(.vertical, 4)
+                                        .background(
+                                            Capsule()
+                                                .fill(Color(.systemGray6))
+                                        )
+                                }
+                            }
+                            .padding(.horizontal, 1)
+                        }
+                    }
+                    
+                    // Bio/Value proposition
+                    HStack(spacing: 8) {
+                        Image(systemName: "quote.opening")
+                            .font(.system(size: 12))
+                            .foregroundColor(.secondary)
+                        
+                        Text("Looking to scale innovative solutions and build meaningful partnerships")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(.secondary)
+                            .lineLimit(2)
+                            .multilineTextAlignment(.leading)
+                        
+                        Spacer()
+                    }
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color(.systemGray6).opacity(0.5))
+                    )
+                }
+                
+                // Enhanced action buttons with modern styling
                 HStack(spacing: 12) {
                     Button(action: {
-                        withAnimation {
+                        withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
                             _ = declinedEmails.insert(entrepreneur.email)
                         }
                     }) {
-                        Text("Pass")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(.secondary)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 10)
-                            .background(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .stroke(Color(.systemGray4), lineWidth: 1)
-                            )
+                        HStack(spacing: 6) {
+                            Image(systemName: "xmark")
+                                .font(.system(size: 12, weight: .semibold))
+                            Text("Pass")
+                                .font(.system(size: 15, weight: .semibold))
+                        }
+                        .foregroundColor(.secondary)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color(.systemGray6))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Color(.systemGray4), lineWidth: 1)
+                                )
+                        )
                     }
                     
                     Button(action: {
                         selectedEmailToAdd = entrepreneur.email
                         showConfirmation = true
                     }) {
-                        Text("Connect")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 10)
-                            .background(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .fill(Color(hex: "004aad"))
-                            )
+                        HStack(spacing: 6) {
+                            Image(systemName: "link")
+                                .font(.system(size: 12, weight: .semibold))
+                            Text("Connect")
+                                .font(.system(size: 15, weight: .semibold))
+                        }
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(
+                                    LinearGradient(
+                                        gradient: Gradient(colors: [
+                                            Color(hex: "004aad"),
+                                            Color(hex: "004aad").opacity(0.8)
+                                        ]),
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                                .shadow(color: Color(hex: "004aad").opacity(0.3), radius: 8, x: 0, y: 4)
+                        )
                     }
                 }
             }
-            .padding(16)
+            .padding(20)
         }
         .buttonStyle(PlainButtonStyle())
         .background(
-            RoundedRectangle(cornerRadius: 16)
+            RoundedRectangle(cornerRadius: 20)
                 .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
+                .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 4)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(Color(hex: "004aad").opacity(0.1), lineWidth: 1)
+                )
         )
     }
     
@@ -1003,95 +1318,306 @@ struct PageUnifiedNetworking: View {
                 }
             }
         }) {
-            VStack(alignment: .leading, spacing: 12) {
-                HStack(spacing: 12) {
-                    // Profile Image with AsyncImage
-                    if let profileImageURL = mentor.profileImage, !profileImageURL.isEmpty {
-                        AsyncImage(url: URL(string: profileImageURL)) { image in
-                            image
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 60, height: 60)
-                                .clipShape(Circle())
-                        } placeholder: {
+            VStack(alignment: .leading, spacing: 16) {
+                HStack(spacing: 16) {
+                    // Enhanced Profile Image with mentor-specific gradient
+                    ZStack {
+                        // Mentor-specific gradient border ring
+                        Circle()
+                            .stroke(
+                                LinearGradient(
+                                    gradient: Gradient(colors: [
+                                        Color.orange.opacity(0.8),
+                                        Color(hex: "004aad").opacity(0.6)
+                                    ]),
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 2
+                            )
+                            .frame(width: 68, height: 68)
+                        
+                        // Profile Image with AsyncImage
+                        if let profileImageURL = mentor.profileImage, !profileImageURL.isEmpty {
+                            AsyncImage(url: URL(string: profileImageURL)) { image in
+                                image
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 64, height: 64)
+                                    .clipShape(Circle())
+                            } placeholder: {
+                                Circle()
+                                    .fill(
+                                        LinearGradient(
+                                            gradient: Gradient(colors: [
+                                                Color(.systemGray6),
+                                                Color(.systemGray5)
+                                            ]),
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                    )
+                                    .frame(width: 64, height: 64)
+                                    .overlay(
+                                        ProgressView()
+                                            .scaleEffect(0.8)
+                                    )
+                            }
+                        } else {
                             Circle()
-                                .fill(Color(.systemGray5))
-                                .frame(width: 60, height: 60)
+                                .fill(
+                                    LinearGradient(
+                                        gradient: Gradient(colors: [
+                                            Color(.systemGray6),
+                                            Color(.systemGray5)
+                                        ]),
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                                .frame(width: 64, height: 64)
                                 .overlay(
-                                    ProgressView()
-                                        .scaleEffect(0.8)
+                                    Image(systemName: "graduationcap.fill")
+                                        .font(.system(size: 26))
+                                        .foregroundColor(.secondary)
                                 )
                         }
-                    } else {
-                        Circle()
-                            .fill(Color(.systemGray5))
-                            .frame(width: 60, height: 60)
-                            .overlay(
-                                Image(systemName: "graduationcap.fill")
-                                    .font(.system(size: 24))
-                                    .foregroundColor(.secondary)
-                            )
                     }
                     
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: 6) {
                         Text(mentor.name)
-                            .font(.system(size: 18, weight: .semibold))
+                            .font(.system(size: 19, weight: .bold))
                             .foregroundColor(.primary)
+                            .lineLimit(1)
                         
-                        Text(mentor.proficiency)
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(Color(hex: "004aad"))
+                        // Expertise badge
+                        HStack(spacing: 6) {
+                            Image(systemName: "star.fill")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(.orange)
+                            
+                            Text(mentor.proficiency)
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundColor(.orange)
+                                .lineLimit(1)
+                        }
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 4)
+                        .background(
+                            Capsule()
+                                .fill(Color.orange.opacity(0.1))
+                                .overlay(
+                                    Capsule()
+                                        .stroke(Color.orange.opacity(0.3), lineWidth: 1)
+                                )
+                        )
                         
                         if !mentor.company.isEmpty {
-                            Text(mentor.company)
-                                .font(.system(size: 14))
-                                .foregroundColor(.secondary)
+                            HStack(spacing: 6) {
+                                Image(systemName: "building.2")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.secondary)
+                                
+                                Text(mentor.company)
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(.secondary)
+                                    .lineLimit(1)
+                            }
                         }
                     }
                     
                     Spacer()
+                    
+                    // Mentor status indicator with experience
+                    VStack(spacing: 4) {
+                        Image(systemName: "crown.fill")
+                            .font(.system(size: 14))
+                            .foregroundColor(.orange)
+                        
+                        Text("Expert")
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundColor(.orange)
+                    }
                 }
                 
+                // Quick mentor insights section
+                VStack(alignment: .leading, spacing: 10) {
+                    // Experience & Specialization
+                    HStack(spacing: 12) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Experience")
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(.secondary)
+                                .textCase(.uppercase)
+                                .tracking(0.5)
+                            
+                            Text("15+ Years")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(.orange)
+                                .lineLimit(1)
+                        }
+                        
+                        Spacer()
+                        
+                        VStack(alignment: .trailing, spacing: 4) {
+                            Text("Mentees")
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(.secondary)
+                                .textCase(.uppercase)
+                                .tracking(0.5)
+                            
+                            Text("50+ Guided")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(.green)
+                                .lineLimit(1)
+                        }
+                    }
+                    
+                    // Specialization areas
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Areas of Expertise")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundColor(.secondary)
+                            .textCase(.uppercase)
+                            .tracking(0.5)
+                        
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 8) {
+                                let expertiseAreas = ["Strategy", "Scaling", "Fundraising", "Leadership"]
+                                ForEach(expertiseAreas.prefix(3), id: \.self) { area in
+                                    Text(area)
+                                        .font(.system(size: 12, weight: .medium))
+                                        .foregroundColor(.orange)
+                                        .padding(.horizontal, 10)
+                                        .padding(.vertical, 4)
+                                        .background(
+                                            Capsule()
+                                                .fill(Color.orange.opacity(0.1))
+                                        )
+                                }
+                                
+                                if expertiseAreas.count > 3 {
+                                    Text("+\(expertiseAreas.count - 3)")
+                                        .font(.system(size: 12, weight: .medium))
+                                        .foregroundColor(.secondary)
+                                        .padding(.horizontal, 10)
+                                        .padding(.vertical, 4)
+                                        .background(
+                                            Capsule()
+                                                .fill(Color(.systemGray6))
+                                        )
+                                }
+                            }
+                            .padding(.horizontal, 1)
+                        }
+                    }
+                    
+                    // Mentor approach/philosophy
+                    HStack(spacing: 8) {
+                        Image(systemName: "lightbulb.fill")
+                            .font(.system(size: 12))
+                            .foregroundColor(.orange)
+                        
+                        Text("Passionate about helping entrepreneurs scale their ventures and develop strategic thinking")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(.secondary)
+                            .lineLimit(2)
+                            .multilineTextAlignment(.leading)
+                        
+                        Spacer()
+                    }
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color.orange.opacity(0.05))
+                    )
+                    
+                    // Availability indicator
+                    HStack(spacing: 8) {
+                        Circle()
+                            .fill(Color.green)
+                            .frame(width: 6, height: 6)
+                        
+                        Text("Available for new mentees")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(.green)
+                        
+                        Spacer()
+                        
+                        Text("1-2 sessions/month")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundColor(.secondary)
+                    }
+                }
+                
+                // Enhanced action buttons with mentor-specific styling
                 HStack(spacing: 12) {
                     Button(action: {
-                        withAnimation {
+                        withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
                             _ = declinedEmails.insert(mentor.email)
                         }
                     }) {
-                        Text("Pass")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(.secondary)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 10)
-                            .background(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .stroke(Color(.systemGray4), lineWidth: 1)
-                            )
+                        HStack(spacing: 6) {
+                            Image(systemName: "xmark")
+                                .font(.system(size: 12, weight: .semibold))
+                            Text("Pass")
+                                .font(.system(size: 15, weight: .semibold))
+                        }
+                        .foregroundColor(.secondary)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color(.systemGray6))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Color(.systemGray4), lineWidth: 1)
+                                )
+                        )
                     }
                     
                     Button(action: {
                         selectedEmailToAdd = mentor.email
                         showConfirmation = true
                     }) {
-                        Text("Connect")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 10)
-                            .background(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .fill(Color(hex: "004aad"))
-                            )
+                        HStack(spacing: 6) {
+                            Image(systemName: "graduationcap")
+                                .font(.system(size: 12, weight: .semibold))
+                            Text("Request Mentorship")
+                                .font(.system(size: 15, weight: .semibold))
+                        }
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(
+                                    LinearGradient(
+                                        gradient: Gradient(colors: [
+                                            Color.orange,
+                                            Color.orange.opacity(0.8)
+                                        ]),
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                                .shadow(color: Color.orange.opacity(0.3), radius: 8, x: 0, y: 4)
+                        )
                     }
                 }
             }
-            .padding(16)
+            .padding(20)
         }
         .buttonStyle(PlainButtonStyle())
         .background(
-            RoundedRectangle(cornerRadius: 16)
+            RoundedRectangle(cornerRadius: 20)
                 .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
+                .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 4)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(Color.orange.opacity(0.15), lineWidth: 1)
+                )
         )
     }
     
@@ -1107,80 +1633,322 @@ struct PageUnifiedNetworking: View {
                 }
             }
         }) {
-            VStack(alignment: .leading, spacing: 10) { // Reduced from 12 to 10
-                HStack(spacing: 10) { // Reduced from 12 to 10
-                    // Profile Image with AsyncImage
-                    if let profileImageURL = connection.profileImage, !profileImageURL.isEmpty {
-                        AsyncImage(url: URL(string: profileImageURL)) { image in
-                            image
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 45, height: 45)
-                                .clipShape(Circle())
-                        } placeholder: {
+            VStack(alignment: .leading, spacing: 16) {
+                HStack(spacing: 14) {
+                    // Enhanced Profile Image with connection-specific styling
+                    ZStack {
+                        // Connection status ring
+                        Circle()
+                            .stroke(
+                                LinearGradient(
+                                    gradient: Gradient(colors: [
+                                        Color.green.opacity(0.8),
+                                        Color(hex: "004aad").opacity(0.4)
+                                    ]),
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 2
+                            )
+                            .frame(width: 54, height: 54)
+                        
+                        // Profile Image with AsyncImage
+                        if let profileImageURL = connection.profileImage, !profileImageURL.isEmpty {
+                            AsyncImage(url: URL(string: profileImageURL)) { image in
+                                image
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 50, height: 50)
+                                    .clipShape(Circle())
+                            } placeholder: {
+                                Circle()
+                                    .fill(
+                                        LinearGradient(
+                                            gradient: Gradient(colors: [
+                                                Color(.systemGray6),
+                                                Color(.systemGray5)
+                                            ]),
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                    )
+                                    .frame(width: 50, height: 50)
+                                    .overlay(
+                                        ProgressView()
+                                            .scaleEffect(0.6)
+                                    )
+                            }
+                        } else {
                             Circle()
-                                .fill(Color(.systemGray5))
-                                .frame(width: 45, height: 45)
+                                .fill(
+                                    LinearGradient(
+                                        gradient: Gradient(colors: [
+                                            Color(.systemGray6),
+                                            Color(.systemGray5)
+                                        ]),
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                                .frame(width: 50, height: 50)
                                 .overlay(
-                                    ProgressView()
-                                        .scaleEffect(0.6)
+                                    Image(systemName: "person.fill")
+                                        .font(.system(size: 20))
+                                        .foregroundColor(.secondary)
                                 )
                         }
-                    } else {
+                        
+                        // Connected indicator
                         Circle()
-                            .fill(Color(.systemGray5))
-                            .frame(width: 45, height: 45)
+                            .fill(Color.green)
+                            .frame(width: 12, height: 12)
                             .overlay(
-                                Image(systemName: "person.fill")
-                                    .font(.system(size: 18))
-                                    .foregroundColor(.secondary)
+                                Circle()
+                                    .stroke(Color.white, lineWidth: 2)
                             )
+                            .offset(x: 18, y: -18)
                     }
                     
-                    VStack(alignment: .leading, spacing: 3) { // Reduced spacing from 4 to 3
+                    VStack(alignment: .leading, spacing: 6) {
                         Text(connection.name)
-                            .font(.system(size: 15, weight: .semibold)) // Reduced from 16
+                            .font(.system(size: 17, weight: .bold))
                             .foregroundColor(.primary)
                             .lineLimit(1)
                         
-                        Text("@\(connection.username)")
-                            .font(.system(size: 13)) // Reduced from 14
-                            .foregroundColor(.secondary)
-                            .lineLimit(1)
+                        HStack(spacing: 6) {
+                            Image(systemName: "briefcase")
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(Color(hex: "004aad"))
+                            
+                            Text(connection.title.isEmpty ? "Professional" : connection.title)
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(Color(hex: "004aad"))
+                                .lineLimit(1)
+                        }
                         
                         if !connection.company.isEmpty {
-                            Text(connection.company)
-                                .font(.system(size: 12)) // Reduced from 13
-                                .foregroundColor(.secondary)
-                                .lineLimit(1)
+                            HStack(spacing: 6) {
+                                Image(systemName: "building.2")
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.secondary)
+                                
+                                Text(connection.company)
+                                    .font(.system(size: 13, weight: .medium))
+                                    .foregroundColor(.secondary)
+                                    .lineLimit(1)
+                            }
                         }
                     }
                     
                     Spacer()
                     
+                    // Enhanced message button with unread indicator
+                    VStack(spacing: 4) {
+                        Button(action: {
+                            // Navigate to messages with this user
+                            print("📱 Opening message conversation with \(connection.name)")
+                            // You could add navigation to messages page here
+                        }) {
+                            ZStack {
+                                Image(systemName: "message.fill")
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundColor(.white)
+                                    .frame(width: 36, height: 36)
+                                    .background(
+                                        Circle()
+                                            .fill(
+                                                LinearGradient(
+                                                    gradient: Gradient(colors: [
+                                                        Color(hex: "004aad"),
+                                                        Color(hex: "004aad").opacity(0.8)
+                                                    ]),
+                                                    startPoint: .topLeading,
+                                                    endPoint: .bottomTrailing
+                                                )
+                                            )
+                                            .shadow(color: Color(hex: "004aad").opacity(0.3), radius: 6, x: 0, y: 3)
+                                    )
+                                
+                                // Simulated unread indicator (random for demo)
+                                if Bool.random() {
+                                    Circle()
+                                        .fill(Color.red)
+                                        .frame(width: 8, height: 8)
+                                        .offset(x: 12, y: -12)
+                                }
+                            }
+                        }
+                        
+                        Text("Chat")
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundColor(.secondary)
+                    }
+                }
+                
+                // Connection insights section
+                VStack(alignment: .leading, spacing: 10) {
+                    // Connection details
+                    HStack(spacing: 12) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Connected")
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(.secondary)
+                                .textCase(.uppercase)
+                                .tracking(0.5)
+                            
+                            Text("3 weeks ago")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundColor(.green)
+                                .lineLimit(1)
+                        }
+                        
+                        Spacer()
+                        
+                        VStack(alignment: .trailing, spacing: 4) {
+                            Text("Mutual")
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(.secondary)
+                                .textCase(.uppercase)
+                                .tracking(0.5)
+                            
+                            Text("5 connections")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundColor(Color(hex: "004aad"))
+                                .lineLimit(1)
+                        }
+                    }
+                    
+                    // Shared interests/tags
+                    if !connection.tags.isEmpty {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Shared Interests")
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(.secondary)
+                                .textCase(.uppercase)
+                                .tracking(0.5)
+                            
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 8) {
+                                    ForEach(connection.tags.prefix(3), id: \.self) { tag in
+                                        Text(tag)
+                                            .font(.system(size: 12, weight: .medium))
+                                            .foregroundColor(.green)
+                                            .padding(.horizontal, 8)
+                                            .padding(.vertical, 3)
+                                            .background(
+                                                Capsule()
+                                                    .fill(Color.green.opacity(0.1))
+                                            )
+                                    }
+                                    
+                                    if connection.tags.count > 3 {
+                                        Text("+\(connection.tags.count - 3)")
+                                            .font(.system(size: 12, weight: .medium))
+                                            .foregroundColor(.secondary)
+                                            .padding(.horizontal, 8)
+                                            .padding(.vertical, 3)
+                                            .background(
+                                                Capsule()
+                                                    .fill(Color(.systemGray6))
+                                            )
+                                    }
+                                }
+                                .padding(.horizontal, 1)
+                            }
+                        }
+                    }
+                    
+                    // Recent activity or connection note
+                    HStack(spacing: 8) {
+                        Image(systemName: "clock.fill")
+                            .font(.system(size: 11))
+                            .foregroundColor(.green)
+                        
+                        Text("Last active: 2 hours ago • Open to collaborations")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(.secondary)
+                            .lineLimit(1)
+                        
+                        Spacer()
+                    }
+                    .padding(.vertical, 6)
+                    .padding(.horizontal, 10)
+                    .background(
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(Color.green.opacity(0.05))
+                    )
+                }
+                
+                // Quick action buttons for existing connections
+                HStack(spacing: 8) {
                     Button(action: {
-                        // Navigate to messages with this user
-                        print("📱 Opening message conversation with \(connection.name)")
-                        // You could add navigation to messages page here
+                        print("📞 Voice call with \(connection.name)")
                     }) {
-                        Image(systemName: "message.fill")
-                            .font(.system(size: 14)) // Reduced from 16
-                            .foregroundColor(Color(hex: "004aad"))
-                            .padding(6) // Reduced from 8
-                            .background(
-                                Circle()
-                                    .fill(Color(hex: "004aad").opacity(0.1))
-                            )
+                        HStack(spacing: 4) {
+                            Image(systemName: "phone.fill")
+                                .font(.system(size: 11, weight: .medium))
+                            Text("Call")
+                                .font(.system(size: 12, weight: .semibold))
+                        }
+                        .foregroundColor(Color(hex: "004aad"))
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color(hex: "004aad").opacity(0.1))
+                        )
+                    }
+                    
+                    Button(action: {
+                        print("📧 Email \(connection.name)")
+                    }) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "envelope.fill")
+                                .font(.system(size: 11, weight: .medium))
+                            Text("Email")
+                                .font(.system(size: 12, weight: .semibold))
+                        }
+                        .foregroundColor(.green)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color.green.opacity(0.1))
+                        )
+                    }
+                    
+                    Spacer()
+                    
+                    Button(action: {
+                        print("👥 View mutual connections with \(connection.name)")
+                    }) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "person.2.fill")
+                                .font(.system(size: 11, weight: .medium))
+                            Text("Mutual")
+                                .font(.system(size: 12, weight: .semibold))
+                        }
+                        .foregroundColor(.orange)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color.orange.opacity(0.1))
+                        )
                     }
                 }
             }
-            .padding(10) // Reduced from 12
+            .padding(16)
         }
         .buttonStyle(PlainButtonStyle())
         .background(
-            RoundedRectangle(cornerRadius: 12) // Reduced from 16
+            RoundedRectangle(cornerRadius: 16)
                 .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.05), radius: 6, x: 0, y: 1) // Reduced shadow
+                .shadow(color: .black.opacity(0.06), radius: 10, x: 0, y: 3)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(Color.green.opacity(0.1), lineWidth: 1)
+                )
         )
     }
 
