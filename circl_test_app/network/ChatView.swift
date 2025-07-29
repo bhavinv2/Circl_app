@@ -20,6 +20,7 @@ struct ChatView: View {
             inputSection
         }
         .background(Color(.systemGroupedBackground))
+        .ignoresSafeArea(.all, edges: [.top, .bottom])
         .navigationBarHidden(true)
         .onAppear {
             loadDummyMessages()
@@ -30,7 +31,7 @@ struct ChatView: View {
     var headerSection: some View {
         VStack(spacing: 0) {
             HStack {
-                // Back button
+                // Left side - Back button (compact)
                 Button(action: {
                     presentationMode.wrappedValue.dismiss()
                 }) {
@@ -47,54 +48,72 @@ struct ChatView: View {
                 
                 Spacer()
                 
-                // User info
-                VStack(spacing: 2) {
-                    Text(user.name)
-                        .font(.system(size: 17, weight: .semibold))
-                        .foregroundColor(.white)
-                    
-                    HStack(spacing: 4) {
-                        Circle()
-                            .fill(user.isOnline ? Color.green : Color.gray)
-                            .frame(width: 8, height: 8)
+                // Center - Tappable user info section (expanded to take most space)
+                Button(action: {
+                    // Navigate to user profile
+                    // You can add navigation to user profile here
+                }) {
+                    HStack(spacing: 12) {
+                        // User avatar
+                        AsyncImage(url: URL(string: user.profile_image ?? "")) { phase in
+                            switch phase {
+                            case .success(let image):
+                                image
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 36, height: 36)
+                                    .clipShape(Circle())
+                            default:
+                                Circle()
+                                    .fill(Color.white.opacity(0.2))
+                                    .frame(width: 36, height: 36)
+                                    .overlay(
+                                        Image(systemName: "person.fill")
+                                            .font(.system(size: 18))
+                                            .foregroundColor(.white)
+                                    )
+                            }
+                        }
                         
-                        Text(user.isOnline ? "Online" : "Offline")
-                            .font(.system(size: 12))
-                            .foregroundColor(.white.opacity(0.8))
+                        // User info
+                        VStack(spacing: 2) {
+                            Text(user.name)
+                                .font(.system(size: 17, weight: .semibold))
+                                .foregroundColor(.white)
+                                .lineLimit(1)
+                                .truncationMode(.tail)
+                            
+                            HStack(spacing: 4) {
+                                Circle()
+                                    .fill(user.isOnline ? Color.green : Color.gray)
+                                    .frame(width: 8, height: 8)
+                                
+                                Text(user.isOnline ? "Online" : "Offline")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.white.opacity(0.8))
+                                    .lineLimit(1)
+                            }
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
                 }
                 
                 Spacer()
                 
-                // Profile button
+                // Right side - Info button (compact)
                 Button(action: {
-                    // Handle profile tap
+                    // Handle more options (call, video, info, etc.)
                 }) {
-                    AsyncImage(url: URL(string: user.profile_image ?? "")) { phase in
-                        switch phase {
-                        case .success(let image):
-                            image
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 32, height: 32)
-                                .clipShape(Circle())
-                        default:
-                            Circle()
-                                .fill(Color.white.opacity(0.2))
-                                .frame(width: 32, height: 32)
-                                .overlay(
-                                    Image(systemName: "person.fill")
-                                        .font(.system(size: 16))
-                                        .foregroundColor(.white)
-                                )
-                        }
-                    }
+                    Image(systemName: "info.circle")
+                        .font(.system(size: 20, weight: .medium))
+                        .foregroundColor(.white)
                 }
             }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 12)
+            .padding(.horizontal, 18)
+            .padding(.bottom, 18)
+            .padding(.top, 10)
         }
-        .padding(.top, 50)
+        .padding(.top, 50) // Add safe area padding for status bar and notch
         .background(
             LinearGradient(
                 gradient: Gradient(colors: [
@@ -179,6 +198,7 @@ struct ChatView: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
+            .padding(.bottom, 20) // Add space above home indicator
         }
         .background(Color(.systemBackground))
     }
@@ -293,15 +313,9 @@ struct NetworkChatBubble: View {
                 Spacer(minLength: 60)
                 
                 VStack(alignment: .trailing, spacing: 4) {
-                    HStack {
-                        Text("You")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(.secondary)
-                        
-                        Image(systemName: "chevron.down")
-                            .font(.system(size: 10))
-                            .foregroundColor(.secondary)
-                    }
+                    Text("You")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(.secondary)
                     
                     Text(message.content)
                         .font(.system(size: 16))
@@ -319,15 +333,9 @@ struct NetworkChatBubble: View {
                 }
             } else {
                 VStack(alignment: .leading, spacing: 4) {
-                    HStack {
-                        Text(message.senderName)
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(.secondary)
-                        
-                        Image(systemName: "chevron.down")
-                            .font(.system(size: 10))
-                            .foregroundColor(.secondary)
-                    }
+                    Text(message.senderName)
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(.secondary)
                     
                     Text(message.content)
                         .font(.system(size: 16))
