@@ -376,9 +376,9 @@ struct ForumMainContent: View {
                         }
                     }
                 }
-                .padding(.horizontal, 16)
-                .padding(.bottom, 16)
-                .padding(.top, 8)
+                .padding(.horizontal, 18)
+                .padding(.bottom, 18)
+                .padding(.top, 10)
                 
                 // Tab Buttons Row - Twitter/X style tabs
                 HStack(spacing: 0) {
@@ -388,7 +388,7 @@ struct ForumMainContent: View {
                     HStack {
                         VStack(spacing: 8) {
                             Text("For you")
-                                .font(.system(size: 15, weight: visualSelectedTab == "public" ? .semibold : .regular))
+                                .font(.system(size: 16, weight: visualSelectedTab == "public" ? .semibold : .regular))
                                 .foregroundColor(.white)
                             
                             Rectangle()
@@ -418,7 +418,7 @@ struct ForumMainContent: View {
                     HStack {
                         VStack(spacing: 8) {
                             Text("Following")
-                                .font(.system(size: 15, weight: visualSelectedTab == "my_network" ? .semibold : .regular))
+                                .font(.system(size: 16, weight: visualSelectedTab == "my_network" ? .semibold : .regular))
                                 .foregroundColor(.white)
                             
                             Rectangle()
@@ -444,7 +444,7 @@ struct ForumMainContent: View {
                     
                     Spacer()
                 }
-                .padding(.bottom, 8)
+                .padding(.bottom, 12)
             }
             .padding(.top, 50) // Add safe area padding for status bar and notch
             .background(Color(hex: "004aad"))

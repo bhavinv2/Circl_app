@@ -547,9 +547,9 @@ struct PageBusinessProfile: View {
                     transaction.disablesAnimations = true
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 16)
-            .padding(.top, 8)
+            .padding(.horizontal, 18)
+            .padding(.bottom, 18)
+            .padding(.top, 10)
         }
         .padding(.top, 50) // Add safe area padding for status bar and notch
         .background(Color(hex: "004aad"))

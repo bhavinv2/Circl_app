@@ -144,3 +144,58 @@ struct MentorResponseModel: Codable {
     let success: Bool
     let mentors: [MentorProfileData]
 }
+
+// MARK: - Network User Model
+struct NetworkUser: Codable, Identifiable {
+    let id: String
+    let name: String
+    let username: String
+    let email: String
+    let company: String
+    let bio: String
+    let profile_image: String?
+    let tags: [String]
+    let isOnline: Bool
+    
+    // Default initializer for preview data
+    init(id: String = UUID().uuidString, 
+         name: String, 
+         username: String, 
+         email: String, 
+         company: String, 
+         bio: String, 
+         profile_image: String? = nil, 
+         tags: [String] = [], 
+         isOnline: Bool = false) {
+        self.id = id
+        self.name = name
+        self.username = username
+        self.email = email
+        self.company = company
+        self.bio = bio
+        self.profile_image = profile_image
+        self.tags = tags
+        self.isOnline = isOnline
+    }
+}
+
+// MARK: - Message Model
+struct Message: Codable, Identifiable {
+    let id: String
+    let sender_id: String
+    let receiver_id: String
+    let content: String
+    let timestamp: String
+    let is_read: Bool
+    
+    // Computed properties for convenience
+    var isFromCurrentUser: Bool {
+        // This would need to be compared with current user ID
+        return false // Placeholder
+    }
+    
+    var formattedTime: String {
+        // Basic time formatting - could be enhanced
+        return timestamp
+    }
+}

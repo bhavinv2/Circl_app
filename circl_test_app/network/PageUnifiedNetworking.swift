@@ -467,16 +467,16 @@ struct PageUnifiedNetworking: View {
                     }
                 }
             }
-            .padding(.horizontal, 20)
-            .padding(.bottom, 30)
-            .padding(.top, 12)
+            .padding(.horizontal, 18)
+            .padding(.bottom, 18)
+            .padding(.top, 10)
             
             // Clean tab design matching the example
             HStack(spacing: 0) {
                 ForEach(NetworkingTab.allCases, id: \.self) { tab in
                     VStack(spacing: 8) {
                         Text(tab.compactTitle)
-                            .font(.system(size: 18, weight: selectedTab == tab ? .bold : .medium))
+                            .font(.system(size: 16, weight: selectedTab == tab ? .bold : .medium))
                             .foregroundColor(.white)
                             .opacity(selectedTab == tab ? 1.0 : 0.7)
                         
@@ -495,8 +495,8 @@ struct PageUnifiedNetworking: View {
                     }
                 }
             }
-            .padding(.horizontal, 20)
-            .padding(.bottom, 16)
+            .padding(.horizontal, 18)
+            .padding(.bottom, 12)
         }
         .padding(.top, 50) // Add safe area padding for status bar and notch
         .background(
