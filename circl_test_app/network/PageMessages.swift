@@ -34,12 +34,14 @@ struct PageMessages: View {
         NavigationView {
             ZStack {
                 // Enhanced background gradient
+                let backgroundColors = [
+                    Color(.systemBackground),
+                    Color(hex: "004aad").opacity(0.02),
+                    Color(hex: "004aad").opacity(0.01)
+                ]
+                
                 LinearGradient(
-                    gradient: Gradient(colors: [
-                        Color(.systemBackground),
-                        Color(hex: "004aad").opacity(0.02),
-                        Color(hex: "004aad").opacity(0.01)
-                    ]),
+                    gradient: Gradient(colors: backgroundColors),
                     startPoint: .top,
                     endPoint: .bottom
                 )
@@ -375,20 +377,11 @@ struct PageMessages: View {
                 
                 NavigationLink(
                     destination: selectedUser.map { user in
-                        VStack {
-                            Text("Chat with \(user.name)")
-                                .font(.title)
-                                .padding()
-                            Text("Chat interface coming soon")
-                                .foregroundColor(.secondary)
-                            Spacer()
-                        }
-                        .navigationTitle("Chat")
-                        .navigationBarTitleDisplayMode(.inline)
-                        .onDisappear {
-                            searchText = "" // ✅ Clears search bar when returning from chat
-                            selectedUser = nil
-                        }
+                        ChatView(user: user)
+                            .onDisappear {
+                                searchText = "" // ✅ Clears search bar when returning from chat
+                                selectedUser = nil
+                            }
                     },
                     isActive: $showChatPage
                 ) {
@@ -454,7 +447,7 @@ struct PageMessages: View {
                                         .foregroundColor(.primary)
                                         .lineLimit(1)
                                     
-                                    Text("@\(user.username ?? "user")")
+                                    Text("@\(user.username)")
                                         .font(.system(size: 14))
                                         .foregroundColor(.secondary)
                                         .lineLimit(1)
