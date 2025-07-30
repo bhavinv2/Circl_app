@@ -13,7 +13,7 @@ struct APICircle: Identifiable, Decodable {
     let creator_id: Int
     let is_moderator: Bool?  // ✅ Add this (optional for safety)
     let member_count: Int?
-}
+    let is_private: Bool }
 
 
 
@@ -23,7 +23,12 @@ struct PageCircles: View {
     @State private var selectedCircleToOpen: CircleData? = nil
     @State private var triggerOpenGroupChat = false
     @State private var showAboutPopup = false
-    
+    @State private var isPrivateCircle: Bool = false
+    @State private var privateAccessCode: String = ""
+    @State private var showAccessCodePrompt = false
+    @State private var accessCodeInput = ""
+    @State private var circlePendingJoin: CircleData? = nil
+
     @State private var showCreateCircleSheet = false
     @State private var circleName: String = ""
     @State private var circleIndustry: String = ""
@@ -216,12 +221,18 @@ struct PageCircles: View {
                                 .background(Color(.systemGray6))
                                 .cornerRadius(10)
 
-                            Picker("Join Type", selection: $selectedJoinType) {
-                                Text("Join Now").tag(JoinType.joinNow)
-                                Text("Apply Now").tag(JoinType.applyNow)
+                            Toggle(isOn: $isPrivateCircle) {
+                                Text("Make Circle Private")
+                                    .font(.headline)
                             }
-                            .pickerStyle(SegmentedPickerStyle())
                             .padding(.top)
+
+                            if isPrivateCircle {
+                                TextField("Access Code", text: $privateAccessCode)
+                                    .padding()
+                                    .background(Color(.systemGray6))
+                                    .cornerRadius(10)
+                            }
 
                             Divider()
 
@@ -501,8 +512,17 @@ struct PageCircles: View {
                                     CircleCardView(
                                         circle: circle,
                                         onJoinPressed: {
-                                            joinCircleAndOpen(circle: circle)
-                                        },
+                                            let isPrivate = circle.isPrivate
+
+
+                                            if isPrivate {
+                                                promptForAccessCode(circle: circle)
+                                            } else {
+                                                joinCircle(circleId: circle.id)
+                                            }
+                                        }
+
+,
                                         showButtons: true,
                                         isMember: myCircles.contains(where: { $0.id == circle.id })
                                     )
@@ -785,8 +805,9 @@ struct PageCircles: View {
                 .transition(.move(edge: .bottom).combined(with: .opacity))
             }
             .zIndex(2)
+                    
         }
-
+               
         // Tap-out-to-dismiss layer
         if showMoreMenu {
             Color.black.opacity(0.001)
@@ -798,7 +819,19 @@ struct PageCircles: View {
                 }
                 .zIndex(1)
         }
+                
         }
+            .alert("Enter Access Code", isPresented: $showAccessCodePrompt, actions: {
+                   TextField("Code", text: $accessCodeInput)
+                   Button("Join") {
+                       if let circle = circlePendingJoin {
+                           joinCircleWithCode(circle: circle, code: accessCodeInput)
+                       }
+                   }
+                   Button("Cancel", role: .cancel) { }
+               }, message: {
+                   Text("This circle is private. Ask a moderator for the access code.")
+               })
         .navigationBarHidden(true)
         .onAppear {
             loadCircles()
@@ -830,9 +863,16 @@ struct PageCircles: View {
                         circle: circle,
                         isMember: myCircles.contains(where: { $0.id == circle.id }),
                         onJoinPressed: {
-                            joinCircleAndOpen(circle: circle)
+                            if circle.joinType == .joinNow {
+                                if circle.isPrivate {
+                                    promptForAccessCode(circle: circle)
+                                } else {
+                                    joinCircleAndOpen(circle: circle)
+                                }
+                            }
                             showAboutPopup = false
                         },
+
                         onOpenCircle: {
                             selectedCircleToOpen = circle
                             triggerOpenGroupChat = true
@@ -916,6 +956,46 @@ struct PageCircles: View {
         default: return "100+"
         }
     }
+    func promptForAccessCode(circle: CircleData) {
+        accessCodeInput = ""
+        circlePendingJoin = circle
+        showAccessCodePrompt = true
+    }
+
+    func joinCircleWithCode(circle: CircleData, code: String) {
+        guard let url = URL(string: "\(baseURL)circles/join_circle/") else { return }
+        
+        let payload: [String: Any] = [
+            "user_id": userId,
+            "circle_id": circle.id,
+            "access_code": code
+        ]
+
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("❌ Join error:", error.localizedDescription)
+                return
+            }
+            
+            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 403 {
+                print("❌ Wrong code!")
+                return
+            }
+
+            DispatchQueue.main.async {
+                selectedCircleToOpen = circle
+                triggerOpenGroupChat = true
+                loadCircles()
+            }
+        }.resume()
+    }
+
     func joinCircleAndOpen(circle: CircleData) {
         guard let url = URL(string: "\(baseURL)circles/join_circle/") else { return }
         
@@ -956,19 +1036,25 @@ struct PageCircles: View {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
-        
+
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
                 print("❌ Join Circle error:", error.localizedDescription)
                 return
             }
-            
-            print("✅ Joined circle:", circleId)
-            print("🧠 PageCircles now sees userId:", userId)
-            print("🧠 Loaded userId from UserDefaults:", userId)
-            loadCircles() // Refresh both tabs
+
+            DispatchQueue.main.async {
+                // ✅ Open chat after joining
+                if let joined = (exploreCircles + myCircles).first(where: { $0.id == circleId }) {
+                    selectedCircleToOpen = joined
+                    triggerOpenGroupChat = true
+                }
+
+                loadCircles() // Refresh both tabs
+            }
         }.resume()
     }
+
     func createCircle() {
         guard let url = URL(string: "\(baseURL)circles/create_with_channels/") else { return }
         
@@ -980,7 +1066,8 @@ struct PageCircles: View {
             "description": circleDescription,
             "join_type": selectedJoinType.rawValue.lowercased(),
             "channels": selectedChannels,
-            "category": circleCategory
+            "category": circleCategory,            "is_private": isPrivateCircle,  // ✅ NEW
+            "access_code": isPrivateCircle ? privateAccessCode : ""  // ✅ NEW
         ]
         
         var request = URLRequest(url: url)
@@ -1025,7 +1112,8 @@ struct PageCircles: View {
                     joinType: $0.join_type == "apply_now" ? JoinType.applyNow : JoinType.joinNow,
                     channels: $0.channels ?? [],
                     creatorId: $0.creator_id,
-                    isModerator: $0.is_moderator ?? false
+                    isModerator: $0.is_moderator ?? false,
+                    isPrivate: $0.is_private  // ✅ ADD THIS
                 )
             }
         }

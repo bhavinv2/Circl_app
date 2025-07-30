@@ -372,7 +372,8 @@ struct AnnouncementsSection_Previews: PreviewProvider {
                 joinType: .joinNow,
                 channels: ["general"],
                 creatorId: 1,
-                isModerator: true
+                isModerator: true,
+                isPrivate: false
             )
         )
         .padding()

@@ -68,6 +68,8 @@ struct CircleData: Identifiable, Decodable {
     let channels: [String]
     let creatorId: Int
     let isModerator: Bool
+    let isPrivate: Bool
+
     
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -82,14 +84,31 @@ struct CircleData: Identifiable, Decodable {
         channels = try container.decode([String].self, forKey: .channels)
         creatorId = try container.decode(Int.self, forKey: .creatorId)
         isModerator = try container.decode(Bool.self, forKey: .isModerator)
-        
+        isPrivate = try container.decode(Bool.self, forKey: .isPrivate)
+
         // Custom decoding for joinType
         let joinTypeString = try container.decode(String.self, forKey: .joinType)
         joinType = joinTypeString == "apply_now" ? JoinType.applyNow : JoinType.joinNow
+        
+     
+
     }
     
     // For manual creation (not from JSON)
-    init(id: Int, name: String, industry: String, memberCount: Int, imageName: String, pricing: String, description: String, joinType: JoinType, channels: [String], creatorId: Int, isModerator: Bool) {
+    init(
+        id: Int,
+        name: String,
+        industry: String,
+        memberCount: Int,
+        imageName: String,
+        pricing: String,
+        description: String,
+        joinType: JoinType,
+        channels: [String],
+        creatorId: Int,
+        isModerator: Bool,
+        isPrivate: Bool   // ✅ ADD THIS
+    ) {
         self.id = id
         self.name = name
         self.industry = industry
@@ -101,11 +120,14 @@ struct CircleData: Identifiable, Decodable {
         self.channels = channels
         self.creatorId = creatorId
         self.isModerator = isModerator
+        self.isPrivate = isPrivate  // ✅ THIS will now work
     }
+
     
     private enum CodingKeys: String, CodingKey {
-        case id, name, industry, memberCount, imageName, pricing, description, joinType, channels, creatorId, isModerator
+        case id, name, industry, memberCount, imageName, pricing, description, joinType, channels, creatorId, isModerator, isPrivate
     }
+
 }
 
 struct CategoryWithChannels: Identifiable {

@@ -411,93 +411,6 @@ struct PageGroupchats: View {
                         }
 
 
-                        // 🔻 Add this just ABOVE `floatingButton` inside the ZStack
-                        if showSettingsMenu {
-                            ZStack {
-                                // FULL invisible blocker
-                                Color.clear
-                                    .ignoresSafeArea()
-                                    .contentShape(Rectangle())
-                                    .onTapGesture {
-                                        withAnimation {
-                                            showSettingsMenu = false
-                                        }
-                                    }
-
-                                // Dimmed background that can't pass touches
-                                Color.black.opacity(0.3)
-                                    .ignoresSafeArea()
-                                    .allowsHitTesting(false) // 🔐 block interaction passing
-
-                                // Floating menu under gear icon
-                                VStack(alignment: .leading, spacing: 0) {
-                                    Button(action: {
-                                        showCircleAboutPopup = true
-                                    }) {
-                                        GroupMenuItem(icon: "info.circle.fill", title: "About This Circle")
-                                    }
-                                    .buttonStyle(PlainButtonStyle())
-
-                                  
-                                    Button(action: {
-                                        navigateToMembers = true
-                                        showSettingsMenu = false
-                                    }) {
-                                        GroupMenuItem(icon: "person.2.fill", title: "Members List")
-                                    }
-                                    .buttonStyle(PlainButtonStyle())
-
-                                  
-
-                                    Divider()
-
-                                    Button(action: {
-                                        showLeaveConfirmation = true
-                                        showSettingsMenu = false
-                                    }) {
-                                        GroupMenuItem(icon: "rectangle.portrait.and.arrow.right.fill", title: "Leave Circle", isDestructive: true)
-                                    }
-                                    .buttonStyle(PlainButtonStyle())
-
-                                    if userId == circle.creatorId {
-                                        Divider()
-
-                                        Text("Moderator Options")
-                                            .font(.footnote)
-                                            .foregroundColor(.gray)
-                                            .padding(.horizontal)
-                                            .padding(.top, 8)
-
-                                        Button(action: {
-                                            showManageChannels = true
-                                            showSettingsMenu = false
-                                        }) {
-                                            GroupMenuItem(icon: "slider.horizontal.3", title: "Manage Channels")
-                                        }
-                                        .buttonStyle(PlainButtonStyle())
-                                        
-                                        Button(action: {
-                                            showDeleteConfirmation = true
-                                            showSettingsMenu = false
-                                        }) {
-                                            GroupMenuItem(icon: "trash.fill", title: "Delete Circle", isDestructive: true)
-                                        }
-                                        .buttonStyle(PlainButtonStyle())
-
-                                    }
-
-                                }
-                                .background(Color(.systemGray6))
-                                .cornerRadius(12)
-                                .shadow(radius: 5)
-                                .frame(width: 250)
-                                .padding(.top, -150)  // 🔁 adjust to move under gear
-                                .padding(.trailing, 16)
-                                .frame(maxWidth: .infinity, alignment: .topTrailing)
-
-                            }
-                            .zIndex(999)
-                        }
                         
                         }
                     }
@@ -505,7 +418,92 @@ struct PageGroupchats: View {
 
 
 
-                   
+            if showSettingsMenu {
+                ZStack {
+                    // FULL invisible blocker
+                    Color.clear
+                        .ignoresSafeArea()
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            withAnimation {
+                                showSettingsMenu = false
+                            }
+                        }
+
+                    // Dimmed background that can't pass touches
+                    Color.black.opacity(0.3)
+                        .ignoresSafeArea()
+                        .allowsHitTesting(false) // 🔐 block interaction passing
+
+                    // Floating menu under gear icon
+                    VStack(alignment: .leading, spacing: 0) {
+                        Button(action: {
+                            showCircleAboutPopup = true
+                        }) {
+                            GroupMenuItem(icon: "info.circle.fill", title: "About This Circle")
+                        }
+                        .buttonStyle(PlainButtonStyle())
+
+                      
+                        Button(action: {
+                            navigateToMembers = true
+                            showSettingsMenu = false
+                        }) {
+                            GroupMenuItem(icon: "person.2.fill", title: "Members List")
+                        }
+                        .buttonStyle(PlainButtonStyle())
+
+                      
+
+                        Divider()
+
+                        Button(action: {
+                            showLeaveConfirmation = true
+                            showSettingsMenu = false
+                        }) {
+                            GroupMenuItem(icon: "rectangle.portrait.and.arrow.right.fill", title: "Leave Circle", isDestructive: true)
+                        }
+                        .buttonStyle(PlainButtonStyle())
+
+                        if userId == circle.creatorId {
+                            Divider()
+
+                            Text("Moderator Options")
+                                .font(.footnote)
+                                .foregroundColor(.gray)
+                                .padding(.horizontal)
+                                .padding(.top, 8)
+
+                            Button(action: {
+                                showManageChannels = true
+                                showSettingsMenu = false
+                            }) {
+                                GroupMenuItem(icon: "slider.horizontal.3", title: "Manage Channels")
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            
+                            Button(action: {
+                                showDeleteConfirmation = true
+                                showSettingsMenu = false
+                            }) {
+                                GroupMenuItem(icon: "trash.fill", title: "Delete Circle", isDestructive: true)
+                            }
+                            .buttonStyle(PlainButtonStyle())
+
+                        }
+
+                    }
+                    .background(Color(.systemGray6))
+                    .cornerRadius(12)
+                    .shadow(radius: 5)
+                    .frame(width: 250)
+                    .padding(.top, -150)  // 🔁 adjust to move under gear
+                    .padding(.trailing, 16)
+                    .frame(maxWidth: .infinity, alignment: .topTrailing)
+
+                }
+                .zIndex(999)
+            }
                 // MARK: - Twitter/X Style Bottom Navigation
                 VStack {
                     Spacer()
@@ -1220,7 +1218,8 @@ struct PageGroupchats_Previews: PreviewProvider {
             joinType: .joinNow,
             channels: sampleChannels,
             creatorId: 999,
-            isModerator: false
+            isModerator: false,
+            isPrivate: false
         ))
     }
 }
@@ -1312,6 +1311,7 @@ struct PageGroupchatsWrapper: View {
             let creator_id: Int
             let is_moderator: Bool?
             let member_count: Int?
+            let is_private: Bool?    //
         }
         
         guard let url = URL(string: "http://localhost:8000/api/circles/my_circles/\(userId)/") else { return }
@@ -1332,7 +1332,8 @@ struct PageGroupchatsWrapper: View {
                             joinType: apiCircle.join_type == "apply_now" ? JoinType.applyNow : JoinType.joinNow,
                             channels: apiCircle.channels ?? [],
                             creatorId: apiCircle.creator_id,
-                            isModerator: apiCircle.is_moderator ?? false
+                            isModerator: apiCircle.is_moderator ?? false,
+                            isPrivate: apiCircle.is_private ?? false
                         )
                     }
                     self.loading = false

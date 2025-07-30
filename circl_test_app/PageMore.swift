@@ -13,7 +13,9 @@ let sampleCircle = CircleData(
     joinType: .joinNow,
     channels: [],
     creatorId: 0,
-    isModerator: false
+    isModerator: false,
+    isPrivate: false
+
 )
 
 struct PageMore: View {
