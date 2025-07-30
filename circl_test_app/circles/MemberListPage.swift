@@ -7,7 +7,9 @@ struct Member: Identifiable, Decodable, Hashable {
     let full_name: String
     let profile_image: String?
     let user_id: Int
+    let is_moderator: Bool   // ✅ Add this
 }
+
 
 struct MemberListPage: View {
     let circleName: String
@@ -15,6 +17,7 @@ struct MemberListPage: View {
 
     @State private var members: [Member] = []
     @State private var selectedMember: Member? = nil
+    @AppStorage("user_id") private var currentUserId: Int = 0
 
     var body: some View {
         VStack(spacing: 16) {
@@ -44,8 +47,22 @@ struct MemberListPage: View {
                                     .foregroundColor(.primary)
 
                                 Spacer()
+
+                                if member.user_id != currentUserId && !member.is_moderator {
+                                    Menu {
+                                        Button("Make Moderator") {
+                                            promoteToModerator(memberId: member.user_id)
+                                        }
+                                    } label: {
+                                        Image(systemName: "ellipsis")
+                                            .rotationEffect(.degrees(90))
+                                            .frame(width: 32, height: 32)
+                                            .foregroundColor(.gray)
+                                    }
+                                }
                             }
                             .padding(.horizontal)
+
                         }
                     }
                 }
@@ -93,6 +110,32 @@ struct MemberListPage: View {
             circs: 0,
             entrepreneurial_history: nil
         )
+    }
+    func promoteToModerator(memberId: Int) {
+        guard let url = URL(string: "\(baseURL)circles/make_moderator/") else { return }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let payload = [
+            "user_id": memberId,
+            "circle_id": circleId,
+            "requesting_user_id": currentUserId
+        ]
+
+        request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("❌ Error promoting moderator:", error.localizedDescription)
+                return
+            }
+
+            DispatchQueue.main.async {
+                fetchMembers()
+            }
+        }.resume()
     }
 
 

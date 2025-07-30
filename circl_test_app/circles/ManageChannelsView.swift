@@ -163,7 +163,8 @@ struct ManageChannelsView: View {
     }
     // MARK: - Add Channel Section
     private func fetchCategories() {
-        guard let url = URL(string: "\(baseURL)circles/get_categories/\(circleId)/") else { return }
+        guard let url = URL(string: "\(baseURL)circles/get_categories/\(circleId)/?user_id=\(userId)") else { return }
+
 
         
         URLSession.shared.dataTask(with: url) { data, response, error in
@@ -493,7 +494,9 @@ struct ManageChannelsView: View {
                                         channel: channel,
                                         onDelete: { deleteChannel(channel) },
                                         onMove: { _, _ in },
-                                        showDeleteButton: !isEditMode
+                                        showDeleteButton: !isEditMode,
+                                        onToggleModeratorOnly: { toggleModeratorOnly($0) }
+                                        
                                     )
                                 }
                             }
@@ -514,14 +517,23 @@ struct ManageChannelsView: View {
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundColor(.primary)
 
-                                ForEach(uncategorizedChannels.sorted(by: { $0.position < $1.position })) { channel in
+                                let sortedUncategorized = uncategorizedChannels.sorted(by: { $0.position < $1.position })
+
+                                ForEach(sortedUncategorized) { channel in
+                                    let toggleHandler: (Channel) -> Void = { ch in
+                                        toggleModeratorOnly(ch)
+                                    }
+
                                     ChannelManagementRow(
                                         channel: channel,
                                         onDelete: { deleteChannel(channel) },
                                         onMove: { _, _ in },
-                                        showDeleteButton: !isEditMode
+                                        showDeleteButton: !isEditMode,
+                                        onToggleModeratorOnly: toggleHandler
                                     )
                                 }
+
+
                             }
                             .padding()
                             .background(Color.white)
@@ -670,6 +682,42 @@ struct ManageChannelsView: View {
         }.resume()
     }
     
+    private func toggleModeratorOnly(_ channel: Channel) {
+        guard let index = localChannels.firstIndex(where: { $0.id == channel.id }) else { return }
+
+        let newValue = !(channel.isModeratorOnly ?? false)
+        let payload: [String: Any] = [
+            "channel_id": channel.id,
+            "is_moderator_only": newValue,
+            "user_id": userId
+        ]
+
+        guard let url = URL(string: "\(baseURL)circles/update_channel_visibility/") else { return }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    print("❌ Visibility toggle error:", error.localizedDescription)
+                    errorMessage = "Failed to update visibility"
+                    showingError = true
+                    return
+                }
+
+                if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
+                    localChannels[index].isModeratorOnly = newValue
+                } else {
+                    errorMessage = "Failed to update visibility"
+                    showingError = true
+                }
+            }
+        }.resume()
+    }
+
     private func deleteChannelOnServer(channelId: Int, completion: @escaping (Bool) -> Void) {
         let urlString = "\(baseURL)circles/delete_channels/"
         guard let url = URL(string: urlString) else {
@@ -764,6 +812,7 @@ struct ChannelManagementRow: View {
     let onDelete: () -> Void
     let onMove: (Int, Int) -> Void
     let showDeleteButton: Bool
+    let onToggleModeratorOnly: (Channel) -> Void
     
     @State private var showingDeleteAlert = false
     
@@ -788,19 +837,31 @@ struct ChannelManagementRow: View {
             
             // Delete button (only shown when not in edit mode)
             if showDeleteButton {
-                Button(action: {
-                    showingDeleteAlert = true
-                }) {
-                    Image(systemName: "trash")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.red)
-                        .frame(width: 32, height: 32)
-                        .background(
-                            Circle()
-                                .fill(Color.red.opacity(0.1))
+                Menu {
+                    Button(role: .destructive) {
+                        showingDeleteAlert = true
+                    } label: {
+                        Label("Delete Channel", systemImage: "trash")
+                    }
+
+                    Button {
+                        onToggleModeratorOnly(channel)
+                    } label: {
+                        Label(
+                            channel.isModeratorOnly == true ? "Make Public" : "Restrict to Moderators",
+                            systemImage: channel.isModeratorOnly == true ? "lock.open" : "lock"
                         )
+                    }
+
+                } label: {
+                    Image(systemName: "ellipsis")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.gray)
+                        .frame(width: 32, height: 32)
+                        .background(Circle().fill(Color.gray.opacity(0.1)))
                 }
             }
+
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)

@@ -17,6 +17,7 @@ struct Channel: Identifiable, Codable, Hashable {
     let name: String
     let circleId: Int
     var position: Int
+    var isModeratorOnly: Bool? = false
     
     // For decoding from backend that might not include position
     init(from decoder: Decoder) throws {
@@ -25,19 +26,22 @@ struct Channel: Identifiable, Codable, Hashable {
         name = try container.decode(String.self, forKey: .name)
         circleId = try container.decode(Int.self, forKey: .circleId)
         position = try container.decodeIfPresent(Int.self, forKey: .position) ?? 0
+        isModeratorOnly = try container.decodeIfPresent(Bool.self, forKey: .isModeratorOnly) ?? false  // ✅ decode
     }
     
     // For manual creation
-    init(id: Int, name: String, circleId: Int, position: Int = 0) {
+    init(id: Int, name: String, circleId: Int, position: Int = 0, isModeratorOnly: Bool? = false) {
         self.id = id
         self.name = name
         self.circleId = circleId
         self.position = position
+        self.isModeratorOnly = isModeratorOnly  // ✅ now it works
     }
-    
+
     private enum CodingKeys: String, CodingKey {
         case id, name, position
         case circleId = "circle_id"
+        case isModeratorOnly = "is_moderator_only"
     }
 }
 

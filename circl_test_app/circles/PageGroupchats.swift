@@ -141,7 +141,8 @@ struct PageGroupchats: View {
                                 .padding(.top, 16)
 
                                 // Enhanced Moderator label with modern badge styling
-                                if userId == circle.creatorId {
+                                if circle.isModerator {
+
                                     HStack(spacing: 6) {
                                         Image(systemName: "crown.fill")
                                             .font(.system(size: 12, weight: .medium))
@@ -321,7 +322,9 @@ struct PageGroupchats: View {
                                                 .foregroundColor(.primary)
                                                 .padding(.horizontal, 20)
 
-                                            ForEach(category.channels) { channel in
+                                            ForEach(category.channels.filter { channel in
+                                                !channel.isModeratorOnly! || circle.isModerator
+                                            }) { channel in
                                                 NavigationLink(destination: PageCircleMessages(channel: channel, circleName: circle.name)) {
                                                     HStack(spacing: 10) {
                                                         Image(systemName: "number")
@@ -465,7 +468,8 @@ struct PageGroupchats: View {
                         }
                         .buttonStyle(PlainButtonStyle())
 
-                        if userId == circle.creatorId {
+                        if circle.isModerator {
+
                             Divider()
 
                             Text("Moderator Options")
@@ -844,7 +848,7 @@ struct PageGroupchats: View {
     }
 
     func fetchCategoriesAndChannels(for circleId: Int) {
-        guard let url = URL(string: "http://localhost:8000/api/circles/get_categories/\(circleId)/") else {
+        guard let url = URL(string: "\(baseURL)circles/get_categories/\(circleId)/?user_id=\(userId)") else {
             print("❌ Invalid URL for get_categories")
             return
         }
