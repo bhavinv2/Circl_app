@@ -4,9 +4,10 @@ import Foundation
 // MARK: - Event Models
 struct CalendarEvent: Identifiable, Codable {
     let id: Int
-    let name: String
+    let title: String
+
     let event_type: String
-    let date: String
+    let date: String?
     let points: Int
     let revenue: Int
     let circle_id: Int?
@@ -163,47 +164,53 @@ struct CalendarView: View {
     // MARK: - API Functions
     func fetchEvents() {
         isLoading = true
-        
-        guard let url = URL(string: "\(baseURL)circles/\(circle.id)/events/") else {
+
+        guard let url = URL(string: "\(baseURL)circles/get_events/") else {
             print("❌ Invalid URL for fetchEvents")
             isLoading = false
             loadSampleEvents()
             return
         }
-        
+
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
-        
+
         URLSession.shared.dataTask(with: request) { data, response, error in
             DispatchQueue.main.async {
                 isLoading = false
-                
+
                 if let error = error {
                     print("❌ Network error: \(error.localizedDescription)")
                     self.loadSampleEvents()
                     return
                 }
-                
+
                 guard let data = data else {
                     print("❌ No data received")
                     self.loadSampleEvents()
                     return
                 }
-                
+
                 if let responseString = String(data: data, encoding: .utf8) {
                     print("📥 Events API Response: \(responseString)")
                 }
-                
+
                 do {
                     let decodedEvents = try JSONDecoder().decode([CalendarEvent].self, from: data)
-                    // Filter events by selected date
-                    let formatter = DateFormatter()
-                    formatter.dateFormat = "yyyy-MM-dd"
-                    let selectedDateString = formatter.string(from: self.selectedDate)
-                    
-                    self.events = decodedEvents.filter { event in
-                        event.date.hasPrefix(selectedDateString)
+
+                    // Filter events to match selectedDate (ignoring time)
+                    let calendar = Calendar.current
+                    let filtered = decodedEvents.filter { event in
+                        guard let eventDateString = event.date,
+                              let eventDate = ISO8601DateFormatter().date(from: eventDateString) else {
+                            return false
+                        }
+                        return calendar.isDate(eventDate, inSameDayAs: selectedDate)
                     }
+
+                    self.events = filtered
+
+
                 } catch {
                     print("❌ Failed to decode events: \(error)")
                     self.loadSampleEvents()
@@ -211,25 +218,28 @@ struct CalendarView: View {
             }
         }.resume()
     }
-    
+
     func createEvent() {
-        guard let url = URL(string: "\(baseURL)circles/\(circle.id)/events/") else {
+        guard let url = URL(string: "\(baseURL)circles/create_event/") else {
             print("❌ Invalid URL for createEvent")
             return
         }
         
         let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-        let dateString = formatter.string(from: selectedEventDate)
-        
+        let isoFormatter = ISO8601DateFormatter()
+        isoFormatter.formatOptions = [.withInternetDateTime]
+        let dateString = isoFormatter.string(from: selectedEventDate)
+
         let parameters: [String: Any] = [
-            "name": newEventName,
-            "event_type": newEventType,
+            "title": newEventName,
+            "description": "",  // ✅ Add this line
+            "event_type": newEventType.lowercased(),
             "points": Int(newEventPoints) ?? 10,
             "revenue": Int(newEventRevenue) ?? 0,
             "date": dateString,
             "circle_id": circle.id
         ]
+
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -264,13 +274,14 @@ struct CalendarView: View {
     }
     
     func checkInToEvent(_ eventId: Int) {
-        guard let url = URL(string: "\(baseURL)events/\(eventId)/checkin/") else {
+        guard let url = URL(string: "\(baseURL)circles/checkin_event/") else {
             print("❌ Invalid URL for checkIn")
             return
         }
         
         let parameters: [String: Any] = [
             "user_id": userId,
+            "description": "",
             "event_id": eventId
         ]
         
@@ -305,10 +316,11 @@ struct CalendarView: View {
         let todayString = formatter.string(from: selectedDate)
         
         let sampleEvents = [
-            CalendarEvent(id: 1, name: "Startup Kickoff Workshop", event_type: "Workshop", date: todayString, points: 15, revenue: 200, circle_id: circle.id),
-            CalendarEvent(id: 2, name: "Tech Talk: AI in Business", event_type: "Speaker", date: todayString, points: 20, revenue: 100, circle_id: circle.id),
-            CalendarEvent(id: 3, name: "Networking Social Hour", event_type: "Social", date: todayString, points: 10, revenue: 0, circle_id: circle.id)
+            CalendarEvent(id: 1, title: "Startup Kickoff Workshop", event_type: "Workshop", date: todayString, points: 15, revenue: 200, circle_id: circle.id),
+            CalendarEvent(id: 2, title: "Tech Talk: AI in Business", event_type: "Speaker", date: todayString, points: 20, revenue: 100, circle_id: circle.id),
+            CalendarEvent(id: 3, title: "Networking Social Hour", event_type: "Social", date: todayString, points: 10, revenue: 0, circle_id: circle.id)
         ]
+
         
         // Only show sample events if the selected date is today or in the future
         if selectedDate >= Date() {
@@ -329,7 +341,8 @@ struct EventCard: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(event.name)
+                    Text(event.title)
+
                         .font(.headline)
                         .foregroundColor(.primary)
                     
