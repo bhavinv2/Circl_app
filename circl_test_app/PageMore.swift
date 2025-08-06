@@ -14,9 +14,10 @@ let sampleCircle = CircleData(
     channels: [],
     creatorId: 0,
     isModerator: false,
-    isPrivate: false
-
+    isPrivate: false,
+    hasDashboard: false // ✅ Add this
 )
+
 
 struct PageMore: View {
     @Binding var userFirstName: String

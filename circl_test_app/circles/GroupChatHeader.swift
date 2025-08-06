@@ -9,6 +9,8 @@ import SwiftUI
 
 // MARK: - Group Chat Header Component
 struct GroupChatHeader: View {
+
+       let hasDashboard: Bool
     @Binding var selectedTab: GroupTab
     @Environment(\.presentationMode) var presentationMode
     
@@ -44,20 +46,22 @@ struct GroupChatHeader: View {
             
             // Tab navigation
             HStack(spacing: 0) {
-                // Dashboard Tab
-                Button(action: { selectedTab = .dashboard }) {
-                    VStack(spacing: 4) {
-                        Image(systemName: "chart.pie.fill")
-                            .font(.system(size: 16, weight: .medium))
-                        Text("Dashboard")
-                            .font(.system(size: 12, weight: .medium))
+                if hasDashboard {
+                    Button(action: { selectedTab = .dashboard }) {
+                        VStack(spacing: 4) {
+                            Image(systemName: "chart.pie.fill")
+                                .font(.system(size: 16, weight: .medium))
+                            Text("Dashboard")
+                                .font(.system(size: 12, weight: .medium))
+                        }
+                        .foregroundColor(selectedTab == .dashboard ? .white : .white.opacity(0.6))
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 8)
                     }
-                    .foregroundColor(selectedTab == .dashboard ? .white : .white.opacity(0.6))
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 8)
+                    
+                    Spacer()
                 }
-                
-                Spacer()
+
                 
                 // Home Tab
                 Button(action: { selectedTab = .home }) {
@@ -101,6 +105,6 @@ struct GroupChatHeader: View {
 // MARK: - Preview
 struct GroupChatHeader_Previews: PreviewProvider {
     static var previews: some View {
-        GroupChatHeader(selectedTab: .constant(.home))
+        GroupChatHeader(hasDashboard: true, selectedTab: .constant(.home))
     }
 }

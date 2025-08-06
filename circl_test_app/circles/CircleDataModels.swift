@@ -73,6 +73,11 @@ struct CircleData: Identifiable, Decodable {
     let creatorId: Int
     let isModerator: Bool
     let isPrivate: Bool
+    var hasDashboard: Bool?
+    let duesAmount: Int?
+    let hasStripeAccount: Bool? 
+
+
 
     
     init(from decoder: Decoder) throws {
@@ -89,11 +94,24 @@ struct CircleData: Identifiable, Decodable {
         creatorId = try container.decode(Int.self, forKey: .creatorId)
         isModerator = try container.decode(Bool.self, forKey: .isModerator)
         isPrivate = try container.decode(Bool.self, forKey: .isPrivate)
+        hasDashboard = try container.decodeIfPresent(Bool.self, forKey: .hasDashboard)
+
 
         // Custom decoding for joinType
         let joinTypeString = try container.decode(String.self, forKey: .joinType)
-        joinType = joinTypeString == "apply_now" ? JoinType.applyNow : JoinType.joinNow
-        
+        switch joinTypeString {
+        case "apply_now":
+            joinType = .applyNow
+        case "request_to_join":
+            joinType = .requestToJoin
+        default:
+            joinType = .joinNow
+        }
+
+        duesAmount = try container.decodeIfPresent(Int.self, forKey: .duesAmount)
+        hasStripeAccount = try container.decodeIfPresent(Bool.self, forKey: .hasStripeAccount)
+
+
      
 
     }
@@ -111,7 +129,10 @@ struct CircleData: Identifiable, Decodable {
         channels: [String],
         creatorId: Int,
         isModerator: Bool,
-        isPrivate: Bool   // ✅ ADD THIS
+        isPrivate: Bool,   // ✅ ADD THIS
+        hasDashboard: Bool? = false,
+        duesAmount: Int? = nil,
+        hasStripeAccount: Bool? = nil
     ) {
         self.id = id
         self.name = name
@@ -125,12 +146,19 @@ struct CircleData: Identifiable, Decodable {
         self.creatorId = creatorId
         self.isModerator = isModerator
         self.isPrivate = isPrivate  // ✅ THIS will now work
+        self.hasDashboard = hasDashboard  // ✅ this was missing
+        self.duesAmount = duesAmount
+        self.hasStripeAccount = hasStripeAccount
+        
     }
 
     
     private enum CodingKeys: String, CodingKey {
-        case id, name, industry, memberCount, imageName, pricing, description, joinType, channels, creatorId, isModerator, isPrivate
+        case id, name, industry, memberCount, imageName, pricing, description, joinType, channels, creatorId, isModerator, isPrivate, hasDashboard
+        case duesAmount = "dues_amount"  // ✅ FIXED HERE
+        case hasStripeAccount = "has_stripe_account"
     }
+
 
 }
 

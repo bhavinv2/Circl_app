@@ -373,7 +373,8 @@ struct AnnouncementsSection_Previews: PreviewProvider {
                 channels: ["general"],
                 creatorId: 1,
                 isModerator: true,
-                isPrivate: false
+                isPrivate: false,
+                hasDashboard: true
             )
         )
         .padding()

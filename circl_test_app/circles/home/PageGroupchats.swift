@@ -14,8 +14,11 @@ struct PageGroupchats: View {
     @State private var selectedTab: GroupTab = .home
     @State private var announcements: [AnnouncementModel] = []
     @State private var showCreateAnnouncementPopup = false
+    @State private var isDashboardEnabled: Bool
+    @State var circle: CircleData
+    @State private var navigateToDues = false
 
-    let circle: CircleData
+
     
     @State private var showDeleteConfirmation = false
     @State private var deleteInputText = ""
@@ -40,13 +43,14 @@ struct PageGroupchats: View {
     @State private var selectedGroup: String
    
     @State private var showCircleAboutPopup = false
-
     init(circle: CircleData) {
-            self.circle = circle
-            _selectedGroup = State(initialValue: circle.name)
-            lastCircleId = circle.id // 👈 Save the visited circle ID
+        _circle = State(initialValue: circle) // ✅ not just `circle = ...`
+        _selectedGroup = State(initialValue: circle.name)
+        _isDashboardEnabled = State(initialValue: circle.hasDashboard ?? false)
+        lastCircleId = circle.id
+    }
 
-        }
+
 
     @State private var threads: [ThreadPost] = []
     @State private var showCreateThreadPopup = false
@@ -67,7 +71,7 @@ struct PageGroupchats: View {
             .ignoresSafeArea()
             
             VStack(spacing: 0) {
-                GroupChatHeader(selectedTab: $selectedTab)
+                GroupChatHeader(hasDashboard: circle.hasDashboard ?? false, selectedTab: $selectedTab)
 
                 if selectedTab == .dashboard {
                     DashboardView(circle: circle)
@@ -418,7 +422,15 @@ struct PageGroupchats: View {
                         }
                     }
                 }
+            
+            
 
+            NavigationLink(
+                                       destination: PageDues(circle: circle).navigationBarBackButtonHidden(true),
+                                       isActive: $navigateToDues
+                                   ) {
+                                       EmptyView()
+                                   }
 
 
             if showSettingsMenu {
@@ -455,7 +467,14 @@ struct PageGroupchats: View {
                             GroupMenuItem(icon: "person.2.fill", title: "Members List")
                         }
                         .buttonStyle(PlainButtonStyle())
-
+                        Button(action: {
+                            navigateToDues = true
+                            showSettingsMenu = false
+                        }) {
+                            GroupMenuItem(icon: "creditcard.fill", title: "Dues")
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                       
                       
 
                         Divider()
@@ -477,6 +496,22 @@ struct PageGroupchats: View {
                                 .foregroundColor(.gray)
                                 .padding(.horizontal)
                                 .padding(.top, 8)
+                            
+                            Toggle(isOn: $isDashboardEnabled) {
+                                Label("Enable Dashboard", systemImage: "chart.bar")
+                                    .font(.system(size: 14, weight: .medium))
+                            }
+                            .toggleStyle(SwitchToggleStyle(tint: Color(hex: "004aad")))
+                            .padding(.horizontal)
+                            .padding(.vertical, 6)
+                            .background(Color.white)
+                            .cornerRadius(8)
+                            .onChange(of: isDashboardEnabled) { newValue in
+                                updateDashboardEnabled(to: newValue)
+                            }
+                            
+                     
+
 
                             Button(action: {
                                 showManageChannels = true
@@ -508,6 +543,8 @@ struct PageGroupchats: View {
                 }
                 .zIndex(999)
             }
+            
+            
                 // MARK: - Twitter/X Style Bottom Navigation
                 VStack {
                     Spacer()
@@ -817,7 +854,7 @@ struct PageGroupchats: View {
             fetchThreads(for: circle.id)
             fetchMyCircles(userId: userId)
             fetchAnnouncements(for: circle.id)
-
+            fetchLatestCircleDetails()
             
             
             
@@ -984,6 +1021,59 @@ struct PageGroupchats: View {
             }
         }.resume()
     }
+    func updateDashboardEnabled(to newValue: Bool) {
+        guard let url = URL(string: "\(baseURL)circles/toggle_dashboard/") else { return }
+
+        let payload: [String: Any] = [
+            "circle_id": circle.id,
+            "user_id": userId,
+            "has_dashboard": newValue
+        ]
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("❌ Failed to toggle dashboard:", error.localizedDescription)
+            } else if let data = data,
+                      let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                print("✅ Dashboard toggle response:", json)
+
+                DispatchQueue.main.async {
+                    self.circle.hasDashboard = newValue
+                    self.isDashboardEnabled = newValue
+
+                    // ✅ Tell wrapper to refresh
+                    UserDefaults.standard.set(true, forKey: "should_refresh_circles")
+                }
+            }
+        }.resume()
+    }
+
+    func fetchLatestCircleDetails() {
+        guard let url = URL(string: "\(baseURL)circles/get_circle_details/?circle_id=\(circle.id)&user_id=\(userId)") else { return }
+
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            guard let data = data, error == nil else {
+                print("❌ Error fetching latest circle details")
+                return
+            }
+
+            do {
+                let decoded = try JSONDecoder().decode(CircleData.self, from: data)
+                DispatchQueue.main.async {
+                    self.circle = decoded
+                    self.isDashboardEnabled = decoded.hasDashboard ?? false
+                }
+            } catch {
+                print("❌ Failed to decode CircleData:", error)
+            }
+        }.resume()
+    }
+
     struct CreateAnnouncementPopup: View {
         let circleId: Int
         let userId: Int
@@ -1223,7 +1313,8 @@ struct PageGroupchats_Previews: PreviewProvider {
             channels: sampleChannels,
             creatorId: 999,
             isModerator: false,
-            isPrivate: false
+            isPrivate: false,
+            hasDashboard: false
         ))
     }
 }
@@ -1291,14 +1382,26 @@ struct PageGroupchatsWrapper: View {
                 if let savedCircle = myCircles.first(where: { $0.id == lastCircleId }) {
                     PageGroupchats(circle: savedCircle)
                 } else {
-                    PageGroupchats(circle: myCircles[0]) // fallback
+                    if let savedCircle = myCircles.first(where: { $0.id == lastCircleId }) {
+                        PageGroupchats(circle: savedCircle)
+                    } else {
+                        PageGroupchats(circle: myCircles[0])
+                    }
+// fallback
                 }
  // default to first circle
             }
         }
         .onAppear {
-            fetchMyCircles()
+            if UserDefaults.standard.bool(forKey: "should_refresh_circles") {
+                print("🔁 Refreshing circles from toggle")
+                UserDefaults.standard.set(false, forKey: "should_refresh_circles")
+                fetchMyCircles()
+            } else {
+                print("✅ Normal onAppear, no dashboard refresh needed")
+            }
         }
+
         
     }
 
@@ -1316,6 +1419,7 @@ struct PageGroupchatsWrapper: View {
             let is_moderator: Bool?
             let member_count: Int?
             let is_private: Bool?    //
+            let has_dashboard: Bool? 
         }
         
         guard let url = URL(string: "http://localhost:8000/api/circles/my_circles/\(userId)/") else { return }
@@ -1325,6 +1429,8 @@ struct PageGroupchatsWrapper: View {
                let decoded = try? JSONDecoder().decode([LocalAPICircle].self, from: data) {
                 DispatchQueue.main.async {
                     self.myCircles = decoded.map { apiCircle in
+                        print("✅ Refetched circles from server: \(decoded.map { "\($0.name): \($0.has_dashboard ?? false)" })")
+
                         return CircleData(
                             id: apiCircle.id,
                             name: apiCircle.name,
@@ -1337,9 +1443,12 @@ struct PageGroupchatsWrapper: View {
                             channels: apiCircle.channels ?? [],
                             creatorId: apiCircle.creator_id,
                             isModerator: apiCircle.is_moderator ?? false,
-                            isPrivate: apiCircle.is_private ?? false
+                            isPrivate: apiCircle.is_private ?? false,
+                            hasDashboard: apiCircle.has_dashboard
+
                         )
                     }
+
                     self.loading = false
                 }
             } else {

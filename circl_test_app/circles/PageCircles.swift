@@ -13,7 +13,8 @@ struct APICircle: Identifiable, Decodable {
     let creator_id: Int
     let is_moderator: Bool?  // ✅ Add this (optional for safety)
     let member_count: Int?
-    let is_private: Bool }
+    let is_private: Bool
+    let has_dashboard: Bool?}
 
 
 
@@ -1113,7 +1114,8 @@ struct PageCircles: View {
                     channels: $0.channels ?? [],
                     creatorId: $0.creator_id,
                     isModerator: $0.is_moderator ?? false,
-                    isPrivate: $0.is_private  // ✅ ADD THIS
+                    isPrivate: $0.is_private,
+                    hasDashboard: $0.has_dashboard ?? false
                 )
             }
         }

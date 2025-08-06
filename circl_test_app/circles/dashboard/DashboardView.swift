@@ -7,7 +7,8 @@ struct DashboardSummary: Codable {
     let total_points: Int
     let total_members: Int
     let total_revenue: Int
-    let total_projects: Int
+    let total_projects: Int?
+
     let event_type_distribution: [String: Int]
 }
 
@@ -56,19 +57,31 @@ struct DashboardView: View {
                         GridItem(.flexible()),
                         GridItem(.flexible())
                     ], spacing: 16) {
-                        SummaryCard(
-                            title: "Total Events",
-                            value: "\(summary.total_events)",
-                            icon: "calendar.badge.plus",
-                            color: Color(hex: "004aad")
-                        )
+                        NavigationLink(
+                            destination: CalendarView(circle: circle, defaultShowAllEvents: true)
+                        ) {
+                            SummaryCard(
+                                title: "Total Events",
+                                value: "\(summary.total_events)",
+                                icon: "calendar.badge.plus",
+                                color: Color(hex: "004aad")
+                            )
+                        }
+                        .buttonStyle(PlainButtonStyle())
+
                         
-                        SummaryCard(
-                            title: "Total Members",
-                            value: "\(summary.total_members)",
-                            icon: "person.2.fill",
-                            color: .green
-                        )
+                        NavigationLink(
+                            destination: MemberListPage(circleName: circle.name, circleId: circle.id)
+                        ) {
+                            SummaryCard(
+                                title: "Total Members",
+                                value: "\(summary.total_members)",
+                                icon: "person.2.fill",
+                                color: .green
+                            )
+                        }
+                        .buttonStyle(PlainButtonStyle()) // Prevents blue highlight on tap
+
                         
                         SummaryCard(
                             title: "Total Points",
@@ -199,11 +212,12 @@ struct DashboardView: View {
                 
                 do {
                     let decodedSummary = try JSONDecoder().decode(DashboardSummary.self, from: data)
+                    print("✅ Successfully decoded summary: \(decodedSummary)")
                     self.summary = decodedSummary
                 } catch {
                     print("❌ Failed to decode summary: \(error)")
-                    loadSampleSummary()
                 }
+
             }
         }.resume()
     }
@@ -509,7 +523,8 @@ struct DashboardView_Previews: PreviewProvider {
             channels: ["general"],
             creatorId: 1,
             isModerator: true,
-            isPrivate: false     
+            isPrivate: false,
+            hasDashboard: true // ✅ Add this
             
         ))
     }
