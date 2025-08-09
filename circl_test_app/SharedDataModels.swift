@@ -23,8 +23,8 @@ struct MentorProfileData: Identifiable, Codable {
     let profileImage: String?
     
     // Standard initializer for manual creation
-    init(user_id: Int, name: String, username: String, title: String, 
-         company: String, proficiency: String, tags: [String], 
+    init(user_id: Int, name: String, username: String, title: String,
+         company: String, proficiency: String, tags: [String],
          email: String, profileImage: String?) {
         self.user_id = user_id
         self.name = name
@@ -52,8 +52,8 @@ struct InviteProfileData: Identifiable, Codable {
     let profileImage: String?
     
     // Manual initializer
-    init(user_id: Int, name: String, username: String, email: String, 
-         title: String, company: String, proficiency: String, 
+    init(user_id: Int, name: String, username: String, email: String,
+         title: String, company: String, proficiency: String,
          tags: [String], profileImage: String?) {
         self.user_id = user_id
         self.name = name
@@ -88,9 +88,9 @@ struct SharedEntrepreneurProfileData: Identifiable, Codable {
     let isMentor: Bool
     
     // Standard initializer for manual creation
-    init(user_id: Int, name: String, email: String, username: String, profileImage: String?, 
-         businessName: String, businessStage: String, businessIndustry: String, 
-         businessBio: String, fundingRaised: String, lookingFor: [String], 
+    init(user_id: Int, name: String, email: String, username: String, profileImage: String?,
+         businessName: String, businessStage: String, businessIndustry: String,
+         businessBio: String, fundingRaised: String, lookingFor: [String],
          isMentor: Bool) {
         self.user_id = user_id
         self.name = name
@@ -106,7 +106,7 @@ struct SharedEntrepreneurProfileData: Identifiable, Codable {
         self.isMentor = isMentor
     }
     
-    // Computed properties for compatibility with MentorProfileData  
+    // Computed properties for compatibility with MentorProfileData
     var title: String { businessStage }
     var company: String { businessName }
     var proficiency: String { businessIndustry }
@@ -158,14 +158,14 @@ struct NetworkUser: Codable, Identifiable {
     let isOnline: Bool
     
     // Default initializer for preview data
-    init(id: String = UUID().uuidString, 
-         name: String, 
-         username: String, 
-         email: String, 
-         company: String, 
-         bio: String, 
-         profile_image: String? = nil, 
-         tags: [String] = [], 
+    init(id: String = UUID().uuidString,
+         name: String,
+         username: String,
+         email: String,
+         company: String,
+         bio: String,
+         profile_image: String? = nil,
+         tags: [String] = [],
          isOnline: Bool = false) {
         self.id = id
         self.name = name
@@ -195,7 +195,51 @@ struct Message: Codable, Identifiable {
     }
     
     var formattedTime: String {
-        // Basic time formatting - could be enhanced
-        return timestamp
+        // Parse timestamp and format it properly
+        let iso8601Formatter = ISO8601DateFormatter()
+        
+        // Try different timestamp formats
+        let date: Date
+        if let parsedDate = iso8601Formatter.date(from: timestamp) {
+            date = parsedDate
+        } else {
+            // Try with fractional seconds
+            iso8601Formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            if let parsedDate = iso8601Formatter.date(from: timestamp) {
+                date = parsedDate
+            } else {
+                // Try basic format
+                let basicFormatter = DateFormatter()
+                basicFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+                if let parsedDate = basicFormatter.date(from: timestamp) {
+                    date = parsedDate
+                } else {
+                    // Fallback to current time if parsing fails
+                    return "now"
+                }
+            }
+        }
+        
+        // Format the time difference
+        let now = Date()
+        let timeInterval = now.timeIntervalSince(date)
+        
+        if timeInterval < 60 {
+            return "now"
+        } else if timeInterval < 3600 {
+            let minutes = Int(timeInterval / 60)
+            return "\(minutes)m"
+        } else if timeInterval < 86400 {
+            let hours = Int(timeInterval / 3600)
+            return "\(hours)h"
+        } else if timeInterval < 604800 { // 7 days
+            let days = Int(timeInterval / 86400)
+            return "\(days)d"
+        } else {
+            // For older messages, show date
+            let formatter = DateFormatter()
+            formatter.dateFormat = "MMM d"
+            return formatter.string(from: date)
+        }
     }
 }

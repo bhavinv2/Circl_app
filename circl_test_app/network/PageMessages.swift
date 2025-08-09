@@ -3,10 +3,6 @@ import Foundation
 
 struct PageMessages: View {
     
-    // MARK: - Constants
-    private let baseURL = "https://circl-backend-bhavinv2.vercel.app/"
-    
-    // MARK: - State Variables
     @State private var messages: [Message] = [] // Messages array
     @State private var newMessageText = "" // For message input
     @State private var searchText: String = "" // Search bar input
@@ -22,9 +18,9 @@ struct PageMessages: View {
 
     @State private var timer: Timer?
     @State private var selectedProfile: FullProfile? = nil
+    @State private var userProfileImageURL: String? = nil
     @State private var showMoreMenu = false
     @State private var rotationAngle: Double = 0
-    @State private var userProfileImageURL: String? = nil
     @State private var unreadMessageCount: Int = 0
     @State private var userFirstName: String = ""
 
@@ -243,10 +239,10 @@ struct PageMessages: View {
             .ignoresSafeArea(.all, edges: [.top, .bottom])
             .navigationBarBackButtonHidden(true)
             .onAppear {
-                loadDummyData() // Add dummy data first
+                self.checkUserAuthentication()
                 fetchNetworkUsers()
-                loadUserData()
                 loadUserProfileImage()
+                loadUserData()
            
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                     fetchMessages()
@@ -334,6 +330,8 @@ struct PageMessages: View {
         )
     }
     
+    
+    
     // MARK: - Enhanced Search Bar Section
     var searchBarSection: some View {
         VStack(spacing: 16) {
@@ -377,7 +375,7 @@ struct PageMessages: View {
                 
                 NavigationLink(
                     destination: selectedUser.map { user in
-                        ChatView(user: user)
+                        ChatView(user: user, messages: groupedMessages[user.id, default: []])
                             .onDisappear {
                                 searchText = "" // ✅ Clears search bar when returning from chat
                                 selectedUser = nil
@@ -482,82 +480,159 @@ struct PageMessages: View {
         .padding(.bottom, 8)
     }
 
-    // MARK: - Enhanced Scrollable Section
     var scrollableSection: some View {
         ScrollView {
-            LazyVStack(spacing: 16) {
+            VStack(alignment: .leading, spacing: 0) {
+                // Premium Empty State with Animations
                 if groupedMessages.isEmpty {
-                    // Empty state with modern design
-                    VStack(spacing: 24) {
+                    VStack(spacing: 32) {
+                        Spacer()
+                        
+                        // Animated Icon with Breathing Effect
                         ZStack {
+                            // Outer glow rings
+                            ForEach(0..<3) { index in
                             Circle()
-                                .fill(
+                                    .stroke(
                                     LinearGradient(
                                         gradient: Gradient(colors: [
-                                            Color(hex: "004aad").opacity(0.1),
-                                            Color(hex: "004aad").opacity(0.05)
+                                                Color(hex: "004aad").opacity(0.3 - Double(index) * 0.1),
+                                                Color(hex: "004aad").opacity(0.1 - Double(index) * 0.05)
                                         ]),
                                         startPoint: .topLeading,
                                         endPoint: .bottomTrailing
+                                        ),
+                                        lineWidth: 2
+                                    )
+                                    .frame(width: 120 + CGFloat(index * 20), height: 120 + CGFloat(index * 20))
+                                    .opacity(0.6 - Double(index) * 0.2)
+                                    .scaleEffect(1.0 + Double(index) * 0.1)
+                                    .animation(
+                                        .easeInOut(duration: 2.0 + Double(index) * 0.5)
+                                        .repeatForever(autoreverses: true),
+                                        value: groupedMessages.isEmpty
+                                    )
+                            }
+                            
+                            // Main icon container
+                            Circle()
+                                .fill(
+                                    RadialGradient(
+                                        gradient: Gradient(colors: [
+                                            Color(hex: "004aad").opacity(0.15),
+                                            Color(hex: "004aad").opacity(0.05),
+                                            Color.clear
+                                        ]),
+                                        center: .center,
+                                        startRadius: 20,
+                                        endRadius: 60
                                     )
                                 )
-                                .frame(width: 100, height: 100)
-                            
-                            Image(systemName: "envelope.fill")
-                                .font(.system(size: 40, weight: .medium))
-                                .foregroundColor(Color(hex: "004aad").opacity(0.6))
+                                .frame(width: 120, height: 120)
+                                .overlay(
+                                    ZStack {
+                                        Circle()
+                                            .fill(.ultraThinMaterial)
+                                            .frame(width: 80, height: 80)
+                                        
+                                        Image(systemName: "message.fill")
+                                            .font(.system(size: 32, weight: .medium))
+                                            .foregroundColor(Color(hex: "004aad"))
+                                            .scaleEffect(1.0)
+                                            .animation(
+                                                .easeInOut(duration: 2.0)
+                                                .repeatForever(autoreverses: true),
+                                                value: groupedMessages.isEmpty
+                                            )
+                                    }
+                                )
                         }
+                        .shadow(color: Color(hex: "004aad").opacity(0.2), radius: 20, x: 0, y: 10)
                         
+                        // Premium Text Content
                         VStack(spacing: 12) {
-                            Text("No conversations yet")
-                                .font(.system(size: 24, weight: .bold))
+                            Text("Your Conversations")
+                                .font(.system(size: 28, weight: .bold))
                                 .foregroundColor(.primary)
+                                .multilineTextAlignment(.center)
                             
-                            Text("Start a conversation with someone from your network using the search bar above")
-                                .font(.system(size: 16, weight: .medium))
+                            Text("Connect with your network and start meaningful conversations")
+                                .font(.system(size: 18, weight: .medium))
                                 .foregroundColor(.secondary)
                                 .multilineTextAlignment(.center)
                                 .lineLimit(3)
+                                .padding(.horizontal, 20)
                         }
                         
-                        // Call to action button
-                        NavigationLink(destination: PageUnifiedNetworking().navigationBarBackButtonHidden(true)) {
-                            HStack(spacing: 8) {
-                                Image(systemName: "person.2.fill")
-                                    .font(.system(size: 14, weight: .medium))
-                                
-                                Text("Find People to Connect")
-                                    .font(.system(size: 15, weight: .semibold))
+                        // Premium Action Buttons
+                        VStack(spacing: 16) {
+                            if myNetwork.isEmpty {
+                                Button(action: {
+                                    print("🔄 Manual refresh triggered")
+                                    fetchNetworkUsers()
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                        fetchMessages()
+                                    }
+                                }) {
+                                    HStack(spacing: 12) {
+                                        Image(systemName: "arrow.clockwise")
+                                            .font(.system(size: 16, weight: .semibold))
+                                        Text("Refresh Messages")
+                                            .font(.system(size: 16, weight: .semibold))
                             }
                             .foregroundColor(.white)
                             .padding(.horizontal, 24)
-                            .padding(.vertical, 12)
+                                    .padding(.vertical, 14)
                             .background(
-                                RoundedRectangle(cornerRadius: 25)
+                                        RoundedRectangle(cornerRadius: 14)
                                     .fill(
                                         LinearGradient(
                                             gradient: Gradient(colors: [
                                                 Color(hex: "004aad"),
-                                                Color(hex: "004aad").opacity(0.8)
+                                                        Color(hex: "0066dd")
                                             ]),
                                             startPoint: .topLeading,
                                             endPoint: .bottomTrailing
                                         )
                                     )
-                                    .shadow(color: Color(hex: "004aad").opacity(0.3), radius: 8, x: 0, y: 4)
-                            )
-                        }
-                        .padding(.top, 8)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 80)
+                                            .shadow(color: Color(hex: "004aad").opacity(0.4), radius: 12, x: 0, y: 6)
+                                    )
+                                }
+                                .scaleEffect(1.0)
+                                .animation(.spring(response: 0.3, dampingFraction: 0.8), value: myNetwork.isEmpty)
+                            }
+                            
+                            // Discover People Button
+                            NavigationLink(destination: PageUnifiedNetworking().navigationBarBackButtonHidden(true)) {
+                                HStack(spacing: 12) {
+                                    Image(systemName: "person.2.fill")
+                                        .font(.system(size: 16, weight: .medium))
+                                    Text("Discover People")
+                                        .font(.system(size: 16, weight: .medium))
+                                }
+                                .foregroundColor(Color(hex: "004aad"))
+                                .padding(.horizontal, 24)
+                                .padding(.vertical, 14)
                     .background(
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(Color(.systemBackground))
-                            .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 4)
-                    )
-                } else {
-                    // Enhanced conversation list
+                                    RoundedRectangle(cornerRadius: 14)
+                                        .fill(.ultraThinMaterial)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 14)
+                                                .stroke(Color(hex: "004aad").opacity(0.3), lineWidth: 1)
+                                        )
+                                )
+                            }
+                        }
+                        
+                        Spacer()
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .padding(.horizontal, 32)
+                    .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                }
+                
+                // Premium Conversation List with Enhanced Spacing
+                LazyVStack(spacing: 12) {
                     ForEach(Array(groupedMessages.keys).sorted(by: { userId1, userId2 in
                         let messages1 = groupedMessages[userId1] ?? []
                         let messages2 = groupedMessages[userId2] ?? []
@@ -568,16 +643,28 @@ struct PageMessages: View {
                         return lastMessage1 > lastMessage2 // Sort descending (newest first)
                     }), id: \.self) { userId in
                         if let messages = groupedMessages[userId], let user = myNetwork.first(where: { $0.id == userId }) {
-                            ModernConversationRow(
-                                user: user,
-                                messages: messages,
-                                onTap: {
-                                    selectedUser = user
-                                    showChatPage = true
-                                },
-                                onProfileTap: {
-                                    if let userId = Int(user.id) {
-                                        fetchUserProfile(userId: userId) { profile in
+                            let myUserId = String(UserDefaults.standard.integer(forKey: "user_id"))
+                            let hasUnread = messages.contains { message in
+                                message.receiver_id == myUserId &&
+                                !message.is_read &&
+                                message.sender_id != myUserId
+                            }
+                        
+                        // Premium Conversation Card with Advanced Visual Effects
+                        NavigationLink(
+                            destination: ChatView(user: user, messages: messages)
+                                .onAppear {
+                                    markMessagesAsRead(senderId: user.id)
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                        fetchMessages()
+                                    }
+                                }
+                        ) {
+                            HStack(spacing: 16) {
+                                // Premium Profile Avatar with Glow Effects
+                                Button(action: {
+                                    if let userIdInt = Int(user.id) {
+                                        fetchUserProfile(userId: userIdInt) { profile in
                                             if let profile = profile,
                                                let window = UIApplication.shared.windows.first {
                                                 let profileView = DynamicProfilePreview(profileData: profile, isInNetwork: true)
@@ -585,19 +672,241 @@ struct PageMessages: View {
                                             }
                                         }
                                     }
-                                },
-                                markAsRead: {
-                                    markMessagesAsRead(senderId: user.id)
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                        fetchMessages()
+                                }) {
+                                    ZStack {
+                                        // Compact glow ring for unread messages
+                                        if hasUnread {
+                                            Circle()
+                                                .stroke(
+                                                    LinearGradient(
+                                                        gradient: Gradient(colors: [
+                                                            Color(hex: "004aad").opacity(0.6),
+                                                            Color(hex: "0066dd").opacity(0.3),
+                                                            Color.clear
+                                                        ]),
+                                                        startPoint: .topLeading,
+                                                        endPoint: .bottomTrailing
+                                                    ),
+                                                    lineWidth: 2
+                                                )
+                                                .frame(width: 50, height: 50)
+                                                .animation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true), value: hasUnread)
+                                        }
+                                        
+                                        // Compact avatar container
+                                        ZStack {
+                                            Circle()
+                                                .fill(
+                                                    RadialGradient(
+                                                        gradient: Gradient(colors: [
+                                                            Color(hex: "004aad").opacity(0.08),
+                                                            Color(hex: "004aad").opacity(0.03),
+                                                            Color.clear
+                                                        ]),
+                                                        center: .center,
+                                                        startRadius: 8,
+                                                        endRadius: 24
+                                                    )
+                                                )
+                                                .frame(width: 48, height: 48)
+                                            
+                                            if let imageURL = user.profile_image,
+                                               let url = URL(string: imageURL) {
+                                                AsyncImage(url: url) { phase in
+                                                    if let image = phase.image {
+                                                        image
+                                                            .resizable()
+                                                            .aspectRatio(contentMode: .fill)
+                                                            .frame(width: 44, height: 44)
+                                                            .clipShape(Circle())
+                                                            .overlay(
+                                                                Circle()
+                                                                    .stroke(.ultraThinMaterial, lineWidth: 1.5)
+                                                            )
+                                                    } else {
+                                                        Circle()
+                                                            .fill(.ultraThinMaterial)
+                                                            .frame(width: 44, height: 44)
+                                                            .overlay(
+                                                                Image(systemName: "person.fill")
+                                                                    .font(.system(size: 18, weight: .medium))
+                                                                    .foregroundColor(Color(hex: "004aad").opacity(0.7))
+                                                            )
+                                                    }
+                                                }
+                                            } else {
+                                                Circle()
+                                                    .fill(.ultraThinMaterial)
+                                                    .frame(width: 44, height: 44)
+                                                    .overlay(
+                                                        Image(systemName: "person.fill")
+                                                            .font(.system(size: 18, weight: .medium))
+                                                            .foregroundColor(Color(hex: "004aad").opacity(0.7))
+                                                    )
+                                            }
+                                        }
+                                        .shadow(color: hasUnread ? Color(hex: "004aad").opacity(0.25) : .black.opacity(0.08), radius: hasUnread ? 6 : 3, x: 0, y: hasUnread ? 3 : 1)
+                                        
+                                        // Compact online indicator
+                                        if user.isOnline {
+                                            ZStack {
+                                                Circle()
+                                                    .fill(Color.green)
+                                                    .frame(width: 14, height: 14)
+                                                    .shadow(color: .green.opacity(0.5), radius: 4, x: 0, y: 0)
+                                                
+                                                Circle()
+                                                    .stroke(Color.white, lineWidth: 2)
+                                                    .frame(width: 14, height: 14)
+                                            }
+                                            .offset(x: 15, y: -15)
+                                            .animation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true), value: user.isOnline)
+                                        }
                                     }
                                 }
+                                .buttonStyle(PlainButtonStyle())
+                                
+                                // Premium Content Layout
+                                VStack(alignment: .leading, spacing: 6) {
+                                    HStack {
+                                        Text(user.name)
+                                            .font(.system(size: 18, weight: hasUnread ? .bold : .semibold))
+                                            .foregroundColor(hasUnread ? .primary : .primary)
+                                            .lineLimit(1)
+                                        
+                                        Spacer()
+                                        
+                                        if let lastMessage = messages.last {
+                                            Text(lastMessage.formattedTime)
+                                                .font(.system(size: 14, weight: .medium))
+                                                .foregroundColor(hasUnread ? Color(hex: "004aad") : .secondary)
+                                                .padding(.horizontal, 8)
+                                                .padding(.vertical, 4)
+                                                .background(
+                                                    hasUnread ?
+                                                    RoundedRectangle(cornerRadius: 8)
+                                                        .fill(Color(hex: "004aad").opacity(0.1))
+                                                    : nil
+                                                )
+                                        }
+                                    }
+                                    
+                                    HStack {
+                                        let lastMessage = messages.last
+                                        Text(lastMessage?.content ?? "Start a conversation...")
+                                            .font(.system(size: 16, weight: hasUnread ? .semibold : .medium))
+                                            .foregroundColor(hasUnread ? .primary : .secondary)
+                                            .lineLimit(2)
+                                            .multilineTextAlignment(.leading)
+                                        
+                                        Spacer()
+                                        
+                                        if hasUnread {
+                                            let myUserId = String(UserDefaults.standard.integer(forKey: "user_id"))
+                                            let unreadCount = messages.filter {
+                                                $0.receiver_id == myUserId && !$0.is_read && $0.sender_id != myUserId
+                                            }.count
+
+                                            if unreadCount > 0 {
+                                                ZStack {
+                                                    Circle()
+                                                        .fill(
+                                                            LinearGradient(
+                                                                gradient: Gradient(colors: [
+                                                                    Color(hex: "004aad"),
+                                                                    Color(hex: "0066dd")
+                                                                ]),
+                                                                startPoint: .topLeading,
+                                                                endPoint: .bottomTrailing
+                                                            )
+                                                        )
+                                                        .frame(width: 24, height: 24)
+                                                        .shadow(color: Color(hex: "004aad").opacity(0.4), radius: 8, x: 0, y: 4)
+                                                    
+                                                    Text("\(min(unreadCount, 99))")
+                                                        .font(.system(size: 12, weight: .bold))
+                                                        .foregroundColor(.white)
+                                                }
+                                                .scaleEffect(1.0)
+                                                .animation(.spring(response: 0.3, dampingFraction: 0.7), value: unreadCount)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            .padding(.vertical, 12)
+                            .padding(.horizontal, 16)
+                            .background(
+                                ZStack {
+                                    // Base glass morphism background
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .fill(.ultraThinMaterial)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 16)
+                                                .fill(
+                                                    hasUnread ?
+                                                    LinearGradient(
+                                                        gradient: Gradient(colors: [
+                                                            Color(hex: "004aad").opacity(0.08),
+                                                            Color(hex: "004aad").opacity(0.03),
+                                                            Color.white.opacity(0.95)
+                                                        ]),
+                                                        startPoint: .topLeading,
+                                                        endPoint: .bottomTrailing
+                                                    )
+                                                    :
+                                                    LinearGradient(
+                                                        gradient: Gradient(colors: [
+                                                            Color.white.opacity(0.95),
+                                                            Color(.systemBackground).opacity(0.8)
+                                                        ]),
+                                                        startPoint: .topLeading,
+                                                        endPoint: .bottomTrailing
+                                                    )
+                                                )
+                                        )
+                                    
+                                    // Subtle border with gradient
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .stroke(
+                                            hasUnread ?
+                                            LinearGradient(
+                                                gradient: Gradient(colors: [
+                                                    Color(hex: "004aad").opacity(0.3),
+                                                    Color(hex: "004aad").opacity(0.1),
+                                                    Color.clear
+                                                ]),
+                                                startPoint: .topLeading,
+                                                endPoint: .bottomTrailing
+                                            )
+                                            :
+                                            LinearGradient(
+                                                gradient: Gradient(colors: [
+                                                    Color(.separator).opacity(0.3),
+                                                    Color.clear
+                                                ]),
+                                                startPoint: .topLeading,
+                                                endPoint: .bottomTrailing
+                                            ),
+                                            lineWidth: 1
+                                        )
+                                }
                             )
+                            .shadow(
+                                color: hasUnread ? Color(hex: "004aad").opacity(0.15) : .black.opacity(0.05),
+                                radius: hasUnread ? 12 : 6,
+                                x: 0,
+                                y: hasUnread ? 6 : 2
+                            )
+                            .scaleEffect(1.0)
+                            .animation(.spring(response: 0.4, dampingFraction: 0.8), value: hasUnread)
                         }
                     }
                 }
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
             }
-            .padding(.horizontal, 20)
             .padding(.bottom, 120) // Add bottom padding to clear navigation
         }
         .refreshable {
@@ -720,290 +1029,238 @@ struct PageMessages: View {
         userProfileImageURL = UserDefaults.standard.string(forKey: "user_profile_image_url") ?? ""
     }
     
-    private func loadDummyData() {
-        // Create dummy network users
-        let dummyUsers = [
-            NetworkUser(
-                id: "1",
-                name: "Sarah Johnson",
-                username: "sarah.johnson",
-                email: "sarah@email.com",
-                company: "TechStart Inc",
-                bio: "Founder & CEO at TechStart. Building the future of AI.",
-                profile_image: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150",
-                tags: ["AI", "Startups", "Leadership"],
-                isOnline: true
-            ),
-            NetworkUser(
-                id: "2",
-                name: "Michael Chen",
-                username: "michael.chen",
-                email: "michael@email.com",
-                company: "InnovateLab",
-                bio: "Product Manager passionate about user experience.",
-                profile_image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150",
-                tags: ["Product", "UX", "Innovation"],
-                isOnline: false
-            ),
-            NetworkUser(
-                id: "3",
-                name: "Emily Rodriguez",
-                username: "emily.rodriguez",
-                email: "emily@email.com",
-                company: "GreenTech Solutions",
-                bio: "Sustainability advocate and clean energy entrepreneur.",
-                profile_image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150",
-                tags: ["CleanTech", "Sustainability", "Impact"],
-                isOnline: true
-            ),
-            NetworkUser(
-                id: "4",
-                name: "David Kim",
-                username: "david.kim",
-                email: "david@email.com",
-                company: "FinTech Ventures",
-                bio: "Building the next generation of financial tools.",
-                profile_image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150",
-                tags: ["FinTech", "Blockchain", "Investment"],
-                isOnline: false
-            )
-        ]
+    // MARK: - Helper Functions
+    
+    private func checkUserAuthentication() {
+        guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int,
+              let authToken = UserDefaults.standard.string(forKey: "auth_token") else {
+            print("❌ Missing user authentication data")
+            return
+        }
         
-        // Create dummy messages
-        let dummyMessages = [
-            Message(
-                id: "msg1",
-                sender_id: "1",
-                receiver_id: "5", // Assuming current user ID is 5
-                content: "Hey! I saw your post about the startup event. Are you planning to attend?",
-                timestamp: "2025-01-27T14:30:00.000000Z",
-                is_read: false
-            ),
-            Message(
-                id: "msg2",
-                sender_id: "5",
-                receiver_id: "1",
-                content: "Yes, definitely! I'm really excited about the keynote speaker.",
-                timestamp: "2025-01-27T14:32:00.000000Z",
-                is_read: true
-            ),
-            Message(
-                id: "msg3",
-                sender_id: "1",
-                receiver_id: "5",
-                content: "Same here! Maybe we can grab coffee afterwards and discuss potential collaboration opportunities?",
-                timestamp: "2025-01-27T14:35:00.000000Z",
-                is_read: false
-            ),
-            Message(
-                id: "msg4",
-                sender_id: "2",
-                receiver_id: "5",
-                content: "Hi! I loved your presentation on AI in product development. Would you be interested in exploring a partnership?",
-                timestamp: "2025-01-26T16:45:00.000000Z",
-                is_read: false
-            ),
-            Message(
-                id: "msg5",
-                sender_id: "3",
-                receiver_id: "5",
-                content: "Great meeting you at the sustainability summit! Let's schedule a call to discuss the green tech initiative.",
-                timestamp: "2025-01-25T11:20:00.000000Z",
-                is_read: true
-            ),
-            Message(
-                id: "msg6",
-                sender_id: "4",
-                receiver_id: "5",
-                content: "Thanks for connecting! I'm interested in learning more about your fintech platform.",
-                timestamp: "2025-01-24T09:15:00.000000Z",
-                is_read: false
-            )
-        ]
-        
-        // Set the dummy data
-        self.myNetwork = dummyUsers
-        self.messages = dummyMessages
-        self.groupedMessages = Dictionary(grouping: dummyMessages, by: { $0.sender_id })
-        
-        print("✅ Loaded dummy data: \(dummyUsers.count) users and \(dummyMessages.count) messages")
+        print("✅ User authenticated - ID: \(userId), Token: \(authToken.prefix(10))...")
     }
     
     private func filterUsers() {
-        // Filter network users based on search text
+        print("🔍 Searching for: \(searchText)")
+
         if searchText.isEmpty {
             suggestedUsers = []
         } else {
             suggestedUsers = myNetwork.filter { user in
-                user.name.localizedCaseInsensitiveContains(searchText) ||
-                user.username.localizedCaseInsensitiveContains(searchText) ||
-                user.company.localizedCaseInsensitiveContains(searchText)
-            }
-        }
-    }
-    
-    private func formatTimestamp(_ timestamp: String) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'"
-        
-        if let date = formatter.date(from: timestamp) {
-            let now = Date()
-            let timeInterval = now.timeIntervalSince(date)
-            
-            if timeInterval < 60 {
-                return "Just now"
-            } else if timeInterval < 3600 {
-                let minutes = Int(timeInterval / 60)
-                return "\(minutes)m"
-            } else if timeInterval < 86400 {
-                let hours = Int(timeInterval / 3600)
-                return "\(hours)h"
-            } else {
-                let days = Int(timeInterval / 86400)
-                if days < 7 {
-                    return "\(days)d"
-                } else {
-                    formatter.dateFormat = "MMM d"
-                    return formatter.string(from: date)
-                }
+                let isMatch = user.name.lowercased().contains(searchText.lowercased())
+                return isMatch
             }
         }
         
-        return ""
+        refreshToggle.toggle() // ✅ Forces UI update
     }
-    
-    // MARK: - Helper Functions
-    
-    private func fetchNetworkUsers() {
+
+    private func navigateToChat(user: NetworkUser) {
+        let messages = groupedMessages[user.id, default: []]
+        let chatView = ChatView(user: user, messages: messages)
+        navigateTo(chatView)
+    }
+
+    func navigateTo<Destination: View>(_ destination: Destination) {
+        let keyWindow = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap { $0.windows }
+            .first { $0.isKeyWindow }
+        
+        keyWindow?.rootViewController?
+            .present(UIHostingController(rootView: destination), animated: true, completion: nil)
+    }
+
+    func fetchNetworkUsers() {
         guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else {
             print("❌ No user_id found in UserDefaults")
             return
         }
 
-        guard let url = URL(string: "\(baseURL)users/get_network/\(userId)/") else {
+        guard let url = URL(string: "https://circlapp.online/api/users/get_network/\(userId)/") else {
             print("❌ Invalid URL")
             return
         }
 
         print("📡 Fetching network from: \(url)")
 
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-
-        URLSession.shared.dataTask(with: request) { data, response, error in
+        URLSession.shared.dataTask(with: url) { data, response, error in
             if let error = error {
-                print("❌ Network error: \(error.localizedDescription)")
+                print("❌ Network error:", error.localizedDescription)
                 return
             }
 
-            guard let data = data else {
-                print("❌ No data received")
-                return
-            }
-
-            do {
-                let networkUsers = try JSONDecoder().decode([NetworkUser].self, from: data)
+            if let data = data {
+                do {
+                    // Try to decode as API format first (with Int IDs)
+                    let apiUsers = try JSONDecoder().decode([APINetworkUser].self, from: data)
+                    
+                    // Convert to SharedDataModels format
+                    let convertedUsers = apiUsers.map { apiUser in
+                        NetworkUser(
+                            id: String(apiUser.id),
+                            name: apiUser.name,
+                            username: apiUser.email, // Use email as username if not provided
+                            email: apiUser.email,
+                            company: "", // Default empty if not provided
+                            bio: "", // Default empty if not provided
+                            profile_image: apiUser.profileImage,
+                            tags: [],
+                            isOnline: false
+                        )
+                    }
+                    
                 DispatchQueue.main.async {
-                    self.myNetwork = networkUsers
-                    print("✅ Fetched \(networkUsers.count) network users")
+                        self.myNetwork = convertedUsers
+                        print("✅ Network Updated: \(self.myNetwork.map { "\($0.name) (\($0.id))" })")
                 }
             } catch {
-                print("❌ Failed to decode network users: \(error)")
+                    print("❌ JSON Decoding Error:", error)
+                    print("❌ Raw response: \(String(data: data, encoding: .utf8) ?? "Unable to decode")")
+                }
             }
         }.resume()
     }
 
-    private func fetchMessages() {
+    func fetchMessages() {
         guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else {
             print("❌ No user_id found in UserDefaults")
             return
         }
 
-        guard let url = URL(string: "\(baseURL)messages/get_messages/\(userId)/") else {
-            print("❌ Invalid URL for messages")
+        guard let url = URL(string: "https://circlapp.online/api/users/get_messages/\(userId)/") else {
+            print("❌ Invalid messages URL")
             return
         }
 
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
+        print("📡 Fetching messages from: \(url)")
 
-        URLSession.shared.dataTask(with: request) { data, response, error in
+        URLSession.shared.dataTask(with: url) { data, response, error in
             if let error = error {
-                print("❌ Network error: \(error.localizedDescription)")
+                print("❌ Messages network error:", error.localizedDescription)
                 return
             }
 
-            guard let data = data else {
-                print("❌ No data received")
-                return
-            }
-
-            do {
-                let fetchedMessages = try JSONDecoder().decode([Message].self, from: data)
+            if let data = data {
+                print("📦 Raw messages response: \(String(data: data, encoding: .utf8) ?? "Unable to decode")")
+                
+                do {
+                    // Try different response formats
+                    if let jsonObject = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                        // Format 1: {"messages": [...]}
+                        if let messagesArray = jsonObject["messages"] as? [[String: Any]] {
+                            let apiMessages = try JSONSerialization.data(withJSONObject: messagesArray)
+                            let decodedMessages = try JSONDecoder().decode([APIMessage].self, from: apiMessages)
+                            
+                            let convertedMessages = decodedMessages.map { apiMessage in
+                                Message(
+                                    id: String(apiMessage.id),
+                                    sender_id: String(apiMessage.sender_id),
+                                    receiver_id: String(apiMessage.receiver_id),
+                                    content: apiMessage.content,
+                                    timestamp: apiMessage.timestamp,
+                                    is_read: apiMessage.is_read
+                                )
+                            }
+                            
                 DispatchQueue.main.async {
-                    self.messages = fetchedMessages
-                    self.groupedMessages = Dictionary(grouping: fetchedMessages, by: { $0.sender_id })
-                    print("✅ Fetched \(fetchedMessages.count) messages")
+                                print("=== MESSAGES DEBUG ===")
+                                convertedMessages.forEach { message in
+                                    print("Message \(message.id): From \(message.sender_id) to \(message.receiver_id), Read: \(message.is_read), Content: \(message.content)")
+                                }
+                                print("=====================")
+                                
+                                let userIdString = String(userId)
+                                self.groupedMessages = Dictionary(grouping: convertedMessages) { message in
+                                    return message.sender_id == userIdString ? message.receiver_id : message.sender_id
+                                }
+                                print("✅ Grouped \(convertedMessages.count) messages into \(self.groupedMessages.count) conversations")
+                            }
+                        } else {
+                            print("❌ No 'messages' array found in response")
+                        }
+                    } else {
+                        // Format 2: Direct array
+                        let decodedMessages = try JSONDecoder().decode([APIMessage].self, from: data)
+                        let convertedMessages = decodedMessages.map { apiMessage in
+                            Message(
+                                id: String(apiMessage.id),
+                                sender_id: String(apiMessage.sender_id),
+                                receiver_id: String(apiMessage.receiver_id),
+                                content: apiMessage.content,
+                                timestamp: apiMessage.timestamp,
+                                is_read: apiMessage.is_read
+                            )
+                        }
+                        
+                    DispatchQueue.main.async {
+                            let userIdString = String(userId)
+                            self.groupedMessages = Dictionary(grouping: convertedMessages) { message in
+                                return message.sender_id == userIdString ? message.receiver_id : message.sender_id
+                            }
+                            print("✅ Processed \(convertedMessages.count) messages")
+                        }
                 }
             } catch {
-                print("❌ Failed to decode messages: \(error)")
+                    print("❌ Error decoding messages:", error)
+                    print("❌ Raw response: \(String(data: data, encoding: .utf8) ?? "Unable to decode")")
+                }
             }
         }.resume()
     }
 
-    private func fetchUserProfile(userId: Int, completion: @escaping (FullProfile?) -> Void) {
-        guard let url = URL(string: "\(baseURL)users/profile/\(userId)/") else {
+    func fetchUserProfile(userId: Int, completion: @escaping (FullProfile?) -> Void) {
+        let urlString = "https://circlapp.online/api/users/profile/\(userId)/"
+        guard let url = URL(string: urlString) else {
+            print("❌ Invalid URL")
             completion(nil)
             return
         }
 
-        URLSession.shared.dataTask(with: url) { data, response, error in
-            if let data = data {
-                do {
-                    let profile = try JSONDecoder().decode(FullProfile.self, from: data)
-                    DispatchQueue.main.async {
-                        completion(profile)
-                    }
-                } catch {
-                    print("Failed to decode profile: \(error)")
-                    DispatchQueue.main.async {
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("❌ Request failed:", error)
                         completion(nil)
+                return
                     }
+
+            if let data = data {
+                if let decoded = try? JSONDecoder().decode(FullProfile.self, from: data) {
+                    DispatchQueue.main.async {
+                        completion(decoded)
                 }
+                    return
             } else {
-                DispatchQueue.main.async {
-                    completion(nil)
+                    print("❌ Failed to decode JSON")
                 }
             }
+            completion(nil)
         }.resume()
     }
 
-    private func markMessagesAsRead(senderId: String) {
-        guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else {
-            print("❌ No user_id found in UserDefaults")
-            return
-        }
 
-        guard let url = URL(string: "\(baseURL)messages/mark_as_read/") else {
-            print("❌ Invalid URL")
-            return
-        }
+    
+    func markMessagesAsRead(senderId: String) {
+        guard let myIdInt = UserDefaults.standard.value(forKey: "user_id") as? Int else { return }
+        print("Marking messages as read from \(senderId) to \(myIdInt)")
+
+        guard let url = URL(string: "https://circlapp.online/api/users/mark_messages_read/") else { return }
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
-        let requestBody = [
-            "user_id": userId,
-            "sender_id": senderId
-        ] as [String : Any]
-
-        do {
-            request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
-        } catch {
-            print("❌ Failed to encode request body: \(error)")
-            return
-        }
+        let payload: [String: Any] = ["sender_id": Int(senderId) ?? 0, "receiver_id": myIdInt]
+        request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
 
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let httpResponse = response as? HTTPURLResponse {
@@ -1014,6 +1271,28 @@ struct PageMessages: View {
             }
         }.resume()
     }
+}
+
+// MARK: - API Response Models (for conversion from backend)
+struct APINetworkUser: Codable {
+    let id: Int
+    let name: String
+    let email: String
+    let profileImage: String?
+
+    enum CodingKeys: String, CodingKey {
+        case id, name, email
+        case profileImage = "profileImage"
+    }
+}
+
+struct APIMessage: Codable {
+    let id: Int
+    let sender_id: Int
+    let receiver_id: Int
+    let content: String
+    let timestamp: String
+    let is_read: Bool
 }
 
 // MARK: - Supporting Views
