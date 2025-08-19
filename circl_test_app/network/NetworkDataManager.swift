@@ -162,89 +162,47 @@ class NetworkDataManager: ObservableObject {
         // Also get friend requests as additional network data
         fetchFriendRequests()
     }
-    
     private func convertNetworkEmailsToProfiles() {
-        guard !userNetworkEmails.isEmpty else {
-            print("📧 NetworkDataManager - No network emails to convert")
-            // Add test data if no real network exists
-            addTestNetworkConnections()
-            return
-        }
-        
-        print("📧 NetworkDataManager - Converting \(userNetworkEmails.count) emails to profiles")
-        
+        // Convert accepted friends from emails
         var convertedProfiles: [InviteProfileData] = []
-        
-        for (index, email) in userNetworkEmails.enumerated() {
-            // Create a profile from the email (simplified approach)
-            let emailParts = email.components(separatedBy: "@")
-            let username = emailParts.first ?? "user"
-            let domain = emailParts.count > 1 ? emailParts[1] : "example.com"
+
+        if !userNetworkEmails.isEmpty {
+            print("📧 NetworkDataManager - Converting \(userNetworkEmails.count) emails to profiles")
             
-            let profile = InviteProfileData(
-                user_id: 1000 + index,
-                name: username.capitalized,
-                username: username,
-                email: email,
-                title: "Professional",
-                company: domain.replacingOccurrences(of: ".com", with: "").capitalized,
-                proficiency: "Networking",
-                tags: ["Professional", "Network"],
-                profileImage: "https://picsum.photos/100/100?random=\(20 + index)"
-            )
-            
-            convertedProfiles.append(profile)
+            for (index, email) in userNetworkEmails.enumerated() {
+                let emailParts = email.components(separatedBy: "@")
+                let username = emailParts.first ?? "user"
+                let domain = emailParts.count > 1 ? emailParts[1] : "example.com"
+
+                let profile = InviteProfileData(
+                    user_id: 1000 + index,
+                    name: username.capitalized,
+                    username: username,
+                    email: email,
+                    title: "Professional",
+                    company: domain.replacingOccurrences(of: ".com", with: "").capitalized,
+                    proficiency: "Networking",
+                    tags: ["Professional", "Network"],
+                    profileImage: "https://picsum.photos/100/100?random=\(20 + index)"
+                )
+                convertedProfiles.append(profile)
+            }
+        } else {
+            print("📧 NetworkDataManager - No accepted friend emails")
         }
-        
+
+        // Merge in friend requests (avoid duplicates)
+        let mergedProfiles = convertedProfiles + friendRequests.filter { fr in
+            !convertedProfiles.contains(where: { $0.email == fr.email })
+        }
+
         DispatchQueue.main.async {
-            self.networkConnections = convertedProfiles
-            print("✅ NetworkDataManager - Converted \(convertedProfiles.count) network connections")
+            self.networkConnections = mergedProfiles
+            print("✅ NetworkDataManager - Merged \(convertedProfiles.count) accepted friends + \(self.friendRequests.count) friend requests")
         }
     }
-    
-    private func addTestNetworkConnections() {
-        let testConnections = [
-            InviteProfileData(
-                user_id: 999,
-                name: "Alex Johnson",
-                username: "alexj",
-                email: "alex@techcorp.com",
-                title: "Software Engineer",
-                company: "Tech Corp",
-                proficiency: "iOS Development",
-                tags: ["Swift", "iOS"],
-                profileImage: "https://picsum.photos/100/100?random=10"
-            ),
-            InviteProfileData(
-                user_id: 998,
-                name: "Sarah Chen",
-                username: "sarahc",
-                email: "sarah@designstudio.com",
-                title: "UX Designer",
-                company: "Design Studio",
-                proficiency: "User Experience",
-                tags: ["Design", "UX"],
-                profileImage: "https://picsum.photos/100/100?random=11"
-            ),
-            InviteProfileData(
-                user_id: 997,
-                name: "Michael Rodriguez",
-                username: "mikr",
-                email: "michael@startup.co",
-                title: "Product Manager",
-                company: "Startup Co",
-                proficiency: "Product Strategy",
-                tags: ["Product", "Strategy"],
-                profileImage: "https://picsum.photos/100/100?random=12"
-            )
-        ]
-        
-        DispatchQueue.main.async {
-            self.networkConnections = testConnections
-            print("🧪 NetworkDataManager - Added test network connections: \(testConnections.count)")
-        }
-    }
-    
+
+
     func fetchFriendRequests() {
         guard !isFriendRequestsLoading else { return }
         isFriendRequestsLoading = true
@@ -429,7 +387,8 @@ class NetworkDataManager: ObservableObject {
                             proficiency: mentor["main_usage"] as? String ?? "Unknown",
                             tags: mentor["tags"] as? [String] ?? [],
                             email: email,
-                            profileImage: mentor["profileImage"] as? String
+                            profileImage: (mentor["profile_image"] as? String) ?? (mentor["profileImage"] as? String)
+
                         )
                     }
                     
@@ -454,7 +413,8 @@ class NetworkDataManager: ObservableObject {
             
             let fullName = "\(firstName) \(lastName)"
             let username = dict["username"] as? String ?? email
-            let profileImage = dict["profileImage"] as? String
+            let profileImage = (dict["profile_image"] as? String) ?? (dict["profileImage"] as? String)
+
             let businessName = dict["business_name"] as? String ?? "Not specified"
             let businessStage = dict["business_stage"] as? String ?? "Startup"
             let businessIndustry = dict["industry_interest"] as? String ?? "Business"

@@ -1078,10 +1078,11 @@ struct PageMessages: View {
             return
         }
 
-        guard let url = URL(string: "https://circlapp.online/api/users/get_network/\(userId)/") else {
-            print("❌ Invalid URL")
+        guard let url = URL(string: "\(baseURL)users/get_network/\(userId)/") else {
+            print("❌ Invalid URL for get_network")
             return
         }
+
 
         print("📡 Fetching network from: \(url)")
 
@@ -1129,10 +1130,11 @@ struct PageMessages: View {
             return
         }
 
-        guard let url = URL(string: "https://circlapp.online/api/users/get_messages/\(userId)/") else {
+        guard let url = URL(string: "\(baseURL)users/get_messages/\(userId)/") else {
             print("❌ Invalid messages URL")
             return
         }
+
 
         print("📡 Fetching messages from: \(url)")
 
@@ -1211,12 +1213,13 @@ struct PageMessages: View {
     }
 
     func fetchUserProfile(userId: Int, completion: @escaping (FullProfile?) -> Void) {
-        let urlString = "https://circlapp.online/api/users/profile/\(userId)/"
+        let urlString = "\(baseURL)users/profile/\(userId)/"
         guard let url = URL(string: urlString) else {
             print("❌ Invalid URL")
             completion(nil)
             return
         }
+
 
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
@@ -1253,7 +1256,7 @@ struct PageMessages: View {
         guard let myIdInt = UserDefaults.standard.value(forKey: "user_id") as? Int else { return }
         print("Marking messages as read from \(senderId) to \(myIdInt)")
 
-        guard let url = URL(string: "https://circlapp.online/api/users/mark_messages_read/") else { return }
+        guard let url = URL(string: "\(baseURL)users/mark_messages_read/") else { return }
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"

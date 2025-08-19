@@ -301,35 +301,6 @@ struct PageUnifiedNetworking: View {
                 
                 loadAllNetworkingData()
                 
-                // Force load test data immediately to check if cards work
-                print("🧪 Force loading test data on appear")
-                let testData = [
-                    InviteProfileData(
-                        user_id: 1001,
-                        name: "Test User 1",
-                        username: "testuser1",
-                        email: "test1@example.com",
-                        title: "CEO",
-                        company: "Test Corp",
-                        proficiency: "Business Strategy",
-                        tags: ["Leadership", "Strategy"],
-                        profileImage: "https://picsum.photos/100/100?random=1"
-                    ),
-                    InviteProfileData(
-                        user_id: 1002,
-                        name: "Test User 2",
-                        username: "testuser2",
-                        email: "test2@example.com",
-                        title: "CTO",
-                        company: "Tech Corp",
-                        proficiency: "Technology",
-                        tags: ["Tech", "Innovation"],
-                        profileImage: "https://picsum.photos/100/100?random=2"
-                    )
-                ]
-                self.myNetwork = testData
-                print("🧪 Test data loaded: \(self.myNetwork.count) items")
-                
                 // Force fetch network connections after a short delay
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
                     print("🔄 Force refreshing network connections after onAppear")
@@ -350,13 +321,10 @@ struct PageUnifiedNetworking: View {
                 print("🔍 Connection details: \(connections.map { "\($0.name) (\($0.email))" })")
                 DispatchQueue.main.async {
                     // Only update if we have real data OR if current myNetwork is empty
-                    if !connections.isEmpty || self.myNetwork.isEmpty {
-                        self.myNetwork = connections
-                        print("🎯 myNetwork updated to \(self.myNetwork.count) connections")
-                        print("🎯 myNetwork contents: \(self.myNetwork.map { "\($0.name) - \($0.email)" })")
-                    } else {
-                        print("🎯 Keeping existing myNetwork data (\(self.myNetwork.count) items) since connections is empty")
-                    }
+                    self.myNetwork = connections
+                    print("🎯 myNetwork replaced with \(self.myNetwork.count) connections")
+                    print("🎯 myNetwork contents: \(self.myNetwork.map { "\($0.name) - \($0.email)" })")
+
                 }
             }
             .onReceive(networkManager.$friendRequests) { requests in
@@ -367,7 +335,8 @@ struct PageUnifiedNetworking: View {
                         print("🔄 Using friend requests as network connections fallback")
                         self.myNetwork = requests
                     } else if !requests.isEmpty {
-                        print("🔄 Keeping existing myNetwork data, but friend requests available: \(requests.count)")
+                        print("🔄 Adding friend requests to existing myNetwork data")
+                        self.myNetwork.append(contentsOf: requests)
                     }
                 }
             }
