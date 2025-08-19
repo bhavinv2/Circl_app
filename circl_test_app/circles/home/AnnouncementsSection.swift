@@ -15,7 +15,8 @@ struct AnnouncementsSection: View {
     @Binding var showCreateAnnouncementPopup: Bool
     let userId: Int
     let circle: CircleData
-    
+    @State private var showAllAnnouncements = false
+
     var body: some View {
         if !announcements.isEmpty {
             VStack(alignment: .leading, spacing: 16) {
@@ -80,13 +81,29 @@ struct AnnouncementsSection: View {
                 }
                 .padding(.horizontal, 20)
                 
-                // Enhanced Announcements List - Show only the latest announcement
+                // Enhanced Announcements List - Show top 3
                 VStack(spacing: 12) {
-                    if let latestAnnouncement = announcements.first {
-                        AnnouncementCard(announcement: latestAnnouncement)
+                    ForEach(announcements.prefix(3)) { announcement in
+                        AnnouncementCard(announcement: announcement)
+                    }
+
+                    // Show All button if more than 3
+                    if announcements.count > 3 {
+                        Button(action: {
+                            showAllAnnouncements = true
+                        }) {
+                            Text("Show All Announcements")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(Color(hex: "004aad"))
+                                .padding(.top, 6)
+                        }
+                        .sheet(isPresented: $showAllAnnouncements) {
+                            AllAnnouncementsView(announcements: announcements)
+                        }
                     }
                 }
                 .padding(.horizontal, 20)
+
             }
         } else {
             // Enhanced Empty State
@@ -174,15 +191,10 @@ struct AnnouncementCard: View {
             }) {
                 HStack(spacing: 12) {
                     // Microphone symbol instead of moderator badge
-                    ZStack {
-                        Circle()
-                            .fill(Color.white.opacity(0.15))
-                            .frame(width: 32, height: 32)
-                        
-                        Image(systemName: "mic.fill")
-                            .font(.system(size: 14, weight: .bold))
-                            .foregroundColor(.white)
-                    }
+                    Circle()
+                        .fill(Color.white.opacity(0.15))
+                        .frame(width: 32, height: 32)
+
                     
                     VStack(alignment: .leading, spacing: 3) {
                         Text(announcement.title)
@@ -379,5 +391,23 @@ struct AnnouncementsSection_Previews: PreviewProvider {
         )
         .padding()
         .background(Color(.systemGroupedBackground))
+    }
+}
+struct AllAnnouncementsView: View {
+    let announcements: [AnnouncementModel]
+
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                VStack(spacing: 12) {
+                    ForEach(announcements) { announcement in
+                        AnnouncementCard(announcement: announcement)
+                    }
+                }
+                .padding()
+            }
+            .navigationTitle("All Announcements")
+            .navigationBarTitleDisplayMode(.inline)
+        }
     }
 }
