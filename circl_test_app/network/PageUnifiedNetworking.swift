@@ -20,7 +20,9 @@ struct PageUnifiedNetworking: View {
     @State private var rotationAngle: Double = 0
     @State private var isLoading = false
     @AppStorage("user_id") private var userId: Int = 0
-    
+    @State private var pendingRequests: [InviteProfileData] = []
+    @State private var selectedProfile: FullProfile?
+    @State private var showProfileSheet = false
     // Local data arrays (instead of using NetworkDataManager)
     @State private var entrepreneurs: [SharedEntrepreneurProfileData] = []
     @State private var mentors: [MentorProfileData] = []
@@ -328,18 +330,12 @@ struct PageUnifiedNetworking: View {
                 }
             }
             .onReceive(networkManager.$friendRequests) { requests in
-                print("📩 Received \(requests.count) friend requests")
-                // Only use friend requests as fallback if we have no network connections AND no existing data
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    if self.myNetwork.isEmpty && !requests.isEmpty {
-                        print("🔄 Using friend requests as network connections fallback")
-                        self.myNetwork = requests
-                    } else if !requests.isEmpty {
-                        print("🔄 Adding friend requests to existing myNetwork data")
-                        self.myNetwork.append(contentsOf: requests)
-                    }
+                print("📩 Received \(requests.count) pending friend requests")
+                DispatchQueue.main.async {
+                    self.pendingRequests = requests
                 }
             }
+
             .alert(isPresented: $showAlert) {
                 Alert(title: Text("Network Update"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
             }
@@ -355,11 +351,15 @@ struct PageUnifiedNetworking: View {
                     secondaryButton: .cancel()
                 )
             }
-            .sheet(isPresented: $showProfilePreview) {
-                if let profile = selectedFullProfile {
-                    DynamicProfilePreview(profileData: profile, isInNetwork: false)
+            .sheet(isPresented: $showProfileSheet) {
+                if let profile = selectedProfile {
+                    DynamicProfilePreview(
+                        profileData: profile,
+                        isInNetwork: true // ✅ because these are your connections
+                    )
                 }
             }
+
         }
     }
     
@@ -526,6 +526,17 @@ struct PageUnifiedNetworking: View {
             .padding(.horizontal, 20)
             .padding(.top, 16)
             .padding(.bottom, 120) // Add significant bottom padding to clear the bottom navigation
+        }
+        .sheet(isPresented: $showProfilePreview) {
+            if let profile = selectedFullProfile {
+                DynamicProfilePreview(
+                    profileData: profile,
+                    isInNetwork: false
+                )
+            } else {
+                Text("Loading profile...")
+                    .padding()
+            }
         }
         .refreshable {
             withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
@@ -735,15 +746,51 @@ struct PageUnifiedNetworking: View {
                 }
                 .padding(.bottom, 8)
                 
-                ForEach(myNetwork) { connection in
-                    enhancedNetworkConnectionCard(for: connection)
-                        .transition(.asymmetric(
-                            insertion: .scale.combined(with: .opacity),
-                            removal: .scale.combined(with: .opacity)
-                        ))
+                // 🔹 Pending requests
+                if !networkManager.friendRequests.isEmpty {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Pending Requests")
+                            .font(.headline)
+                            .foregroundColor(.primary)
+                            .padding(.horizontal)
+
+                        ForEach(networkManager.friendRequests, id: \.user_id) { request in
+                            HStack {
+                                Text(request.name)
+                                    .font(.body)
+                                Spacer()
+                                Button("Accept") {
+                                    networkManager.acceptFriendRequest(senderEmail: request.email,
+                                                                       receiverId: UserDefaults.standard.integer(forKey: "user_id"))
+                                }
+                                .buttonStyle(.borderedProminent)
+
+                                Button("Decline") {
+                                    networkManager.declineFriendRequest(senderEmail: request.email,
+                                                                        receiverId: UserDefaults.standard.integer(forKey: "user_id"))
+                                }
+                                .buttonStyle(.bordered)
+                            }
+                            .padding()
+                            .background(Color.gray.opacity(0.1))
+                            .cornerRadius(10)
+                            .padding(.horizontal)
+                        }
+                    }
+                    .padding(.bottom, 20)
                 }
-                
-                if myNetwork.isEmpty {
+
+
+                // 🔹 Accepted friends (my network)
+                if !networkManager.networkConnections.isEmpty {
+                    ForEach(networkManager.networkConnections) { connection in
+                        enhancedNetworkConnectionCard(for: connection)
+                            .transition(.asymmetric(
+                                insertion: .scale.combined(with: .opacity),
+                                removal: .scale.combined(with: .opacity)
+                            ))
+                    }
+                } else {
                     VStack(spacing: 20) {
                         ZStack {
                             Circle()
@@ -758,24 +805,23 @@ struct PageUnifiedNetworking: View {
                                     )
                                 )
                                 .frame(width: 80, height: 80)
-                            
+
                             Image(systemName: "person.3.fill")
                                 .font(.system(size: 32, weight: .medium))
                                 .foregroundColor(.green.opacity(0.6))
                         }
-                        
+
                         VStack(spacing: 8) {
                             Text("No connections yet")
                                 .font(.system(size: 20, weight: .bold))
                                 .foregroundColor(.primary)
-                            
+
                             Text("Start connecting with entrepreneurs and mentors to build your network")
                                 .font(.system(size: 15, weight: .medium))
                                 .foregroundColor(.secondary)
                                 .multilineTextAlignment(.center)
                         }
-                        
-                        // Call to action button
+
                         Button(action: {
                             withAnimation(.easeInOut(duration: 0.3)) {
                                 selectedTab = .entrepreneurs
@@ -784,7 +830,7 @@ struct PageUnifiedNetworking: View {
                             HStack(spacing: 8) {
                                 Image(systemName: "person.badge.plus")
                                     .font(.system(size: 14, weight: .medium))
-                                
+
                                 Text("Find Connections")
                                     .font(.system(size: 15, weight: .semibold))
                             }
@@ -1231,35 +1277,73 @@ struct PageUnifiedNetworking: View {
                                 )
                         )
                     }
-                    
-                    Button(action: {
-                        selectedEmailToAdd = entrepreneur.email
-                        showConfirmation = true
-                    }) {
+                    let alreadyRequested = networkManager.sentRequests.contains(entrepreneur.email)
+                    let hasIncomingRequest = networkManager.friendRequests.contains { $0.email == entrepreneur.email }
+                    let alreadyConnected = networkManager.networkConnections.contains { $0.email == entrepreneur.email }
+
+                    if alreadyRequested {
                         HStack(spacing: 6) {
-                            Image(systemName: "link")
+                            Image(systemName: "clock")
                                 .font(.system(size: 12, weight: .semibold))
-                            Text("Connect")
+                            Text("Request Sent")
                                 .font(.system(size: 15, weight: .semibold))
                         }
-                        .foregroundColor(.white)
+                        .foregroundColor(.gray)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 12)
                         .background(
                             RoundedRectangle(cornerRadius: 12)
-                                .fill(
-                                    LinearGradient(
-                                        gradient: Gradient(colors: [
-                                            Color(hex: "004aad"),
-                                            Color(hex: "004aad").opacity(0.8)
-                                        ]),
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
-                                )
-                                .shadow(color: Color(hex: "004aad").opacity(0.3), radius: 8, x: 0, y: 4)
+                                .fill(Color.gray.opacity(0.15))
                         )
+                    } else if alreadyConnected && !hasIncomingRequest {
+                        // ✅ Only show "Connected" if they are truly connected
+                        HStack(spacing: 6) {
+                            Image(systemName: "checkmark.circle")
+                                .font(.system(size: 12, weight: .semibold))
+                            Text("Connected")
+                                .font(.system(size: 15, weight: .semibold))
+                        }
+                        .foregroundColor(.green)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color.green.opacity(0.15))
+                        )
+                    } else {
+                        // ✅ Fallback → Show Connect (including if hasIncomingRequest)
+                        Button(action: {
+                            selectedEmailToAdd = entrepreneur.email
+                            showConfirmation = true
+                            networkManager.addToNetwork(email: entrepreneur.email)
+                        }) {
+                            HStack(spacing: 6) {
+                                Image(systemName: "link")
+                                    .font(.system(size: 12, weight: .semibold))
+                                Text("Connect")
+                                    .font(.system(size: 15, weight: .semibold))
+                            }
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(
+                                        LinearGradient(
+                                            gradient: Gradient(colors: [
+                                                Color(hex: "004aad"),
+                                                Color(hex: "004aad").opacity(0.8)
+                                            ]),
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                    )
+                                    .shadow(color: Color(hex: "004aad").opacity(0.3), radius: 8, x: 0, y: 4)
+                            )
+                        }
                     }
+
+
                 }
             }
             .padding(20)
@@ -1595,13 +1679,12 @@ struct PageUnifiedNetworking: View {
         return Button(action: {
             fetchUserProfile(userId: connection.user_id) { profile in
                 if let profile = profile {
-                    selectedFullProfile = profile
-                    showProfilePreview = true
-                } else {
-                    print("🎯 No profile data available for connection: \(connection.name)")
+                    selectedProfile = profile
+                    showProfileSheet = true
                 }
             }
         }) {
+
             VStack(alignment: .leading, spacing: 16) {
                 HStack(spacing: 14) {
                     // Enhanced Profile Image with connection-specific styling
@@ -1920,6 +2003,10 @@ struct PageUnifiedNetworking: View {
                 )
         )
     }
+    
+    private func hasPendingRequest(for email: String) -> Bool {
+        return networkManager.friendRequests.contains { $0.email.lowercased() == email.lowercased() }
+    }
 
     // MARK: - API Functions
     func loadAllNetworkingData() {
@@ -2036,48 +2123,15 @@ struct PageUnifiedNetworking: View {
         }
 
         URLSession.shared.dataTask(with: request) { data, response, error in
-            if let error = error {
-                print("❌ Request failed:", error)
-                completion(nil)
-                return
-            }
-
             guard let data = data else {
                 completion(nil)
                 return
             }
 
             do {
-                let userProfile = try JSONDecoder().decode(UserProfile.self, from: data)
-                let fullProfile = FullProfile(
-                    user_id: userId,
-                    profile_image: userProfile.profile_image,
-                    first_name: userProfile.name.components(separatedBy: " ").first ?? "",
-                    last_name: userProfile.name.components(separatedBy: " ").dropFirst().joined(separator: " "),
-                    email: userProfile.email,
-                    main_usage: nil,
-                    industry_interest: nil,
-                    title: nil,
-                    bio: userProfile.bio,
-                    birthday: nil,
-                    education_level: nil,
-                    institution_attended: nil,
-                    certificates: nil,
-                    years_of_experience: nil,
-                    personality_type: nil,
-                    locations: nil,
-                    achievements: nil,
-                    skillsets: userProfile.tags,
-                    availability: nil,
-                    clubs: nil,
-                    hobbies: nil,
-                    connections_count: nil,
-                    circs: nil,
-                    entrepreneurial_history: nil
-                )
-                
+                let decoded = try JSONDecoder().decode(FullProfile.self, from: data)
                 DispatchQueue.main.async {
-                    completion(fullProfile)
+                    completion(decoded)
                 }
             } catch {
                 print("❌ Failed to decode user profile:", error)
@@ -2085,6 +2139,7 @@ struct PageUnifiedNetworking: View {
             }
         }.resume()
     }
+
 }
 
 // MARK: - UserProfile Model for API responses

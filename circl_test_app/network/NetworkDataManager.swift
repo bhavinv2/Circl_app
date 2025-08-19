@@ -11,7 +11,9 @@ class NetworkDataManager: ObservableObject {
     @Published var friendRequests: [InviteProfileData] = []
     @Published var entrepreneurs: [SharedEntrepreneurProfileData] = []
     @Published var mentors: [MentorProfileData] = []
-    
+    @Published var sentRequests: [String] = []  // store emails you sent requests to
+    @Published var userNetworkRaw: [[String: Any]] = []   // ✅ new
+
     // Computed property for total potential matches across all pages
     var totalPotentialMatches: Int {
         return entrepreneurs.count + mentors.count
@@ -29,6 +31,7 @@ class NetworkDataManager: ObservableObject {
         fetchUserNetwork()
         fetchNetworkConnections()
         fetchFriendRequests()
+        fetchSentRequests()
         fetchEntrepreneursData()
         fetchMentorsData()
         
@@ -82,10 +85,14 @@ class NetworkDataManager: ObservableObject {
                 
                 // Try different response format possibilities
                 if let networkArray = json as? [[String: Any]] {
-                    // Format: [{"email": "...", ...}, ...]
+                    DispatchQueue.main.async {
+                        self?.userNetworkRaw = networkArray   // ✅ safe update on main thread
+                    }
                     networkEmails = networkArray.compactMap { $0["email"] as? String }
-                    print("📧 NetworkDataManager - Parsed from array format: \(networkEmails)")
-                } else if let dict = json as? [String: Any] {
+                    print("📧 NetworkDataManager - Parsed \(networkArray.count) users with ids")
+                }
+
+else if let dict = json as? [String: Any] {
                     // Check multiple possible nested structures
                     if let network = dict["network"] as? [[String: Any]] {
                         // Format: {"network": [{"email": "...", ...}, ...]}
@@ -147,7 +154,59 @@ class NetworkDataManager: ObservableObject {
             }
         }.resume()
     }
-    
+    // MARK: - Accept Friend Request
+    func acceptFriendRequest(senderEmail: String, receiverId: Int) {
+        guard let url = URL(string: "\(baseURL)users/accept_friend_request/") else { return }
+        
+        let body: [String: Any] = [
+            "sender_email": senderEmail,
+            "receiver_id": receiverId
+        ]
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("❌ Accept request error:", error)
+                return
+            }
+            print("✅ Friend request accepted")
+            DispatchQueue.main.async {
+                self.fetchNetworkConnections()   // refresh accepted
+                self.fetchFriendRequests()       // refresh pending
+            }
+        }.resume()
+    }
+
+    // MARK: - Decline Friend Request
+    func declineFriendRequest(senderEmail: String, receiverId: Int) {
+        guard let url = URL(string: "\(baseURL)users/decline_friend_request/") else { return }
+        
+        let body: [String: Any] = [
+            "sender_email": senderEmail,
+            "receiver_id": receiverId
+        ]
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("❌ Decline request error:", error)
+                return
+            }
+            print("✅ Friend request declined")
+            DispatchQueue.main.async {
+                self.fetchFriendRequests()   // refresh pending
+            }
+        }.resume()
+    }
+
     func fetchNetworkConnections() {
         print("🔄 NetworkDataManager - Fetching network connections")
         
@@ -163,42 +222,33 @@ class NetworkDataManager: ObservableObject {
         fetchFriendRequests()
     }
     private func convertNetworkEmailsToProfiles() {
-        // Convert accepted friends from emails
         var convertedProfiles: [InviteProfileData] = []
+        for dict in userNetworkRaw {
+            let id = (dict["id"] as? Int) ?? (dict["user_id"] as? Int) ?? -1
+            guard id != -1, let email = dict["email"] as? String else { continue }
 
-        if !userNetworkEmails.isEmpty {
-            print("📧 NetworkDataManager - Converting \(userNetworkEmails.count) emails to profiles")
-            
-            for (index, email) in userNetworkEmails.enumerated() {
-                let emailParts = email.components(separatedBy: "@")
-                let username = emailParts.first ?? "user"
-                let domain = emailParts.count > 1 ? emailParts[1] : "example.com"
 
-                let profile = InviteProfileData(
-                    user_id: 1000 + index,
-                    name: username.capitalized,
-                    username: username,
-                    email: email,
-                    title: "Professional",
-                    company: domain.replacingOccurrences(of: ".com", with: "").capitalized,
-                    proficiency: "Networking",
-                    tags: ["Professional", "Network"],
-                    profileImage: "https://picsum.photos/100/100?random=\(20 + index)"
-                )
-                convertedProfiles.append(profile)
-            }
-        } else {
-            print("📧 NetworkDataManager - No accepted friend emails")
-        }
+            let username = (dict["username"] as? String) ?? email.components(separatedBy: "@").first ?? "user"
+            let name = "\(dict["first_name"] as? String ?? "") \(dict["last_name"] as? String ?? "")"
 
-        // Merge in friend requests (avoid duplicates)
-        let mergedProfiles = convertedProfiles + friendRequests.filter { fr in
-            !convertedProfiles.contains(where: { $0.email == fr.email })
+            let profile = InviteProfileData(
+                user_id: id,   // ✅ real backend id
+                name: name.trimmingCharacters(in: .whitespaces).isEmpty ? username.capitalized : name,
+                username: username,
+                email: email,
+                title: dict["title"] as? String ?? "Professional",
+                company: dict["company"] as? String ?? "Network",
+                proficiency: dict["main_usage"] as? String ?? "Networking",
+                tags: dict["tags"] as? [String] ?? ["Professional", "Network"],
+                profileImage: (dict["profile_image"] as? String) ?? "https://picsum.photos/100/100?random=\(20 + id)"
+            )
+
+            convertedProfiles.append(profile)
         }
 
         DispatchQueue.main.async {
-            self.networkConnections = mergedProfiles
-            print("✅ NetworkDataManager - Merged \(convertedProfiles.count) accepted friends + \(self.friendRequests.count) friend requests")
+            self.networkConnections = convertedProfiles
+            print("✅ NetworkDataManager - Updated accepted network count: \(convertedProfiles.count)")
         }
     }
 
@@ -241,53 +291,82 @@ class NetworkDataManager: ObservableObject {
             }
         }.resume()
     }
-    
+    func fetchSentRequests() {
+        
+        guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int,
+              let url = URL(string: "\(baseURL)users/get_sent_requests/\(userId)/") else { return }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        URLSession.shared.dataTask(with: request) { [weak self] data, _, _ in
+            if let data = data {
+                if let decoded = try? JSONDecoder().decode([InviteProfileData].self, from: data) {
+                    DispatchQueue.main.async {
+                        self?.sentRequests = decoded.map { $0.email }
+                        print("✅ NetworkDataManager - Updated sent requests count: \(decoded.count)")
+                    }
+                }
+            }
+        }.resume()
+    }
     func addToNetwork(email: String) {
-        guard let senderId = UserDefaults.standard.value(forKey: "user_id") as? Int,
-              let url = URL(string: "\(baseURL)users/send_friend_request/") else {
-            print("❌ NetworkDataManager - Missing sender ID or bad URL")
+        guard let senderId = UserDefaults.standard.value(forKey: "user_id") as? Int else {
+            print("❌ NetworkDataManager - Missing sender ID")
             return
         }
-        
+
+        // 1️⃣ If already an incoming request → accept and exit
+        if let existingRequest = friendRequests.first(where: { $0.email == email }) {
+            print("🔄 Found existing incoming request from \(email) — auto accepting")
+
+            acceptFriendRequest(senderEmail: email, receiverId: senderId)
+
+            // 🚨 IMPORTANT: Stop here, don’t send a new request
+            return
+        }
+
+        // 2️⃣ Otherwise → normal send flow
+        guard let url = URL(string: "\(baseURL)users/send_friend_request/") else {
+            print("❌ Bad URL for send_friend_request")
+            return
+        }
+
         let body: [String: Any] = [
             "user_id": senderId,
             "receiver_email": email
         ]
-        
+
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
-        
+
         URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
             if let error = error {
                 print("❌ NetworkDataManager - Error sending friend request:", error.localizedDescription)
                 return
             }
-            
+
             if let data = data {
-                let rawResponse = String(data: data, encoding: .utf8)
-                print("📡 NetworkDataManager - Friend Request Response:", rawResponse ?? "No response body")
+                print("📡 NetworkDataManager - Friend Request Response:", String(data: data, encoding: .utf8) ?? "No response body")
             }
-            
+
             DispatchQueue.main.async {
                 if let strongSelf = self {
-                    // Update local state immediately for better UX
-                    if !strongSelf.userNetworkEmails.contains(email) {
-                        strongSelf.userNetworkEmails.append(email)
+                    if !strongSelf.sentRequests.contains(email) {
+                        strongSelf.sentRequests.append(email)
                     }
-                    
-                    // Remove from entrepreneurs and mentors lists
-                    strongSelf.entrepreneurs.removeAll { $0.email == email }
-                    strongSelf.mentors.removeAll { $0.email == email }
-                    
-                    // Refresh data from server
+                    strongSelf.fetchSentRequests()
                     strongSelf.fetchUserNetwork()
                 }
             }
         }.resume()
     }
-    
+
     func refreshAllData() {
         print("🔄 NetworkDataManager - Manually refreshing all data...")
         loadAllData()
