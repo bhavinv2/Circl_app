@@ -55,6 +55,20 @@ struct CirclPopupCard: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
             .padding(.horizontal)
+            
+            if circle.isModerator, let accessCode = circle.accessCode, !accessCode.trimmingCharacters(in: .whitespaces).isEmpty {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Access Code")
+                        .font(.headline)
+                        .foregroundColor(.gray)
+                    Text(accessCode)
+                        .font(.body)
+                        .foregroundColor(.primary)
+                }
+                .padding(.top, 8)
+            }
+
+
 
             Spacer()
 

@@ -52,7 +52,7 @@ struct AnnouncementsSection: View {
                     Spacer()
                     
                     // Enhanced create announcement button for moderators
-                    if userId == circle.creatorId {
+                    if userId == circle.creatorId || circle.isModerator {
                         Button(action: {
                             showCreateAnnouncementPopup = true
                         }) {
@@ -144,7 +144,7 @@ struct AnnouncementsSection: View {
                 }
                 
                 // Create announcement button for moderators in empty state
-                if userId == circle.creatorId {
+                if userId == circle.creatorId || circle.isModerator {
                     Button(action: {
                         showCreateAnnouncementPopup = true
                     }) {

@@ -1,5 +1,5 @@
 import SwiftUI
-
+import Foundation
 
 // MARK: - API Model
 struct APICircle: Identifiable, Decodable {
@@ -14,10 +14,7 @@ struct APICircle: Identifiable, Decodable {
     let is_moderator: Bool?  // ✅ Add this (optional for safety)
     let member_count: Int?
     let is_private: Bool
-    let has_dashboard: Bool?
-    let access_code: String?
-    let profile_image_url: String?
-}
+    let has_dashboard: Bool?}
 
 
 
@@ -27,20 +24,25 @@ struct PageCircles: View {
     @State private var selectedCircleToOpen: CircleData? = nil
     @State private var triggerOpenGroupChat = false
     @State private var showAboutPopup = false
-    
+    @State private var isPrivateCircle: Bool = false
+    @State private var privateAccessCode: String = ""
+    @State private var showAccessCodePrompt = false
+    @State private var accessCodeInput = ""
+    @State private var circlePendingJoin: CircleData? = nil
+
     @State private var showCreateCircleSheet = false
     @State private var circleName: String = ""
     @State private var circleIndustry: String = ""
     @State private var circleDescription: String = ""
     @State private var selectedJoinType: JoinType = JoinType.joinNow
-    
+    @State private var circleCategory: String = ""
     @State private var showMyCircles = false
     @State private var myCircles: [CircleData] = []
     @State private var exploreCircles: [CircleData] = []
     @AppStorage("user_id") private var userId: Int = 0
     
     @State private var selectedChannels: [String] = []
-    let allChannelOptions = ["#Welcome", "#Founder-Chat", "#Introductions", "#Case-Studies"]
+    let allChannelOptions = ["#Welcome", "#Chats", "#Moderators", "#News"]
     
     @State private var userProfileImageURL: String = ""
     @State private var unreadMessageCount: Int = 0
@@ -192,109 +194,87 @@ struct PageCircles: View {
                     .background(Color(hex: "004aad"))
                     .ignoresSafeArea(edges: .top)
                     
-                    // MARK: Create Circle Sheet
                     .sheet(isPresented: $showCreateCircleSheet) {
-                        NavigationView {
-                            ScrollView {
-                                VStack(spacing: 24) {
-                                    // Header
-                                    VStack(spacing: 8) {
-                                        Text("Create New Circle")
-                                            .font(.title)
-                                            .bold()
-                                        Text("Build a community around your interests")
-                                            .foregroundColor(.secondary)
-                                    }
-                                    .padding(.top)
+                        VStack(spacing: 16) {
+                            Text("Create a Circl")
+                                .font(.title2)
+                                .bold()
 
-                                    // Name
-                                    VStack(alignment: .leading, spacing: 8) {
-                                        Text("Circle Name")
-                                            .font(.headline)
-                                        TextField("Enter circle name", text: $circleName)
-                                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                                    }
-
-                                    // Industry
-                                    VStack(alignment: .leading, spacing: 8) {
-                                        Text("Industry")
-                                            .font(.headline)
-                                        TextField("Enter industry", text: $circleIndustry)
-                                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                                    }
-
-                                    // Description
-                                    VStack(alignment: .leading, spacing: 8) {
-                                        Text("Description")
-                                            .font(.headline)
-                                        TextEditor(text: $circleDescription)
-                                            .frame(height: 100)
-                                            .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.gray.opacity(0.2)))
-                                    }
-
-                                    // Join Type
-                                    VStack(alignment: .leading, spacing: 8) {
-                                        Text("Join Type")
-                                            .font(.headline)
-                                        Picker("Join Type", selection: $selectedJoinType) {
-                                            Text("Join Now").tag(JoinType.joinNow)
-                                            Text("Apply Now").tag(JoinType.applyNow)
-                                        }
-                                        .pickerStyle(SegmentedPickerStyle())
-                                    }
-
-                                    // Channels
-                                    VStack(alignment: .leading, spacing: 12) {
-                                        Text("Default Channels")
-                                            .font(.headline)
-                                        
-                                        ForEach(allChannelOptions, id: \.self) { channel in
-                                            HStack {
-                                                Image(systemName: selectedChannels.contains(channel) ? "checkmark.circle.fill" : "circle")
-                                                    .foregroundColor(selectedChannels.contains(channel) ? .blue : .gray)
-                                                Text(channel)
-                                                Spacer()
-                                            }
-                                            .contentShape(Rectangle())
-                                            .onTapGesture {
-                                                if selectedChannels.contains(channel) {
-                                                    selectedChannels.removeAll { $0 == channel }
-                                                } else {
-                                                    selectedChannels.append(channel)
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                    // Create Button
-                                    Button(action: {
-                                        createCircle()
-                                    }) {
-                                        Text("Create Circle")
-                                            .font(.headline)
-                                            .foregroundColor(.white)
-                                            .frame(maxWidth: .infinity)
-                                            .padding()
-                                            .background(Color.blue)
-                                            .cornerRadius(10)
-                                    }
-                                    .padding(.top, 16)
-                                }
+                            TextField("Circle Name", text: $circleName)
                                 .padding()
+                                .background(Color(.systemGray6))
+                                .cornerRadius(10)
+
+                            TextField("Industry", text: $circleIndustry)
+                                .padding()
+                                .background(Color(.systemGray6))
+                                .cornerRadius(10)
+
+                            // ✅ NEW: Optional category field
+                            TextField("Category (optional)", text: $circleCategory)
+                                .padding()
+                                .background(Color(.systemGray6))
+                                .cornerRadius(10)
+
+                            TextEditor(text: $circleDescription)
+                                .frame(height: 80)
+                                .padding()
+                                .background(Color(.systemGray6))
+                                .cornerRadius(10)
+
+                            Toggle(isOn: $isPrivateCircle) {
+                                Text("Make Circle Private")
+                                    .font(.headline)
                             }
-                            .navigationBarTitleDisplayMode(.inline)
-                            .toolbar {
-                                ToolbarItem(placement: .navigationBarLeading) {
-                                    Button("Cancel") {
-                                        showCreateCircleSheet = false
-                                    }
-                                    .foregroundColor(Color(hex: "004aad"))
+                            .padding(.top)
+
+                            if isPrivateCircle {
+                                TextField("Access Code", text: $privateAccessCode)
+                                    .padding()
+                                    .background(Color(.systemGray6))
+                                    .cornerRadius(10)
+                            }
+
+                            Divider()
+
+                            Text("Select Channels")
+                                .font(.headline)
+
+                            ForEach(allChannelOptions, id: \.self) { channel in
+                                if channel == "#Welcome" {
+                                    Toggle(channel, isOn: .constant(true))
+                                        .disabled(true)
+                                        .foregroundColor(.gray)
+                                } else {
+                                    Toggle(channel, isOn: Binding(
+                                        get: { selectedChannels.contains(channel) },
+                                        set: { isSelected in
+                                            if isSelected {
+                                                selectedChannels.append(channel)
+                                            } else {
+                                                selectedChannels.removeAll { $0 == channel }
+                                            }
+                                        }
+                                    ))
                                 }
+                            }
+
+                            Spacer()
+
+                            Button(action: {
+                                createCircle()
+                            }) {
+                                Text("Create Circl")
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(Color.green)
+                                    .foregroundColor(.white)
+                                    .cornerRadius(12)
                             }
                         }
-                        .presentationDetents([.large])
+                        .padding()
                     }
-                    
+
                     // MARK: Enhanced Search Section
                     VStack(spacing: 12) {
                         HStack(spacing: 12) {
@@ -533,8 +513,17 @@ struct PageCircles: View {
                                     CircleCardView(
                                         circle: circle,
                                         onJoinPressed: {
-                                            joinCircleAndOpen(circle: circle)
-                                        },
+                                            let isPrivate = circle.isPrivate
+
+
+                                            if isPrivate {
+                                                promptForAccessCode(circle: circle)
+                                            } else {
+                                                joinCircle(circleId: circle.id)
+                                            }
+                                        }
+
+,
                                         showButtons: true,
                                         isMember: myCircles.contains(where: { $0.id == circle.id })
                                     )
@@ -817,8 +806,9 @@ struct PageCircles: View {
                 .transition(.move(edge: .bottom).combined(with: .opacity))
             }
             .zIndex(2)
+                    
         }
-
+               
         // Tap-out-to-dismiss layer
         if showMoreMenu {
             Color.black.opacity(0.001)
@@ -830,7 +820,19 @@ struct PageCircles: View {
                 }
                 .zIndex(1)
         }
+                
         }
+            .alert("Enter Access Code", isPresented: $showAccessCodePrompt, actions: {
+                   TextField("Code", text: $accessCodeInput)
+                   Button("Join") {
+                       if let circle = circlePendingJoin {
+                           joinCircleWithCode(circle: circle, code: accessCodeInput)
+                       }
+                   }
+                   Button("Cancel", role: .cancel) { }
+               }, message: {
+                   Text("This circle is private. Ask a moderator for the access code.")
+               })
         .navigationBarHidden(true)
         .onAppear {
             loadCircles()
@@ -862,9 +864,16 @@ struct PageCircles: View {
                         circle: circle,
                         isMember: myCircles.contains(where: { $0.id == circle.id }),
                         onJoinPressed: {
-                            joinCircleAndOpen(circle: circle)
+                            if circle.joinType == .joinNow {
+                                if circle.isPrivate {
+                                    promptForAccessCode(circle: circle)
+                                } else {
+                                    joinCircleAndOpen(circle: circle)
+                                }
+                            }
                             showAboutPopup = false
                         },
+
                         onOpenCircle: {
                             selectedCircleToOpen = circle
                             triggerOpenGroupChat = true
@@ -880,7 +889,7 @@ struct PageCircles: View {
     // MARK: - Load User Data
     func loadUserData() {
         // Load user profile image
-        guard let profileUrl = URL(string: "https://circlapp.online/api/users/profile/\(userId)/") else { return }
+        guard let profileUrl = URL(string: "\(baseURL)users/profile/\(userId)/") else { return }
         
         URLSession.shared.dataTask(with: profileUrl) { data, response, error in
             guard let data = data, error == nil else {
@@ -909,7 +918,7 @@ struct PageCircles: View {
         }.resume()
         
         // Load unread message count
-        guard let messagesUrl = URL(string: "https://circlapp.online/api/messages/unread_count/\(userId)/") else { return }
+        guard let messagesUrl = URL(string: "\(baseURL)messages/unread_count/\(userId)/") else { return }
         
         URLSession.shared.dataTask(with: messagesUrl) { data, response, error in
             guard let data = data, error == nil else {
@@ -948,8 +957,48 @@ struct PageCircles: View {
         default: return "100+"
         }
     }
+    func promptForAccessCode(circle: CircleData) {
+        accessCodeInput = ""
+        circlePendingJoin = circle
+        showAccessCodePrompt = true
+    }
+
+    func joinCircleWithCode(circle: CircleData, code: String) {
+        guard let url = URL(string: "\(baseURL)circles/join_circle/") else { return }
+        
+        let payload: [String: Any] = [
+            "user_id": userId,
+            "circle_id": circle.id,
+            "access_code": code
+        ]
+
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("❌ Join error:", error.localizedDescription)
+                return
+            }
+            
+            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 403 {
+                print("❌ Wrong code!")
+                return
+            }
+
+            DispatchQueue.main.async {
+                selectedCircleToOpen = circle
+                triggerOpenGroupChat = true
+                loadCircles()
+            }
+        }.resume()
+    }
+
     func joinCircleAndOpen(circle: CircleData) {
-        guard let url = URL(string: "https://circlapp.online/api/circles/join_circle/") else { return }
+        guard let url = URL(string: "\(baseURL)circles/join_circle/") else { return }
         
         let payload = [
             "user_id": userId,
@@ -979,7 +1028,7 @@ struct PageCircles: View {
     }
     
     func joinCircle(circleId: Int) {
-        guard let url = URL(string: "https://circlapp.online/api/circles/join_circle/") else { return }
+        guard let url = URL(string: "\(baseURL)circles/join_circle/") else { return }
         let payload = [
             "user_id": userId,
             "circle_id": circleId
@@ -988,21 +1037,27 @@ struct PageCircles: View {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
-        
+
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
                 print("❌ Join Circle error:", error.localizedDescription)
                 return
             }
-            
-            print("✅ Joined circle:", circleId)
-            print("🧠 PageCircles now sees userId:", userId)
-            print("🧠 Loaded userId from UserDefaults:", userId)
-            loadCircles() // Refresh both tabs
+
+            DispatchQueue.main.async {
+                // ✅ Open chat after joining
+                if let joined = (exploreCircles + myCircles).first(where: { $0.id == circleId }) {
+                    selectedCircleToOpen = joined
+                    triggerOpenGroupChat = true
+                }
+
+                loadCircles() // Refresh both tabs
+            }
         }.resume()
     }
+
     func createCircle() {
-        guard let url = URL(string: "https://circlapp.online/api/circles/create_with_channels/") else { return }
+        guard let url = URL(string: "\(baseURL)circles/create_with_channels/") else { return }
         
         let payload: [String: Any] = [
             "user_id": userId,
@@ -1011,7 +1066,9 @@ struct PageCircles: View {
             
             "description": circleDescription,
             "join_type": selectedJoinType.rawValue.lowercased(),
-            "channels": selectedChannels
+            "channels": selectedChannels,
+            "category": circleCategory,            "is_private": isPrivateCircle,  // ✅ NEW
+            "access_code": isPrivateCircle ? privateAccessCode : ""  // ✅ NEW
         ]
         
         var request = URLRequest(url: url)
@@ -1040,8 +1097,8 @@ struct PageCircles: View {
     func loadCircles() {
         print("🔍 loadCircles() called with userId:", userId)
         
-        guard let urlMy = URL(string: "https://circlapp.online/api/circles/my_circles/\(userId)/"),
-              let urlExplore = URL(string: "https://circlapp.online/api/circles/explore_circles/\(userId)/") else { return }
+        guard let urlMy = URL(string: "\(baseURL)circles/my_circles/\(userId)/"),
+              let urlExplore = URL(string: "\(baseURL)circles/explore_circles/\(userId)/") else { return }
         
         func convert(_ data: [APICircle]) -> [CircleData] {
             data.map {
@@ -1138,7 +1195,7 @@ struct PageCircles: View {
             let profile_image: String?
             let user_id: Int
         }
-        guard let url = URL(string: "https://circlapp.online/api/circles/members/\(circleId)/") else {
+        guard let url = URL(string: "\(baseURL)circles/members/\(circleId)/") else {
             completion(0)
             return
         }

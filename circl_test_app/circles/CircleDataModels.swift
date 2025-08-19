@@ -27,6 +27,8 @@ struct Channel: Identifiable, Codable, Hashable {
         circleId = try container.decode(Int.self, forKey: .circleId)
         position = try container.decodeIfPresent(Int.self, forKey: .position) ?? 0
         isModeratorOnly = try container.decodeIfPresent(Bool.self, forKey: .isModeratorOnly) ?? false  // ✅ decode
+
+
     }
     
     // For manual creation
@@ -75,8 +77,8 @@ struct CircleData: Identifiable, Decodable {
     let isPrivate: Bool
     var hasDashboard: Bool?
     let duesAmount: Int?
-    let hasStripeAccount: Bool? 
-
+    let hasStripeAccount: Bool?
+    let accessCode: String?   // ✅ add this
 
 
     
@@ -110,7 +112,7 @@ struct CircleData: Identifiable, Decodable {
 
         duesAmount = try container.decodeIfPresent(Int.self, forKey: .duesAmount)
         hasStripeAccount = try container.decodeIfPresent(Bool.self, forKey: .hasStripeAccount)
-
+        accessCode = try container.decodeIfPresent(String.self, forKey: .accessCode)
 
      
 
@@ -132,7 +134,8 @@ struct CircleData: Identifiable, Decodable {
         isPrivate: Bool,   // ✅ ADD THIS
         hasDashboard: Bool? = false,
         duesAmount: Int? = nil,
-        hasStripeAccount: Bool? = nil
+        hasStripeAccount: Bool? = nil,
+        accessCode: String? = nil
     ) {
         self.id = id
         self.name = name
@@ -149,7 +152,7 @@ struct CircleData: Identifiable, Decodable {
         self.hasDashboard = hasDashboard  // ✅ this was missing
         self.duesAmount = duesAmount
         self.hasStripeAccount = hasStripeAccount
-        
+        self.accessCode = accessCode   // ✅ assign it
     }
 
     
@@ -157,6 +160,7 @@ struct CircleData: Identifiable, Decodable {
         case id, name, industry, memberCount, imageName, pricing, description, joinType, channels, creatorId, isModerator, isPrivate, hasDashboard
         case duesAmount = "dues_amount"  // ✅ FIXED HERE
         case hasStripeAccount = "has_stripe_account"
+        case accessCode = "access_code"   // ✅ match backend key
     }
 
 
