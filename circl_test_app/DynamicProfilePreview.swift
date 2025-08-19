@@ -512,7 +512,7 @@ struct DynamicProfilePreview: View {
         let ageComponents = calendar.dateComponents([.year], from: birthDate, to: Date())
         return "\(ageComponents.year ?? 0)"
     }
-    
+    //a
     func blockUser() {
         print("🚨 blockUser() called")
         guard let url = URL(string: "\(baseURL)users/block_user/") else {
