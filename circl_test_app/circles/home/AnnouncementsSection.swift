@@ -314,26 +314,8 @@ struct AnnouncementCard: View {
                             Spacer()
                             
                             // Engagement + Options
+                            // Options (Delete only for moderators/creator)
                             HStack(spacing: 12) {
-                                Button(action: {}) {
-                                    Image(systemName: "heart")
-                                        .font(.system(size: 14))
-                                        .foregroundColor(.white.opacity(0.7))
-                                }
-                                
-                                Button(action: {}) {
-                                    Image(systemName: "message")
-                                        .font(.system(size: 14))
-                                        .foregroundColor(.white.opacity(0.7))
-                                }
-                                
-                                Button(action: {}) {
-                                    Image(systemName: "square.and.arrow.up")
-                                        .font(.system(size: 14))
-                                        .foregroundColor(.white.opacity(0.7))
-                                }
-                                
-                                // 👇 Ellipsis menu for moderators/creator only
                                 if userId == circle.creatorId || circle.isModerator {
                                     Menu {
                                         Button(role: .destructive) {
@@ -356,6 +338,7 @@ struct AnnouncementCard: View {
                                     }
                                 }
                             }
+
 
                         }
                     }
