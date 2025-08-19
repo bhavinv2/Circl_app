@@ -860,7 +860,7 @@ struct PageForum: View {
                             Divider()
                                 .padding(.horizontal, 16)
                             
-                            // Circl Exchange
+                            // The Circl Exchange
                             NavigationLink(destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true)) {
                                 HStack(spacing: 16) {
                                     Image(systemName: "dollarsign.circle.fill")

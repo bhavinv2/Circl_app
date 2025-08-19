@@ -693,7 +693,8 @@ struct PageGroupchats: View {
                                 Divider()
                                     .padding(.horizontal, 16)
                                 
-                                // The Circl Exchange
+                                // The Circl Exchange - Temporarily disabled until PageSkillSellingMatching is added to Xcode project
+                                /*
                                 NavigationLink(destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true)) {
                                     HStack(spacing: 16) {
                                         Image(systemName: "dollarsign.circle.fill")
@@ -722,6 +723,7 @@ struct PageGroupchats: View {
                                 .transaction { transaction in
                                     transaction.disablesAnimations = true
                                 }
+                                */
                                 
                                 Divider()
                                     .padding(.horizontal, 16)

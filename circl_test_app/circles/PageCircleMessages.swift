@@ -523,9 +523,11 @@ struct PageCircleMessages: View {
             NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
                 MenuItem(icon: "newspaper.fill", title: "News & Knowledge")
             }
+            /*
             NavigationLink(destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true)) {
                 MenuItem(icon: "dollarsign.circle.fill", title: "The Circl Exchange")
             }
+            */
             Divider()
             NavigationLink(destination: PageCircles(showMyCircles: true).navigationBarBackButtonHidden(true)) {
                 MenuItem(icon: "circle.grid.2x2.fill", title: "Circles")

@@ -76,7 +76,8 @@ struct PageMore: View {
                                 MenuItemRow(icon: "person.3.fill", title: "Find Entrepreneurs", color: Color(hex: "004aad"), destination: AnyView(PageEntrepreneurMatching().navigationBarBackButtonHidden(true)))
                                 MenuItemRow(icon: "graduationcap.fill", title: "Find Mentors", color: Color(hex: "004aad"), destination: AnyView(PageMentorMatching().navigationBarBackButtonHidden(true)))
                                 MenuItemRow(icon: "newspaper.fill", title: "News & Knowledge", color: Color(hex: "004aad"), destination: AnyView(PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)))
-                                MenuItemRow(icon: "dollarsign.circle.fill", title: "The Circl Exchange", color: Color(hex: "004aad"), destination: AnyView(PageSkillSellingMatching().navigationBarBackButtonHidden(true)))
+                                // Temporarily disabled until PageSkillSellingMatching is added to Xcode project
+                                // MenuItemRow(icon: "dollarsign.circle.fill", title: "The Circl Exchange", color: Color(hex: "004aad"), destination: AnyView(PageSkillSellingMatching().navigationBarBackButtonHidden(true)))
                                 MenuItemRow(icon: "circle.grid.2x2.fill", title: "Circles", color: Color(hex: "004aad"), destination: AnyView(PageCircles().navigationBarBackButtonHidden(true)))
                                 MenuItemRow(icon: "bubble.left.and.bubble.right.fill", title: "Group Chats", color: Color(hex: "004aad"), destination: AnyView(PageGroupchats(circle: sampleCircle).navigationBarBackButtonHidden(true)))
                             }

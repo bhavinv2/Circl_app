@@ -1,3 +1,4 @@
+
 import SwiftUI
 
 // MARK: - Message Model
@@ -8,7 +9,7 @@ struct MessageModel: Identifiable, Codable {
     let content: String
     let timestamp: String
     let is_read: Bool
-    var mediaURL: String?  // ✅ Add this
+    var mediaURL: String?
 }
 
 // MARK: - Channel Model
@@ -26,7 +27,7 @@ struct Channel: Identifiable, Codable, Hashable {
         name = try container.decode(String.self, forKey: .name)
         circleId = try container.decode(Int.self, forKey: .circleId)
         position = try container.decodeIfPresent(Int.self, forKey: .position) ?? 0
-        isModeratorOnly = try container.decodeIfPresent(Bool.self, forKey: .isModeratorOnly) ?? false  // ✅ decode
+        isModeratorOnly = try container.decodeIfPresent(Bool.self, forKey: .isModeratorOnly) ?? false
     }
     
     // For manual creation
@@ -35,9 +36,9 @@ struct Channel: Identifiable, Codable, Hashable {
         self.name = name
         self.circleId = circleId
         self.position = position
-        self.isModeratorOnly = isModeratorOnly  // ✅ now it works
+        self.isModeratorOnly = isModeratorOnly
     }
-
+    
     private enum CodingKeys: String, CodingKey {
         case id, name, position
         case circleId = "circle_id"
@@ -52,15 +53,14 @@ struct ChannelCategoryResponse: Decodable, Identifiable {
     let channels: [Channel]
 }
 
-
 // MARK: - Circle Data
-enum JoinType: String, CaseIterable {
+enum JoinType: String, CaseIterable, Codable {
     case applyNow = "Apply Now"
     case joinNow = "Join Now"
     case requestToJoin = "Request to Join"
 }
 
-struct CircleData: Identifiable, Decodable {
+struct CircleData: Identifiable, Codable {
     let id: Int
     let name: String
     let industry: String
@@ -73,11 +73,9 @@ struct CircleData: Identifiable, Decodable {
     let creatorId: Int
     let isModerator: Bool
     let isPrivate: Bool
-
     
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        
         id = try container.decode(Int.self, forKey: .id)
         name = try container.decode(String.self, forKey: .name)
         industry = try container.decode(String.self, forKey: .industry)
@@ -89,30 +87,13 @@ struct CircleData: Identifiable, Decodable {
         creatorId = try container.decode(Int.self, forKey: .creatorId)
         isModerator = try container.decode(Bool.self, forKey: .isModerator)
         isPrivate = try container.decode(Bool.self, forKey: .isPrivate)
-
         // Custom decoding for joinType
         let joinTypeString = try container.decode(String.self, forKey: .joinType)
         joinType = joinTypeString == "apply_now" ? JoinType.applyNow : JoinType.joinNow
-        
-     
-
     }
     
     // For manual creation (not from JSON)
-    init(
-        id: Int,
-        name: String,
-        industry: String,
-        memberCount: Int,
-        imageName: String,
-        pricing: String,
-        description: String,
-        joinType: JoinType,
-        channels: [String],
-        creatorId: Int,
-        isModerator: Bool,
-        isPrivate: Bool   // ✅ ADD THIS
-    ) {
+    init(id: Int, name: String, industry: String, memberCount: Int, imageName: String, pricing: String, description: String, joinType: JoinType, channels: [String], creatorId: Int, isModerator: Bool, isPrivate: Bool) {
         self.id = id
         self.name = name
         self.industry = industry
@@ -124,14 +105,12 @@ struct CircleData: Identifiable, Decodable {
         self.channels = channels
         self.creatorId = creatorId
         self.isModerator = isModerator
-        self.isPrivate = isPrivate  // ✅ THIS will now work
+        self.isPrivate = isPrivate
     }
-
     
     private enum CodingKeys: String, CodingKey {
         case id, name, industry, memberCount, imageName, pricing, description, joinType, channels, creatorId, isModerator, isPrivate
     }
-
 }
 
 struct CategoryWithChannels: Identifiable {
@@ -146,4 +125,10 @@ struct ChannelCategory: Identifiable, Codable {
     let name: String
     let position: Int
     let channels: [Channel]
+    
+    private enum CodingKeys: String, CodingKey {
+        case id, name, position, channels
+    }
 }
+
+

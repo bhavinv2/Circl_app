@@ -120,9 +120,10 @@ struct PageInvites: View {
                             NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
                                 MenuItem(icon: "newspaper.fill", title: "News & Knowledge")
                             }
-                            NavigationLink(destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true)) {
-                                MenuItem(icon: "dollarsign.circle.fill", title: "The Circl Exchange")
-                            }
+                            // Temporarily disabled until PageSkillSellingMatching is added to Xcode project
+                            // NavigationLink(destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true)) {
+                            //     MenuItem(icon: "dollarsign.circle.fill", title: "The Circl Exchange")
+                            // }
 
                             Divider()
 

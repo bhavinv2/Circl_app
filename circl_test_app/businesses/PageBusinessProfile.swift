@@ -295,7 +295,8 @@ struct PageBusinessProfile: View {
                                 Divider()
                                     .padding(.horizontal, 16)
                                 
-                                // Circl Exchange
+                                // Circl Exchange - Temporarily disabled until PageSkillSellingMatching is added to Xcode project
+                                /*
                                 NavigationLink(destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true)) {
                                     HStack(spacing: 16) {
                                         Image(systemName: "dollarsign.circle.fill")
@@ -324,6 +325,7 @@ struct PageBusinessProfile: View {
                                 .transaction { transaction in
                                     transaction.disablesAnimations = true
                                 }
+                                */
                                 
                                 Divider()
                                     .padding(.horizontal, 16)

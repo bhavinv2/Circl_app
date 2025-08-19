@@ -13,7 +13,6 @@ struct APICircle: Identifiable, Decodable {
     let creator_id: Int
     let is_moderator: Bool?  // ✅ Add this (optional for safety)
     let member_count: Int?
-    let is_private: Bool?    // ✅ Make this optional since API doesn't always include it
 }
 
 
@@ -24,12 +23,7 @@ struct PageCircles: View {
     @State private var selectedCircleToOpen: CircleData? = nil
     @State private var triggerOpenGroupChat = false
     @State private var showAboutPopup = false
-    @State private var isPrivateCircle: Bool = false
-    @State private var privateAccessCode: String = ""
-    @State private var showAccessCodePrompt = false
-    @State private var accessCodeInput = ""
-    @State private var circlePendingJoin: CircleData? = nil
-
+    
     @State private var showCreateCircleSheet = false
     @State private var circleName: String = ""
     @State private var circleIndustry: String = ""
@@ -54,7 +48,7 @@ struct PageCircles: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ZStack {
                 // Clean background
                 Color(.systemBackground)
@@ -222,18 +216,12 @@ struct PageCircles: View {
                                 .background(Color(.systemGray6))
                                 .cornerRadius(10)
 
-                            Toggle(isOn: $isPrivateCircle) {
-                                Text("Make Circle Private")
-                                    .font(.headline)
+                            Picker("Join Type", selection: $selectedJoinType) {
+                                Text("Join Now").tag(JoinType.joinNow)
+                                Text("Apply Now").tag(JoinType.applyNow)
                             }
+                            .pickerStyle(SegmentedPickerStyle())
                             .padding(.top)
-
-                            if isPrivateCircle {
-                                TextField("Access Code", text: $privateAccessCode)
-                                    .padding()
-                                    .background(Color(.systemGray6))
-                                    .cornerRadius(10)
-                            }
 
                             Divider()
 
@@ -513,17 +501,8 @@ struct PageCircles: View {
                                     CircleCardView(
                                         circle: circle,
                                         onJoinPressed: {
-                                            let isPrivate = circle.isPrivate
-
-
-                                            if isPrivate {
-                                                promptForAccessCode(circle: circle)
-                                            } else {
-                                                joinCircle(circleId: circle.id)
-                                            }
-                                        }
-
-,
+                                            joinCircleAndOpen(circle: circle)
+                                        },
                                         showButtons: true,
                                         isMember: myCircles.contains(where: { $0.id == circle.id })
                                     )
@@ -545,10 +524,10 @@ struct PageCircles: View {
                             VStack(spacing: 4) {
                                 Image(systemName: "house")
                                     .font(.system(size: 22, weight: .medium))
-                                    .foregroundColor(Color(UIColor.label).opacity(0.6))
+                                    .foregroundColor(Color.primary.opacity(0.6))
                                 Text("Home")
                                     .font(.system(size: 10, weight: .medium))
-                                    .foregroundColor(Color(UIColor.label).opacity(0.6))
+                                    .foregroundColor(Color.primary.opacity(0.6))
                             }
                             .frame(maxWidth: .infinity)
                         }
@@ -561,10 +540,10 @@ struct PageCircles: View {
                             VStack(spacing: 4) {
                                 Image(systemName: "person.2")
                                     .font(.system(size: 22, weight: .medium))
-                                    .foregroundColor(Color(UIColor.label).opacity(0.6))
+                                    .foregroundColor(Color.primary.opacity(0.6))
                                 Text("Network")
                                     .font(.system(size: 10, weight: .medium))
-                                    .foregroundColor(Color(UIColor.label).opacity(0.6))
+                                    .foregroundColor(Color.primary.opacity(0.6))
                             }
                             .frame(maxWidth: .infinity)
                         }
@@ -588,10 +567,10 @@ struct PageCircles: View {
                             VStack(spacing: 4) {
                                 Image(systemName: "building.2")
                                     .font(.system(size: 22, weight: .medium))
-                                    .foregroundColor(Color(UIColor.label).opacity(0.6))
+                                    .foregroundColor(Color.primary.opacity(0.6))
                                 Text("Business")
                                     .font(.system(size: 10, weight: .medium))
-                                    .foregroundColor(Color(UIColor.label).opacity(0.6))
+                                    .foregroundColor(Color.primary.opacity(0.6))
                             }
                             .frame(maxWidth: .infinity)
                         }
@@ -608,10 +587,10 @@ struct PageCircles: View {
                             VStack(spacing: 4) {
                                 Image(systemName: "ellipsis")
                                     .font(.system(size: 22, weight: .medium))
-                                    .foregroundColor(Color(UIColor.label).opacity(0.6))
+                                    .foregroundColor(Color.primary.opacity(0.6))
                                 Text("More")
                                     .font(.system(size: 10, weight: .medium))
-                                    .foregroundColor(Color(UIColor.label).opacity(0.6))
+                                    .foregroundColor(Color.primary.opacity(0.6))
                             }
                             .frame(maxWidth: .infinity)
                         }
@@ -621,14 +600,14 @@ struct PageCircles: View {
                     .padding(.bottom, 6)
                     .background(
                         Rectangle()
-                            .fill(Color(UIColor.systemBackground))
+                            .fill(Color(.systemBackground))
                             .shadow(color: .black.opacity(0.1), radius: 1, x: 0, y: -1)
                             .ignoresSafeArea(edges: .bottom)
                     )
                     .overlay(
                         Rectangle()
                             .frame(height: 0.5)
-                            .foregroundColor(Color(UIColor.separator))
+                            .foregroundColor(Color(.separator))
                             .padding(.horizontal, 16),
                         alignment: .top
                     )
@@ -796,9 +775,9 @@ struct PageCircles: View {
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 16)
                     }
-                    .background(Color(UIColor.systemGray6))
+                    .background(Color(.systemGray6))
                 }
-                .background(Color(UIColor.systemBackground))
+                .background(Color(.systemBackground))
                 .cornerRadius(16)
                 .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: -5)
                 .padding(.horizontal, 16)
@@ -806,9 +785,8 @@ struct PageCircles: View {
                 .transition(.move(edge: .bottom).combined(with: .opacity))
             }
             .zIndex(2)
-                    
         }
-               
+
         // Tap-out-to-dismiss layer
         if showMoreMenu {
             Color.black.opacity(0.001)
@@ -820,20 +798,7 @@ struct PageCircles: View {
                 }
                 .zIndex(1)
         }
-                
         }
-            .alert("Enter Access Code", isPresented: $showAccessCodePrompt, actions: {
-                   TextField("Code", text: $accessCodeInput)
-                   Button("Join") {
-                       if let circle = circlePendingJoin {
-                           joinCircleWithCode(circle: circle, code: accessCodeInput)
-                       }
-                   }
-                   Button("Cancel", role: .cancel) { }
-               }, message: {
-                   Text("This circle is private. Ask a moderator for the access code.")
-               })
-        .navigationBarHidden(true)
         .onAppear {
             loadCircles()
             loadUserData()
@@ -841,7 +806,6 @@ struct PageCircles: View {
         .onChange(of: showMyCircles) { newValue in
             print("🔄 showMyCircles changed:", newValue)
             loadCircles()
-        }
         }
         
         NavigationLink(
@@ -859,31 +823,22 @@ struct PageCircles: View {
         }
         .sheet(isPresented: $showAboutPopup) {
             if let circle = selectedCircleToOpen {
-                NavigationView {
-                    CirclPopupCard(
-                        circle: circle,
-                        isMember: myCircles.contains(where: { $0.id == circle.id }),
-                        onJoinPressed: {
-                            if circle.joinType == .joinNow {
-                                if circle.isPrivate {
-                                    promptForAccessCode(circle: circle)
-                                } else {
-                                    joinCircleAndOpen(circle: circle)
-                                }
-                            }
-                            showAboutPopup = false
-                        },
-
-                        onOpenCircle: {
-                            selectedCircleToOpen = circle
-                            triggerOpenGroupChat = true
-                            showAboutPopup = false
-                        }
-                    )
-                    .navigationBarHidden(true)
-                }
+                CirclPopupCard(
+                    circle: circle,
+                    isMember: myCircles.contains(where: { $0.id == circle.id }),
+                    onJoinPressed: {
+                        joinCircleAndOpen(circle: circle)
+                        showAboutPopup = false
+                    },
+                    onOpenCircle: {
+                        selectedCircleToOpen = circle
+                        triggerOpenGroupChat = true
+                        showAboutPopup = false
+                    }
+                )
             }
         }
+        .navigationBarBackButtonHidden(true)
     }
     
     // MARK: - Load User Data
@@ -926,24 +881,15 @@ struct PageCircles: View {
                 return
             }
             
-            // Debug: print the raw response
-            print("📥 Unread messages raw response:", String(data: data, encoding: .utf8) ?? "nil")
-            
             do {
                 if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
                    let count = json["unread_count"] as? Int {
                     DispatchQueue.main.async {
                         self.unreadMessageCount = count
                     }
-                } else {
-                    print("❌ Unread messages response format unexpected")
                 }
             } catch {
                 print("❌ Failed to parse unread messages:", error)
-                // Set default value to avoid UI issues
-                DispatchQueue.main.async {
-                    self.unreadMessageCount = 0
-                }
             }
         }.resume()
     }
@@ -966,46 +912,6 @@ struct PageCircles: View {
         default: return "100+"
         }
     }
-    func promptForAccessCode(circle: CircleData) {
-        accessCodeInput = ""
-        circlePendingJoin = circle
-        showAccessCodePrompt = true
-    }
-
-    func joinCircleWithCode(circle: CircleData, code: String) {
-        guard let url = URL(string: "\(baseURL)circles/join_circle/") else { return }
-        
-        let payload: [String: Any] = [
-            "user_id": userId,
-            "circle_id": circle.id,
-            "access_code": code
-        ]
-
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
-        
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            if let error = error {
-                print("❌ Join error:", error.localizedDescription)
-                return
-            }
-            
-            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 403 {
-                print("❌ Wrong code!")
-                return
-            }
-
-            DispatchQueue.main.async {
-                selectedCircleToOpen = circle
-                triggerOpenGroupChat = true
-                loadCircles()
-            }
-        }.resume()
-    }
-
     func joinCircleAndOpen(circle: CircleData) {
         guard let url = URL(string: "\(baseURL)circles/join_circle/") else { return }
         
@@ -1046,25 +952,19 @@ struct PageCircles: View {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
-
+        
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
                 print("❌ Join Circle error:", error.localizedDescription)
                 return
             }
-
-            DispatchQueue.main.async {
-                // ✅ Open chat after joining
-                if let joined = (exploreCircles + myCircles).first(where: { $0.id == circleId }) {
-                    selectedCircleToOpen = joined
-                    triggerOpenGroupChat = true
-                }
-
-                loadCircles() // Refresh both tabs
-            }
+            
+            print("✅ Joined circle:", circleId)
+            print("🧠 PageCircles now sees userId:", userId)
+            print("🧠 Loaded userId from UserDefaults:", userId)
+            loadCircles() // Refresh both tabs
         }.resume()
     }
-
     func createCircle() {
         guard let url = URL(string: "\(baseURL)circles/create_with_channels/") else { return }
         
@@ -1076,8 +976,7 @@ struct PageCircles: View {
             "description": circleDescription,
             "join_type": selectedJoinType.rawValue.lowercased(),
             "channels": selectedChannels,
-            "category": circleCategory,            "is_private": isPrivateCircle,  // ✅ NEW
-            "access_code": isPrivateCircle ? privateAccessCode : ""  // ✅ NEW
+            "category": circleCategory
         ]
         
         var request = URLRequest(url: url)
@@ -1122,8 +1021,7 @@ struct PageCircles: View {
                     joinType: $0.join_type == "apply_now" ? JoinType.applyNow : JoinType.joinNow,
                     channels: $0.channels ?? [],
                     creatorId: $0.creator_id,
-                    isModerator: $0.is_moderator ?? false,
-                    isPrivate: $0.is_private ?? false  // ✅ Default to false if not provided
+                    isModerator: $0.is_moderator ?? false
                 )
             }
         }
@@ -1140,8 +1038,7 @@ struct PageCircles: View {
             if let data = data {
                 print("📥 MyCircles raw JSON:", String(data: data, encoding: .utf8) ?? "nil")
                 
-                do {
-                    let decoded = try JSONDecoder().decode([APICircle].self, from: data)
+                if let decoded = try? JSONDecoder().decode([APICircle].self, from: data) {
                     DispatchQueue.main.async {
                         self.myCircles = convert(decoded)
                         print("✅ Loaded My Circles:", self.myCircles.map { $0.name })
@@ -1155,22 +1052,8 @@ struct PageCircles: View {
                             }
                         }
                     }
-                } catch {
-                    print("❌ Failed to decode My Circles JSON. Error: \(error)")
-                    if let decodingError = error as? DecodingError {
-                        switch decodingError {
-                        case .keyNotFound(let key, let context):
-                            print("❌ Missing key '\(key.stringValue)' in context: \(context)")
-                        case .typeMismatch(let type, let context):
-                            print("❌ Type mismatch for type \(type) in context: \(context)")
-                        case .valueNotFound(let type, let context):
-                            print("❌ Value not found for type \(type) in context: \(context)")
-                        case .dataCorrupted(let context):
-                            print("❌ Data corrupted in context: \(context)")
-                        @unknown default:
-                            print("❌ Unknown decoding error: \(error)")
-                        }
-                    }
+                } else {
+                    print("❌ Failed to decode My Circles JSON")
                 }
             }
         }.resume()
@@ -1374,13 +1257,9 @@ struct PageCircles: View {
                                             .shadow(color: Color.green.opacity(0.3), radius: 6, x: 0, y: 3)
                                     )
                                     .foregroundColor(.white)
-                            }
-                        }
-                    }
                 }
-                
-                // Enhanced navigation arrow for members
-                if isMember {
+            }
+        }
                     Button(action: {
                         onOpenCircle?()
                     }) {
@@ -1405,20 +1284,17 @@ struct PageCircles: View {
             )
             .frame(maxWidth: .infinity)
             .sheet(isPresented: $showAbout) {
-                NavigationView {
-                    CirclPopupCard(
-                        circle: circle,
-                        isMember: isMember,
-                        onJoinPressed: onJoinPressed,
-                        onOpenCircle: {
-                            showAbout = false
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-                                onOpenCircle?()
-                            }
+                CirclPopupCard(
+                    circle: circle,
+                    isMember: isMember,
+                    onJoinPressed: onJoinPressed,
+                    onOpenCircle: {
+                        showAbout = false
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                            onOpenCircle?()
                         }
-                    )
-                    .navigationBarHidden(true)
-                }
+                    }
+                )
             }
         }
     }
@@ -1430,5 +1306,4 @@ struct PageCircles: View {
             PageCircles()
         }
     }
-    
 }
