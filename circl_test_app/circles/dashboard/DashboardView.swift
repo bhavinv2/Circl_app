@@ -190,10 +190,10 @@ struct DashboardView: View {
     
     // MARK: - API Functions
     func fetchDashboardData() {
-        guard let url = URL(string: "http://localhost:8000/api/circles/dashboard/\(circle.id)/") else {
-            print("❌ Invalid URL for dashboard summary")
-            loadSampleSummary()
-            return
+        guard let url = URL(string: "\(baseURL)circles/dashboard/\(circle.id)/") else {
+                print("❌ Invalid URL for dashboard summary")
+                loadSampleSummary()
+                return
         }
         
         URLSession.shared.dataTask(with: url) { data, response, error in
@@ -223,7 +223,8 @@ struct DashboardView: View {
     }
     
     func fetchLeaderboard() {
-        var urlString = "http://localhost:8000/api/circles/leaderboard/\(circle.id)/"
+        var urlString = "\(baseURL)circles/leaderboard/\(circle.id)/"
+
         if selectedTimeframe != "all" {
             urlString += "?timeframe=\(selectedTimeframe)"
         }

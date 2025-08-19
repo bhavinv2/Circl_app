@@ -920,9 +920,9 @@ struct PageGroupchats: View {
     }
 
     func fetchCategoriesAndChannels(for circleId: Int) {
-        guard let url = URL(string: "http://127.0.0.1:8000/api/circles/get_categories/\(circleId)/?user_id=\(userId)") else {
-            print("❌ Invalid URL for get_categories")
-            return
+        guard let url = URL(string: "\(baseURL)circles/get_categories/\(circleId)/?user_id=\(userId)") else {
+               print("❌ Invalid URL for get_categories")
+               return
         }
 
         print("🌐 Fetching categories + channels for circle: \(circleId)")
@@ -963,7 +963,7 @@ struct PageGroupchats: View {
     }
 
     func postNewThread() {
-        guard let url = URL(string: "http://127.0.0.1:8000/api/circles/create_thread/") else { return }
+        guard let url = URL(string: "\(baseURL)circles/create_thread/") else { return }
 
         let body: [String: Any] = [
             "user_id": userId,
@@ -991,7 +991,7 @@ struct PageGroupchats: View {
     }
 
     func leaveCircle() {
-        guard let url = URL(string: "http://127.0.0.1:8000/api/circles/leave_circle/") else { return }
+        guard let url = URL(string: "\(baseURL)circles/leave_circle/") else { return }
 
         let payload: [String: Any] = [
             "user_id": userId,
@@ -1012,8 +1012,7 @@ struct PageGroupchats: View {
     }
     
     func deleteCircle() {
-        guard let url = URL(string: "http://127.0.0.1:8000/api/circles/delete_circle/") else { return }
-
+        guard let url = URL(string: "\(baseURL)circles/delete_circle/") else { return }
         let payload: [String: Any] = [
             "circle_id": circle.id,
             "user_id": userId
@@ -1033,8 +1032,7 @@ struct PageGroupchats: View {
     }
 
     func fetchThreads(for circleId: Int) {
-        guard let url = URL(string: "http://localhost:8000/api/circles/get_threads/\(circleId)/") else { return }
-
+        guard let url = URL(string: "\(baseURL)circles/get_threads/\(circleId)/") else { return }
         URLSession.shared.dataTask(with: url) { data, _, _ in
             if let data = data {
                 print("📥 Raw JSON:")
@@ -1082,7 +1080,7 @@ struct PageGroupchats: View {
         }.resume()
     }
     func updateDashboardEnabled(to newValue: Bool) {
-        guard let url = URL(string: "http://127.0.0.1:8000/api/circles/toggle_dashboard/") else { return }
+        guard let url = URL(string: "\(baseURL)circles/toggle_dashboard/") else { return }
 
         let payload: [String: Any] = [
             "circle_id": circle.id,
@@ -1114,7 +1112,7 @@ struct PageGroupchats: View {
     }
 
     func fetchLatestCircleDetails() {
-        guard let url = URL(string: "http://127.0.0.1:8000/api/circles/get_circle_details/?circle_id=\(circle.id)&user_id=\(userId)") else { return }
+        guard let url = URL(string: "\(baseURL)circles/get_circle_details/?circle_id=\(circle.id)&user_id=\(userId)") else { return }
 
         URLSession.shared.dataTask(with: url) { data, response, error in
             guard let data = data, error == nil else {
@@ -1152,9 +1150,9 @@ struct PageGroupchats: View {
         }
 
         guard userId != 0,
-              let url = URL(string: "http://127.0.0.1:8000/api/circles/my_circles/\(userId)/") else {
-            print("ℹ️ Skipping fetchMyCircles: missing user id or bad URL")
-            return
+                 let url = URL(string: "\(baseURL)circles/my_circles/\(userId)/") else {
+               print("ℹ️ Skipping fetchMyCircles: missing user id or bad URL")
+               return
         }
 
         URLSession.shared.dataTask(with: url) { data, _, _ in
