@@ -105,8 +105,11 @@ struct AppLaunchView: View {
             if showLoadingScreen {
                 LoadingScreen()
             } else if isUserLoggedIn {
-                // User is logged in, go directly to main app
-                PageForum()
+                // User is logged in, use a single NavigationStack for stability
+                NavigationStack {
+                    PageForum()
+                        .navigationBarBackButtonHidden(true)
+                }
             } else {
                 // User not logged in, show login screen
                 Page1()

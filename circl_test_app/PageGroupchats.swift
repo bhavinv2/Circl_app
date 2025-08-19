@@ -10,6 +10,19 @@ struct PageGroupchats: View {
     @State private var showMoreMenu = false
     @State private var userProfileImageURL: String = ""
     @State private var unreadMessageCount: Int = 0
+<<<<<<< Updated upstream:circl_test_app/PageGroupchats.swift
+=======
+    @State private var categories: [ChannelCategory] = []
+    @State private var selectedTab: GroupTab = .home
+    @State private var announcements: [AnnouncementModel] = []
+    @State private var showCreateAnnouncementPopup = false
+    @State private var isDashboardEnabled: Bool
+    @State var circle: CircleData
+    @State private var navigateToDues = false
+    @State private var navigateToNetwork = false
+    @State private var navigateToBusiness = false
+
+>>>>>>> Stashed changes:circl_test_app/circles/home/PageGroupchats.swift
 
     let circle: CircleData
     
@@ -88,13 +101,20 @@ struct PageGroupchats: View {
                         VStack(spacing: 0) {
                             
 
-                            // Group Selector
+                            // Circle Switcher
                             VStack(alignment: .center, spacing: 12) {
                                 HStack(spacing: 16) {
-                                    // Enhanced Dropdown menu with gradient and shadow
+                                    // Enhanced Circle Switcher Button
                                     Menu {
+                                        if myCircles.isEmpty {
+                                            Text("Loading your circles...")
+                                                .foregroundColor(.secondary)
+                                                .italic()
+                                        }
+
                                         ForEach(myCircles, id: \.id) { circl in
                                             Button(action: {
+<<<<<<< Updated upstream:circl_test_app/PageGroupchats.swift
                                                 print("🔄 Menu button tapped for circle: \(circl.name) (ID: \(circl.id))")
                                                 // Switch to the selected circle
                                                 switchToCircle(circl)
@@ -110,15 +130,69 @@ struct PageGroupchats: View {
                                                         Image(systemName: "checkmark")
                                                             .foregroundColor(Color(hex: "004aad"))
                                                             .font(.system(size: 14, weight: .semibold))
+=======
+                                                // Switch to selected circle
+                                                circle = circl
+                                                selectedGroup = circl.name
+                                                isDashboardEnabled = circl.hasDashboard ?? false
+                                                lastCircleId = circl.id
+                                                // Refresh the current view with new circle data
+                                                fetchCategoriesAndChannels(for: circl.id)
+                                            }) {
+                                                HStack {
+                                                    // Circle indicator
+                                                    Circle()
+                                                        .fill(circl.id == circle.id ? Color(hex: "004aad") : Color.gray.opacity(0.3))
+                                                        .frame(width: 8, height: 8)
+                                                    
+                                                    Text(circl.name)
+                                                        .foregroundColor(circl.id == circle.id ? Color(hex: "004aad") : .primary)
+                                                        .fontWeight(circl.id == circle.id ? .semibold : .regular)
+                                                    
+                                                    Spacer()
+                                                    
+                                                    if circl.id == circle.id {
+                                                        Image(systemName: "checkmark")
+                                                            .foregroundColor(Color(hex: "004aad"))
+                                                            .font(.system(size: 12, weight: .semibold))
+>>>>>>> Stashed changes:circl_test_app/circles/home/PageGroupchats.swift
                                                     }
                                                 }
                                             }
                                         }
                                     } label: {
-                                        HStack(spacing: 8) {
-                                            Text(circle.name)
-                                                .foregroundColor(.primary)
-                                                .font(.system(size: 18, weight: .semibold))
+                                        HStack(spacing: 12) {
+                                            // Circle icon
+                                            ZStack {
+                                                Circle()
+                                                    .fill(
+                                                        LinearGradient(
+                                                            gradient: Gradient(colors: [
+                                                                Color(hex: "004aad"),
+                                                                Color(hex: "0066ff")
+                                                            ]),
+                                                            startPoint: .topLeading,
+                                                            endPoint: .bottomTrailing
+                                                        )
+                                                    )
+                                                    .frame(width: 32, height: 32)
+                                                
+                                                Text(String(circle.name.prefix(1)).uppercased())
+                                                    .font(.system(size: 14, weight: .bold))
+                                                    .foregroundColor(.white)
+                                            }
+                                            
+                                            VStack(alignment: .leading, spacing: 2) {
+                                                Text(circle.name)
+                                                    .foregroundColor(.primary)
+                                                    .font(.system(size: 18, weight: .semibold))
+                                                
+                                                Text("Tap to switch circles")
+                                                    .foregroundColor(.secondary)
+                                                    .font(.system(size: 12, weight: .medium))
+                                            }
+                                            
+                                            Spacer()
 
                                             Image(systemName: "chevron.down")
                                                 .foregroundColor(Color(hex: "004aad"))
@@ -372,6 +446,7 @@ struct PageGroupchats: View {
                                             .padding(.horizontal, 20)
 
 <<<<<<< Updated upstream:circl_test_app/PageGroupchats.swift
+<<<<<<< Updated upstream:circl_test_app/PageGroupchats.swift
                                             // Enhanced Channel Cards
                                             VStack(spacing: 6) {
                                                 ForEach(categoryChannels) { channel in
@@ -406,6 +481,11 @@ struct PageGroupchats: View {
                                                 !channel.isModeratorOnly! || circle.isModerator
                                             }) { channel in
                                                 NavigationLink(destination: PageCircleMessages(channel: channel, circleName: circle.name, circleData: circle)) {
+=======
+                                            // Break out the filter to ease the type-checker
+                                            ForEach(channelsForDisplay(category)) { channel in
+                                                NavigationLink(destination: PageCircleMessages(channel: channel, circleName: circle.name)) {
+>>>>>>> Stashed changes:circl_test_app/circles/home/PageGroupchats.swift
                                                     HStack(spacing: 10) {
                                                         Image(systemName: "number")
                                                             .font(.system(size: 14, weight: .medium))
@@ -438,6 +518,11 @@ struct PageGroupchats: View {
                                                     }
                                                     .buttonStyle(PlainButtonStyle())
                                                 }
+<<<<<<< Updated upstream:circl_test_app/PageGroupchats.swift
+=======
+                                                .buttonStyle(PlainButtonStyle())
+                                                .modifier(InteractiveNavTransition())
+>>>>>>> Stashed changes:circl_test_app/circles/home/PageGroupchats.swift
                                             }
                                         }
                                     }
@@ -488,6 +573,7 @@ struct PageGroupchats: View {
                             .padding()
                             .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.gray))
 
+<<<<<<< Updated upstream:circl_test_app/PageGroupchats.swift
                         Button("Post") {
                             postNewThread()
                             showCreateThreadPopup = false
@@ -496,6 +582,25 @@ struct PageGroupchats: View {
                         .background(Color.blue)
                         .foregroundColor(.white)
                         .cornerRadius(10)
+=======
+            NavigationLink(
+                                       destination: PageDues(circle: circle).navigationBarBackButtonHidden(true),
+                                       isActive: $navigateToDues
+                                   ) {
+                                       EmptyView()
+                                   }
+            NavigationLink(destination: PageMyNetwork().navigationBarBackButtonHidden(true), isActive: $navigateToNetwork) { EmptyView() }
+            NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true), isActive: $navigateToBusiness) { EmptyView() }
+
+            // Centralized hidden navigation links (selection-based)
+            Group {
+                NavigationLink(destination: MemberListPage(circleName: circle.name, circleId: circle.id), isActive: $navigateToMembers) { EmptyView() }
+                NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true), isActive: .constant(false)) { EmptyView() }
+                NavigationLink(destination: PageMyNetwork().navigationBarBackButtonHidden(true), isActive: .constant(false)) { EmptyView() }
+                NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true), isActive: .constant(false)) { EmptyView() }
+            }
+            .hidden()
+>>>>>>> Stashed changes:circl_test_app/circles/home/PageGroupchats.swift
 
                         Spacer()
                     }
@@ -605,39 +710,18 @@ struct PageGroupchats: View {
                     Spacer()
                     
                     HStack(spacing: 0) {
-                        // Forum / Home
-                        NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
-                            VStack(spacing: 4) {
-                                Image(systemName: "house")
-                                    .font(.system(size: 22, weight: .medium))
-                                    .foregroundColor(Color(UIColor.label).opacity(0.6))
-                                Text("Home")
-                                    .font(.system(size: 10, weight: .medium))
-                                    .foregroundColor(Color(UIColor.label).opacity(0.6))
-                            }
-                            .frame(maxWidth: .infinity)
+                        BottomBarItem(icon: "house", title: "Home") {
+                            navigateToMembers = false
+                            showMoreMenu = false
+                            presentationMode.wrappedValue.dismiss()
                         }
-                        .transaction { transaction in
-                            transaction.disablesAnimations = true
+
+                        BottomBarItem(icon: "person.2", title: "Network") {
+                            navigateToMembers = false
+                            showMoreMenu = false
+                            navigateToNetwork = true
                         }
-                        
-                        // Connect and Network
-                        NavigationLink(destination: PageMyNetwork().navigationBarBackButtonHidden(true)) {
-                            VStack(spacing: 4) {
-                                Image(systemName: "person.2")
-                                    .font(.system(size: 22, weight: .medium))
-                                    .foregroundColor(Color(UIColor.label).opacity(0.6))
-                                Text("Network")
-                                    .font(.system(size: 10, weight: .medium))
-                                    .foregroundColor(Color(UIColor.label).opacity(0.6))
-                            }
-                            .frame(maxWidth: .infinity)
-                        }
-                        .transaction { transaction in
-                            transaction.disablesAnimations = true
-                        }
-                        
-                        // Circles (Current page - highlighted)
+
                         VStack(spacing: 4) {
                             Image(systemName: "circle.grid.2x2.fill")
                                 .font(.system(size: 22, weight: .medium))
@@ -647,38 +731,17 @@ struct PageGroupchats: View {
                                 .foregroundColor(Color(hex: "004aad"))
                         }
                         .frame(maxWidth: .infinity)
-                        
-                        // Business Profile
-                        NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true)) {
-                            VStack(spacing: 4) {
-                                Image(systemName: "building.2")
-                                    .font(.system(size: 22, weight: .medium))
-                                    .foregroundColor(Color(UIColor.label).opacity(0.6))
-                                Text("Business")
-                                    .font(.system(size: 10, weight: .medium))
-                                    .foregroundColor(Color(UIColor.label).opacity(0.6))
-                            }
-                            .frame(maxWidth: .infinity)
+
+                        BottomBarItem(icon: "building.2", title: "Business") {
+                            navigateToMembers = false
+                            showMoreMenu = false
+                            navigateToBusiness = true
                         }
-                        .transaction { transaction in
-                            transaction.disablesAnimations = true
-                        }
-                        
-                        // More / Additional Resources
-                        Button(action: {
+
+                        BottomBarItem(icon: "ellipsis", title: "More") {
                             withAnimation(.easeInOut(duration: 0.3)) {
                                 showMoreMenu.toggle()
                             }
-                        }) {
-                            VStack(spacing: 4) {
-                                Image(systemName: "ellipsis")
-                                    .font(.system(size: 22, weight: .medium))
-                                    .foregroundColor(Color(UIColor.label).opacity(0.6))
-                                Text("More")
-                                    .font(.system(size: 10, weight: .medium))
-                                    .foregroundColor(Color(UIColor.label).opacity(0.6))
-                            }
-                            .frame(maxWidth: .infinity)
                         }
                     }
                     .padding(.horizontal, 16)
@@ -745,6 +808,7 @@ struct PageGroupchats: View {
                                     .padding(.horizontal, 20)
                                     .padding(.vertical, 16)
                                 }
+                                .modifier(InteractiveNavTransition())
                                 .transaction { transaction in
                                     transaction.disablesAnimations = true
                                 }
@@ -778,6 +842,7 @@ struct PageGroupchats: View {
                                     .padding(.horizontal, 20)
                                     .padding(.vertical, 16)
                                 }
+                                .modifier(InteractiveNavTransition())
                                 .transaction { transaction in
                                     transaction.disablesAnimations = true
                                 }
@@ -811,6 +876,7 @@ struct PageGroupchats: View {
                                     .padding(.horizontal, 20)
                                     .padding(.vertical, 16)
                                 }
+                                .modifier(InteractiveNavTransition())
                                 .transaction { transaction in
                                     transaction.disablesAnimations = true
                                 }
@@ -844,6 +910,7 @@ struct PageGroupchats: View {
                                     .padding(.horizontal, 20)
                                     .padding(.vertical, 16)
                                 }
+                                .modifier(InteractiveNavTransition())
                                 .transaction { transaction in
                                     transaction.disablesAnimations = true
                                 }
@@ -904,6 +971,7 @@ struct PageGroupchats: View {
 
         .onAppear {
             print("🔄 PageGroupchats appeared - Circle ID: \(circle.id), User ID: \(userId)")
+<<<<<<< Updated upstream:circl_test_app/PageGroupchats.swift
 <<<<<<< Updated upstream:circl_test_app/PageGroupchats.swift
             fetchChannels(for: circle.id)
             fetchThreads(for: circle.id)
@@ -966,6 +1034,19 @@ struct PageGroupchats: View {
         print("🔄 fetchMyCircles called with userId: \(userId)")
         guard let url = URL(string: "http://localhost:8000/api/circles/my_circles/\(userId)/") else {
             print("❌ Invalid URL for my_circles")
+=======
+            fetchCategoriesAndChannels(for: circle.id)
+            fetchThreads(for: circle.id)
+            fetchMyCircles()
+            fetchAnnouncements(for: circle.id)
+            fetchLatestCircleDetails()
+        }
+    }
+
+    func fetchCategoriesAndChannels(for circleId: Int) {
+        guard let url = URL(string: "http://127.0.0.1:8000/api/circles/get_categories/\(circleId)/?user_id=\(userId)") else {
+            print("❌ Invalid URL for get_categories")
+>>>>>>> Stashed changes:circl_test_app/circles/home/PageGroupchats.swift
             return
         }
         print("🌐 Fetching my circles from: \(url)")
@@ -1036,6 +1117,7 @@ struct PageGroupchats: View {
         }.resume()
     }
 
+<<<<<<< Updated upstream:circl_test_app/PageGroupchats.swift
     // Function to switch to a different circle
     func switchToCircle(_ newCircle: CircleData) {
         print("🔄 Switching from circle \(circle.name) (ID: \(circle.id)) to \(newCircle.name) (ID: \(newCircle.id))")
@@ -1117,6 +1199,19 @@ struct PageGroupchats: View {
     
     func postNewThread() {
         guard let url = URL(string: "https://circlapp.online/api/circles/create_thread/") else { return }
+=======
+    // Helper to avoid heavy inline closures that can trip the type-checker
+    private func channelsForDisplay(_ category: ChannelCategory) -> [Channel] {
+        category.channels.filter { ch in
+            // Safely unwrap moderator-only flag; default to false
+            let modOnly = ch.isModeratorOnly ?? false
+            return !modOnly || circle.isModerator
+        }
+    }
+
+    func postNewThread() {
+        guard let url = URL(string: "http://127.0.0.1:8000/api/circles/create_thread/") else { return }
+>>>>>>> Stashed changes:circl_test_app/circles/home/PageGroupchats.swift
 
         let body: [String: Any] = [
             "user_id": userId,
@@ -1144,7 +1239,11 @@ struct PageGroupchats: View {
     }
 
     func leaveCircle() {
+<<<<<<< Updated upstream:circl_test_app/PageGroupchats.swift
         guard let url = URL(string: "https://circlapp.online/api/circles/leave_circle/") else { return }
+=======
+        guard let url = URL(string: "http://127.0.0.1:8000/api/circles/leave_circle/") else { return }
+>>>>>>> Stashed changes:circl_test_app/circles/home/PageGroupchats.swift
 
         let payload: [String: Any] = [
             "user_id": userId,
@@ -1165,7 +1264,11 @@ struct PageGroupchats: View {
     }
     
     func deleteCircle() {
+<<<<<<< Updated upstream:circl_test_app/PageGroupchats.swift
         guard let url = URL(string: "https://circlapp.online/api/circles/delete_circle/") else { return }
+=======
+        guard let url = URL(string: "http://127.0.0.1:8000/api/circles/delete_circle/") else { return }
+>>>>>>> Stashed changes:circl_test_app/circles/home/PageGroupchats.swift
 
         let payload: [String: Any] = [
             "circle_id": circle.id,
@@ -1246,7 +1349,7 @@ struct PageGroupchats: View {
         }.resume()
     }
     func updateDashboardEnabled(to newValue: Bool) {
-        guard let url = URL(string: "\(baseURL)circles/toggle_dashboard/") else { return }
+        guard let url = URL(string: "http://127.0.0.1:8000/api/circles/toggle_dashboard/") else { return }
 
         let payload: [String: Any] = [
             "circle_id": circle.id,
@@ -1278,7 +1381,7 @@ struct PageGroupchats: View {
     }
 
     func fetchLatestCircleDetails() {
-        guard let url = URL(string: "\(baseURL)circles/get_circle_details/?circle_id=\(circle.id)&user_id=\(userId)") else { return }
+        guard let url = URL(string: "http://127.0.0.1:8000/api/circles/get_circle_details/?circle_id=\(circle.id)&user_id=\(userId)") else { return }
 
         URLSession.shared.dataTask(with: url) { data, response, error in
             guard let data = data, error == nil else {
@@ -1294,6 +1397,57 @@ struct PageGroupchats: View {
                 }
             } catch {
                 print("❌ Failed to decode CircleData:", error)
+            }
+        }.resume()
+    }
+
+    // Local fetch to populate myCircles used by the switcher menu
+    private func fetchMyCircles() {
+        struct LocalAPICircle: Identifiable, Decodable {
+            let id: Int
+            let name: String
+            let industry: String
+            let pricing: String
+            let description: String
+            let join_type: String
+            let channels: [String]?
+            let creator_id: Int
+            let is_moderator: Bool?
+            let member_count: Int?
+            let is_private: Bool?
+            let has_dashboard: Bool?
+        }
+
+        guard userId != 0,
+              let url = URL(string: "http://127.0.0.1:8000/api/circles/my_circles/\(userId)/") else {
+            print("ℹ️ Skipping fetchMyCircles: missing user id or bad URL")
+            return
+        }
+
+        URLSession.shared.dataTask(with: url) { data, _, _ in
+            guard let data = data,
+                  let decoded = try? JSONDecoder().decode([LocalAPICircle].self, from: data) else {
+                print("❌ Failed to decode my_circles list")
+                return
+            }
+            DispatchQueue.main.async {
+                self.myCircles = decoded.map { apiCircle in
+                    CircleData(
+                        id: apiCircle.id,
+                        name: apiCircle.name,
+                        industry: apiCircle.industry,
+                        memberCount: apiCircle.member_count ?? 0,
+                        imageName: "uhmarketing",
+                        pricing: apiCircle.pricing,
+                        description: apiCircle.description,
+                        joinType: apiCircle.join_type == "apply_now" ? .applyNow : .joinNow,
+                        channels: apiCircle.channels ?? [],
+                        creatorId: apiCircle.creator_id,
+                        isModerator: apiCircle.is_moderator ?? false,
+                        isPrivate: apiCircle.is_private ?? false,
+                        hasDashboard: apiCircle.has_dashboard
+                    )
+                }
             }
         }.resume()
     }
@@ -1562,6 +1716,38 @@ struct MenuItem2: View {
     }
 }
 
+// MARK: - Bottom bar item helper
+private struct BottomBarItem: View {
+    let icon: String
+    let title: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 4) {
+                Image(systemName: icon)
+                    .font(.system(size: 22, weight: .medium))
+                    .foregroundColor(Color(UIColor.label).opacity(0.6))
+                Text(title)
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundColor(Color(UIColor.label).opacity(0.6))
+            }
+            .frame(maxWidth: .infinity)
+        }
+    }
+}
+
+// MARK: - Animated transition helper for links
+private struct InteractiveNavTransition: ViewModifier {
+    func body(content: Content) -> some View {
+        // Minimalistic: a very subtle fade, no scaling
+        content
+            .opacity(0.99)
+            .animation(.easeInOut(duration: 0.10), value: UUID())
+    }
+}
+
+
 // MARK: - Preview
 struct PageGroupchats_Previews: PreviewProvider {
     static var previews: some View {
@@ -1686,7 +1872,7 @@ struct PageGroupchatsWrapper: View {
             let member_count: Int?
         }
         
-        guard let url = URL(string: "http://localhost:8000/api/circles/my_circles/\(userId)/") else { return }
+        guard let url = URL(string: "http://127.0.0.1:8000/api/circles/my_circles/\(userId)/") else { return }
 
         URLSession.shared.dataTask(with: url) { data, _, _ in
             if let data = data,

@@ -49,6 +49,16 @@ struct ChatView: View {
                     }
                 }
                 
+<<<<<<< Updated upstream
+=======
+                // User info
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(user.name)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.white)
+                }
+                
+>>>>>>> Stashed changes
                 Spacer()
                 
                 // Center - Tappable user info section (expanded to take most space)
@@ -186,7 +196,11 @@ struct ChatView: View {
                     // Handle attachment
                 }) {
                     Image(systemName: "plus.circle.fill")
+<<<<<<< Updated upstream
                         .font(.system(size: 28))
+=======
+                        .font(.system(size: 22, weight: .semibold))
+>>>>>>> Stashed changes
                         .foregroundColor(Color(hex: "004aad"))
                 }
                 

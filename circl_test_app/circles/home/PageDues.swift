@@ -19,41 +19,54 @@ struct PageDues: View {
     @State private var isLoading = true
     @State private var checkoutURL: WebViewURL?
 
-    var body: some View {
-        VStack(spacing: 24) {
-            // Header
-            HStack {
-                Button(action: { presentationMode.wrappedValue.dismiss() }) {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 18, weight: .medium))
-                        .foregroundColor(Color(hex: "004aad"))
-                }
-                Spacer()
-                Text("Circle Dues")
-                    .font(.headline)
-                Spacer()
-                Color.clear.frame(width: 24)
-            }
-            .padding()
+    // Brand
+    private let brand = Color(hex: "004aad")
 
-            if isLoading {
-                ProgressView("Loading dues info...")
-            } else {
-                if let dues = duesAmount {
-                    Text("Current dues: $\(Double(dues) / 100, specifier: "%.2f")")
-                        .font(.title2)
-                        .fontWeight(.semibold)
+    var body: some View {
+        ZStack {
+            // Subtle brand gradient background
+            LinearGradient(
+                gradient: Gradient(colors: [
+                    Color(.systemBackground),
+                    brand.opacity(0.03)
+                ]),
+                startPoint: .top, endPoint: .bottom
+            )
+            .ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                // Header
+                HStack(spacing: 12) {
+                    Button(action: { presentationMode.wrappedValue.dismiss() }) {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundColor(brand)
+                            .padding(10)
+                            .background(Circle().fill(Color.white))
+                            .shadow(color: Color.black.opacity(0.06), radius: 8, x: 0, y: 2)
+                    }
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Circle Dues")
+                            .font(.system(size: 20, weight: .semibold))
+                            .foregroundColor(.primary)
+                        Text(circle.name)
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(.secondary)
+                    }
+
+                    Spacer()
 
                     if isModerator {
-                        TextField("Update dues ($)", text: $newDuesAmount)
-                            .keyboardType(.decimalPad)
-                            .padding()
-                            .background(Color(.secondarySystemBackground))
-                            .cornerRadius(10)
-
-                        Button("Update Dues") {
-                            updateDues()
+                        HStack(spacing: 6) {
+                            Image(systemName: "crown.fill")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundColor(brand)
+                            Text("Moderator")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundColor(brand)
                         }
+<<<<<<< Updated upstream
                         .padding()
                         .frame(maxWidth: .infinity)
                         .background(Color(hex: "004aad"))
@@ -132,10 +145,102 @@ struct PageDues: View {
                                 .foregroundColor(.secondary)
                         }
 
+=======
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(Capsule().fill(brand.opacity(0.1)))
+                        .overlay(Capsule().stroke(brand.opacity(0.15), lineWidth: 1))
+>>>>>>> Stashed changes
                     }
                 }
+                .padding(.horizontal, 20)
+                .padding(.top, 16)
+                .padding(.bottom, 8)
 
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 16) {
+                        if isLoading {
+                            // Loading card
+                            LoadingCard()
+                        } else {
+                            // Summary card
+                            DuesSummaryCard(duesAmount: duesAmount, hasStripe: hasStripeAccount)
+
+                            // Actions / Forms
+                            if let _ = duesAmount {
+                                if isModerator {
+                                    VStack(spacing: 12) {
+                                        LabeledTextField(title: "Update dues ($)", placeholder: "e.g. 9.99", text: $newDuesAmount)
+                                            .keyboardType(.decimalPad)
+
+                                        PrimaryButton(title: "Update Dues", icon: "arrow.triangle.2.circlepath") {
+                                            updateDues()
+                                        }
+
+                                        if hasStripeAccount {
+                                            LinkButton(title: "Edit Stripe Info") {
+                                                createStripeAccount()
+                                            }
+                                        }
+                                    }
+                                    .cardStyle()
+                                } else {
+                                    VStack(spacing: 12) {
+                                        PrimaryButton(title: "Pay Now", icon: "creditcard.fill") {
+                                            startCheckout()
+                                        }
+                                    }
+                                    .cardStyle()
+                                }
+                            } else {
+                                // No dues yet
+                                if isModerator {
+                                    if hasStripeAccount {
+                                        VStack(spacing: 12) {
+                                            LabeledTextField(title: "Enter dues ($)", placeholder: "e.g. 9.99", text: $newDuesAmount)
+                                                .keyboardType(.decimalPad)
+
+                                            PrimaryButton(title: "Set Dues", icon: "checkmark.circle.fill") {
+                                                updateDues()
+                                            }
+
+                                            LinkButton(title: "Edit Stripe Info") {
+                                                createStripeAccount()
+                                            }
+                                        }
+                                        .cardStyle()
+                                    } else {
+                                        VStack(spacing: 8) {
+                                            HStack(spacing: 8) {
+                                                Image(systemName: "exclamationmark.triangle.fill")
+                                                    .foregroundColor(.orange)
+                                                    .font(.system(size: 14, weight: .semibold))
+                                                Text("Stripe setup required to collect dues")
+                                                    .font(.system(size: 13, weight: .semibold))
+                                                    .foregroundColor(.secondary)
+                                                Spacer()
+                                            }
+
+                                            PrimaryButton(title: "Set Up Stripe", icon: "link.circle.fill") {
+                                                createStripeAccount()
+                                            }
+                                        }
+                                        .cardStyle()
+                                    }
+                                } else {
+                                    InfoNote(text: "Waiting for dues setup by moderators.")
+                                        .cardStyle()
+                                }
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 8)
+                    .padding(.bottom, 24)
+                }
+                .dismissKeyboardOnScroll()
             }
+<<<<<<< Updated upstream
 
             Spacer()
         }
@@ -158,7 +263,10 @@ struct PageDues: View {
             
             // Then fetch latest data from API
             fetchDues()
+=======
+>>>>>>> Stashed changes
         }
+        .onAppear { fetchDues() }
         .sheet(item: $stripeOnboardingURL) { wrapper in
             SafariView(url: wrapper.url)
                 .onDisappear {
@@ -355,6 +463,169 @@ struct PageDues: View {
 struct WebViewURL: Identifiable {
     let id = UUID()
     let url: URL
+}
+
+// MARK: - Local UI helpers
+
+private struct DuesSummaryCard: View {
+    let duesAmount: Int?
+    let hasStripe: Bool
+    private let brand = Color(hex: "004aad")
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Text("Current Dues")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.primary)
+                Spacer()
+                if let cents = duesAmount {
+                    Text("$\(Double(cents) / 100, specifier: "%.2f")")
+                        .font(.system(size: 26, weight: .bold))
+                        .foregroundColor(brand)
+                } else {
+                    Text("Not set")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.secondary)
+                }
+            }
+
+            HStack(spacing: 8) {
+                StatusPill(text: hasStripe ? "Stripe Connected" : "Stripe Not Connected", color: hasStripe ? .green : .orange)
+                if duesAmount != nil {
+                    StatusPill(text: "Active", color: brand)
+                } else {
+                    StatusPill(text: "Setup Pending", color: .orange)
+                }
+                Spacer()
+            }
+        }
+        .cardStyle()
+    }
+}
+
+private struct StatusPill: View {
+    let text: String
+    let color: Color
+    var body: some View {
+        HStack(spacing: 6) {
+            Circle().fill(color).frame(width: 6, height: 6)
+            Text(text)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(color)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background(Capsule().fill(color.opacity(0.08)))
+        .overlay(Capsule().stroke(color.opacity(0.15), lineWidth: 1))
+    }
+}
+
+private struct LabeledTextField: View {
+    let title: String
+    let placeholder: String
+    @Binding var text: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundColor(.secondary)
+            TextField(placeholder, text: $text)
+                .keyboardType(.decimalPad)
+                .padding(12)
+                .background(Color(.secondarySystemBackground))
+                .cornerRadius(12)
+        }
+    }
+}
+
+private struct PrimaryButton: View {
+    let title: String
+    var icon: String? = nil
+    let action: () -> Void
+    private let brand = Color(hex: "004aad")
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 8) {
+                if let icon { Image(systemName: icon).font(.system(size: 15, weight: .semibold)) }
+                Text(title)
+                    .font(.system(size: 15, weight: .semibold))
+            }
+            .foregroundColor(.white)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .background(
+                LinearGradient(
+                    gradient: Gradient(colors: [brand, Color(hex: "0066dd")]),
+                    startPoint: .leading, endPoint: .trailing
+                )
+            )
+            .cornerRadius(14)
+            .shadow(color: brand.opacity(0.25), radius: 8, x: 0, y: 4)
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+
+private struct LinkButton: View {
+    let title: String
+    let action: () -> Void
+    private let brand = Color(hex: "004aad")
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 6) {
+                Text(title)
+                    .font(.system(size: 14, weight: .semibold))
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+            }
+            .foregroundColor(brand)
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+
+private struct LoadingCard: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            ProgressView("Loading dues info...")
+        }
+        .cardStyle()
+        .redacted(reason: .placeholder)
+    }
+}
+
+private struct InfoNote: View {
+    let text: String
+    var body: some View {
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: "info.circle.fill")
+                .foregroundColor(.secondary)
+            Text(text)
+                .font(.system(size: 14))
+                .foregroundColor(.secondary)
+            Spacer()
+        }
+    }
+}
+
+private extension View {
+    func cardStyle() -> some View {
+        self
+            .padding(16)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color.white)
+                    .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 2)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(Color(hex: "004aad").opacity(0.08), lineWidth: 1)
+            )
+    }
 }
 
 struct SafariView: UIViewControllerRepresentable {

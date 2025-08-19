@@ -19,9 +19,6 @@ struct APICircle: Identifiable, Decodable {
     let has_dashboard: Bool?
     let access_code: String?
     let profile_image_url: String?
-<<<<<<< Updated upstream:circl_test_app/PageCircles.swift
->>>>>>> Stashed changes:circl_test_app/circles/PageCircles.swift
-=======
 >>>>>>> Stashed changes:circl_test_app/circles/PageCircles.swift
 }
 
