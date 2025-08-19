@@ -1,5 +1,4 @@
 import SwiftUI
-import Foundation
 
 struct BusinessProfile: Codable {
     let id: Int?
@@ -467,7 +466,7 @@ struct PageBusinessProfile: View {
     }
     
     private func fetchUnreadMessageCount() {
-        guard let url = URL(string: "\(baseURL)unread_message_count/\(userId)/") else {
+        guard let url = URL(string: "https://circlapp.online/api/unread_message_count/\(userId)/") else {
             print("Invalid URL for unread message count")
             return
         }
@@ -494,62 +493,90 @@ struct PageBusinessProfile: View {
     
     var headerSection: some View {
         VStack(spacing: 0) {
-            HStack {
+            ZStack {
                 // Left side - Profile
-                NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
-                    AsyncImage(url: URL(string: userProfileImageURL)) { phase in
-                        switch phase {
-                        case .success(let image):
-                            image
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 32, height: 32)
-                                .clipShape(Circle())
-                        default:
+                HStack {
+                    NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
+                    Group {
+                        if let encoded = userProfileImageURL.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+                           let url = URL(string: encoded),
+                           !userProfileImageURL.isEmpty {
+                            AsyncImage(url: url) { phase in
+                                switch phase {
+                                case .success(let image):
+                                    image
+                                        .resizable()
+                                        .scaledToFill()
+                                        .frame(width: 32, height: 32)
+                                        .clipShape(Circle())
+                                default:
+                                    Image(systemName: "person.circle.fill")
+                                        .font(.system(size: 32))
+                                        .foregroundColor(.white)
+                                }
+                            }
+                        } else {
                             Image(systemName: "person.circle.fill")
                                 .font(.system(size: 32))
                                 .foregroundColor(.white)
                         }
                     }
+                    }
+                    .transaction { transaction in
+                        transaction.disablesAnimations = true
+                    }
+                    Spacer()
                 }
-                .transaction { transaction in
-                    transaction.disablesAnimations = true
-                }
-                
-                Spacer()
                 
                 // Center - Logo
                 Text("Circl.")
                     .font(.system(size: 24, weight: .bold))
                     .foregroundColor(.white)
                 
-                Spacer()
-                
-                // Right side - Messages
-                NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
-                    ZStack {
-                        Image(systemName: "envelope")
-                            .font(.system(size: 24))
+                HStack {
+                    Spacer()
+                    // Edit / Save toggle
+                    Button(action: {
+                        if isEditing {
+                            saveChanges()
+                        }
+                        withAnimation { isEditing.toggle() }
+                    }) {
+                        Text(isEditing ? "Save" : "Edit")
+                            .font(.system(size: 15, weight: .semibold))
                             .foregroundColor(.white)
-                        
-                        if unreadMessageCount > 0 {
-                            Text(unreadMessageCount > 99 ? "99+" : "\(unreadMessageCount)")
-                                .font(.system(size: 10, weight: .bold))
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(Color.white.opacity(0.15))
+                            .cornerRadius(8)
+                    }
+
+                    // Right side - Messages
+                    NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
+                        ZStack {
+                            Image(systemName: "envelope")
+                                .font(.system(size: 24))
                                 .foregroundColor(.white)
-                                .padding(4)
-                                .background(Color.red)
-                                .clipShape(Circle())
-                                .offset(x: 10, y: -10)
+                            
+                            if unreadMessageCount > 0 {
+                                Text(unreadMessageCount > 99 ? "99+" : "\(unreadMessageCount)")
+                                    .font(.system(size: 10, weight: .bold))
+                                    .foregroundColor(.white)
+                                    .padding(4)
+                                    .background(Color.red)
+                                    .clipShape(Circle())
+                                    .offset(x: 10, y: -10)
+                            }
                         }
                     }
-                }
-                .transaction { transaction in
-                    transaction.disablesAnimations = true
+                    .transaction { transaction in
+                        transaction.disablesAnimations = true
+                    }
                 }
             }
-            .padding(.horizontal, 18)
-            .padding(.bottom, 18)
-            .padding(.top, 10)
+            .padding(.horizontal, 16)
+            .padding(.bottom, 16)
+            .padding(.top, 8)
         }
         .padding(.top, 50) // Add safe area padding for status bar and notch
         .background(Color(hex: "004aad"))
@@ -605,7 +632,12 @@ struct PageBusinessProfile: View {
                 }
                 
                 // Company Name
-                if let companyWebsiteURL = companyWebsiteURL {
+                if isEditing {
+                    TextField("Your Company", text: $companyName)
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(.primary)
+                        .textFieldStyle(.roundedBorder)
+                } else if let companyWebsiteURL = companyWebsiteURL {
                     Link(companyName.isEmpty ? "Your Company" : companyName, destination: companyWebsiteURL)
                         .font(.system(size: 24, weight: .bold))
                         .foregroundColor(Color(hex: "004aad"))
@@ -615,6 +647,8 @@ struct PageBusinessProfile: View {
                         .font(.system(size: 24, weight: .bold))
                         .foregroundColor(.primary)
                 }
+
+                
             }
             .padding(24)
             .background(Color.white)
@@ -638,11 +672,19 @@ struct PageBusinessProfile: View {
                 Spacer()
             }
             
-            Text(aboutText.isEmpty ? "Tell us about your company..." : aboutText)
-                .font(.system(size: 16))
-                .foregroundColor(aboutText.isEmpty ? .secondary : .primary)
-                .lineSpacing(4)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            if isEditing {
+                TextEditor(text: $aboutText)
+                    .frame(minHeight: 120)
+                    .padding(8)
+                    .background(Color(UIColor.systemGray6))
+                    .cornerRadius(8)
+            } else {
+                Text(aboutText.isEmpty ? "Tell us about your company..." : aboutText)
+                    .font(.system(size: 16))
+                    .foregroundColor(aboutText.isEmpty ? .secondary : .primary)
+                    .lineSpacing(4)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
         }
         .padding(24)
         .background(Color.white)
@@ -650,6 +692,67 @@ struct PageBusinessProfile: View {
         .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 2)
     }
     
+    // Save changes to backend (PATCH business-profile/<userId>/)
+    private func saveChanges() {
+        guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else {
+            print("❌ User ID not found in UserDefaults")
+            return
+        }
+
+        guard let url = URL(string: "\(baseURL)users/business-profile/\(userId)/") else { return }
+        var request = URLRequest(url: url)
+        request.httpMethod = "PATCH"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        if let token = UserDefaults.standard.string(forKey: "auth_token"), !token.isEmpty {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        var payload: [String: Any] = [:]
+        payload["business_name"] = companyName.trimmingCharacters(in: .whitespacesAndNewlines)
+        payload["about"] = aboutText.trimmingCharacters(in: .whitespacesAndNewlines)
+        payload["vision"] = values["Vision"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        payload["company_culture"] = values["Company Culture"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        payload["product_service"] = solutionDetails["Product/Service"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        payload["unique_selling_proposition"] = solutionDetails["Unique Selling Proposition"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        payload["traction"] = solutionDetails["Traction/Progress"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        payload["revenue_streams"] = businessModelDetails["Revenue Streams"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        payload["pricing_strategy"] = businessModelDetails["Pricing Strategy"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        payload["advisors_mentors"] = teamDetails["Advisors/Mentors"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        payload["cofounders"] = teamDetails["CoFounders"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        payload["key_hires"] = teamDetails["Key Hires"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        payload["industry"] = companyDetails["Industry"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        payload["location"] = companyDetails["Location"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        payload["revenue"] = companyDetails["Revenue"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        payload["stage"] = companyDetails["Stage"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        payload["type"] = companyDetails["Type"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        payload["looking_for"] = companyDetails["Looking for"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+
+        print("📤 Sending business profile PATCH payload: \(payload)")
+
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: payload, options: [])
+        } catch {
+            print("⚠️ JSON encode error: \(error)")
+            return
+        }
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("❌ Save failed: \(error)")
+                return
+            }
+            let status = (response as? HTTPURLResponse)?.statusCode ?? -1
+            print("📡 business-profile PATCH status: \(status)")
+            if let data = data, let body = String(data: data, encoding: .utf8) {
+                print("📦 business-profile PATCH body: \(body)")
+            }
+            DispatchQueue.main.async {
+                isEditing = false
+                viewModel.fetchProfile(for: userId)
+            }
+        }.resume()
+    }
+
     private var companyDetailsSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(spacing: 12) {
@@ -671,9 +774,17 @@ struct PageBusinessProfile: View {
                             .font(.system(size: 16, weight: .semibold))
                             .foregroundColor(.secondary)
 
-                        Text(companyDetails[key, default: ""].isEmpty ? "Not specified" : companyDetails[key, default: ""])
-                            .font(.system(size: 16))
-                            .foregroundColor(companyDetails[key, default: ""].isEmpty ? .secondary : .primary)
+                        if isEditing {
+                            TextField("Enter \(key)", text: Binding(
+                                get: { companyDetails[key, default: ""] },
+                                set: { companyDetails[key] = $0 }
+                            ))
+                            .textFieldStyle(.roundedBorder)
+                        } else {
+                            Text(companyDetails[key, default: ""].isEmpty ? "Not specified" : companyDetails[key, default: ""])
+                                .font(.system(size: 16))
+                                .foregroundColor(companyDetails[key, default: ""].isEmpty ? .secondary : .primary)
+                        }
                     }
                     .padding(.vertical, 8)
                     .padding(.horizontal, 16)
@@ -708,12 +819,23 @@ struct PageBusinessProfile: View {
                         Text(key)
                             .font(.system(size: 16, weight: .semibold))
                             .foregroundColor(.secondary)
-                        
-                        Text(values[key, default: ""].isEmpty ? "Not specified" : values[key, default: ""])
-                            .font(.system(size: 16))
-                            .foregroundColor(values[key, default: ""].isEmpty ? .secondary : .primary)
-                            .lineSpacing(4)
-                            .frame(maxWidth: .infinity, alignment: .leading)
+
+                        if isEditing {
+                            TextEditor(text: Binding(
+                                get: { values[key, default: ""] },
+                                set: { values[key] = $0 }
+                            ))
+                            .frame(minHeight: 80)
+                            .padding(8)
+                            .background(Color(UIColor.systemGray6))
+                            .cornerRadius(8)
+                        } else {
+                            Text(values[key, default: ""].isEmpty ? "Not specified" : values[key, default: ""])
+                                .font(.system(size: 16))
+                                .foregroundColor(values[key, default: ""].isEmpty ? .secondary : .primary)
+                                .lineSpacing(4)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
                     }
                     .padding(.vertical, 8)
                     .padding(.horizontal, 16)
@@ -749,11 +871,22 @@ struct PageBusinessProfile: View {
                             .font(.system(size: 16, weight: .semibold))
                             .foregroundColor(.secondary)
 
-                        Text(solutionDetails[key, default: ""].isEmpty ? "Not specified" : solutionDetails[key, default: ""])
-                            .font(.system(size: 16))
-                            .foregroundColor(solutionDetails[key, default: ""].isEmpty ? .secondary : .primary)
-                            .lineSpacing(4)
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                        if isEditing {
+                            TextEditor(text: Binding(
+                                get: { solutionDetails[key, default: ""] },
+                                set: { solutionDetails[key] = $0 }
+                            ))
+                            .frame(minHeight: 80)
+                            .padding(8)
+                            .background(Color(UIColor.systemGray6))
+                            .cornerRadius(8)
+                        } else {
+                            Text(solutionDetails[key, default: ""].isEmpty ? "Not specified" : solutionDetails[key, default: ""])
+                                .font(.system(size: 16))
+                                .foregroundColor(solutionDetails[key, default: ""].isEmpty ? .secondary : .primary)
+                                .lineSpacing(4)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
                     }
                     .padding(.vertical, 12)
                     .padding(.horizontal, 16)
@@ -789,11 +922,22 @@ struct PageBusinessProfile: View {
                             .font(.system(size: 16, weight: .semibold))
                             .foregroundColor(.secondary)
 
-                        Text(businessModelDetails[key, default: ""].isEmpty ? "Not specified" : businessModelDetails[key, default: ""])
-                            .font(.system(size: 16))
-                            .foregroundColor(businessModelDetails[key, default: ""].isEmpty ? .secondary : .primary)
-                            .lineSpacing(4)
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                        if isEditing {
+                            TextEditor(text: Binding(
+                                get: { businessModelDetails[key, default: ""] },
+                                set: { businessModelDetails[key] = $0 }
+                            ))
+                            .frame(minHeight: 80)
+                            .padding(8)
+                            .background(Color(UIColor.systemGray6))
+                            .cornerRadius(8)
+                        } else {
+                            Text(businessModelDetails[key, default: ""].isEmpty ? "Not specified" : businessModelDetails[key, default: ""])
+                                .font(.system(size: 16))
+                                .foregroundColor(businessModelDetails[key, default: ""].isEmpty ? .secondary : .primary)
+                                .lineSpacing(4)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
                     }
                     .padding(.vertical, 12)
                     .padding(.horizontal, 16)
@@ -829,11 +973,22 @@ struct PageBusinessProfile: View {
                             .font(.system(size: 16, weight: .semibold))
                             .foregroundColor(.secondary)
 
-                        Text(teamDetails[key, default: ""].isEmpty ? "Not specified" : teamDetails[key, default: ""])
-                            .font(.system(size: 16))
-                            .foregroundColor(teamDetails[key, default: ""].isEmpty ? .secondary : .primary)
-                            .lineSpacing(4)
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                        if isEditing {
+                            TextEditor(text: Binding(
+                                get: { teamDetails[key, default: ""] },
+                                set: { teamDetails[key] = $0 }
+                            ))
+                            .frame(minHeight: 80)
+                            .padding(8)
+                            .background(Color(UIColor.systemGray6))
+                            .cornerRadius(8)
+                        } else {
+                            Text(teamDetails[key, default: ""].isEmpty ? "Not specified" : teamDetails[key, default: ""])
+                                .font(.system(size: 16))
+                                .foregroundColor(teamDetails[key, default: ""].isEmpty ? .secondary : .primary)
+                                .lineSpacing(4)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
                     }
                     .padding(.vertical, 12)
                     .padding(.horizontal, 16)

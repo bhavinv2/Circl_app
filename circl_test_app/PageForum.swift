@@ -203,15 +203,6 @@ struct ForumPost: View {
                         .buttonStyle(PlainButtonStyle())
                         
                         Spacer()
-                        
-                        // Share placeholder (maintaining spacing)
-                        HStack(spacing: 4) {
-                            Image(systemName: "square.and.arrow.up")
-                                .font(.system(size: 16))
-                        }
-                        .foregroundColor(.secondary)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
                     }
                     .padding(.top, 4)
                 }
@@ -276,7 +267,7 @@ struct ReportPostView: View {
     }
 
     func submitReport() {
-        guard let url = URL(string: "\(baseURL)report_post/") else { return }
+        guard let url = URL(string: "https://circlapp.online/api/report_post/") else { return }
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -306,6 +297,7 @@ struct ForumMainContent: View {
     @Binding var selectedCategory: String
     @Binding var posts: [ForumPostModel]
     @Binding var isLoading: Bool
+    @Binding var isTabSwitchLoading: Bool
     @Binding var userFirstName: String
     @Binding var userProfileImageURL: String
     @Binding var unreadMessageCount: Int
@@ -376,9 +368,9 @@ struct ForumMainContent: View {
                         }
                     }
                 }
-                .padding(.horizontal, 18)
-                .padding(.bottom, 18)
-                .padding(.top, 10)
+                .padding(.horizontal, 16)
+                .padding(.bottom, 16)
+                .padding(.top, 8)
                 
                 // Tab Buttons Row - Twitter/X style tabs
                 HStack(spacing: 0) {
@@ -388,7 +380,7 @@ struct ForumMainContent: View {
                     HStack {
                         VStack(spacing: 8) {
                             Text("For you")
-                                .font(.system(size: 16, weight: visualSelectedTab == "public" ? .semibold : .regular))
+                                .font(.system(size: 15, weight: visualSelectedTab == "public" ? .semibold : .regular))
                                 .foregroundColor(.white)
                             
                             Rectangle()
@@ -401,15 +393,16 @@ struct ForumMainContent: View {
                     .contentShape(Rectangle())
                     .onTapGesture {
                         print("🔄 For you tab tapped")
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            visualSelectedTab = "public"
-                        }
+                        // Show loading immediately for better UX
+                        isTabSwitchLoading = true
+                        // Update states immediately without animation wrapper
+                        visualSelectedTab = "public"
+                        selectedFilter = "public"
+                        selectedPrivacy = "Public"
                         UserDefaults.standard.set("public", forKey: "selectedFilter")
                         print("✅ visualSelectedTab set to: \(visualSelectedTab)")
-                        // API call on background queue to avoid UI interference
-                        DispatchQueue.global(qos: .userInitiated).async {
-                            fetcher(selectedCategory, "public")
-                        }
+                        // Fetch posts using the fetcher closure
+                        fetcher("public", selectedCategory)
                     }
                     
                     Spacer()
@@ -418,7 +411,7 @@ struct ForumMainContent: View {
                     HStack {
                         VStack(spacing: 8) {
                             Text("Following")
-                                .font(.system(size: 16, weight: visualSelectedTab == "my_network" ? .semibold : .regular))
+                                .font(.system(size: 15, weight: visualSelectedTab == "my_network" ? .semibold : .regular))
                                 .foregroundColor(.white)
                             
                             Rectangle()
@@ -431,20 +424,21 @@ struct ForumMainContent: View {
                     .contentShape(Rectangle())
                     .onTapGesture {
                         print("🔄 Following tab tapped")
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            visualSelectedTab = "my_network"
-                        }
+                        // Show loading immediately for better UX
+                        isTabSwitchLoading = true
+                        // Update states immediately without animation wrapper
+                        visualSelectedTab = "my_network"
+                        selectedFilter = "my_network"
+                        selectedPrivacy = "My Network"
                         UserDefaults.standard.set("my_network", forKey: "selectedFilter")
                         print("✅ visualSelectedTab set to: \(visualSelectedTab)")
-                        // API call on background queue to avoid UI interference
-                        DispatchQueue.global(qos: .userInitiated).async {
-                            fetcher(selectedCategory, "my_network")
-                        }
+                        // Fetch posts using the fetcher closure
+                        fetcher("my_network", selectedCategory)
                     }
                     
                     Spacer()
                 }
-                .padding(.bottom, 12)
+                .padding(.bottom, 8)
             }
             .padding(.top, 50) // Add safe area padding for status bar and notch
             .background(Color(hex: "004aad"))
@@ -485,24 +479,29 @@ struct ForumMainContent: View {
                         // Bottom action row
                         HStack(spacing: 0) {
                             // Left side buttons
-                            HStack(spacing: 16) {
-                                // Category button
+                            HStack(spacing: 12) {
+                                // Category/public button
                                 Button(action: { showCategoryAlert = true }) {
                                     HStack(spacing: 4) {
                                         Image(systemName: "tag")
                                             .font(.system(size: 14, weight: .medium))
-                                        Text("Category")
+                                        Text(selectedCategory == "Category" ? "Tags" : selectedCategory)
                                             .font(.system(size: 13, weight: .medium))
+                                            .lineLimit(1)
+                                            .minimumScaleFactor(0.8)
                                     }
                                     .foregroundColor(Color(hex: "004aad"))
-                                    .padding(.horizontal, 10)
-                                    .padding(.vertical, 4)
-                                    .background(Color(hex: "e8f2ff"))
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 6)
+                                    .background(selectedCategory == "Category" ? Color(hex: "e8f2ff") : Color(hex: "004aad").opacity(0.1))
                                     .cornerRadius(16)
                                 }
                                 
                                 // Privacy button
-                                Button(action: { /* Privacy action */ }) {
+                                Menu {
+                                    Button("Public", action: { selectedPrivacy = "Public" })
+                                    Button("My Network", action: { selectedPrivacy = "My Network" })
+                                } label: {
                                     HStack(spacing: 4) {
                                         Image(systemName: selectedPrivacy == "Public" ? "globe" : "lock")
                                             .font(.system(size: 14, weight: .medium))
@@ -510,8 +509,8 @@ struct ForumMainContent: View {
                                             .font(.system(size: 13, weight: .medium))
                                     }
                                     .foregroundColor(Color(hex: "004aad"))
-                                    .padding(.horizontal, 10)
-                                    .padding(.vertical, 4)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 6)
                                     .background(Color(hex: "e8f2ff"))
                                     .cornerRadius(16)
                                 }
@@ -527,7 +526,7 @@ struct ForumMainContent: View {
                                     .padding(.horizontal, 20)
                                     .padding(.vertical, 8)
                                     .background(
-                                        postContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty 
+                                        postContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                                         ? Color.gray.opacity(0.4)
                                         : Color(hex: "004aad")
                                     )
@@ -547,7 +546,7 @@ struct ForumMainContent: View {
             .shadow(color: Color.black.opacity(0.03), radius: 1, x: 0, y: 1)
 
             // Feed Content
-            if isLoading {
+            if isLoading || isTabSwitchLoading {
                 VStack {
                     Spacer()
                     ProgressView("Loading...")
@@ -625,6 +624,7 @@ struct PageForum: View {
     @State private var showProfileSheet = false
     @State private var isLoading = false
     @State private var showPageLoading = true
+    @State private var isTabSwitchLoading = false
     @State private var userNetworkIds: [Int] = []
 
     @State private var gradientOffset: CGFloat = 0
@@ -652,6 +652,7 @@ struct PageForum: View {
                     selectedCategory: $selectedCategory,
                     posts: $posts,
                     isLoading: $isLoading,
+                    isTabSwitchLoading: $isTabSwitchLoading,
                     userFirstName: $userFirstName,
                     userProfileImageURL: $userProfileImageURL,
                     unreadMessageCount: $unreadMessageCount,
@@ -974,6 +975,14 @@ struct PageForum: View {
                 )
             )
         }
+        .sheet(isPresented: $showProfileSheet) {
+            if let profile = selectedProfile {
+                DynamicProfilePreview(
+                    profileData: profile,
+                    isInNetwork: userNetworkIds.contains(profile.user_id)
+                )
+            }
+        }
 
         .onAppear {
             loggedInUserFullName = UserDefaults.standard.string(forKey: "user_fullname") ?? ""
@@ -1001,8 +1010,30 @@ struct PageForum: View {
         }
 
 
-        .alert("Please select a category to post.", isPresented: $showCategoryAlert) {
-            Button("OK", role: .cancel) { }
+        .alert("Select a category for your post", isPresented: $showCategoryAlert) {
+            Button("Growth & Marketing") {
+                selectedCategory = "Growth & Marketing"
+            }
+            Button("Networking & Collaboration") {
+                selectedCategory = "Networking & Collaboration"
+            }
+            Button("Funding & Finance") {
+                selectedCategory = "Funding & Finance"
+            }
+            Button("Skills & Development") {
+                selectedCategory = "Skills & Development"
+            }
+            Button("Challenges & Insights") {
+                selectedCategory = "Challenges & Insights"
+            }
+            Button("Trends & Technology") {
+                selectedCategory = "Trends & Technology"
+            }
+            Button("Cancel", role: .cancel) {
+                selectedCategory = "Category"
+            }
+        } message: {
+            Text("Choose a category that best describes your post")
         }
     }
     
@@ -1020,13 +1051,15 @@ struct PageForum: View {
     func fetchPostsWithParameters(_ filter: String, _ category: String) {
         selectedFilter = filter
         selectedCategory = category
-        // Note: Don't touch visualSelectedTab here - it's managed by the UI only
+        // Keep visual state in sync with actual filter
+        visualSelectedTab = filter
         fetchPostsInternal()
     }
     
     private func fetchPostsInternal() {
-        guard let url = URL(string: "\(baseURL)forum/get_posts/?filter=\(selectedFilter)") else {
+        guard let url = URL(string: "https://circlapp.online/api/forum/get_posts/?filter=\(selectedFilter)") else {
             showPageLoading = false
+            isTabSwitchLoading = false
             return
         }
 
@@ -1042,6 +1075,7 @@ struct PageForum: View {
             defer {
                 DispatchQueue.main.async {
                     showPageLoading = false
+                    isTabSwitchLoading = false
                 }
             }
 
@@ -1064,7 +1098,7 @@ struct PageForum: View {
             return
         }
 
-        let urlString = "\(baseURL)users/profile/\(userId)/"
+        let urlString = "https://circlapp.online/api/users/profile/\(userId)/"
         print("🌐 Fetching current user profile from:", urlString)
 
         guard let url = URL(string: urlString) else {
@@ -1117,7 +1151,7 @@ struct PageForum: View {
     // MARK: - Other Network Functions
     
     func fetchUserProfile(userId: Int, completion: @escaping (FullProfile?) -> Void) {
-        guard let url = URL(string: "\(baseURL)users/profile/\(userId)/") else {
+        guard let url = URL(string: "https://circlapp.online/api/users/profile/\(userId)/") else {
             completion(nil)
             return
         }
@@ -1149,7 +1183,7 @@ struct PageForum: View {
     }
 
     func submitPost() {
-        guard let url = URL(string: "\(baseURL)forum/create_post/") else { return }
+        guard let url = URL(string: "https://circlapp.online/api/forum/create_post/") else { return }
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -1199,7 +1233,7 @@ struct PageForum: View {
     
     func fetchUserNetworkIds() {
         let userId = UserDefaults.standard.integer(forKey: "user_id")
-        guard let url = URL(string: "\(baseURL)users/get_network/\(userId)/") else { return }
+        guard let url = URL(string: "https://circlapp.online/api/users/get_network/\(userId)/") else { return }
 
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
@@ -1221,7 +1255,7 @@ struct PageForum: View {
 
     func toggleLike(_ post: ForumPostModel) {
         let endpoint = post.liked_by_user ? "unlike" : "like"
-        guard let url = URL(string: "\(baseURL)forum/posts/\(post.id)/\(endpoint)/") else { return }
+        guard let url = URL(string: "https://circlapp.online/api/forum/posts/\(post.id)/\(endpoint)/") else { return }
 
         // 🔁 Immediately update the UI locally
         if let index = posts.firstIndex(where: { $0.id == post.id }) {
@@ -1255,7 +1289,7 @@ struct PageForum: View {
     }
 
     func deletePost(_ postId: Int) {
-        guard let url = URL(string: "\(baseURL)forum/delete_post/\(postId)/") else { return }
+        guard let url = URL(string: "https://circlapp.online/api/forum/delete_post/\(postId)/") else { return }
 
         var request = URLRequest(url: url)
         request.httpMethod = "DELETE"
@@ -1279,7 +1313,7 @@ extension PageForum {
     func fetchMessagesForNotification() {
         guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else { return }
 
-        guard let url = URL(string: "\(baseURL)users/get_messages/\(userId)/") else { return }
+        guard let url = URL(string: "https://circlapp.online/api/users/get_messages/\(userId)/") else { return }
 
         URLSession.shared.dataTask(with: url) { data, _, error in
             if let data = data {
@@ -1473,7 +1507,7 @@ struct CommentSheet: View {
                         .padding(.horizontal, 16)
                         .padding(.vertical, 8)
                         .background(
-                            newComment.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty 
+                            newComment.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                             ? Color.gray.opacity(0.5)
                             : Color(hex: "004aad")
                         )
@@ -1492,7 +1526,7 @@ struct CommentSheet: View {
     }
 
     func fetchComments() {
-        guard let url = URL(string: "\(baseURL)forum/comments/\(postId)/") else { return }
+        guard let url = URL(string: "https://circlapp.online/api/forum/comments/\(postId)/") else { return }
 
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
@@ -1513,7 +1547,7 @@ struct CommentSheet: View {
     }
 
     func submitComment() {
-        guard let url = URL(string: "\(baseURL)forum/comments/add/") else { return }
+        guard let url = URL(string: "https://circlapp.online/api/forum/comments/add/") else { return }
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
