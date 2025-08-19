@@ -234,9 +234,13 @@ struct PageGroupchats: View {
                                 announcements: announcements,
                                 showCreateAnnouncementPopup: $showCreateAnnouncementPopup,
                                 userId: userId,
-                                circle: circle
+                                circle: circle,
+                                onRefresh: {
+                                    fetchAnnouncements(for: circle.id)   // ✅ this is your existing PageGroupchats fetch
+                                }
                             )
                             .padding(.bottom, 8)
+
 
 
 

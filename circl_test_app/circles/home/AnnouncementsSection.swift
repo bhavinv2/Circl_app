@@ -15,7 +15,9 @@ struct AnnouncementsSection: View {
     @Binding var showCreateAnnouncementPopup: Bool
     let userId: Int
     let circle: CircleData
+    let onRefresh: () -> Void   // 👈 add this
     @State private var showAllAnnouncements = false
+   
 
     var body: some View {
         if !announcements.isEmpty {
@@ -84,7 +86,12 @@ struct AnnouncementsSection: View {
                 // Enhanced Announcements List - Show top 3
                 VStack(spacing: 12) {
                     ForEach(announcements.prefix(3)) { announcement in
-                        AnnouncementCard(announcement: announcement)
+                        AnnouncementCard(
+                            announcement: announcement,
+                            circle: circle,
+                            userId: userId,
+                            onDelete: { onRefresh() }   // 👈 refresh after delete
+                        )
                     }
 
                     // Show All button if more than 3
@@ -98,8 +105,14 @@ struct AnnouncementsSection: View {
                                 .padding(.top, 6)
                         }
                         .sheet(isPresented: $showAllAnnouncements) {
-                            AllAnnouncementsView(announcements: announcements)
+                            AllAnnouncementsView(
+                                announcements: announcements,
+                                circle: circle,
+                                userId: userId,
+                                onRefresh: { onRefresh() }
+                            )
                         }
+
                     }
                 }
                 .padding(.horizontal, 20)
@@ -175,13 +188,39 @@ struct AnnouncementsSection: View {
         }
     }
 }
+// MARK: - API call for deleting announcement
+func deleteAnnouncement(
+    announcementId: Int,
+    circleId: Int,
+    userId: Int,
+    onDelete: @escaping () -> Void
+) {
+    guard let url = URL(string: "\(baseURL)circles/announcements/delete/\(announcementId)/") else { return }
+
+    var request = URLRequest(url: url)
+    request.httpMethod = "DELETE"
+    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+    let body: [String: Any] = ["user_id": userId]
+    request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+
+    URLSession.shared.dataTask(with: request) { _, _, _ in
+        DispatchQueue.main.async {
+            onDelete()
+        }
+    }.resume()
+}
 
 // MARK: - Enhanced Announcement Card Component
 struct AnnouncementCard: View {
     let announcement: AnnouncementModel
     @State private var isExpanded = false
-    
+    let circle: CircleData
+    let userId: Int
+    var onDelete: () -> Void
     var body: some View {
+        
+        
         VStack(alignment: .leading, spacing: 0) {
             // Enhanced compact header - always visible
             Button(action: {
@@ -274,7 +313,7 @@ struct AnnouncementCard: View {
                             
                             Spacer()
                             
-                            // Engagement icons
+                            // Engagement + Options
                             HStack(spacing: 12) {
                                 Button(action: {}) {
                                     Image(systemName: "heart")
@@ -293,7 +332,31 @@ struct AnnouncementCard: View {
                                         .font(.system(size: 14))
                                         .foregroundColor(.white.opacity(0.7))
                                 }
+                                
+                                // 👇 Ellipsis menu for moderators/creator only
+                                if userId == circle.creatorId || circle.isModerator {
+                                    Menu {
+                                        Button(role: .destructive) {
+                                            // Call delete API
+                                            deleteAnnouncement(
+                                                announcementId: announcement.id,
+                                                circleId: circle.id,
+                                                userId: userId
+                                            ) {
+                                                onDelete()
+                                            }
+                                        } label: {
+                                            Label("Delete", systemImage: "trash")
+                                        }
+                                    } label: {
+                                        Image(systemName: "ellipsis")
+                                            .rotationEffect(.degrees(90))
+                                            .font(.system(size: 14, weight: .bold))
+                                            .foregroundColor(.white.opacity(0.7))
+                                    }
+                                }
                             }
+
                         }
                     }
                     .padding(.horizontal, 18)
@@ -387,7 +450,8 @@ struct AnnouncementsSection_Previews: PreviewProvider {
                 isModerator: true,
                 isPrivate: false,
                 hasDashboard: true
-            )
+            ),
+            onRefresh: {}
         )
         .padding()
         .background(Color(.systemGroupedBackground))
@@ -395,13 +459,21 @@ struct AnnouncementsSection_Previews: PreviewProvider {
 }
 struct AllAnnouncementsView: View {
     let announcements: [AnnouncementModel]
+    let circle: CircleData
+    let userId: Int
+    let onRefresh: () -> Void
 
     var body: some View {
         NavigationView {
             ScrollView {
                 VStack(spacing: 12) {
                     ForEach(announcements) { announcement in
-                        AnnouncementCard(announcement: announcement)
+                        AnnouncementCard(
+                            announcement: announcement,
+                            circle: circle,
+                            userId: userId,
+                            onDelete: { onRefresh() }
+                        )
                     }
                 }
                 .padding()
@@ -411,3 +483,4 @@ struct AllAnnouncementsView: View {
         }
     }
 }
+
