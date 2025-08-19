@@ -28,6 +28,9 @@ struct PageCircleMessages: View {
     @State private var selectedImage: UIImage?
     @State private var selectedVideoURL: URL?
     @State private var showingMediaPicker = false
+    
+    @State private var showingFullImage = false
+    @State private var fullImageURL: String?
 
     @State private var newMessage: String = ""
     @AppStorage("user_id") private var userId: Int = 0
@@ -281,7 +284,7 @@ struct PageCircleMessages: View {
             .background(
                 LinearGradient(
                     colors: [
-                        Color(hex: "004aad"), 
+                        Color(hex: "004aad"),
                         Color(hex: "0052cc")
                     ],
                     startPoint: .topLeading,
@@ -298,7 +301,7 @@ struct PageCircleMessages: View {
             ScrollView {
                 LazyVStack(spacing: 12) {
                     ForEach(messages) { message in
-                        ChatBubble(message: message)
+                        ChatBubble(message: message, showingFullImage: $showingFullImage, fullImageURL: $fullImageURL)
                             .padding(.horizontal)
                     }
                 }
@@ -315,7 +318,7 @@ struct PageCircleMessages: View {
         .background(Color(UIColor.systemBackground))
     }
     func fetchMembers() {
-        guard let url = URL(string: "\(baseURL)circles/members/\(channel.circleId)/") else { return }
+        guard let url = URL(string: "https://circlapp.online/api/circles/members/\(channel.circleId)/") else { return }
 
 
         URLSession.shared.dataTask(with: url) { data, _, error in
@@ -336,11 +339,15 @@ struct PageCircleMessages: View {
     }
 
     func fetchMessages() {
-        let urlString = "\(baseURL)circles/get_messages/\(currentChannel.id)/?user_id=\(userId)"
+        let urlString = "https://circlapp.online/api/circles/get_messages/\(currentChannel.id)/?user_id=\(userId)"
 
-        print("📡 Fetching from: \(urlString)")
+        print("📡 Fetching messages from: \(urlString)")
+        print("📊 Channel ID: \(currentChannel.id), User ID: \(userId)")
 
-        guard let url = URL(string: urlString) else { return }
+        guard let url = URL(string: urlString) else {
+            print("❌ Failed to create fetch URL")
+            return
+        }
 
         URLSession.shared.dataTask(with: url) { data, _, error in
             guard let data = data, error == nil else {
@@ -371,7 +378,7 @@ struct PageCircleMessages: View {
     }
 
     func fetchChannelsInCircle() {
-        guard let url = URL(string: "\(baseURL)circles/get_categories/\(channel.circleId)/") else { return }
+        guard let url = URL(string: "https://circlapp.online/api/circles/get_categories/\(channel.circleId)/") else { return }
 
         URLSession.shared.dataTask(with: url) { data, _, error in
             guard let data = data, error == nil else {
@@ -395,44 +402,138 @@ struct PageCircleMessages: View {
 
 
 
-    // MARK: - Input Bar
+        // MARK: - Input Bar
     private var inputBar: some View {
-        HStack(spacing: 8) {
-            // + button to open media picker
-            Button(action: {
-                showingMediaPicker = true
-            }) {
-                Image(systemName: "plus.circle.fill")
-                    .font(.system(size: 22, weight: .bold))
-                    .foregroundColor(Color(hex: "004aad"))
+        VStack(spacing: 0) {
+            // Media preview section
+            if selectedImage != nil || selectedVideoURL != nil {
+                HStack {
+                    // Media preview
+                    if let image = selectedImage {
+                        HStack(spacing: 8) {
+                            Image(uiImage: image)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 60, height: 60)
+                                .clipped()
+                                .cornerRadius(8)
+                            
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Photo")
+                                    .font(.caption)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(.primary)
+                                Text("Ready to send")
+                                    .font(.caption2)
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            Spacer()
+                            
+                            Button(action: {
+                                selectedImage = nil
+                            }) {
+                                Image(systemName: "xmark.circle.fill")
+                                    .font(.system(size: 20))
+                                    .foregroundColor(.gray)
+                            }
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(Color(.systemGray6))
+                        .cornerRadius(10)
+                    }
+                    
+                    if let videoURL = selectedVideoURL {
+                        HStack(spacing: 8) {
+                            // Video thumbnail placeholder
+                            ZStack {
+                                Rectangle()
+                                    .fill(Color(.systemGray4))
+                                    .frame(width: 60, height: 60)
+                                    .cornerRadius(8)
+                                
+                                Image(systemName: "play.circle.fill")
+                                    .font(.system(size: 24))
+                                    .foregroundColor(.white)
+                            }
+                            
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Video")
+                                    .font(.caption)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(.primary)
+                                Text("Ready to send")
+                                    .font(.caption2)
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            Spacer()
+                            
+                            Button(action: {
+                                selectedVideoURL = nil
+                            }) {
+                                Image(systemName: "xmark.circle.fill")
+                                    .font(.system(size: 20))
+                                    .foregroundColor(.gray)
+                            }
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(Color(.systemGray6))
+                        .cornerRadius(10)
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
             }
+            
+            // Text input and buttons
+            HStack(spacing: 8) {
+                // + button to open media picker
+                Button(action: {
+                    showingMediaPicker = true
+                }) {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 22, weight: .bold))
+                        .foregroundColor(Color(hex: "004aad"))
+                }
 
-            // Message text field
-            TextField("Message \(currentChannel.name)...", text: $newMessage)
-                .textFieldStyle(.plain)
-                .padding(12)
-                .background(Color(.systemGray6))
-                .cornerRadius(20)
+                // Message text field
+                TextField("Message \(currentChannel.name)...", text: $newMessage)
+                    .textFieldStyle(.plain)
+                    .padding(12)
+                    .background(Color(.systemGray6))
+                    .cornerRadius(20)
 
-            // Send button
-            Button(action: {
-                sendMessageWithMedia()
-            }) {
-                Image(systemName: "paperplane.fill")
-                    .rotationEffect(.degrees(45))
-                    .font(.title2)
-                    .foregroundColor(
-                        newMessage.isEmpty && selectedImage == nil && selectedVideoURL == nil
-                        ? .gray
-                        : Color(hex: "004aad")
-                    )
+                // Send button
+                Button(action: {
+                    if selectedImage != nil || selectedVideoURL != nil {
+                        sendMessageWithMedia()
+                    } else {
+                        sendMessage()
+                    }
+                }) {
+                    Image(systemName: "paperplane.fill")
+                        .rotationEffect(.degrees(45))
+                        .font(.title2)
+                        .foregroundColor(
+                            newMessage.isEmpty && selectedImage == nil && selectedVideoURL == nil
+                            ? .gray
+                            : Color(hex: "004aad")
+                        )
+                }
+                .disabled(newMessage.isEmpty && selectedImage == nil && selectedVideoURL == nil)
             }
-            .disabled(newMessage.isEmpty && selectedImage == nil && selectedVideoURL == nil)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
         }
-        .padding()
         .background(Color.white)
         .sheet(isPresented: $showingMediaPicker) {
             MediaPicker(image: $selectedImage, videoURL: $selectedVideoURL)
+        }
+        .sheet(isPresented: $showingFullImage) {
+            FullImageViewer(imageURL: fullImageURL)
         }
     }
 
@@ -624,7 +725,7 @@ struct PageCircleMessages: View {
     }
     
     func leaveCircle() {
-        guard let url = URL(string: "\(baseURL)circles/leave_circle/") else { return }
+        guard let url = URL(string: "https://circlapp.online/api/circles/leave_circle/") else { return }
 
         let payload: [String: Any] = [
             "user_id": userId,
@@ -643,51 +744,65 @@ struct PageCircleMessages: View {
         }.resume()
     }
 
-
-    
-    
-
-
     private func sendMessage() {
-        print("🚀 sendMessage called with:", newMessage)
+        print("🔴 sendMessage() called with message: '\(newMessage)'")
+        print("🔴 userId: \(userId), channelId: \(currentChannel.id)")
+        
+        guard !newMessage.trimmingCharacters(in: .whitespaces).isEmpty else {
+            print("🔴 Message is empty, returning")
+            return
+        }
 
-        guard !newMessage.trimmingCharacters(in: .whitespaces).isEmpty else { return }
-
-        let messageData: [String: Any] = [
-            "user_id": userId,
-            "channel_id": currentChannel.id,
-
-            "content": newMessage
-        ]
-
-        let urlString = "\(baseURL)circles/send_message/"
-        print("📤 Sending POST to:", urlString)
-        print("📦 Payload:", messageData)
-
-        guard let url = URL(string: urlString) else { return }
+        guard let url = URL(string: "https://circlapp.online/api/circles/send_message/") else {
+            print("🔴 Failed to create URL")
+            return
+        }
+        
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try? JSONSerialization.data(withJSONObject: messageData)
+        
+        // Try as form data instead of JSON
+        let bodyString = "user_id=\(userId)&channel_id=\(currentChannel.id)&content=\(newMessage.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")"
+        request.httpBody = bodyString.data(using: .utf8)
+        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+        
+        print("🔴 About to send POST request to: \(url)")
+        print("🔴 Body: \(bodyString)")
 
         URLSession.shared.dataTask(with: request) { data, response, error in
-            print("📝 POST response error:", error as Any)
-            if let http = response as? HTTPURLResponse {
-                print("📶 HTTP status code:", http.statusCode)
+            print("🔴 Response received - Error: \(error?.localizedDescription ?? "none")")
+            if let httpResponse = response as? HTTPURLResponse {
+                print("🔴 HTTP Status: \(httpResponse.statusCode)")
             }
-            if let data = data, let str = String(data: data, encoding: .utf8) {
-                print("📬 Response body:", str)
+            if let data = data, let responseString = String(data: data, encoding: .utf8) {
+                print("🔴 Server Response: \(responseString)")
             }
-
+            
             DispatchQueue.main.async {
-                fetchMessages()
-                newMessage = ""
+                print("🔴 Clearing message and refreshing")
+                self.newMessage = ""
+                self.fetchMessages()
             }
         }.resume()
+        
+        print("🔴 Request sent!")
     }
 
     func sendMessageWithMedia() {
-        guard let url = URL(string: "\(baseURL)circles/send_message/") else { return }
+        print("🔴 sendMessageWithMedia() called")
+        print("🔴 Message: '\(newMessage)', HasImage: \(selectedImage != nil), HasVideo: \(selectedVideoURL != nil)")
+        
+        guard !newMessage.trimmingCharacters(in: .whitespaces).isEmpty || selectedImage != nil || selectedVideoURL != nil else {
+            print("🔴 No content to send in media message")
+            return
+        }
+        
+        guard let url = URL(string: "https://circlapp.online/api/circles/send_message/") else {
+            print("🔴 Failed to create media URL")
+            return
+        }
+
+        print("🔴 About to send media POST to: \(url)")
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -702,6 +817,7 @@ struct PageCircleMessages: View {
             "content": newMessage
         ]
 
+        print("🔴 Adding form fields: \(fields)")
         for (key, value) in fields {
             body.append("--\(boundary)\r\n")
             body.append("Content-Disposition: form-data; name=\"\(key)\"\r\n\r\n")
@@ -709,6 +825,7 @@ struct PageCircleMessages: View {
         }
 
         if let image = selectedImage, let imageData = image.jpegData(compressionQuality: 0.75) {
+            print("🔴 Adding image data: \(imageData.count) bytes")
             body.append("--\(boundary)\r\n")
             body.append("Content-Disposition: form-data; name=\"media\"; filename=\"image.jpg\"\r\n")
             body.append("Content-Type: image/jpeg\r\n\r\n")
@@ -718,6 +835,7 @@ struct PageCircleMessages: View {
 
         if let videoURL = selectedVideoURL,
            let videoData = try? Data(contentsOf: videoURL) {
+            print("🔴 Adding video data: \(videoData.count) bytes")
             body.append("--\(boundary)\r\n")
             body.append("Content-Disposition: form-data; name=\"media\"; filename=\"video.mov\"\r\n")
             body.append("Content-Type: video/quicktime\r\n\r\n")
@@ -728,14 +846,27 @@ struct PageCircleMessages: View {
         body.append("--\(boundary)--\r\n")
         request.httpBody = body
 
+        print("🔴 Sending media request with body size: \(body.count) bytes")
+
         URLSession.shared.dataTask(with: request) { data, response, error in
+            print("🔴 Media response received - Error: \(error?.localizedDescription ?? "none")")
+            if let httpResponse = response as? HTTPURLResponse {
+                print("🔴 Media HTTP Status: \(httpResponse.statusCode)")
+            }
+            if let data = data, let responseString = String(data: data, encoding: .utf8) {
+                print("🔴 Media Server Response: \(responseString)")
+            }
+            
             DispatchQueue.main.async {
-                newMessage = ""
-                selectedImage = nil
-                selectedVideoURL = nil
-                fetchMessages()
+                print("🔴 Clearing media and refreshing")
+                self.newMessage = ""
+                self.selectedImage = nil
+                self.selectedVideoURL = nil
+                self.fetchMessages()
             }
         }.resume()
+        
+        print("🔴 Media request sent!")
     }
 
 
@@ -784,9 +915,13 @@ extension PageCircleMessages {
 
 struct ChatBubble: View {
     let message: ChatMessage
-    init(message: ChatMessage) {
+    @Binding var showingFullImage: Bool
+    @Binding var fullImageURL: String?
+    
+    init(message: ChatMessage, showingFullImage: Binding<Bool>, fullImageURL: Binding<String?>) {
         self.message = message
-        print("🧾 Rendering message:", message.content, "| media:", message.mediaURL ?? "none")
+        self._showingFullImage = showingFullImage
+        self._fullImageURL = fullImageURL
     }
 
 
@@ -847,6 +982,10 @@ struct ChatBubble: View {
                                 @unknown default:
                                     EmptyView()
                                 }
+                            }
+                            .onTapGesture {
+                                fullImageURL = mediaURL
+                                showingFullImage = true
                             }
                         }
                     }
@@ -940,6 +1079,57 @@ struct PageCircleMessages_Previews: PreviewProvider {
 ,
             circleName: "Lean Startup-ists" // ✅ Just add this line
         )
+    }
+}
+
+struct FullImageViewer: View {
+    let imageURL: String?
+    @Environment(\.dismiss) private var dismiss
+    
+    var body: some View {
+        NavigationView {
+            ZStack {
+                Color.black.ignoresSafeArea()
+                
+                if let imageURL = imageURL, let url = URL(string: imageURL) {
+                    AsyncImage(url: url) { phase in
+                        switch phase {
+                        case .empty:
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                .scaleEffect(2)
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .scaledToFit()
+                                .clipped()
+                        case .failure(_):
+                            VStack {
+                                Image(systemName: "photo.fill")
+                                    .font(.system(size: 50))
+                                    .foregroundColor(.white)
+                                Text("Failed to load image")
+                                    .foregroundColor(.white)
+                            }
+                        @unknown default:
+                            EmptyView()
+                        }
+                    }
+                } else {
+                    Text("No image to display")
+                        .foregroundColor(.white)
+                }
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                    .foregroundColor(.white)
+                }
+            }
+        }
     }
 }
 

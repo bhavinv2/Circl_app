@@ -83,21 +83,80 @@ struct PageGroupchats: View {
                         VStack(spacing: 0) {
                             
 
-                            // Group Selector
+                            // Circle Switcher
                             VStack(alignment: .center, spacing: 12) {
                                 HStack(spacing: 16) {
-                                    // Enhanced Dropdown menu with gradient and shadow
+                                    // Enhanced Circle Switcher Button
                                     Menu {
+                                        if myCircles.isEmpty {
+                                            Text("Loading your circles...")
+                                                .foregroundColor(.secondary)
+                                                .italic()
+                                        }
+
                                         ForEach(myCircles, id: \.id) { circl in
-                                            NavigationLink(destination: PageGroupchats(circle: circl).navigationBarBackButtonHidden(true)) {
-                                                Text(circl.name)
+                                            Button(action: {
+                                                // Switch to selected circle
+                                                circle = circl
+                                                selectedGroup = circl.name
+                                                isDashboardEnabled = circl.hasDashboard ?? false
+                                                lastCircleId = circl.id
+                                                // Refresh the current view with new circle data
+                                                fetchCategoriesAndChannels(for: circl.id)
+                                            }) {
+                                                HStack {
+                                                    // Circle indicator
+                                                    Circle()
+                                                        .fill(circl.id == circle.id ? Color(hex: "004aad") : Color.gray.opacity(0.3))
+                                                        .frame(width: 8, height: 8)
+                                                    
+                                                    Text(circl.name)
+                                                        .foregroundColor(circl.id == circle.id ? Color(hex: "004aad") : .primary)
+                                                        .fontWeight(circl.id == circle.id ? .semibold : .regular)
+                                                    
+                                                    Spacer()
+                                                    
+                                                    if circl.id == circle.id {
+                                                        Image(systemName: "checkmark")
+                                                            .foregroundColor(Color(hex: "004aad"))
+                                                            .font(.system(size: 12, weight: .semibold))
+                                                    }
+                                                }
                                             }
                                         }
                                     } label: {
-                                        HStack(spacing: 8) {
-                                            Text(circle.name)
-                                                .foregroundColor(.primary)
-                                                .font(.system(size: 18, weight: .semibold))
+                                        HStack(spacing: 12) {
+                                            // Circle icon
+                                            ZStack {
+                                                Circle()
+                                                    .fill(
+                                                        LinearGradient(
+                                                            gradient: Gradient(colors: [
+                                                                Color(hex: "004aad"),
+                                                                Color(hex: "0066ff")
+                                                            ]),
+                                                            startPoint: .topLeading,
+                                                            endPoint: .bottomTrailing
+                                                        )
+                                                    )
+                                                    .frame(width: 32, height: 32)
+                                                
+                                                Text(String(circle.name.prefix(1)).uppercased())
+                                                    .font(.system(size: 14, weight: .bold))
+                                                    .foregroundColor(.white)
+                                            }
+                                            
+                                            VStack(alignment: .leading, spacing: 2) {
+                                                Text(circle.name)
+                                                    .foregroundColor(.primary)
+                                                    .font(.system(size: 18, weight: .semibold))
+                                                
+                                                Text("Tap to switch circles")
+                                                    .foregroundColor(.secondary)
+                                                    .font(.system(size: 12, weight: .medium))
+                                            }
+                                            
+                                            Spacer()
 
                                             Image(systemName: "chevron.down")
                                                 .foregroundColor(Color(hex: "004aad"))
@@ -326,9 +385,8 @@ struct PageGroupchats: View {
                                                 .foregroundColor(.primary)
                                                 .padding(.horizontal, 20)
 
-                                            ForEach(category.channels.filter { channel in
-                                                !channel.isModeratorOnly! || circle.isModerator
-                                            }) { channel in
+                                            // Break out the filter to ease the type-checker
+                                            ForEach(channelsForDisplay(category)) { channel in
                                                 NavigationLink(destination: PageCircleMessages(channel: channel, circleName: circle.name)) {
                                                     HStack(spacing: 10) {
                                                         Image(systemName: "number")
@@ -850,42 +908,15 @@ struct PageGroupchats: View {
         .onAppear {
             print("🔄 PageGroupchats appeared - Circle ID: \(circle.id), User ID: \(userId)")
             fetchCategoriesAndChannels(for: circle.id)
-
             fetchThreads(for: circle.id)
-            fetchMyCircles(userId: userId)
+            fetchMyCircles()
             fetchAnnouncements(for: circle.id)
             fetchLatestCircleDetails()
-            
-            
-            
-
-            func fetchMyCircles(userId: Int) {
-                URLSession.shared.dataTask(with: URL(string: "http://localhost:8000/api/circles/my_circles/\(userId)/")!) { data, _, _ in
-                    guard let data = data else {
-                        DispatchQueue.main.async {
-                            self.loading = false
-                        }
-                        return
-                    }
-                    if let decoded: [CircleData] = try? JSONDecoder().decode([CircleData].self, from: data) {
-                        DispatchQueue.main.async {
-                            self.myCircles = decoded
-                            self.loading = false
-                        }
-                    } else {
-                        print("❌ Failed to decode my_circles")
-                        DispatchQueue.main.async {
-                            self.loading = false
-                        }
-                    }
-                }.resume()
-            }
-
         }
     }
 
     func fetchCategoriesAndChannels(for circleId: Int) {
-        guard let url = URL(string: "\(baseURL)circles/get_categories/\(circleId)/?user_id=\(userId)") else {
+        guard let url = URL(string: "http://127.0.0.1:8000/api/circles/get_categories/\(circleId)/?user_id=\(userId)") else {
             print("❌ Invalid URL for get_categories")
             return
         }
@@ -918,8 +949,17 @@ struct PageGroupchats: View {
         }.resume()
     }
 
+    // Helper to avoid heavy inline closures that can trip the type-checker
+    private func channelsForDisplay(_ category: ChannelCategory) -> [Channel] {
+        category.channels.filter { ch in
+            // Safely unwrap moderator-only flag; default to false
+            let modOnly = ch.isModeratorOnly ?? false
+            return !modOnly || circle.isModerator
+        }
+    }
+
     func postNewThread() {
-        guard let url = URL(string: "\(baseURL)circles/create_thread/") else { return }
+        guard let url = URL(string: "http://127.0.0.1:8000/api/circles/create_thread/") else { return }
 
         let body: [String: Any] = [
             "user_id": userId,
@@ -947,7 +987,7 @@ struct PageGroupchats: View {
     }
 
     func leaveCircle() {
-        guard let url = URL(string: "\(baseURL)circles/leave_circle/") else { return }
+        guard let url = URL(string: "http://127.0.0.1:8000/api/circles/leave_circle/") else { return }
 
         let payload: [String: Any] = [
             "user_id": userId,
@@ -968,7 +1008,7 @@ struct PageGroupchats: View {
     }
     
     func deleteCircle() {
-        guard let url = URL(string: "\(baseURL)circles/delete_circle/") else { return }
+        guard let url = URL(string: "http://127.0.0.1:8000/api/circles/delete_circle/") else { return }
 
         let payload: [String: Any] = [
             "circle_id": circle.id,
@@ -1007,40 +1047,38 @@ struct PageGroupchats: View {
         }.resume()
     }
     func fetchAnnouncements(for circleId: Int) {
-        // Use your deployed backend instead of localhost
         guard let url = URL(string: "\(baseURL)circles/get_announcements/\(circleId)/") else {
-            print("❌ Invalid announcements URL")
-            return
-        }
+                   print("❌ Invalid announcements URL")
+                   return
+               }
 
         URLSession.shared.dataTask(with: url) { data, _, error in
-            if let error = error {
-                print("❌ Network error fetching announcements:", error.localizedDescription)
-                return
-            }
+                  if let error = error {
+                      print("❌ Network error fetching announcements:", error.localizedDescription)
+                      return
+                  }
 
-            guard let data = data else {
-                print("❌ No data returned for announcements")
-                return
-            }
+                  guard let data = data else {
+                      print("❌ No data returned for announcements")
+                      return
+                  }
 
-            do {
-                let decoded = try JSONDecoder().decode([AnnouncementModel].self, from: data)
-                DispatchQueue.main.async {
-                    self.announcements = decoded
-                }
-                print("✅ Decoded \(decoded.count) announcements")
-            } catch {
-                print("❌ Failed to decode announcements:", error)
-                if let raw = String(data: data, encoding: .utf8) {
-                    print("Raw response:\n\(raw)")
+                  do {
+                      let decoded = try JSONDecoder().decode([AnnouncementModel].self, from: data)
+                      DispatchQueue.main.async {
+                          self.announcements = decoded
+                      }
+                      print("✅ Decoded \(decoded.count) announcements")
+                  } catch {
+                      print("❌ Failed to decode announcements:", error)
+                      if let raw = String(data: data, encoding: .utf8) {
+                          print("Raw response:\n\(raw)")
                 }
             }
         }.resume()
     }
-
     func updateDashboardEnabled(to newValue: Bool) {
-        guard let url = URL(string: "\(baseURL)circles/toggle_dashboard/") else { return }
+        guard let url = URL(string: "http://127.0.0.1:8000/api/circles/toggle_dashboard/") else { return }
 
         let payload: [String: Any] = [
             "circle_id": circle.id,
@@ -1072,7 +1110,7 @@ struct PageGroupchats: View {
     }
 
     func fetchLatestCircleDetails() {
-        guard let url = URL(string: "\(baseURL)circles/get_circle_details/?circle_id=\(circle.id)&user_id=\(userId)") else { return }
+        guard let url = URL(string: "http://127.0.0.1:8000/api/circles/get_circle_details/?circle_id=\(circle.id)&user_id=\(userId)") else { return }
 
         URLSession.shared.dataTask(with: url) { data, response, error in
             guard let data = data, error == nil else {
@@ -1088,6 +1126,57 @@ struct PageGroupchats: View {
                 }
             } catch {
                 print("❌ Failed to decode CircleData:", error)
+            }
+        }.resume()
+    }
+
+    // Local fetch to populate myCircles used by the switcher menu
+    private func fetchMyCircles() {
+        struct LocalAPICircle: Identifiable, Decodable {
+            let id: Int
+            let name: String
+            let industry: String
+            let pricing: String
+            let description: String
+            let join_type: String
+            let channels: [String]?
+            let creator_id: Int
+            let is_moderator: Bool?
+            let member_count: Int?
+            let is_private: Bool?
+            let has_dashboard: Bool?
+        }
+
+        guard userId != 0,
+              let url = URL(string: "http://127.0.0.1:8000/api/circles/my_circles/\(userId)/") else {
+            print("ℹ️ Skipping fetchMyCircles: missing user id or bad URL")
+            return
+        }
+
+        URLSession.shared.dataTask(with: url) { data, _, _ in
+            guard let data = data,
+                  let decoded = try? JSONDecoder().decode([LocalAPICircle].self, from: data) else {
+                print("❌ Failed to decode my_circles list")
+                return
+            }
+            DispatchQueue.main.async {
+                self.myCircles = decoded.map { apiCircle in
+                    CircleData(
+                        id: apiCircle.id,
+                        name: apiCircle.name,
+                        industry: apiCircle.industry,
+                        memberCount: apiCircle.member_count ?? 0,
+                        imageName: "uhmarketing",
+                        pricing: apiCircle.pricing,
+                        description: apiCircle.description,
+                        joinType: apiCircle.join_type == "apply_now" ? .applyNow : .joinNow,
+                        channels: apiCircle.channels ?? [],
+                        creatorId: apiCircle.creator_id,
+                        isModerator: apiCircle.is_moderator ?? false,
+                        isPrivate: apiCircle.is_private ?? false,
+                        hasDashboard: apiCircle.has_dashboard
+                    )
+                }
             }
         }.resume()
     }
@@ -1127,7 +1216,7 @@ struct PageGroupchats: View {
         }
 
         func postAnnouncement() {
-            guard let url = URL(string: "http://localhost:8000/api/circles/post_announcement/") else { return }
+            guard let url = URL(string: "\(baseURL)circles/post_announcement/") else { return }
 
             let body: [String: Any] = [
                 "circle_id": circleId,
@@ -1437,10 +1526,10 @@ struct PageGroupchatsWrapper: View {
             let is_moderator: Bool?
             let member_count: Int?
             let is_private: Bool?    //
-            let has_dashboard: Bool? 
+            let has_dashboard: Bool?
         }
         
-        guard let url = URL(string: "http://localhost:8000/api/circles/my_circles/\(userId)/") else { return }
+        guard let url = URL(string: "http://127.0.0.1:8000/api/circles/my_circles/\(userId)/") else { return }
 
         URLSession.shared.dataTask(with: url) { data, _, _ in
             if let data = data,
