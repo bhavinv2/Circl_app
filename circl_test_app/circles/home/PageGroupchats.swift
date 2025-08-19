@@ -1007,20 +1007,38 @@ struct PageGroupchats: View {
         }.resume()
     }
     func fetchAnnouncements(for circleId: Int) {
-        guard let url = URL(string: "http://localhost:8000/api/circles/get_announcements/\(circleId)/") else { return }
+        // Use your deployed backend instead of localhost
+        guard let url = URL(string: "\(baseURL)circles/get_announcements/\(circleId)/") else {
+            print("❌ Invalid announcements URL")
+            return
+        }
 
-        URLSession.shared.dataTask(with: url) { data, _, _ in
-            if let data = data {
-                if let decoded = try? JSONDecoder().decode([AnnouncementModel].self, from: data) {
-                    DispatchQueue.main.async {
-                        self.announcements = decoded
-                    }
-                } else {
-                    print("❌ Failed to decode announcements")
+        URLSession.shared.dataTask(with: url) { data, _, error in
+            if let error = error {
+                print("❌ Network error fetching announcements:", error.localizedDescription)
+                return
+            }
+
+            guard let data = data else {
+                print("❌ No data returned for announcements")
+                return
+            }
+
+            do {
+                let decoded = try JSONDecoder().decode([AnnouncementModel].self, from: data)
+                DispatchQueue.main.async {
+                    self.announcements = decoded
+                }
+                print("✅ Decoded \(decoded.count) announcements")
+            } catch {
+                print("❌ Failed to decode announcements:", error)
+                if let raw = String(data: data, encoding: .utf8) {
+                    print("Raw response:\n\(raw)")
                 }
             }
         }.resume()
     }
+
     func updateDashboardEnabled(to newValue: Bool) {
         guard let url = URL(string: "\(baseURL)circles/toggle_dashboard/") else { return }
 

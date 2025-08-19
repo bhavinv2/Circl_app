@@ -240,7 +240,8 @@ else if let dict = json as? [String: Any] {
                 company: dict["company"] as? String ?? "Network",
                 proficiency: dict["main_usage"] as? String ?? "Networking",
                 tags: dict["tags"] as? [String] ?? ["Professional", "Network"],
-                profileImage: (dict["profile_image"] as? String) ?? "https://picsum.photos/100/100?random=\(20 + id)"
+                profileImage: (dict["profile_image"] as? String) ?? "default_profile"
+
             )
 
             convertedProfiles.append(profile)
