@@ -203,15 +203,6 @@ struct ForumPost: View {
                         .buttonStyle(PlainButtonStyle())
                         
                         Spacer()
-                        
-                        // Share placeholder (maintaining spacing)
-                        HStack(spacing: 4) {
-                            Image(systemName: "square.and.arrow.up")
-                                .font(.system(size: 16))
-                        }
-                        .foregroundColor(.secondary)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
                     }
                     .padding(.top, 4)
                 }
@@ -306,6 +297,7 @@ struct ForumMainContent: View {
     @Binding var selectedCategory: String
     @Binding var posts: [ForumPostModel]
     @Binding var isLoading: Bool
+    @Binding var isTabSwitchLoading: Bool
     @Binding var userFirstName: String
     @Binding var userProfileImageURL: String
     @Binding var unreadMessageCount: Int
@@ -401,15 +393,16 @@ struct ForumMainContent: View {
                     .contentShape(Rectangle())
                     .onTapGesture {
                         print("🔄 For you tab tapped")
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            visualSelectedTab = "public"
-                        }
+                        // Show loading immediately for better UX
+                        isTabSwitchLoading = true
+                        // Update states immediately without animation wrapper
+                        visualSelectedTab = "public"
+                        selectedFilter = "public"
+                        selectedPrivacy = "Public"
                         UserDefaults.standard.set("public", forKey: "selectedFilter")
                         print("✅ visualSelectedTab set to: \(visualSelectedTab)")
-                        // API call on background queue to avoid UI interference
-                        DispatchQueue.global(qos: .userInitiated).async {
-                            fetcher(selectedCategory, "public")
-                        }
+                        // Fetch posts using the fetcher closure
+                        fetcher("public", selectedCategory)
                     }
                     
                     Spacer()
@@ -431,15 +424,16 @@ struct ForumMainContent: View {
                     .contentShape(Rectangle())
                     .onTapGesture {
                         print("🔄 Following tab tapped")
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            visualSelectedTab = "my_network"
-                        }
+                        // Show loading immediately for better UX
+                        isTabSwitchLoading = true
+                        // Update states immediately without animation wrapper
+                        visualSelectedTab = "my_network"
+                        selectedFilter = "my_network"
+                        selectedPrivacy = "My Network"
                         UserDefaults.standard.set("my_network", forKey: "selectedFilter")
                         print("✅ visualSelectedTab set to: \(visualSelectedTab)")
-                        // API call on background queue to avoid UI interference
-                        DispatchQueue.global(qos: .userInitiated).async {
-                            fetcher(selectedCategory, "my_network")
-                        }
+                        // Fetch posts using the fetcher closure
+                        fetcher("my_network", selectedCategory)
                     }
                     
                     Spacer()
@@ -485,24 +479,29 @@ struct ForumMainContent: View {
                         // Bottom action row
                         HStack(spacing: 0) {
                             // Left side buttons
-                            HStack(spacing: 16) {
-                                // Category button
+                            HStack(spacing: 12) {
+                                // Category/public button
                                 Button(action: { showCategoryAlert = true }) {
                                     HStack(spacing: 4) {
                                         Image(systemName: "tag")
                                             .font(.system(size: 14, weight: .medium))
-                                        Text("Category")
+                                        Text(selectedCategory == "Category" ? "Tags" : selectedCategory)
                                             .font(.system(size: 13, weight: .medium))
+                                            .lineLimit(1)
+                                            .minimumScaleFactor(0.8)
                                     }
                                     .foregroundColor(Color(hex: "004aad"))
-                                    .padding(.horizontal, 10)
-                                    .padding(.vertical, 4)
-                                    .background(Color(hex: "e8f2ff"))
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 6)
+                                    .background(selectedCategory == "Category" ? Color(hex: "e8f2ff") : Color(hex: "004aad").opacity(0.1))
                                     .cornerRadius(16)
                                 }
                                 
                                 // Privacy button
-                                Button(action: { /* Privacy action */ }) {
+                                Menu {
+                                    Button("Public", action: { selectedPrivacy = "Public" })
+                                    Button("My Network", action: { selectedPrivacy = "My Network" })
+                                } label: {
                                     HStack(spacing: 4) {
                                         Image(systemName: selectedPrivacy == "Public" ? "globe" : "lock")
                                             .font(.system(size: 14, weight: .medium))
@@ -510,8 +509,8 @@ struct ForumMainContent: View {
                                             .font(.system(size: 13, weight: .medium))
                                     }
                                     .foregroundColor(Color(hex: "004aad"))
-                                    .padding(.horizontal, 10)
-                                    .padding(.vertical, 4)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 6)
                                     .background(Color(hex: "e8f2ff"))
                                     .cornerRadius(16)
                                 }
@@ -547,7 +546,7 @@ struct ForumMainContent: View {
             .shadow(color: Color.black.opacity(0.03), radius: 1, x: 0, y: 1)
 
             // Feed Content
-            if isLoading {
+            if isLoading || isTabSwitchLoading {
                 VStack {
                     Spacer()
                     ProgressView("Loading...")
@@ -625,6 +624,7 @@ struct PageForum: View {
     @State private var showProfileSheet = false
     @State private var isLoading = false
     @State private var showPageLoading = true
+    @State private var isTabSwitchLoading = false
     @State private var userNetworkIds: [Int] = []
 
     @State private var gradientOffset: CGFloat = 0
@@ -652,6 +652,7 @@ struct PageForum: View {
                     selectedCategory: $selectedCategory,
                     posts: $posts,
                     isLoading: $isLoading,
+                    isTabSwitchLoading: $isTabSwitchLoading,
                     userFirstName: $userFirstName,
                     userProfileImageURL: $userProfileImageURL,
                     unreadMessageCount: $unreadMessageCount,
@@ -974,6 +975,14 @@ struct PageForum: View {
                 )
             )
         }
+        .sheet(isPresented: $showProfileSheet) {
+            if let profile = selectedProfile {
+                DynamicProfilePreview(
+                    profileData: profile,
+                    isInNetwork: userNetworkIds.contains(profile.user_id)
+                )
+            }
+        }
 
         .onAppear {
             loggedInUserFullName = UserDefaults.standard.string(forKey: "user_fullname") ?? ""
@@ -1001,8 +1010,30 @@ struct PageForum: View {
         }
 
 
-        .alert("Please select a category to post.", isPresented: $showCategoryAlert) {
-            Button("OK", role: .cancel) { }
+        .alert("Select a category for your post", isPresented: $showCategoryAlert) {
+            Button("Growth & Marketing") {
+                selectedCategory = "Growth & Marketing"
+            }
+            Button("Networking & Collaboration") {
+                selectedCategory = "Networking & Collaboration"
+            }
+            Button("Funding & Finance") {
+                selectedCategory = "Funding & Finance"
+            }
+            Button("Skills & Development") {
+                selectedCategory = "Skills & Development"
+            }
+            Button("Challenges & Insights") {
+                selectedCategory = "Challenges & Insights"
+            }
+            Button("Trends & Technology") {
+                selectedCategory = "Trends & Technology"
+            }
+            Button("Cancel", role: .cancel) {
+                selectedCategory = "Category"
+            }
+        } message: {
+            Text("Choose a category that best describes your post")
         }
     }
     
@@ -1020,13 +1051,15 @@ struct PageForum: View {
     func fetchPostsWithParameters(_ filter: String, _ category: String) {
         selectedFilter = filter
         selectedCategory = category
-        // Note: Don't touch visualSelectedTab here - it's managed by the UI only
+        // Keep visual state in sync with actual filter
+        visualSelectedTab = filter
         fetchPostsInternal()
     }
     
     private func fetchPostsInternal() {
         guard let url = URL(string: "https://circlapp.online/api/forum/get_posts/?filter=\(selectedFilter)") else {
             showPageLoading = false
+            isTabSwitchLoading = false
             return
         }
 
@@ -1042,6 +1075,7 @@ struct PageForum: View {
             defer {
                 DispatchQueue.main.async {
                     showPageLoading = false
+                    isTabSwitchLoading = false
                 }
             }
 

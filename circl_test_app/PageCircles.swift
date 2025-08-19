@@ -13,6 +13,13 @@ struct APICircle: Identifiable, Decodable {
     let creator_id: Int
     let is_moderator: Bool?  // ✅ Add this (optional for safety)
     let member_count: Int?
+<<<<<<< Updated upstream:circl_test_app/PageCircles.swift
+=======
+    let is_private: Bool
+    let has_dashboard: Bool?
+    let access_code: String?
+    let profile_image_url: String?
+>>>>>>> Stashed changes:circl_test_app/circles/PageCircles.swift
 }
 
 
@@ -1052,7 +1059,15 @@ struct PageCircles: View {
                     joinType: $0.join_type == "apply_now" ? JoinType.applyNow : JoinType.joinNow,
                     channels: $0.channels ?? [],
                     creatorId: $0.creator_id,
+<<<<<<< Updated upstream:circl_test_app/PageCircles.swift
                     isModerator: $0.is_moderator ?? false
+=======
+                    isModerator: $0.is_moderator ?? false,
+                    isPrivate: $0.is_private,
+                    accessCode: $0.access_code,
+                    hasDashboard: $0.has_dashboard ?? false,
+                    profileImageURL: $0.profile_image_url
+>>>>>>> Stashed changes:circl_test_app/circles/PageCircles.swift
                 )
             }
         }

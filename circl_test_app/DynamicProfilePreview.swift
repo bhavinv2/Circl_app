@@ -16,8 +16,8 @@ struct DynamicProfilePreview: View {
         return ZStack(alignment: .topTrailing) {
             // Background matching ProfilePage.swift
             LinearGradient(
-                colors: [Color(.systemGray6).opacity(0.3), Color(.systemGray5).opacity(0.5)], 
-                startPoint: .top, 
+                colors: [Color(.systemGray6).opacity(0.3), Color(.systemGray5).opacity(0.5)],
+                startPoint: .top,
                 endPoint: .bottom
             )
             .ignoresSafeArea()
@@ -638,3 +638,4 @@ struct ProfileFieldDisplay: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
+

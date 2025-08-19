@@ -97,12 +97,10 @@ struct ProfilePage: View {
                 // HEADER SECTION
                 VStack(spacing: 0) {
                     ZStack {
-                        // Center - Circl Logo (positioned in center of entire header)
-                        NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
-                            Text("Circl.")
-                                .font(.system(size: 24, weight: .bold))
-                                .foregroundColor(.white)
-                        }
+                        // Center - Circl Logo (non-tappable to avoid accidental navigation overlap)
+                        Text("Circl.")
+                            .font(.system(size: 24, weight: .bold))
+                            .foregroundColor(.white)
                         
                         // Left and Right content overlaid on top
                         HStack {

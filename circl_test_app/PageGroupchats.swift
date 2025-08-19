@@ -30,6 +30,9 @@ struct PageGroupchats: View {
         Dictionary(grouping: channels) { $0.name.prefix(1).uppercased() }
     }
 
+    // API Configuration
+    private let baseURL = "http://localhost:8000/api/"
+
 
 
    
@@ -65,6 +68,7 @@ struct PageGroupchats: View {
             VStack(spacing: 0) {
                 headerSection
 
+<<<<<<< Updated upstream:circl_test_app/PageGroupchats.swift
                     // Group Selector
                     VStack(alignment: .center, spacing: 12) {
                         HStack(spacing: 16) {
@@ -73,6 +77,66 @@ struct PageGroupchats: View {
                                 ForEach(myCircles, id: \.id) { circl in
                                     NavigationLink(destination: PageGroupchats(circle: circl).navigationBarBackButtonHidden(true)) {
                                         Text(circl.name)
+=======
+                if selectedTab == .dashboard {
+                    DashboardView(circle: circle)
+                } else if selectedTab == .calendar {
+                    CalendarView(circle: circle, defaultShowAllEvents: true)
+                } else {
+                    // 🏠 HOME TAB — all of this goes inside here 👇
+                    ScrollView(.vertical, showsIndicators: false) {
+                        VStack(spacing: 0) {
+                            
+
+                            // Group Selector
+                            VStack(alignment: .center, spacing: 12) {
+                                HStack(spacing: 16) {
+                                    // Enhanced Dropdown menu with gradient and shadow
+                                    Menu {
+                                        ForEach(myCircles, id: \.id) { circl in
+                                            Button(action: {
+                                                print("🔄 Menu button tapped for circle: \(circl.name) (ID: \(circl.id))")
+                                                // Switch to the selected circle
+                                                switchToCircle(circl)
+                                            }) {
+                                                HStack {
+                                                    Text(circl.name)
+                                                        .foregroundColor(.primary)
+                                                    
+                                                    Spacer()
+                                                    
+                                                    // Show checkmark for current circle
+                                                    if circl.id == circle.id {
+                                                        Image(systemName: "checkmark")
+                                                            .foregroundColor(Color(hex: "004aad"))
+                                                            .font(.system(size: 14, weight: .semibold))
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    } label: {
+                                        HStack(spacing: 8) {
+                                            Text(circle.name)
+                                                .foregroundColor(.primary)
+                                                .font(.system(size: 18, weight: .semibold))
+
+                                            Image(systemName: "chevron.down")
+                                                .foregroundColor(Color(hex: "004aad"))
+                                                .font(.system(size: 14, weight: .medium))
+                                        }
+                                        .padding(.horizontal, 20)
+                                        .padding(.vertical, 16)
+                                        .frame(minWidth: 0, maxWidth: .infinity)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 16)
+                                                .fill(Color.white)
+                                                .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 2)
+                                        )
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 16)
+                                                .stroke(Color(hex: "004aad").opacity(0.1), lineWidth: 1)
+                                        )
+>>>>>>> Stashed changes:circl_test_app/circles/home/PageGroupchats.swift
                                     }
                                 }
                             } label: {
@@ -307,6 +371,7 @@ struct PageGroupchats: View {
                                             }
                                             .padding(.horizontal, 20)
 
+<<<<<<< Updated upstream:circl_test_app/PageGroupchats.swift
                                             // Enhanced Channel Cards
                                             VStack(spacing: 6) {
                                                 ForEach(categoryChannels) { channel in
@@ -336,6 +401,26 @@ struct PageGroupchats: View {
                                                             
                                                             Image(systemName: "chevron.right")
                                                                 .font(.system(size: 11, weight: .medium))
+=======
+                                            ForEach(category.channels.filter { channel in
+                                                !channel.isModeratorOnly! || circle.isModerator
+                                            }) { channel in
+                                                NavigationLink(destination: PageCircleMessages(channel: channel, circleName: circle.name, circleData: circle)) {
+                                                    HStack(spacing: 10) {
+                                                        Image(systemName: "number")
+                                                            .font(.system(size: 14, weight: .medium))
+                                                            .foregroundColor(Color(hex: "004aad"))
+                                                            .frame(width: 28, height: 28)
+                                                            .background(Circle().fill(Color(hex: "004aad").opacity(0.1)))
+
+                                                        VStack(alignment: .leading, spacing: 2) {
+                                                            Text(channel.name)
+                                                                .font(.system(size: 15, weight: .medium))
+                                                                .foregroundColor(.primary)
+
+                                                            Text("Tap to join conversation")
+                                                                .font(.system(size: 12))
+>>>>>>> Stashed changes:circl_test_app/circles/home/PageGroupchats.swift
                                                                 .foregroundColor(.secondary)
                                                         }
                                                         .padding(.horizontal, 16)
@@ -819,6 +904,7 @@ struct PageGroupchats: View {
 
         .onAppear {
             print("🔄 PageGroupchats appeared - Circle ID: \(circle.id), User ID: \(userId)")
+<<<<<<< Updated upstream:circl_test_app/PageGroupchats.swift
             fetchChannels(for: circle.id)
             fetchThreads(for: circle.id)
             fetchMyCircles(userId: userId)
@@ -855,6 +941,134 @@ struct PageGroupchats: View {
         guard let url = URL(string: "http://localhost:8000/api/circles/get_channels/\(circleId)/") else { 
             print("❌ Invalid URL for fetchChannels")
             return 
+=======
+            print("🔍 Initial myCircles count: \(myCircles.count)")
+            
+            // Ensure we always have the current circle in myCircles as a fallback
+            if !myCircles.contains(where: { $0.id == circle.id }) {
+                myCircles.append(circle)
+                print("🔄 Added current circle \(circle.name) to myCircles as fallback")
+            }
+            
+            // Use the real user ID to fetch actual circles
+            print("🌐 Fetching circles for user_id: \(userId)")
+            
+            fetchCategoriesAndChannels(for: circle.id)
+            fetchThreads(for: circle.id)
+            fetchMyCircles(userId: userId)  // Use real user ID
+            fetchAnnouncements(for: circle.id)
+            fetchLatestCircleDetails()
+        }
+    }
+
+    // Function to fetch user's circles from API
+    func fetchMyCircles(userId: Int) {
+        print("🔄 fetchMyCircles called with userId: \(userId)")
+        guard let url = URL(string: "http://localhost:8000/api/circles/my_circles/\(userId)/") else {
+            print("❌ Invalid URL for my_circles")
+            return
+        }
+        print("🌐 Fetching my circles from: \(url)")
+        
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            if let error = error {
+                print("❌ Network error fetching my circles: \(error.localizedDescription)")
+                DispatchQueue.main.async {
+                    self.loading = false
+                }
+                return
+            }
+            
+            if let httpResponse = response as? HTTPURLResponse {
+                print("📡 My circles response status: \(httpResponse.statusCode)")
+            }
+            
+            guard let data = data else {
+                print("❌ No data received for my circles")
+                DispatchQueue.main.async {
+                    self.loading = false
+                }
+                return
+            }
+            
+            print("📥 My circles raw response: \(String(data: data, encoding: .utf8) ?? "nil")")
+            
+            if let decoded: [CircleData] = try? JSONDecoder().decode([CircleData].self, from: data) {
+                DispatchQueue.main.async {
+                    print("✅ Successfully decoded \(decoded.count) circles from API:")
+                    for (index, circl) in decoded.enumerated() {
+                        print("   Circle \(index + 1): \(circl.name) (ID: \(circl.id), Creator: \(circl.creatorId), Moderator: \(circl.isModerator))")
+                    }
+                    
+                    // Start with API circles only - no fake circles
+                    self.myCircles = decoded
+                    
+                    // Add current circle to the list if it's not already there
+                    if !decoded.contains(where: { $0.id == self.circle.id }) {
+                        self.myCircles.append(self.circle)
+                        print("🔄 Added current circle \(self.circle.name) to myCircles")
+                    }
+                    
+                    print("📋 Final myCircles list (\(self.myCircles.count) total):")
+                    for (index, circl) in self.myCircles.enumerated() {
+                        print("   - \(index + 1). \(circl.name) (ID: \(circl.id))")
+                    }
+                    self.loading = false
+                }
+            } else {
+                print("❌ Failed to decode my_circles JSON. Raw response:")
+                print(String(data: data, encoding: .utf8) ?? "nil")
+                
+                // Let's try to see what the decoding error is
+                do {
+                    let _ = try JSONDecoder().decode([CircleData].self, from: data)
+                } catch {
+                    print("🔍 Decoding error details: \(error)")
+                }
+                
+                DispatchQueue.main.async {
+                    // If API fails, only show current circle
+                    self.myCircles = [self.circle]
+                    print("🔄 API failed - only showing current circle: \(self.circle.name)")
+                    self.loading = false
+                }
+            }
+        }.resume()
+    }
+
+    // Function to switch to a different circle
+    func switchToCircle(_ newCircle: CircleData) {
+        print("🔄 Switching from circle \(circle.name) (ID: \(circle.id)) to \(newCircle.name) (ID: \(newCircle.id))")
+        
+        // Update the current circle
+        circle = newCircle
+        selectedGroup = newCircle.name
+        isDashboardEnabled = newCircle.hasDashboard ?? false
+        
+        // Update last selected circle in UserDefaults
+        lastCircleId = newCircle.id
+        
+        // Reset states for the new circle
+        announcements = []
+        threads = []
+        channels = []
+        categories = []
+        loading = true
+        
+        // Reset tab to home when switching circles
+        selectedTab = .home
+        
+        // Fetch data for the new circle
+        fetchAnnouncements(for: newCircle.id)
+        fetchThreads(for: newCircle.id)
+        fetchCategoriesAndChannels(for: newCircle.id)
+    }
+
+    func fetchCategoriesAndChannels(for circleId: Int) {
+        guard let url = URL(string: "\(baseURL)circles/get_categories/\(circleId)/?user_id=\(userId)") else {
+            print("❌ Invalid URL for get_categories")
+            return
+>>>>>>> Stashed changes:circl_test_app/circles/home/PageGroupchats.swift
         }
 
         print("🌐 Fetching channels for circle: \(circleId)")
@@ -989,6 +1203,202 @@ struct PageGroupchats: View {
             }
         }.resume()
     }
+<<<<<<< Updated upstream:circl_test_app/PageGroupchats.swift
+=======
+    func fetchAnnouncements(for circleId: Int) {
+        print("🔄 Fetching announcements for circle \(circleId)")
+        guard let url = URL(string: "http://localhost:8000/api/circles/get_announcements/\(circleId)/") else { 
+            print("❌ Invalid URL for fetching announcements")
+            return 
+        }
+        
+        print("🌐 Fetching announcements from: \(url)")
+
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            if let error = error {
+                print("❌ Network error fetching announcements: \(error.localizedDescription)")
+                return
+            }
+            
+            if let httpResponse = response as? HTTPURLResponse {
+                print("📡 Announcements response status: \(httpResponse.statusCode)")
+                
+                if httpResponse.statusCode == 404 {
+                    print("❌ Announcements API endpoint not found (404) - feature not implemented in backend")
+                    return
+                }
+            }
+            
+            if let data = data {
+                print("📥 Announcements raw response: \(String(data: data, encoding: .utf8) ?? "nil")")
+                
+                if let decoded = try? JSONDecoder().decode([AnnouncementModel].self, from: data) {
+                    print("✅ Successfully decoded \(decoded.count) announcements")
+                    DispatchQueue.main.async {
+                        self.announcements = decoded
+                    }
+                } else {
+                    print("❌ Failed to decode announcements")
+                }
+            } else {
+                print("❌ No data received for announcements")
+            }
+        }.resume()
+    }
+    func updateDashboardEnabled(to newValue: Bool) {
+        guard let url = URL(string: "\(baseURL)circles/toggle_dashboard/") else { return }
+
+        let payload: [String: Any] = [
+            "circle_id": circle.id,
+            "user_id": userId,
+            "has_dashboard": newValue
+        ]
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("❌ Failed to toggle dashboard:", error.localizedDescription)
+            } else if let data = data,
+                      let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                print("✅ Dashboard toggle response:", json)
+
+                DispatchQueue.main.async {
+                    self.circle.hasDashboard = newValue
+                    self.isDashboardEnabled = newValue
+
+                    // ✅ Tell wrapper to refresh
+                    UserDefaults.standard.set(true, forKey: "should_refresh_circles")
+                }
+            }
+        }.resume()
+    }
+
+    func fetchLatestCircleDetails() {
+        guard let url = URL(string: "\(baseURL)circles/get_circle_details/?circle_id=\(circle.id)&user_id=\(userId)") else { return }
+
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            guard let data = data, error == nil else {
+                print("❌ Error fetching latest circle details")
+                return
+            }
+
+            do {
+                let decoded = try JSONDecoder().decode(CircleData.self, from: data)
+                DispatchQueue.main.async {
+                    self.circle = decoded
+                    self.isDashboardEnabled = decoded.hasDashboard ?? false
+                }
+            } catch {
+                print("❌ Failed to decode CircleData:", error)
+            }
+        }.resume()
+    }
+
+    struct CreateAnnouncementPopup: View {
+        let circleId: Int
+        let userId: Int
+        var onPost: () -> Void
+
+        @Environment(\.presentationMode) var presentationMode
+        @State private var title = ""
+        @State private var content = ""
+
+        var body: some View {
+            VStack(spacing: 16) {
+                Text("New Announcement")
+                    .font(.headline)
+
+                TextField("Title", text: $title)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+
+                TextEditor(text: $content)
+                    .frame(height: 120)
+                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.gray))
+
+                Button("Post") {
+                    postAnnouncement()
+                }
+                .padding()
+                .background(Color.blue)
+                .foregroundColor(.white)
+                .cornerRadius(10)
+
+                Spacer()
+            }
+            .padding()
+        }
+
+        func postAnnouncement() {
+            print("🔄 Posting announcement for circle \(circleId) and user \(userId)")
+            print("   - Title: '\(title)'")
+            print("   - Content: '\(content)'")
+            
+            guard !title.isEmpty && !content.isEmpty else {
+                print("❌ Title or content is empty")
+                return
+            }
+            
+            guard let url = URL(string: "http://localhost:8000/api/circles/post_announcement/") else { 
+                print("❌ Invalid URL for posting announcement")
+                return 
+            }
+
+            let body: [String: Any] = [
+                "circle_id": circleId,
+                "user_id": userId,
+                "title": title,
+                "content": content
+            ]
+
+            print("🌐 Posting announcement to: \(url)")
+            print("📤 Payload: \(body)")
+
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+
+            URLSession.shared.dataTask(with: request) { data, response, error in
+                if let error = error {
+                    print("❌ Network error posting announcement: \(error.localizedDescription)")
+                    DispatchQueue.main.async {
+                        // Show error message to user
+                        presentationMode.wrappedValue.dismiss()
+                    }
+                    return
+                }
+                
+                if let httpResponse = response as? HTTPURLResponse {
+                    print("📡 Announcement response status: \(httpResponse.statusCode)")
+                    
+                    if httpResponse.statusCode == 404 {
+                        print("❌ Announcement API endpoint not found (404) - feature not implemented in backend")
+                        DispatchQueue.main.async {
+                            // Show error message to user that feature isn't available
+                            presentationMode.wrappedValue.dismiss()
+                        }
+                        return
+                    }
+                }
+                
+                if let data = data {
+                    print("📥 Announcement raw response: \(String(data: data, encoding: .utf8) ?? "nil")")
+                }
+                
+                DispatchQueue.main.async {
+                    print("✅ Announcement posted successfully - dismissing popup")
+                    presentationMode.wrappedValue.dismiss()
+                    onPost()
+                }
+            }.resume()
+        }
+    }
+
+>>>>>>> Stashed changes:circl_test_app/circles/home/PageGroupchats.swift
 
     var headerSection: some View {
         VStack(spacing: 0) {
@@ -1025,7 +1435,7 @@ struct PageGroupchats: View {
                 .frame(height: 0)
         }
     }
-}
+
 
 
 // MARK: - Thread Post Model
@@ -1233,6 +1643,7 @@ struct PageGroupchatsWrapper: View {
                     Spacer()
                 }
             }
+<<<<<<< Updated upstream:circl_test_app/PageGroupchats.swift
  else {
                 if let savedCircle = myCircles.first(where: { $0.id == lastCircleId }) {
                     PageGroupchats(circle: savedCircle)
@@ -1244,9 +1655,21 @@ struct PageGroupchatsWrapper: View {
         }
         .onAppear {
             fetchMyCircles()
+=======
+        }
+        .onAppear {
+            if UserDefaults.standard.bool(forKey: "should_refresh_circles") {
+                print("🔁 Refreshing circles from toggle")
+                UserDefaults.standard.set(false, forKey: "should_refresh_circles")
+                fetchCircles(userId: userId)  // Use real user ID
+            } else {
+                print("✅ Normal onAppear, no dashboard refresh needed")
+            }
+>>>>>>> Stashed changes:circl_test_app/circles/home/PageGroupchats.swift
         }
         
     }
+<<<<<<< Updated upstream:circl_test_app/PageGroupchats.swift
 
     func fetchMyCircles() {
         // Local API model for this function
@@ -1284,12 +1707,39 @@ struct PageGroupchatsWrapper: View {
                             isModerator: apiCircle.is_moderator ?? false
                         )
                     }
+=======
+    
+    // Function to fetch circles for the wrapper
+    func fetchCircles(userId: Int) {
+        print("🔄 PageGroupchatsWrapper fetchCircles called with userId: \(userId)")
+        guard let url = URL(string: "http://localhost:8000/api/circles/my_circles/\(userId)/") else {
+            print("❌ Invalid URL for my_circles")
+            return
+        }
+        
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    print("❌ Network error: \(error.localizedDescription)")
+>>>>>>> Stashed changes:circl_test_app/circles/home/PageGroupchats.swift
                     self.loading = false
+                    return
                 }
-            } else {
-                DispatchQueue.main.async {
+                
+                guard let data = data else {
+                    print("❌ No data received")
                     self.loading = false
+                    return
                 }
+                
+                if let decoded: [CircleData] = try? JSONDecoder().decode([CircleData].self, from: data) {
+                    print("✅ Successfully decoded \(decoded.count) circles")
+                    self.myCircles = decoded
+                } else {
+                    print("❌ Failed to decode circles")
+                }
+                
+                self.loading = false
             }
         }.resume()
     }
@@ -1336,4 +1786,5 @@ struct CirclHeader: View {
             .background(Color(hex: "004aad"))
         }
     }
+}
 }
