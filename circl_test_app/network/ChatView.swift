@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import Foundation
 
 struct ChatView: View {
@@ -6,6 +7,10 @@ struct ChatView: View {
     @State private var messageText = ""
     @State private var messages: [NetworkChatMessage] = []
     @State private var isTyping = false
+    @State private var keyboardHeight: CGFloat = 0
+    @State private var selectedImage: UIImage?
+    @State private var selectedVideoURL: URL?
+    @State private var showingMediaPicker = false
     @Environment(\.presentationMode) var presentationMode
     
     // Real messages from PageMessages
@@ -42,12 +47,18 @@ struct ChatView: View {
         .background(Color(.systemBackground))
         .ignoresSafeArea(.all, edges: [.top, .bottom])
         .navigationBarHidden(true)
+        .padding(.bottom, keyboardHeight)
+        .animation(.easeInOut(duration: 0.3), value: keyboardHeight)
         .onAppear {
             if let realMessages = realMessages {
                 loadRealMessages(realMessages)
             } else {
                 loadDummyMessages()
             }
+            addKeyboardObservers()
+        }
+        .onDisappear {
+            removeKeyboardObservers()
         }
     }
     
@@ -97,7 +108,13 @@ struct ChatView: View {
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundColor(.white)
                     
-                    Text("• 1st")
+                    // Position (placeholder for now)
+                    Text("CEO")
+                        .font(.system(size: 12))
+                        .foregroundColor(.white.opacity(0.9))
+                    
+                    // Company name
+                    Text(user.company)
                         .font(.system(size: 12))
                         .foregroundColor(.white.opacity(0.8))
                 }
@@ -168,16 +185,104 @@ struct ChatView: View {
     // MARK: - LinkedIn Input Section
     var linkedinInputSection: some View {
         VStack(spacing: 0) {
+            // Media preview section
+            if selectedImage != nil || selectedVideoURL != nil {
+                HStack {
+                    // Media preview
+                    if let image = selectedImage {
+                        HStack(spacing: 8) {
+                            Image(uiImage: image)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 60, height: 60)
+                                .clipped()
+                                .cornerRadius(8)
+                            
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Photo")
+                                    .font(.caption)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(.primary)
+                                Text("Ready to send")
+                                    .font(.caption2)
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            Spacer()
+                            
+                            Button(action: {
+                                selectedImage = nil
+                            }) {
+                                Image(systemName: "xmark.circle.fill")
+                                    .font(.system(size: 20))
+                                    .foregroundColor(.gray)
+                            }
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(Color(.systemGray6))
+                        .cornerRadius(10)
+                    }
+                    
+                    if let videoURL = selectedVideoURL {
+                        HStack(spacing: 8) {
+                            // Video thumbnail placeholder
+                            ZStack {
+                                Rectangle()
+                                    .fill(Color(.systemGray4))
+                                    .frame(width: 60, height: 60)
+                                    .cornerRadius(8)
+                                
+                                Image(systemName: "play.circle.fill")
+                                    .font(.system(size: 24))
+                                    .foregroundColor(.white)
+                            }
+                            
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Video")
+                                    .font(.caption)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(.primary)
+                                Text("Ready to send")
+                                    .font(.caption2)
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            Spacer()
+                            
+                            Button(action: {
+                                selectedVideoURL = nil
+                            }) {
+                                Image(systemName: "xmark.circle.fill")
+                                    .font(.system(size: 20))
+                                    .foregroundColor(.gray)
+                            }
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(Color(.systemGray6))
+                        .cornerRadius(10)
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+            }
+            
             Divider()
             
             HStack(spacing: 12) {
-                // Attachment button
+                // Blue plus button (now opens media picker)
                 Button(action: {
-                    // Handle attachment
+                    showingMediaPicker = true
                 }) {
-                    Image(systemName: "paperclip")
+                    Image(systemName: "plus")
                         .font(.system(size: 20, weight: .medium))
-                        .foregroundColor(.primary)
+                        .foregroundColor(.white)
+                        .frame(width: 36, height: 36)
+                        .background(
+                            Circle()
+                                .fill(Color(hex: "004aad"))
+                        )
                 }
                 
                 // Text input
@@ -191,13 +296,34 @@ struct ChatView: View {
                         sendMessage()
                     }
                 
-
+                // Send button
+                Button(action: {
+                    if selectedImage != nil || selectedVideoURL != nil {
+                        sendMessageWithMedia()
+                    } else {
+                        sendMessage()
+                    }
+                }) {
+                    Image(systemName: "paperplane.fill")
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundColor(.white)
+                        .frame(width: 36, height: 36)
+                        .background(
+                            Circle()
+                                .fill(Color(hex: "004aad"))
+                        )
+                }
+                .disabled(messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && selectedImage == nil && selectedVideoURL == nil)
+                .opacity(messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && selectedImage == nil && selectedVideoURL == nil ? 0.5 : 1.0)
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
-            .padding(.bottom, 20) // Add space above home indicator
+            .padding(.bottom, keyboardHeight > 0 ? 0 : 20) // Adjust bottom padding based on keyboard
         }
         .background(Color(.systemBackground))
+        .sheet(isPresented: $showingMediaPicker) {
+            MediaPicker(image: $selectedImage, videoURL: $selectedVideoURL)
+        }
     }
     
     // MARK: - Helper Functions
@@ -241,7 +367,8 @@ struct ChatView: View {
                     isFromCurrentUser: true,
                     timestamp: Date(),
                     isRead: false,
-                    actualSenderName: nil
+                    actualSenderName: nil,
+                    mediaURL: nil
                 )
                 withAnimation(.easeInOut(duration: 0.3)) {
                     messages.append(newMessage)
@@ -249,6 +376,114 @@ struct ChatView: View {
                 messageText = ""
             }
         }.resume()
+    }
+
+    private func sendMessageWithMedia() {
+        print("🔴 sendMessageWithMedia() called")
+        print("🔴 Message: '\(messageText)', HasImage: \(selectedImage != nil), HasVideo: \(selectedVideoURL != nil)")
+        
+        guard !messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || selectedImage != nil || selectedVideoURL != nil else {
+            print("🔴 No content to send in media message")
+            return
+        }
+        
+        guard let url = URL(string: "\(baseURL)users/send_message_with_media/") else {
+            print("🔴 Failed to create media URL")
+            return
+        }
+
+        print("🔴 About to send media POST to: \(url)")
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        let boundary = UUID().uuidString
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+
+        var body = Data()
+        let currentUserId = UserDefaults.standard.integer(forKey: "user_id")
+        let receiverId = user.id
+        
+        let fields: [String: String] = [
+            "sender_id": "\(currentUserId)",
+            "receiver_id": receiverId,
+            "content": messageText
+        ]
+
+        print("🔴 Adding form fields: \(fields)")
+        for (key, value) in fields {
+            body.append("--\(boundary)\r\n")
+            body.append("Content-Disposition: form-data; name=\"\(key)\"\r\n\r\n")
+            body.append("\(value)\r\n")
+        }
+
+        if let image = selectedImage, let imageData = image.jpegData(compressionQuality: 0.75) {
+            print("🔴 Adding image data: \(imageData.count) bytes")
+            body.append("--\(boundary)\r\n")
+            body.append("Content-Disposition: form-data; name=\"media\"; filename=\"image.jpg\"\r\n")
+            body.append("Content-Type: image/jpeg\r\n\r\n")
+            body.append(imageData)
+            body.append("\r\n")
+        }
+
+        if let videoURL = selectedVideoURL,
+           let videoData = try? Data(contentsOf: videoURL) {
+            print("🔴 Adding video data: \(videoData.count) bytes")
+            body.append("--\(boundary)\r\n")
+            body.append("Content-Disposition: form-data; name=\"media\"; filename=\"video.mov\"\r\n")
+            body.append("Content-Type: video/quicktime\r\n\r\n")
+            body.append(videoData)
+            body.append("\r\n")
+        }
+
+        body.append("--\(boundary)--\r\n")
+        request.httpBody = body
+
+        print("🔴 Sending media request with body size: \(body.count) bytes")
+
+        // Create a temporary message with local media to show immediately
+        let tempMessage = NetworkChatMessage(
+            id: UUID().uuidString,
+            content: messageText,
+            isFromCurrentUser: true,
+            timestamp: Date(),
+            isRead: false,
+            actualSenderName: nil,
+            mediaURL: nil,
+            localImage: selectedImage,
+            localVideoURL: selectedVideoURL
+        )
+        
+        // Store the local media for temporary display
+        DispatchQueue.main.async {
+            withAnimation(.easeInOut(duration: 0.3)) {
+                self.messages.append(tempMessage)
+            }
+            self.messageText = ""
+            // Don't clear selectedImage/selectedVideoURL yet - we need them for display
+        }
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            print("🔴 Media response received - Error: \(error?.localizedDescription ?? "none")")
+            if let httpResponse = response as? HTTPURLResponse {
+                print("🔴 Media HTTP Status: \(httpResponse.statusCode)")
+            }
+            if let data = data, let responseString = String(data: data, encoding: .utf8) {
+                print("🔴 Media Server Response: \(responseString)")
+            }
+            
+            DispatchQueue.main.async {
+                print("🔴 Clearing media after upload")
+                self.selectedImage = nil
+                self.selectedVideoURL = nil
+            }
+        }.resume()
+        
+        print("🔴 Media request sent!")
     }
 
     
@@ -268,7 +503,8 @@ struct ChatView: View {
             isFromCurrentUser: false,
             timestamp: Date(),
             isRead: true,
-            actualSenderName: user.name
+            actualSenderName: user.name,
+            mediaURL: nil
         )
         
         withAnimation(.easeInOut(duration: 0.3)) {
@@ -284,7 +520,8 @@ struct ChatView: View {
                 isFromCurrentUser: false,
                 timestamp: Calendar.current.date(byAdding: .hour, value: -2, to: Date()) ?? Date(),
                 isRead: true,
-                actualSenderName: user.name
+                actualSenderName: user.name,
+                mediaURL: nil
             ),
             NetworkChatMessage(
                 id: "2",
@@ -292,7 +529,8 @@ struct ChatView: View {
                 isFromCurrentUser: true,
                 timestamp: Calendar.current.date(byAdding: .hour, value: -2, to: Date()) ?? Date(),
                 isRead: true,
-                actualSenderName: nil
+                actualSenderName: nil,
+                mediaURL: nil
             ),
             NetworkChatMessage(
                 id: "3",
@@ -300,7 +538,8 @@ struct ChatView: View {
                 isFromCurrentUser: false,
                 timestamp: Calendar.current.date(byAdding: .minute, value: -90, to: Date()) ?? Date(),
                 isRead: true,
-                actualSenderName: user.name
+                actualSenderName: user.name,
+                mediaURL: nil
             ),
             NetworkChatMessage(
                 id: "4",
@@ -308,7 +547,8 @@ struct ChatView: View {
                 isFromCurrentUser: true,
                 timestamp: Calendar.current.date(byAdding: .minute, value: -85, to: Date()) ?? Date(),
                 isRead: true,
-                actualSenderName: nil
+                actualSenderName: nil,
+                mediaURL: nil
             ),
             NetworkChatMessage(
                 id: "5",
@@ -316,7 +556,8 @@ struct ChatView: View {
                 isFromCurrentUser: false,
                 timestamp: Calendar.current.date(byAdding: .minute, value: -30, to: Date()) ?? Date(),
                 isRead: true,
-                actualSenderName: user.name
+                actualSenderName: user.name,
+                mediaURL: nil
             )
         ]
         
@@ -380,7 +621,8 @@ struct ChatView: View {
                 isFromCurrentUser: isFromCurrentUser,
                 timestamp: timestamp,
                 isRead: message.is_read,
-                actualSenderName: senderName
+                actualSenderName: senderName,
+                mediaURL: nil // Real messages from server would include media_url field
             )
         }
         
@@ -389,6 +631,35 @@ struct ChatView: View {
         
         print("✅ Loaded \(self.messages.count) real messages for chat with \(user.name)")
         print("📋 Messages preview: \(self.messages.map { "\($0.senderName): \($0.content.prefix(20))... (\($0.formattedTime))" })")
+    }
+    
+    // MARK: - Keyboard Handling
+    private func addKeyboardObservers() {
+        NotificationCenter.default.addObserver(
+            forName: UIResponder.keyboardWillShowNotification,
+            object: nil,
+            queue: .main
+        ) { notification in
+            if let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
+                let keyboardHeight = keyboardFrame.height
+                // Subtract safe area bottom inset to avoid double padding
+                let safeAreaBottom = UIApplication.shared.windows.first?.safeAreaInsets.bottom ?? 0
+                self.keyboardHeight = keyboardHeight - safeAreaBottom
+            }
+        }
+        
+        NotificationCenter.default.addObserver(
+            forName: UIResponder.keyboardWillHideNotification,
+            object: nil,
+            queue: .main
+        ) { _ in
+            self.keyboardHeight = 0
+        }
+    }
+    
+    private func removeKeyboardObservers() {
+        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: nil)
+        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
     }
     
 
@@ -403,22 +674,22 @@ struct LinkedInMessageBubble: View {
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
             if !message.isFromCurrentUser {
-                // Profile picture for other user
+                // Profile picture for other user (left side)
                 AsyncImage(url: URL(string: user.profile_image ?? "")) { phase in
                     switch phase {
                     case .success(let image):
                         image
                             .resizable()
                             .scaledToFill()
-                            .frame(width: 32, height: 32)
+                            .frame(width: 36, height: 36)
                             .clipShape(Circle())
                     default:
                         Circle()
                             .fill(Color(.systemGray4))
-                            .frame(width: 32, height: 32)
+                            .frame(width: 36, height: 36)
                             .overlay(
                                 Image(systemName: "person.fill")
-                                    .font(.system(size: 14))
+                                    .font(.system(size: 16))
                                     .foregroundColor(.white)
                             )
                     }
@@ -426,61 +697,166 @@ struct LinkedInMessageBubble: View {
             }
             
             VStack(alignment: message.isFromCurrentUser ? .trailing : .leading, spacing: 4) {
-                // Sender name and timestamp
-                HStack(spacing: 4) {
-                    if !message.isFromCurrentUser {
+                // Sender name (only show for other users)
+                if !message.isFromCurrentUser {
+                    HStack(spacing: 4) {
                         Text(message.senderName)
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(.primary)
-                        
-                        Image(systemName: "linkedin")
-                            .font(.system(size: 10))
-                            .foregroundColor(.blue)
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                        Spacer()
                     }
-                    
-                    Spacer()
-                    
-                    Text(message.formattedTime)
-                        .font(.system(size: 12))
-                        .foregroundColor(.secondary)
                 }
                 
                 // Message content
-                Text(message.content)
-                    .font(.system(size: 16))
-                    .foregroundColor(.primary)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
-                    .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(Color(.systemGray6))
-                    )
-                    .frame(maxWidth: .infinity, alignment: message.isFromCurrentUser ? .trailing : .leading)
+                VStack(alignment: .leading, spacing: 8) {
+                    // Text content (only if not empty)
+                    if !message.content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                        Text(message.content)
+                            .font(.system(size: 16))
+                            .foregroundColor(message.isFromCurrentUser ? .white : .black)
+                    }
+                    
+                    // Media content (if present)
+                    if let localImage = message.localImage {
+                        // Display local image
+                        Image(uiImage: localImage)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 200, height: 200)
+                            .clipped()
+                            .cornerRadius(10)
+                    } else if let localVideoURL = message.localVideoURL {
+                        // Display local video thumbnail
+                        ZStack {
+                            Rectangle()
+                                .fill(Color(.systemGray4))
+                                .frame(width: 200, height: 150)
+                                .cornerRadius(10)
+                            
+                            VStack {
+                                Image(systemName: "play.circle.fill")
+                                    .font(.system(size: 32))
+                                    .foregroundColor(.white)
+                                Text("Video")
+                                    .font(.caption)
+                                    .foregroundColor(.white)
+                            }
+                        }
+                    } else if let mediaURL = message.mediaURL, let url = URL(string: mediaURL) {
+                        if mediaURL.contains(".mov") || mediaURL.contains(".mp4") || mediaURL.contains("/video") {
+                            // Video content
+                            ZStack {
+                                AsyncImage(url: url) { phase in
+                                    switch phase {
+                                    case .empty:
+                                        Rectangle()
+                                            .fill(Color(.systemGray4))
+                                            .frame(width: 200, height: 150)
+                                            .overlay(
+                                                ProgressView()
+                                                    .progressViewStyle(CircularProgressViewStyle())
+                                            )
+                                    case .success(let image):
+                                        image
+                                            .resizable()
+                                            .scaledToFill()
+                                            .frame(width: 200, height: 150)
+                                            .clipped()
+                                    case .failure(_):
+                                        Rectangle()
+                                            .fill(Color(.systemGray4))
+                                            .frame(width: 200, height: 150)
+                                            .overlay(
+                                                Image(systemName: "video.slash.fill")
+                                                    .font(.system(size: 24))
+                                                    .foregroundColor(.gray)
+                                            )
+                                    @unknown default:
+                                        EmptyView()
+                                    }
+                                }
+                                
+                                Image(systemName: "play.circle.fill")
+                                    .font(.system(size: 32))
+                                    .foregroundColor(.white)
+                                    .shadow(radius: 4)
+                            }
+                            .cornerRadius(10)
+                        } else {
+                            // Image content
+                            AsyncImage(url: url) { phase in
+                                switch phase {
+                                case .empty:
+                                    Rectangle()
+                                        .fill(Color(.systemGray6))
+                                        .frame(width: 200, height: 200)
+                                        .overlay(
+                                            ProgressView()
+                                                .progressViewStyle(CircularProgressViewStyle())
+                                        )
+                                        .cornerRadius(10)
+                                case .success(let image):
+                                    image
+                                        .resizable()
+                                        .scaledToFill()
+                                        .frame(width: 200, height: 200)
+                                        .clipped()
+                                        .cornerRadius(10)
+                                case .failure(_):
+                                    Rectangle()
+                                        .fill(Color(.systemGray4))
+                                        .frame(width: 200, height: 200)
+                                        .overlay(
+                                            Image(systemName: "photo.fill")
+                                                .font(.system(size: 24))
+                                                .foregroundColor(.gray)
+                                        )
+                                        .cornerRadius(10)
+                                @unknown default:
+                                    EmptyView()
+                                }
+                            }
+                            .onTapGesture {
+                                // Could add full-screen image viewer here
+                            }
+                        }
+                    }
+                }
+                .padding(10)
+                .background(message.isFromCurrentUser ? Color(hex: "004aad") : Color(.systemGray5))
+                .cornerRadius(12)
+                .frame(maxWidth: UIScreen.main.bounds.width * 0.7, alignment: message.isFromCurrentUser ? .trailing : .leading)
+                
+                // Timestamp
+                Text(message.formattedTime)
+                    .font(.caption2)
+                    .foregroundColor(.gray)
             }
             
             if message.isFromCurrentUser {
-                // Profile picture for current user
+                // Profile picture for current user (right side)
                 AsyncImage(url: URL(string: UserDefaults.standard.string(forKey: "user_profile_image_url") ?? "")) { phase in
                     switch phase {
                     case .success(let image):
                         image
                             .resizable()
                             .scaledToFill()
-                            .frame(width: 32, height: 32)
+                            .frame(width: 36, height: 36)
                             .clipShape(Circle())
                     default:
                         Circle()
                             .fill(Color(.systemGray4))
-                            .frame(width: 32, height: 32)
+                            .frame(width: 36, height: 36)
                             .overlay(
                                 Image(systemName: "person.fill")
-                                    .font(.system(size: 14))
+                                    .font(.system(size: 16))
                                     .foregroundColor(.white)
                             )
                     }
                 }
             }
         }
+        .frame(maxWidth: .infinity, alignment: message.isFromCurrentUser ? .trailing : .leading)
         .padding(.horizontal, 4)
     }
 }
@@ -792,6 +1168,23 @@ struct NetworkChatMessage: Identifiable, Codable {
     let timestamp: Date
     let isRead: Bool
     let actualSenderName: String? // Store the actual sender name
+    let mediaURL: String? // Add media URL field
+    
+    // Non-Codable local media for temporary display
+    var localImage: UIImage?
+    var localVideoURL: URL?
+    
+    init(id: String, content: String, isFromCurrentUser: Bool, timestamp: Date, isRead: Bool, actualSenderName: String?, mediaURL: String?, localImage: UIImage? = nil, localVideoURL: URL? = nil) {
+        self.id = id
+        self.content = content
+        self.isFromCurrentUser = isFromCurrentUser
+        self.timestamp = timestamp
+        self.isRead = isRead
+        self.actualSenderName = actualSenderName
+        self.mediaURL = mediaURL
+        self.localImage = localImage
+        self.localVideoURL = localVideoURL
+    }
     
     var senderName: String {
         if isFromCurrentUser {
@@ -799,6 +1192,35 @@ struct NetworkChatMessage: Identifiable, Codable {
         } else {
             return actualSenderName ?? "Contact" // Use actual name or fallback to "Contact"
         }
+    }
+    
+    // Custom Codable implementation to handle non-Codable properties
+    private enum CodingKeys: String, CodingKey {
+        case id, content, isFromCurrentUser, timestamp, isRead, actualSenderName, mediaURL
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        content = try container.decode(String.self, forKey: .content)
+        isFromCurrentUser = try container.decode(Bool.self, forKey: .isFromCurrentUser)
+        timestamp = try container.decode(Date.self, forKey: .timestamp)
+        isRead = try container.decode(Bool.self, forKey: .isRead)
+        actualSenderName = try container.decodeIfPresent(String.self, forKey: .actualSenderName)
+        mediaURL = try container.decodeIfPresent(String.self, forKey: .mediaURL)
+        localImage = nil
+        localVideoURL = nil
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(content, forKey: .content)
+        try container.encode(isFromCurrentUser, forKey: .isFromCurrentUser)
+        try container.encode(timestamp, forKey: .timestamp)
+        try container.encode(isRead, forKey: .isRead)
+        try container.encodeIfPresent(actualSenderName, forKey: .actualSenderName)
+        try container.encodeIfPresent(mediaURL, forKey: .mediaURL)
     }
     
     var formattedTime: String {
