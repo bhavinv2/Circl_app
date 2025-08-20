@@ -86,14 +86,12 @@ struct PageCircleMessages: View {
                         .padding(.bottom, 6)
                         .padding(.top, 4)
                     }
-                    .background(Color(hex: "004aad")) // Same blue as header
+                    .background(Color(hex: "004aad"))
                 }
 
                 messagesScrollView
                 inputBar
             }
-
-
             .zIndex(0)
 
             // Tap-out background
@@ -110,58 +108,33 @@ struct PageCircleMessages: View {
                     .zIndex(1)
             }
 
-            if showCircleMenu {
-                circleMenu
-                    .zIndex(2)
-            }
-
-            if showCategoryMenu {
-                categoryMenu
-                    .zIndex(2)
-            }
-
-            if showMenu {
-                hammerMenu
-                    .zIndex(2)
-            }
+            if showCircleMenu { circleMenu.zIndex(2) }
+            if showCategoryMenu { categoryMenu.zIndex(2) }
+            if showMenu { hammerMenu.zIndex(2) }
         }
-        NavigationLink(
-            destination: MemberListPage(circleName: circleName, circleId: channel.circleId),
-            isActive: $navigateToMembers
-        ) {
-            EmptyView()
-        }
-        
-        NavigationLink(
-            destination: PageCircles().navigationBarBackButtonHidden(true),
-            isActive: $navigateBackToCircles
-        ) {
-            EmptyView()
-        }
-
-
         .background(Color(UIColor.systemBackground).edgesIgnoringSafeArea(.all))
         .navigationBarBackButtonHidden(true)
         .onAppear {
+            // ✅ Only initial loads
             fetchMessages()
             fetchChannelsInCircle()
             fetchMembers()
         }
 
-        
-        
-        .alert("Leave Circle?", isPresented: $showLeaveConfirmation) {
-            Button("Leave", role: .destructive) {
-                leaveCircle()
-            }
-            Button("Cancel", role: .cancel) { }
-        } message: {
-            Text("Are you sure you want to leave this circle? You will be removed from all its channels.")
-        }
-
-        
-
+        .background(
+            NavigationLink(
+                destination: MemberListPage(circleName: circleName, circleId: channel.circleId),
+                isActive: $navigateToMembers
+            ) { EmptyView() }
+        )
+        .background(
+            NavigationLink(
+                destination: PageCircles().navigationBarBackButtonHidden(true),
+                isActive: $navigateBackToCircles
+            ) { EmptyView() }
+        )
     }
+
     
     
 
@@ -377,25 +350,36 @@ struct PageCircleMessages: View {
         }.resume()
     }
 
-    func fetchChannelsInCircle() {
-        guard let url = URL(string: "https://circlapp.online/api/circles/get_categories/\(channel.circleId)/") else { return }
+    private func fetchChannelsInCircle() {
+        guard let url = URL(string: "https://circlapp.online/api/circles/get_categories/\(channel.circleId)/") else {
+            print("❌ Invalid URL for get_categories")
+            return
+        }
 
-        URLSession.shared.dataTask(with: url) { data, _, error in
-            guard let data = data, error == nil else {
-                print("❌ Failed to load categories:", error?.localizedDescription ?? "unknown")
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            if let error = error {
+                print("❌ Error fetching categories:", error)
                 return
             }
 
+            guard let data = data else { return }
+
             do {
                 let decoded = try JSONDecoder().decode([ChannelCategory].self, from: data)
+
                 DispatchQueue.main.async {
-                    channelCategories = decoded
-                    if selectedCategory == nil {
-                        selectedCategory = decoded.first
+                    self.channelCategories = decoded
+
+                    // ✅ Sync the correct tapped channel + category
+                    if let matchedCategory = decoded.first(where: { cat in
+                        cat.channels.contains(where: { $0.id == channel.id })
+                    }) {
+                        self.selectedCategory = matchedCategory
+                        self.currentChannel = channel
                     }
                 }
             } catch {
-                print("❌ Failed to decode categories:", error)
+                print("❌ Error decoding categories:", error)
             }
         }.resume()
     }

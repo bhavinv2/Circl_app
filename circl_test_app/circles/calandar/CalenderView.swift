@@ -41,7 +41,7 @@ struct CalendarView: View {
 
     
     // API Configuration
-    private let baseURL = "http://localhost:8000/api/"
+ 
     
     // Create event form states
     @State private var newEventName: String = ""
@@ -53,7 +53,10 @@ struct CalendarView: View {
     
 
     let eventTypes = ["Workshop", "Speaker", "Social", "Meeting", "Conference"]
-    
+    var isModerator: Bool {
+        return circle.isModerator
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             // Header
@@ -72,13 +75,16 @@ struct CalendarView: View {
                     
                     Spacer()
                     
-                    Button(action: {
-                        showCreateEvent = true
-                    }) {
-                        Image(systemName: "plus.circle.fill")
-                            .font(.title2)
-                            .foregroundColor(Color(hex: "004aad"))
+                    if isModerator {
+                        Button(action: {
+                            showCreateEvent = true
+                        }) {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.title2)
+                                .foregroundColor(Color(hex: "004aad"))
+                        }
                     }
+
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 20)
@@ -164,9 +170,14 @@ struct CalendarView: View {
                                             isCheckedIn: checkedInEvents.contains(event.id),
                                             onCheckIn: {
                                                 checkInToEvent(event.id)
+                                            },
+                                            isModerator: isModerator,                      // ✅ add this
+                                            onDelete: {
+                                                deleteEvent(event.id)                      // ✅ add this
                                             }
                                         )
                                     }
+
                                 }
                                 .padding(.horizontal, 20)
                             }
@@ -249,12 +260,13 @@ struct CalendarView: View {
     func fetchEvents() {
         isLoading = true
 
-        guard let url = URL(string: "\(baseURL)circles/get_events/") else {
+        guard let url = URL(string: "\(baseURL)circles/get_events/?circle_id=\(circle.id)") else {
             print("❌ Invalid URL for fetchEvents")
             isLoading = false
             loadSampleEvents()
             return
         }
+
 
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
@@ -361,6 +373,33 @@ struct CalendarView: View {
         }.resume()
     }
     
+    func deleteEvent(_ eventId: Int) {
+        guard let url = URL(string: "\(baseURL)circles/delete_event/\(eventId)/?user_id=\(userId)") else {
+            print("❌ Invalid URL for deleteEvent")
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "DELETE"   // ✅ must match backend
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    print("❌ Error deleting event: \(error.localizedDescription)")
+                    return
+                }
+
+                if let httpResponse = response as? HTTPURLResponse {
+                    print("✅ Delete response status:", httpResponse.statusCode)
+                }
+
+                // ✅ Refresh events after delete
+                fetchEvents()
+            }
+        }.resume()
+    }
+
+    
     func checkInToEvent(_ eventId: Int) {
         guard let url = URL(string: "\(baseURL)circles/checkin_event/") else {
             print("❌ Invalid URL for checkIn")
@@ -456,9 +495,11 @@ struct EventCard: View {
     let event: CalendarEvent
     let isCheckedIn: Bool
     let onCheckIn: () -> Void
+    let isModerator: Bool          // ✅ new
+    let onDelete: () -> Void
 
     @State private var isExpanded = false  // ✅ Properly scoped per card
-
+    @State private var showDeleteConfirm = false   // ✅ new state
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .top) {
@@ -513,9 +554,30 @@ struct EventCard: View {
                                     .font(.caption)
                                     .foregroundColor(.gray)
                             }
+
+                            // ✅ Delete button (only for moderators)
+                            // ✅ Delete button (only for moderators)
+                            if isModerator {
+                                Button(role: .destructive) {
+                                    showDeleteConfirm = true   // 👈 trigger alert
+                                } label: {
+                                    Label("Delete Event", systemImage: "trash")
+                                        .font(.caption)
+                                }
+                                .padding(.top, 4)
+                                .alert("Are you sure you want to delete this event?",
+                                       isPresented: $showDeleteConfirm) {
+                                    Button("Cancel", role: .cancel) {}
+                                    Button("Delete", role: .destructive) {
+                                        onDelete()   // 👈 actually delete
+                                    }
+                                }
+                            }
+
                         }
                         .transition(.opacity.combined(with: .slide))
                     }
+
                 }
 
                 Spacer()
