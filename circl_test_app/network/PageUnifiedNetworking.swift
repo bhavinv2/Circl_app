@@ -1152,50 +1152,22 @@ struct PageUnifiedNetworking: View {
                     }
                     
                     Spacer()
-                    
-                    // Status indicator with online/location info
-                    VStack(spacing: 4) {
-                        Circle()
-                            .fill(Color.green)
-                            .frame(width: 8, height: 8)
-                        
-                        Text("Online")
-                            .font(.system(size: 10, weight: .medium))
-                            .foregroundColor(.secondary)
-                    }
                 }
                 
                 // Quick profile insights section
                 VStack(alignment: .leading, spacing: 10) {
-                    // Industry & Experience
-                    HStack(spacing: 12) {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Industry")
-                                .font(.system(size: 11, weight: .medium))
-                                .foregroundColor(.secondary)
-                                .textCase(.uppercase)
-                                .tracking(0.5)
-                            
-                            Text(entrepreneur.businessIndustry.isEmpty ? "Startup" : entrepreneur.businessIndustry)
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundColor(.primary)
-                                .lineLimit(1)
-                        }
+                    // Industry section
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Industry")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundColor(.secondary)
+                            .textCase(.uppercase)
+                            .tracking(0.5)
                         
-                        Spacer()
-                        
-                        VStack(alignment: .trailing, spacing: 4) {
-                            Text("Stage")
-                                .font(.system(size: 11, weight: .medium))
-                                .foregroundColor(.secondary)
-                                .textCase(.uppercase)
-                                .tracking(0.5)
-                            
-                            Text("Growth")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundColor(.orange)
-                                .lineLimit(1)
-                        }
+                        Text(entrepreneur.businessIndustry.isEmpty ? "Startup" : entrepreneur.businessIndustry)
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(.primary)
+                            .lineLimit(1)
                     }
                     
                     // Skills/Interests tags
@@ -1839,36 +1811,6 @@ struct PageUnifiedNetworking: View {
                 
                 // Connection insights section
                 VStack(alignment: .leading, spacing: 10) {
-                    // Connection details
-                    HStack(spacing: 12) {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Connected")
-                                .font(.system(size: 11, weight: .medium))
-                                .foregroundColor(.secondary)
-                                .textCase(.uppercase)
-                                .tracking(0.5)
-                            
-                            Text("3 weeks ago")
-                                .font(.system(size: 13, weight: .semibold))
-                                .foregroundColor(.green)
-                                .lineLimit(1)
-                        }
-                        
-                        Spacer()
-                        
-                        VStack(alignment: .trailing, spacing: 4) {
-                            Text("Mutual")
-                                .font(.system(size: 11, weight: .medium))
-                                .foregroundColor(.secondary)
-                                .textCase(.uppercase)
-                                .tracking(0.5)
-                            
-                            Text("5 connections")
-                                .font(.system(size: 13, weight: .semibold))
-                                .foregroundColor(Color(hex: "004aad"))
-                                .lineLimit(1)
-                        }
-                    }
                     
                     // Shared interests/tags
                     if !connection.tags.isEmpty {
@@ -1908,85 +1850,6 @@ struct PageUnifiedNetworking: View {
                                 .padding(.horizontal, 1)
                             }
                         }
-                    }
-                    
-                    // Recent activity or connection note
-                    HStack(spacing: 8) {
-                        Image(systemName: "clock.fill")
-                            .font(.system(size: 11))
-                            .foregroundColor(.green)
-                        
-                        Text("Last active: 2 hours ago • Open to collaborations")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(.secondary)
-                            .lineLimit(1)
-                        
-                        Spacer()
-                    }
-                    .padding(.vertical, 6)
-                    .padding(.horizontal, 10)
-                    .background(
-                        RoundedRectangle(cornerRadius: 6)
-                            .fill(Color.green.opacity(0.05))
-                    )
-                }
-                
-                // Quick action buttons for existing connections
-                HStack(spacing: 8) {
-                    Button(action: {
-                        print("📞 Voice call with \(connection.name)")
-                    }) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "phone.fill")
-                                .font(.system(size: 11, weight: .medium))
-                            Text("Call")
-                                .font(.system(size: 12, weight: .semibold))
-                        }
-                        .foregroundColor(Color(hex: "004aad"))
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(Color(hex: "004aad").opacity(0.1))
-                        )
-                    }
-                    
-                    Button(action: {
-                        print("📧 Email \(connection.name)")
-                    }) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "envelope.fill")
-                                .font(.system(size: 11, weight: .medium))
-                            Text("Email")
-                                .font(.system(size: 12, weight: .semibold))
-                        }
-                        .foregroundColor(.green)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(Color.green.opacity(0.1))
-                        )
-                    }
-                    
-                    Spacer()
-                    
-                    Button(action: {
-                        print("👥 View mutual connections with \(connection.name)")
-                    }) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "person.2.fill")
-                                .font(.system(size: 11, weight: .medium))
-                            Text("Mutual")
-                                .font(.system(size: 12, weight: .semibold))
-                        }
-                        .foregroundColor(.orange)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(Color.orange.opacity(0.1))
-                        )
                     }
                 }
             }
