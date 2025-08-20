@@ -11,6 +11,7 @@ struct ChatView: View {
     @State private var selectedImage: UIImage?
     @State private var selectedVideoURL: URL?
     @State private var showingMediaPicker = false
+    @State private var showingOptionsMenu = false
     @Environment(\.presentationMode) var presentationMode
     
     // Real messages from PageMessages
@@ -34,31 +35,56 @@ struct ChatView: View {
     }
     
     var body: some View {
-        VStack(spacing: 0) {
-            // Header
-            linkedinHeaderSection
-            
-            // Messages
-            linkedinMessagesSection
-            
-            // Input bar
-            linkedinInputSection
-        }
-        .background(Color(.systemBackground))
-        .ignoresSafeArea(.all, edges: [.top, .bottom])
-        .navigationBarHidden(true)
-        .padding(.bottom, keyboardHeight)
-        .animation(.easeInOut(duration: 0.3), value: keyboardHeight)
-        .onAppear {
-            if let realMessages = realMessages {
-                loadRealMessages(realMessages)
-            } else {
-                loadDummyMessages()
+        ZStack {
+            VStack(spacing: 0) {
+                // Header
+                linkedinHeaderSection
+                
+                // Messages
+                linkedinMessagesSection
+                
+                // Input bar
+                linkedinInputSection
             }
-            addKeyboardObservers()
-        }
-        .onDisappear {
-            removeKeyboardObservers()
+            .background(Color(.systemBackground))
+            .ignoresSafeArea(.all, edges: [.top, .bottom])
+            .navigationBarHidden(true)
+            .padding(.bottom, keyboardHeight)
+            .animation(.easeInOut(duration: 0.3), value: keyboardHeight)
+            .onAppear {
+                if let realMessages = realMessages {
+                    loadRealMessages(realMessages)
+                } else {
+                    loadDummyMessages()
+                }
+                addKeyboardObservers()
+            }
+            .onDisappear {
+                removeKeyboardObservers()
+            }
+            
+            // Options menu overlay
+            if showingOptionsMenu {
+                // Tap-out background
+                Color.black.opacity(0.3)
+                    .ignoresSafeArea(.all)
+                    .onTapGesture {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            showingOptionsMenu = false
+                        }
+                    }
+                
+                // Options menu
+                HStack {
+                    Spacer()
+                    VStack {
+                        optionsMenu
+                            .padding(.top, 65) // Position directly below the three dots
+                        Spacer()
+                    }
+                    .padding(.trailing, 16)
+                }
+            }
         }
     }
     
@@ -123,7 +149,9 @@ struct ChatView: View {
                 
                 // Right side button
                 Button(action: {
-                    // Handle more options
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        showingOptionsMenu = true
+                    }
                 }) {
                     Image(systemName: "ellipsis")
                         .font(.system(size: 18, weight: .medium))
@@ -660,6 +688,83 @@ struct ChatView: View {
     private func removeKeyboardObservers() {
         NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: nil)
         NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
+    }
+    
+    // MARK: - Options Menu
+    var optionsMenu: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // Report User
+            Button(action: {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    showingOptionsMenu = false
+                }
+                reportUser()
+            }) {
+                HStack(spacing: 12) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.system(size: 16))
+                        .foregroundColor(.red)
+                        .frame(width: 20)
+                    
+                    Text("Report User")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.red)
+                    
+                    Spacer()
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+            }
+            .buttonStyle(PlainButtonStyle())
+            
+            Divider()
+                .padding(.horizontal, 16)
+            
+            // Block User
+            Button(action: {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    showingOptionsMenu = false
+                }
+                blockUser()
+            }) {
+                HStack(spacing: 12) {
+                    Image(systemName: "hand.raised.fill")
+                        .font(.system(size: 16))
+                        .foregroundColor(.red)
+                        .frame(width: 20)
+                    
+                    Text("Block User")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.red)
+                    
+                    Spacer()
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+            }
+            .buttonStyle(PlainButtonStyle())
+        }
+        .frame(width: 160)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color(.systemBackground))
+                .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
+        )
+        .transition(.asymmetric(
+            insertion: .scale(scale: 0.8).combined(with: .opacity),
+            removal: .scale(scale: 0.8).combined(with: .opacity)
+        ))
+    }
+    
+    // MARK: - User Actions (Placeholder functions)
+    private func reportUser() {
+        // TODO: Implement report user functionality
+        print("🚨 Report user: \(user.name)")
+    }
+    
+    private func blockUser() {
+        // TODO: Implement block user functionality  
+        print("🚫 Block user: \(user.name)")
     }
     
 
