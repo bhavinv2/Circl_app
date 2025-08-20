@@ -24,6 +24,8 @@ struct PageUnifiedNetworking: View {
     @State private var pendingRequests: [InviteProfileData] = []
     @State private var selectedProfile: FullProfile?
     @State private var showProfileSheet = false
+    @State private var showChatView = false
+    @State private var selectedChatUser: NetworkUser?
     // Local data arrays (instead of using NetworkDataManager)
     @State private var entrepreneurs: [SharedEntrepreneurProfileData] = []
     @State private var mentors: [MentorProfileData] = []
@@ -538,6 +540,11 @@ struct PageUnifiedNetworking: View {
             } else {
                 Text("Loading profile...")
                     .padding()
+            }
+        }
+        .fullScreenCover(isPresented: $showChatView) {
+            if let user = selectedChatUser {
+                ChatView(user: user)
             }
         }
         .refreshable {
@@ -1776,9 +1783,22 @@ struct PageUnifiedNetworking: View {
                     // Enhanced message button with unread indicator
                     VStack(spacing: 4) {
                         Button(action: {
-                            // Navigate to messages with this user
-                            print("📱 Opening message conversation with \(connection.name)")
-                            // You could add navigation to messages page here
+                            // Create NetworkUser from InviteProfileData for chat
+                            let chatUser = NetworkUser(
+                                id: String(connection.user_id),
+                                name: connection.name,
+                                username: connection.username,
+                                email: connection.email,
+                                company: connection.company,
+                                bio: connection.proficiency, // Using proficiency as bio
+                                profile_image: connection.profileImage,
+                                tags: connection.tags,
+                                isOnline: false // Default to offline since we don't have real-time status
+                            )
+                            print("🎯 Chat button pressed for: \(connection.name)")
+                            print("🎯 Created NetworkUser: \(chatUser.name) - \(chatUser.email)")
+                            selectedChatUser = chatUser
+                            showChatView = true
                         }) {
                             ZStack {
                                 Image(systemName: "message.fill")
