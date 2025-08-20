@@ -301,15 +301,16 @@ struct PageUnifiedNetworking: View {
             .onAppear {
                 let fullName = UserDefaults.standard.string(forKey: "user_fullname") ?? ""
                 userFirstName = fullName.components(separatedBy: " ").first ?? "Friend"
-                
+
+                fetchCurrentUserProfile()   // ✅ now pulls live profile image
                 loadAllNetworkingData()
-                
-                // Force fetch network connections after a short delay
+                            
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
                     print("🔄 Force refreshing network connections after onAppear")
                     networkManager.fetchNetworkConnections()
                 }
             }
+
             .onReceive(networkManager.$entrepreneurs) { entrepreneurs in
                 self.entrepreneurs = entrepreneurs
             }
@@ -1919,47 +1920,27 @@ struct PageUnifiedNetworking: View {
     }
     
     func fetchCurrentUserProfile() {
-        guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else {
-            print("❌ No user_id in UserDefaults")
-            return
-        }
-
-        let urlString = "\(baseURL)users/profile/\(userId)/"
-        guard let url = URL(string: urlString) else {
-            print("❌ Invalid URL")
-            return
-        }
+        guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else { return }
+        guard let url = URL(string: "https://circlapp.online/api/users/profile/\(userId)/") else { return }
 
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
         if let token = UserDefaults.standard.string(forKey: "auth_token") {
             request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
         }
 
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            if let error = error {
-                print("❌ Request failed:", error)
-                return
-            }
-
-            guard let data = data else {
-                print("❌ No data received")
-                return
-            }
-
-            do {
-                let profile = try JSONDecoder().decode(UserProfile.self, from: data)
+        URLSession.shared.dataTask(with: request) { data, _, _ in
+            if let data = data,
+               let decoded = try? JSONDecoder().decode(FullProfile.self, from: data) {
                 DispatchQueue.main.async {
-                    userProfileImageURL = profile.profile_image ?? ""
-                    print("✅ User profile loaded successfully")
+                    self.userFirstName = decoded.first_name
+                    self.userProfileImageURL = decoded.profile_image ?? ""
                 }
-            } catch {
-                print("❌ Failed to decode user profile:", error)
             }
         }.resume()
     }
+
     
     func fetchUnreadMessageCount() {
         guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else {

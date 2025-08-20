@@ -28,6 +28,7 @@ struct BusinessProfileResponse: Codable {
     let other: String?
     let roles_needed: String?
     let pricing_strategy: String?
+    
 }
 
 class BusinessProfileViewModel: ObservableObject {

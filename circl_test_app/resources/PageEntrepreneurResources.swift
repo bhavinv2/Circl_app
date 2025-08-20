@@ -205,8 +205,10 @@ struct PageEntrepreneurResources: View {
             .navigationBarBackButtonHidden(true)
             .onAppear {
                 fetchUnreadMessageCount()
-                loadUserData()
+                loadUserData()              // fallback values
+                fetchCurrentUserProfile()   // ✅ live fetch ensures profile pic loads
             }
+
         }
     }
     
@@ -453,7 +455,28 @@ struct PageEntrepreneurResources: View {
             alignment: .top
         )
     }
-    
+    private func fetchCurrentUserProfile() {
+        guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else { return }
+        guard let url = URL(string: "https://circlapp.online/api/users/profile/\(userId)/") else { return }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        URLSession.shared.dataTask(with: request) { data, _, _ in
+            if let data = data,
+               let decoded = try? JSONDecoder().decode(FullProfile.self, from: data) {
+                DispatchQueue.main.async {
+                    self.userFirstName = decoded.first_name
+                    self.userProfileImageURL = decoded.profile_image ?? ""
+                }
+            }
+        }.resume()
+    }
+
     // MARK: - Helper Functions
     private func fetchUnreadMessageCount() {
         guard let url = URL(string: "\(baseURL)users/get_messages/\(userId)/") else {

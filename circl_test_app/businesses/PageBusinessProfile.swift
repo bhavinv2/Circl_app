@@ -394,13 +394,14 @@ struct PageBusinessProfile: View {
                         .zIndex(1)
                 }
             }
+            
             .navigationBarBackButtonHidden(true)
             .ignoresSafeArea(.all) // This will make the background extend to the notch
             .onAppear {
                 fetchUnreadMessageCount()
-                loadUserData()
-                if let userId = UserDefaults.standard.value(forKey: "user_id") as? Int {
-                    viewModel.fetchProfile(for: userId)
+                fetchCurrentUserProfile()   // ✅ live profile fetch (with profile image)
+                    if let userId = UserDefaults.standard.value(forKey: "user_id") as? Int {
+                        viewModel.fetchProfile(for: userId)
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                         if let profile = viewModel.profile {
                             companyDetails = [
@@ -464,7 +465,28 @@ struct PageBusinessProfile: View {
 
         }
     }
-    
+    func fetchCurrentUserProfile() {
+        guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else { return }
+        guard let url = URL(string: "https://circlapp.online/api/users/profile/\(userId)/") else { return }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        URLSession.shared.dataTask(with: request) { data, _, _ in
+            if let data = data,
+               let decoded = try? JSONDecoder().decode(FullProfile.self, from: data) {
+                DispatchQueue.main.async {
+                    self.userFirstName = decoded.first_name
+                    self.userProfileImageURL = decoded.profile_image ?? ""
+                }
+            }
+        }.resume()
+    }
+
     private func fetchUnreadMessageCount() {
         guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else {
             print("❌ No user_id in UserDefaults for message count")
