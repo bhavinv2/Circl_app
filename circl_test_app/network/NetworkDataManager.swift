@@ -240,7 +240,10 @@ else if let dict = json as? [String: Any] {
                 company: dict["company"] as? String ?? "Network",
                 proficiency: dict["main_usage"] as? String ?? "Networking",
                 tags: dict["tags"] as? [String] ?? ["Professional", "Network"],
-                profileImage: (dict["profile_image"] as? String) ?? "default_profile"
+                profileImage: (dict["profileImage"] as? String)
+                           ?? (dict["profile_image"] as? String)
+                           ?? ""
+
 
             )
 
@@ -384,9 +387,9 @@ else if let dict = json as? [String: Any] {
     func fetchEntrepreneursData() {
         let currentUserEmail = UserDefaults.standard.string(forKey: "user_email") ?? ""
         
-        guard let url = URL(string: "\(baseURL)users/get-entrepreneurs/") else { 
+        guard let url = URL(string: "\(baseURL)users/get-entrepreneurs/") else {
             print("❌ Invalid URL for entrepreneurs")
-            return 
+            return
         }
 
         var request = URLRequest(url: url)

@@ -1153,22 +1153,23 @@ struct PageUnifiedNetworking: View {
                     }
                     
                     Spacer()
+                    
                 }
                 
                 // Quick profile insights section
                 VStack(alignment: .leading, spacing: 10) {
                     // Industry section
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Industry")
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(.secondary)
-                            .textCase(.uppercase)
-                            .tracking(0.5)
+                                       VStack(alignment: .leading, spacing: 4) {
+                                           Text("Industry")
+                                               .font(.system(size: 11, weight: .medium))
+                                               .foregroundColor(.secondary)
+                                               .textCase(.uppercase)
+                                               .tracking(0.5)
                         
-                        Text(entrepreneur.businessIndustry.isEmpty ? "Startup" : entrepreneur.businessIndustry)
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(.primary)
-                            .lineLimit(1)
+                                           Text(entrepreneur.businessIndustry.isEmpty ? "Startup" : entrepreneur.businessIndustry)
+                                                                      .font(.system(size: 14, weight: .semibold))
+                                                                      .foregroundColor(.primary)
+                                                                      .lineLimit(1)
                     }
                     
                     // Skills/Interests tags
@@ -1678,7 +1679,9 @@ struct PageUnifiedNetworking: View {
                             .frame(width: 54, height: 54)
                         
                         // Profile Image with AsyncImage
-                        if let profileImageURL = connection.profileImage, !profileImageURL.isEmpty {
+                        if let profileImageURL = connection.profileImage,
+                           !profileImageURL.isEmpty,
+                           profileImageURL != "default_profile" {   // ✅ skip invalid
                             AsyncImage(url: URL(string: profileImageURL)) { image in
                                 image
                                     .resizable()
@@ -1699,11 +1702,11 @@ struct PageUnifiedNetworking: View {
                                     )
                                     .frame(width: 50, height: 50)
                                     .overlay(
-                                        ProgressView()
-                                            .scaleEffect(0.6)
+                                        ProgressView().scaleEffect(0.6)
                                     )
                             }
                         } else {
+                            // Default fallback
                             Circle()
                                 .fill(
                                     LinearGradient(
@@ -1722,6 +1725,8 @@ struct PageUnifiedNetworking: View {
                                         .foregroundColor(.secondary)
                                 )
                         }
+
+
                         
                         // Connected indicator
                         Circle()
@@ -1812,6 +1817,7 @@ struct PageUnifiedNetworking: View {
                 
                 // Connection insights section
                 VStack(alignment: .leading, spacing: 10) {
+                   
                     
                     // Shared interests/tags
                     if !connection.tags.isEmpty {
@@ -1851,6 +1857,28 @@ struct PageUnifiedNetworking: View {
                                 .padding(.horizontal, 1)
                             }
                         }
+                    }
+                    
+                  
+                    
+                    Spacer()
+                    
+                    Button(action: {
+                        print("👥 View mutual connections with \(connection.name)")
+                    }) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "person.2.fill")
+                                .font(.system(size: 11, weight: .medium))
+                            Text("Mutual")
+                                .font(.system(size: 12, weight: .semibold))
+                        }
+                        .foregroundColor(.orange)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color.orange.opacity(0.1))
+                        )
                     }
                 }
             }
@@ -1978,9 +2006,8 @@ struct PageUnifiedNetworking: View {
         let unreadMessages = messages.filter { message in
             message.receiver_id == myId && !message.is_read && message.sender_id != myId
         }
-        
         unreadMessageCount = unreadMessages.count
-        print("📊 Calculated unread message count: \(unreadMessageCount)")
+                print("📊 Calculated unread message count: \(unreadMessageCount)")
     }
     
     func fetchMyNetwork() {

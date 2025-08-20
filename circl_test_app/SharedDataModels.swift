@@ -67,8 +67,10 @@ struct InviteProfileData: Identifiable, Codable {
     }
     
     enum CodingKeys: String, CodingKey {
-        case user_id, name, username, email, title, company, proficiency, tags, profileImage
+        case user_id, name, username, email, title, company, proficiency, tags
+        case profileImage = "profileImage"   // ✅ matches backend JSON
     }
+
 }
 
 /// Model for entrepreneur profile data from the entrepreneurs API
