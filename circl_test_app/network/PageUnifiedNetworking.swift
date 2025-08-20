@@ -15,6 +15,7 @@ struct PageUnifiedNetworking: View {
     @State private var userFirstName: String = ""
     @State private var userProfileImageURL: String = ""
     @State private var unreadMessageCount: Int = 0
+    @State private var messages: [MessageModel] = []
     @State private var showMoreMenu = false
     @State private var showBottomMoreMenu = false // Separate state for bottom navigation menu
     @State private var rotationAngle: Double = 0
@@ -1933,9 +1934,53 @@ struct PageUnifiedNetworking: View {
     }
     
     func fetchUnreadMessageCount() {
-        DispatchQueue.main.async {
-            unreadMessageCount = 0
+        guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else {
+            print("❌ No user_id in UserDefaults for message count")
+            return
         }
+
+        guard let url = URL(string: "\(baseURL)users/get_messages/\(userId)/") else {
+            print("❌ Invalid URL for messages")
+            return
+        }
+
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            if let error = error {
+                print("❌ Request failed for messages:", error)
+                return
+            }
+
+            guard let data = data else {
+                print("❌ No data received for messages")
+                return
+            }
+
+            do {
+                let response = try JSONDecoder().decode([String: [MessageModel]].self, from: data)
+                DispatchQueue.main.async {
+                    let allMessages = response["messages"] ?? []
+                    self.messages = allMessages
+                    self.calculateUnreadMessageCount()
+                    print("✅ Messages loaded successfully, count: \(allMessages.count)")
+                }
+            } catch {
+                print("❌ Error decoding messages:", error)
+                DispatchQueue.main.async {
+                    self.unreadMessageCount = 0
+                }
+            }
+        }.resume()
+    }
+    
+    func calculateUnreadMessageCount() {
+        guard let myId = UserDefaults.standard.value(forKey: "user_id") as? Int else { return }
+        
+        let unreadMessages = messages.filter { message in
+            message.receiver_id == myId && !message.is_read && message.sender_id != myId
+        }
+        
+        unreadMessageCount = unreadMessages.count
+        print("📊 Calculated unread message count: \(unreadMessageCount)")
     }
     
     func fetchMyNetwork() {

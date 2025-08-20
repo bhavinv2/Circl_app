@@ -5,6 +5,7 @@ struct PageEntrepreneurResources: View {
     // MARK: - State Management
     @State private var showMoreMenu = false
     @State private var unreadMessageCount: Int = 0
+    @State private var messages: [MessageModel] = []
     @State private var userFirstName: String = ""
     @State private var userProfileImageURL: String = ""
     @AppStorage("user_id") private var userId: Int = 0
@@ -455,8 +456,8 @@ struct PageEntrepreneurResources: View {
     
     // MARK: - Helper Functions
     private func fetchUnreadMessageCount() {
-        guard let url = URL(string: "\(baseURL)unread_message_count/\(userId)/") else {
-            print("Invalid URL for unread message count")
+        guard let url = URL(string: "\(baseURL)users/get_messages/\(userId)/") else {
+            print("Invalid URL for messages")
             return
         }
 
@@ -467,23 +468,33 @@ struct PageEntrepreneurResources: View {
 
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let data = data {
-                if let decodedResponse = try? JSONDecoder().decode([String: Int].self, from: data) {
+                do {
+                    let response = try JSONDecoder().decode([String: [MessageModel]].self, from: data)
                     DispatchQueue.main.async {
-                        self.unreadMessageCount = decodedResponse["unread_count"] ?? 0
+                        let allMessages = response["messages"] ?? []
+                        self.messages = allMessages
+                        self.calculateUnreadMessageCount()
                     }
-                } else {
-                    print("Failed to decode unread message count")
+                } catch {
+                    print("Failed to decode messages: \(error)")
                 }
             } else if let error = error {
-                print("Error fetching unread message count: \(error.localizedDescription)")
+                print("Error fetching messages: \(error.localizedDescription)")
             }
         }.resume()
+    }
+    
+    private func calculateUnreadMessageCount() {
+        unreadMessageCount = messages.filter { message in
+            message.receiver_id == userId && !message.is_read
+        }.count
     }
     
     private func loadUserData() {
         let fullName = UserDefaults.standard.string(forKey: "user_fullname") ?? ""
         userFirstName = fullName.components(separatedBy: " ").first ?? "User"
         userProfileImageURL = UserDefaults.standard.string(forKey: "user_profile_image_url") ?? ""
+        fetchUnreadMessageCount()
     }
 }
 

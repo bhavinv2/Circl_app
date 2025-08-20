@@ -46,6 +46,7 @@ struct PageCircles: View {
     
     @State private var userProfileImageURL: String = ""
     @State private var unreadMessageCount: Int = 0
+    @State private var messages: [MessageModel] = []
     @State private var userFirstName: String = ""
     @State private var showMoreMenu = false
     
@@ -918,25 +919,58 @@ struct PageCircles: View {
         }.resume()
         
         // Load unread message count
-        guard let messagesUrl = URL(string: "\(baseURL)messages/unread_count/\(userId)/") else { return }
-        
-        URLSession.shared.dataTask(with: messagesUrl) { data, response, error in
-            guard let data = data, error == nil else {
-                print("❌ Failed to load unread messages:", error?.localizedDescription ?? "unknown")
+        fetchUnreadMessageCount()
+    }
+    
+    // MARK: - Message Functions
+    func fetchUnreadMessageCount() {
+        guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else {
+            print("❌ No user_id in UserDefaults for message count")
+            return
+        }
+
+        guard let url = URL(string: "\(baseURL)users/get_messages/\(userId)/") else {
+            print("❌ Invalid URL for messages")
+            return
+        }
+
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            if let error = error {
+                print("❌ Request failed for messages:", error)
                 return
             }
-            
+
+            guard let data = data else {
+                print("❌ No data received for messages")
+                return
+            }
+
             do {
-                if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-                   let count = json["unread_count"] as? Int {
-                    DispatchQueue.main.async {
-                        self.unreadMessageCount = count
-                    }
+                let response = try JSONDecoder().decode([String: [MessageModel]].self, from: data)
+                DispatchQueue.main.async {
+                    let allMessages = response["messages"] ?? []
+                    self.messages = allMessages
+                    self.calculateUnreadMessageCount()
+                    print("✅ Messages loaded successfully, count: \(allMessages.count)")
                 }
             } catch {
-                print("❌ Failed to parse unread messages:", error)
+                print("❌ Error decoding messages:", error)
+                DispatchQueue.main.async {
+                    self.unreadMessageCount = 0
+                }
             }
         }.resume()
+    }
+    
+    func calculateUnreadMessageCount() {
+        guard let myId = UserDefaults.standard.value(forKey: "user_id") as? Int else { return }
+        
+        let unreadMessages = messages.filter { message in
+            message.receiver_id == myId && !message.is_read && message.sender_id != myId
+        }
+        
+        unreadMessageCount = unreadMessages.count
+        print("📊 Calculated unread message count: \(unreadMessageCount)")
     }
     
     // MARK: - Helpers

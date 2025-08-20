@@ -466,29 +466,53 @@ struct PageBusinessProfile: View {
     }
     
     private func fetchUnreadMessageCount() {
-        guard let url = URL(string: "https://circlapp.online/api/unread_message_count/\(userId)/") else {
-            print("Invalid URL for unread message count")
+        guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else {
+            print("❌ No user_id in UserDefaults for message count")
             return
         }
 
-        var request = URLRequest(url: url)
-        if let token = UserDefaults.standard.string(forKey: "auth_token") {
-            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        guard let url = URL(string: "\(baseURL)users/get_messages/\(userId)/") else {
+            print("❌ Invalid URL for messages")
+            return
         }
 
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            if let data = data {
-                if let decodedResponse = try? JSONDecoder().decode([String: Int].self, from: data) {
-                    DispatchQueue.main.async {
-                        self.unreadMessageCount = decodedResponse["unread_count"] ?? 0
-                    }
-                } else {
-                    print("Failed to decode unread message count")
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            if let error = error {
+                print("❌ Request failed for messages:", error)
+                return
+            }
+
+            guard let data = data else {
+                print("❌ No data received for messages")
+                return
+            }
+
+            do {
+                let response = try JSONDecoder().decode([String: [MessageModel]].self, from: data)
+                DispatchQueue.main.async {
+                    let allMessages = response["messages"] ?? []
+                    self.messages = allMessages
+                    self.calculateUnreadMessageCount()
+                    print("✅ Messages loaded successfully, count: \(allMessages.count)")
                 }
-            } else if let error = error {
-                print("Error fetching unread message count: \(error.localizedDescription)")
+            } catch {
+                print("❌ Error decoding messages:", error)
+                DispatchQueue.main.async {
+                    self.unreadMessageCount = 0
+                }
             }
         }.resume()
+    }
+    
+    func calculateUnreadMessageCount() {
+        guard let myId = UserDefaults.standard.value(forKey: "user_id") as? Int else { return }
+        
+        let unreadMessages = messages.filter { message in
+            message.receiver_id == myId && !message.is_read && message.sender_id != myId
+        }
+        
+        unreadMessageCount = unreadMessages.count
+        print("📊 Calculated unread message count: \(unreadMessageCount)")
     }
     
     var headerSection: some View {
@@ -1139,6 +1163,7 @@ struct PageBusinessProfile: View {
     func loadUserData() {
         userFirstName = UserDefaults.standard.string(forKey: "user_first_name") ?? "User"
         userProfileImageURL = UserDefaults.standard.string(forKey: "user_profile_image_url") ?? ""
+        fetchUnreadMessageCount()
     }
 }
 
