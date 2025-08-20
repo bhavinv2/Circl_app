@@ -26,6 +26,8 @@ struct PageUnifiedNetworking: View {
     @State private var showProfileSheet = false
     @State private var showChatView = false
     @State private var selectedChatUser: NetworkUser?
+    @State private var selectedChatMessages: [Message] = []
+    @State private var isFetchingMessages = false
     // Local data arrays (instead of using NetworkDataManager)
     @State private var entrepreneurs: [SharedEntrepreneurProfileData] = []
     @State private var mentors: [MentorProfileData] = []
@@ -544,7 +546,15 @@ struct PageUnifiedNetworking: View {
         }
         .fullScreenCover(isPresented: $showChatView) {
             if let user = selectedChatUser {
-                ChatView(user: user)
+                ChatView(user: user, messages: selectedChatMessages)
+            }
+        }
+        .onChange(of: showChatView) { isShowing in
+            if !isShowing {
+                // Reset chat data when chat view is dismissed
+                selectedChatMessages = []
+                selectedChatUser = nil
+                isFetchingMessages = false
             }
         }
         .refreshable {
@@ -1798,37 +1808,63 @@ struct PageUnifiedNetworking: View {
                             print("🎯 Chat button pressed for: \(connection.name)")
                             print("🎯 Created NetworkUser: \(chatUser.name) - \(chatUser.email)")
                             selectedChatUser = chatUser
-                            showChatView = true
+                            
+                            // Show loading state
+                            isFetchingMessages = true
+                            
+                            // Fetch messages for this specific conversation
+                            fetchMessagesForUser(userId: connection.user_id) { messages in
+                                DispatchQueue.main.async {
+                                    // Store the messages and show chat view
+                                    self.selectedChatMessages = messages
+                                    self.isFetchingMessages = false
+                                    showChatView = true
+                                }
+                            }
                         }) {
                             ZStack {
-                                Image(systemName: "message.fill")
-                                    .font(.system(size: 16, weight: .medium))
-                                    .foregroundColor(.white)
-                                    .frame(width: 36, height: 36)
-                                    .background(
-                                        Circle()
-                                            .fill(
-                                                LinearGradient(
-                                                    gradient: Gradient(colors: [
-                                                        Color(hex: "004aad"),
-                                                        Color(hex: "004aad").opacity(0.8)
-                                                    ]),
-                                                    startPoint: .topLeading,
-                                                    endPoint: .bottomTrailing
+                                if isFetchingMessages && selectedChatUser?.id == String(connection.user_id) {
+                                    // Show loading indicator
+                                    ProgressView()
+                                        .scaleEffect(0.7)
+                                        .foregroundColor(.white)
+                                        .frame(width: 36, height: 36)
+                                        .background(
+                                            Circle()
+                                                .fill(
+                                                    LinearGradient(
+                                                        gradient: Gradient(colors: [
+                                                            Color(hex: "004aad").opacity(0.7),
+                                                            Color(hex: "004aad").opacity(0.5)
+                                                        ]),
+                                                        startPoint: .topLeading,
+                                                        endPoint: .bottomTrailing
+                                                    )
                                                 )
-                                            )
-                                            .shadow(color: Color(hex: "004aad").opacity(0.3), radius: 6, x: 0, y: 3)
-                                    )
-                                
-                                // Simulated unread indicator (random for demo)
-                                if Bool.random() {
-                                    Circle()
-                                        .fill(Color.red)
-                                        .frame(width: 8, height: 8)
-                                        .offset(x: 12, y: -12)
+                                        )
+                                } else {
+                                    Image(systemName: "message.fill")
+                                        .font(.system(size: 16, weight: .medium))
+                                        .foregroundColor(.white)
+                                        .frame(width: 36, height: 36)
+                                        .background(
+                                            Circle()
+                                                .fill(
+                                                    LinearGradient(
+                                                        gradient: Gradient(colors: [
+                                                            Color(hex: "004aad"),
+                                                            Color(hex: "004aad").opacity(0.8)
+                                                        ]),
+                                                        startPoint: .topLeading,
+                                                        endPoint: .bottomTrailing
+                                                    )
+                                                )
+                                                .shadow(color: Color(hex: "004aad").opacity(0.3), radius: 6, x: 0, y: 3)
+                                        )
                                 }
                             }
                         }
+                        .disabled(isFetchingMessages)
                         
                         Text("Chat")
                             .font(.system(size: 10, weight: .medium))
@@ -2072,6 +2108,85 @@ struct PageUnifiedNetworking: View {
             } catch {
                 print("❌ Failed to decode user profile:", error)
                 completion(nil)
+            }
+        }.resume()
+    }
+    
+    // MARK: - Fetch Messages for Specific User
+    func fetchMessagesForUser(userId: Int, completion: @escaping ([Message]) -> Void) {
+        guard let currentUserId = UserDefaults.standard.value(forKey: "user_id") as? Int else {
+            print("❌ No user_id found in UserDefaults")
+            completion([])
+            return
+        }
+
+        guard let url = URL(string: "https://circlapp.online/api/users/get_messages/\(currentUserId)/") else {
+            print("❌ Invalid messages URL")
+            completion([])
+            return
+        }
+
+        print("📡 Fetching messages for conversation with user \(userId)")
+
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            if let error = error {
+                print("❌ Messages network error:", error.localizedDescription)
+                completion([])
+                return
+            }
+
+            guard let data = data else {
+                print("❌ No data received")
+                completion([])
+                return
+            }
+
+            do {
+                print("📦 Raw messages response: \(String(data: data, encoding: .utf8) ?? "Unable to decode")")
+                
+                // Try to decode as messages array directly first
+                if let messagesArray = try? JSONDecoder().decode([Message].self, from: data) {
+                    // Filter messages for this specific conversation
+                    let conversationMessages = messagesArray.filter { message in
+                        let currentUserIdStr = String(currentUserId)
+                        let targetUserIdStr = String(userId)
+                        
+                        return (message.sender_id == currentUserIdStr && message.receiver_id == targetUserIdStr) ||
+                               (message.sender_id == targetUserIdStr && message.receiver_id == currentUserIdStr)
+                    }
+                    
+                    print("✅ Found \(conversationMessages.count) messages for conversation with user \(userId)")
+                    completion(conversationMessages)
+                    return
+                }
+                
+                // Try wrapped format {"messages": [...]}
+                if let jsonObject = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let messagesData = jsonObject["messages"] as? [[String: Any]] {
+                    
+                    let messagesJsonData = try JSONSerialization.data(withJSONObject: messagesData)
+                    let messages = try JSONDecoder().decode([Message].self, from: messagesJsonData)
+                    
+                    // Filter messages for this specific conversation
+                    let conversationMessages = messages.filter { message in
+                        let currentUserIdStr = String(currentUserId)
+                        let targetUserIdStr = String(userId)
+                        
+                        return (message.sender_id == currentUserIdStr && message.receiver_id == targetUserIdStr) ||
+                               (message.sender_id == targetUserIdStr && message.receiver_id == currentUserIdStr)
+                    }
+                    
+                    print("✅ Found \(conversationMessages.count) messages for conversation with user \(userId)")
+                    completion(conversationMessages)
+                    return
+                }
+                
+                print("❌ Unable to parse messages data")
+                completion([])
+                
+            } catch {
+                print("❌ Failed to decode messages:", error)
+                completion([])
             }
         }.resume()
     }

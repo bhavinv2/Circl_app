@@ -192,8 +192,9 @@ struct Message: Codable, Identifiable {
     
     // Computed properties for convenience
     var isFromCurrentUser: Bool {
-        // This would need to be compared with current user ID
-        return false // Placeholder
+        // Compare sender_id with current user ID from UserDefaults
+        let currentUserId = String(UserDefaults.standard.integer(forKey: "user_id"))
+        return sender_id == currentUserId
     }
     
     var formattedTime: String {
