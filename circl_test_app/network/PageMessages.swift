@@ -1042,19 +1042,24 @@ struct PageMessages: View {
     }
     
     private func filterUsers() {
-        print("🔍 Searching for: \(searchText)")
+        let q = searchText.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        print("🔍 Searching for: \(q) | network count: \(myNetwork.count)")
 
-        if searchText.isEmpty {
+        if q.isEmpty {
             suggestedUsers = []
-        } else {
-            suggestedUsers = myNetwork.filter { user in
-                let isMatch = user.name.lowercased().contains(searchText.lowercased())
-                return isMatch
-            }
+            return
         }
-        
-        refreshToggle.toggle() // ✅ Forces UI update
+
+        let results = myNetwork.filter { u in
+            u.name.lowercased().hasPrefix(q) ||
+            u.username.lowercased().hasPrefix(q) ||
+            u.email.lowercased().hasPrefix(q)
+        }
+
+        suggestedUsers = results
+        print("🔎 Suggestions -> \(suggestedUsers.map { $0.name })")
     }
+
 
     private func navigateToChat(user: NetworkUser) {
         let messages = groupedMessages[user.id, default: []]
@@ -1078,11 +1083,10 @@ struct PageMessages: View {
             return
         }
 
-        guard let url = URL(string: "\(baseURL)users/get_network/\(userId)/") else {
-            print("❌ Invalid URL for get_network")
+        guard let url = URL(string: "https://circlapp.online/api/users/get_network/\(userId)/") else {
+            print("❌ Invalid URL")
             return
         }
-
 
         print("📡 Fetching network from: \(url)")
 
@@ -1092,37 +1096,41 @@ struct PageMessages: View {
                 return
             }
 
-            if let data = data {
-                do {
-                    // Try to decode as API format first (with Int IDs)
-                    let apiUsers = try JSONDecoder().decode([APINetworkUser].self, from: data)
-                    
-                    // Convert to SharedDataModels format
-                    let convertedUsers = apiUsers.map { apiUser in
-                        NetworkUser(
-                            id: String(apiUser.id),
-                            name: apiUser.name,
-                            username: apiUser.email, // Use email as username if not provided
-                            email: apiUser.email,
-                            company: "", // Default empty if not provided
-                            bio: "", // Default empty if not provided
-                            profile_image: apiUser.profileImage,
-                            tags: [],
-                            isOnline: false
-                        )
-                    }
-                    
+            guard let data = data else { return }
+
+            do {
+                let apiUsers = try JSONDecoder().decode([APINetworkUser].self, from: data)
+
+                let convertedUsers = apiUsers.map { apiUser in
+                    NetworkUser(
+                        id: String(apiUser.id),
+                        name: apiUser.name,
+                        username: apiUser.username ?? apiUser.email,   // <- better username fallback
+                        email: apiUser.email,
+                        company: "",
+                        bio: "",
+                        profile_image: apiUser.profileImage,
+                        tags: [],
+                        isOnline: false
+                    )
+                }
+
                 DispatchQueue.main.async {
-                        self.myNetwork = convertedUsers
-                        print("✅ Network Updated: \(self.myNetwork.map { "\($0.name) (\($0.id))" })")
+                    self.myNetwork = convertedUsers
+                    print("✅ Network Updated: \(self.myNetwork.map { "\($0.name) (\($0.id))" })")
+
+                    // If the user is already typing, refresh suggestions immediately
+                    if !self.searchText.isEmpty {
+                        self.filterUsers()
+                    }
                 }
             } catch {
-                    print("❌ JSON Decoding Error:", error)
-                    print("❌ Raw response: \(String(data: data, encoding: .utf8) ?? "Unable to decode")")
-                }
+                print("❌ JSON Decoding Error:", error)
+                print("❌ Raw response: \(String(data: data, encoding: .utf8) ?? "Unable to decode")")
             }
         }.resume()
     }
+
 
     func fetchMessages() {
         guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else {
@@ -1130,11 +1138,10 @@ struct PageMessages: View {
             return
         }
 
-        guard let url = URL(string: "\(baseURL)users/get_messages/\(userId)/") else {
+        guard let url = URL(string: "https://circlapp.online/api/users/get_messages/\(userId)/") else {
             print("❌ Invalid messages URL")
             return
         }
-
 
         print("📡 Fetching messages from: \(url)")
 
@@ -1213,13 +1220,12 @@ struct PageMessages: View {
     }
 
     func fetchUserProfile(userId: Int, completion: @escaping (FullProfile?) -> Void) {
-        let urlString = "\(baseURL)users/profile/\(userId)/"
+        let urlString = "https://circlapp.online/api/users/profile/\(userId)/"
         guard let url = URL(string: urlString) else {
             print("❌ Invalid URL")
             completion(nil)
             return
         }
-
 
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
@@ -1256,7 +1262,7 @@ struct PageMessages: View {
         guard let myIdInt = UserDefaults.standard.value(forKey: "user_id") as? Int else { return }
         print("Marking messages as read from \(senderId) to \(myIdInt)")
 
-        guard let url = URL(string: "\(baseURL)users/mark_messages_read/") else { return }
+        guard let url = URL(string: "https://circlapp.online/api/users/mark_messages_read/") else { return }
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -1277,17 +1283,42 @@ struct PageMessages: View {
 }
 
 // MARK: - API Response Models (for conversion from backend)
-struct APINetworkUser: Codable {
+struct APINetworkUser: Decodable {
     let id: Int
     let name: String
     let email: String
+    let username: String?
     let profileImage: String?
 
     enum CodingKeys: String, CodingKey {
-        case id, name, email
-        case profileImage = "profileImage"
+        case id, user_id, name, email, username
+        case profile_image
+        case profileImage
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+
+        if let id = try? c.decode(Int.self, forKey: .id) {
+            self.id = id
+        } else if let uid = try? c.decode(Int.self, forKey: .user_id) {
+            self.id = uid
+        } else {
+            throw DecodingError.keyNotFound(
+                CodingKeys.id,
+                .init(codingPath: decoder.codingPath, debugDescription: "Neither 'id' nor 'user_id' present")
+            )
+        }
+
+        self.name = (try? c.decode(String.self, forKey: .name)) ?? ""
+        self.email = (try? c.decode(String.self, forKey: .email)) ?? ""
+        self.username = try? c.decode(String.self, forKey: .username)
+        self.profileImage =
+            (try? c.decode(String.self, forKey: .profile_image)) ??
+            (try? c.decode(String.self, forKey: .profileImage))
     }
 }
+
 
 struct APIMessage: Codable {
     let id: Int

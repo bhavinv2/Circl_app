@@ -204,35 +204,53 @@ struct ChatView: View {
     private func sendMessage() {
         guard !messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
         
-        let newMessage = NetworkChatMessage(
-            id: UUID().uuidString,
-            content: messageText,
-            isFromCurrentUser: true,
-            timestamp: Date(),
-            isRead: true,
-            actualSenderName: nil
-        )
+        let currentUserId = UserDefaults.standard.integer(forKey: "user_id")
+        let receiverId = user.id   // ✅ Make sure NetworkUser has `id: Int`
         
-        withAnimation(.easeInOut(duration: 0.3)) {
-            messages.append(newMessage)
+        let payload: [String: Any] = [
+            "sender_id": currentUserId,
+            "receiver_id": receiverId,
+            "content": messageText
+        ]
+        
+        guard let url = URL(string: "\(baseURL)users/send_message/") else {
+            print("❌ Invalid send_message URL")
+            return
         }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
         
-        messageText = ""
-        
-        // Simulate typing response
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-            withAnimation {
-                isTyping = true
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("❌ Error sending message:", error.localizedDescription)
+                return
             }
             
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                withAnimation {
-                    isTyping = false
-                    simulateResponse()
-                }
+            if let httpResponse = response as? HTTPURLResponse {
+                print("📡 send_message response code:", httpResponse.statusCode)
             }
-        }
+            
+            // Optimistically update UI
+            DispatchQueue.main.async {
+                let newMessage = NetworkChatMessage(
+                    id: UUID().uuidString,
+                    content: messageText,
+                    isFromCurrentUser: true,
+                    timestamp: Date(),
+                    isRead: false,
+                    actualSenderName: nil
+                )
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    messages.append(newMessage)
+                }
+                messageText = ""
+            }
+        }.resume()
     }
+
     
     private func simulateResponse() {
         let responses = [
