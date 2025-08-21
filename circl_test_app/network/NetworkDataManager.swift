@@ -227,13 +227,52 @@ else if let dict = json as? [String: Any] {
             let id = (dict["id"] as? Int) ?? (dict["user_id"] as? Int) ?? -1
             guard id != -1, let email = dict["email"] as? String else { continue }
 
-
-            let username = (dict["username"] as? String) ?? email.components(separatedBy: "@").first ?? "user"
-            let name = "\(dict["first_name"] as? String ?? "") \(dict["last_name"] as? String ?? "")"
+            // Enhanced name construction with better fallbacks
+            let firstName = (dict["first_name"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+            let lastName = (dict["last_name"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+            let username = (dict["username"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+            
+            // Construct proper name with multiple fallback strategies
+            let name: String = {
+                // Strategy 1: Use first + last name if both exist
+                if !firstName.isEmpty && !lastName.isEmpty {
+                    return "\(firstName) \(lastName)"
+                }
+                // Strategy 2: Use just first name if only first exists
+                else if !firstName.isEmpty {
+                    return firstName
+                }
+                // Strategy 3: Use just last name if only last exists
+                else if !lastName.isEmpty {
+                    return lastName
+                }
+                // Strategy 4: Use username if it doesn't look like an email
+                else if !username.isEmpty && !username.contains("@") {
+                    return username.capitalized
+                }
+                // Strategy 5: Extract name from email (before @)
+                else if !email.isEmpty {
+                    let emailName = email.components(separatedBy: "@").first ?? ""
+                    // Clean up email name: replace dots/underscores with spaces, capitalize
+                    let cleanName = emailName
+                        .replacingOccurrences(of: ".", with: " ")
+                        .replacingOccurrences(of: "_", with: " ")
+                        .replacingOccurrences(of: "-", with: " ")
+                        .components(separatedBy: " ")
+                        .map { $0.capitalized }
+                        .joined(separator: " ")
+                    
+                    return cleanName.isEmpty ? "User" : cleanName
+                }
+                // Final fallback
+                else {
+                    return "User"
+                }
+            }()
 
             let profile = InviteProfileData(
                 user_id: id,   // ✅ real backend id
-                name: name.trimmingCharacters(in: .whitespaces).isEmpty ? username.capitalized : name,
+                name: name, // Use the properly constructed name
                 username: username,
                 email: email,
                 title: dict["title"] as? String ?? "Professional",
@@ -243,8 +282,6 @@ else if let dict = json as? [String: Any] {
                 profileImage: (dict["profileImage"] as? String)
                            ?? (dict["profile_image"] as? String)
                            ?? ""
-
-
             )
 
             convertedProfiles.append(profile)
@@ -253,6 +290,10 @@ else if let dict = json as? [String: Any] {
         DispatchQueue.main.async {
             self.networkConnections = convertedProfiles
             print("✅ NetworkDataManager - Updated accepted network count: \(convertedProfiles.count)")
+            // Debug output to verify names
+            for profile in convertedProfiles.prefix(3) {
+                print("📝 Network connection: \(profile.name) (\(profile.email))")
+            }
         }
     }
 

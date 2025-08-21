@@ -2126,9 +2126,15 @@ struct PageUnifiedNetworking: View {
             return
         }
 
-        print("📡 Fetching messages for conversation with user \(userId)")
+        print("📡 Fetching messages for current user \(currentUserId), filtering for conversation with user \(userId)")
 
-        URLSession.shared.dataTask(with: url) { data, response, error in
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
                 print("❌ Messages network error:", error.localizedDescription)
                 completion([])
@@ -2136,7 +2142,7 @@ struct PageUnifiedNetworking: View {
             }
 
             guard let data = data else {
-                print("❌ No data received")
+                print("❌ No messages data received")
                 completion([])
                 return
             }
@@ -2144,45 +2150,57 @@ struct PageUnifiedNetworking: View {
             do {
                 print("📦 Raw messages response: \(String(data: data, encoding: .utf8) ?? "Unable to decode")")
                 
-                // Try to decode as messages array directly first
-                if let messagesArray = try? JSONDecoder().decode([Message].self, from: data) {
-                    // Filter messages for this specific conversation
-                    let conversationMessages = messagesArray.filter { message in
-                        let currentUserIdStr = String(currentUserId)
-                        let targetUserIdStr = String(userId)
-                        
-                        return (message.sender_id == currentUserIdStr && message.receiver_id == targetUserIdStr) ||
-                               (message.sender_id == targetUserIdStr && message.receiver_id == currentUserIdStr)
+                var allAPIMessages: [APIMessage] = []
+                
+                // Try different response formats (same as PageMessages)
+                if let jsonObject = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                    // Format 1: {"messages": [...]}
+                    if let messagesArray = jsonObject["messages"] as? [[String: Any]] {
+                        let apiMessages = try JSONSerialization.data(withJSONObject: messagesArray)
+                        allAPIMessages = try JSONDecoder().decode([APIMessage].self, from: apiMessages)
+                        print("✅ Decoded \(allAPIMessages.count) messages from wrapped format")
+                    } else {
+                        print("❌ No 'messages' array found in wrapped response")
+                        completion([])
+                        return
                     }
-                    
-                    print("✅ Found \(conversationMessages.count) messages for conversation with user \(userId)")
-                    completion(conversationMessages)
-                    return
+                } else {
+                    // Format 2: Direct array
+                    allAPIMessages = try JSONDecoder().decode([APIMessage].self, from: data)
+                    print("✅ Decoded \(allAPIMessages.count) messages from direct array format")
                 }
                 
-                // Try wrapped format {"messages": [...]}
-                if let jsonObject = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-                   let messagesData = jsonObject["messages"] as? [[String: Any]] {
-                    
-                    let messagesJsonData = try JSONSerialization.data(withJSONObject: messagesData)
-                    let messages = try JSONDecoder().decode([Message].self, from: messagesJsonData)
-                    
-                    // Filter messages for this specific conversation
-                    let conversationMessages = messages.filter { message in
-                        let currentUserIdStr = String(currentUserId)
-                        let targetUserIdStr = String(userId)
-                        
-                        return (message.sender_id == currentUserIdStr && message.receiver_id == targetUserIdStr) ||
-                               (message.sender_id == targetUserIdStr && message.receiver_id == currentUserIdStr)
-                    }
-                    
-                    print("✅ Found \(conversationMessages.count) messages for conversation with user \(userId)")
-                    completion(conversationMessages)
-                    return
+                // Convert APIMessage to Message objects (same as PageMessages)
+                let allMessages = allAPIMessages.map { apiMessage in
+                    Message(
+                        id: String(apiMessage.id),
+                        sender_id: String(apiMessage.sender_id),
+                        receiver_id: String(apiMessage.receiver_id),
+                        content: apiMessage.content,
+                        timestamp: apiMessage.timestamp,
+                        is_read: apiMessage.is_read
+                    )
                 }
                 
-                print("❌ Unable to parse messages data")
-                completion([])
+                // Filter messages for this specific conversation
+                let currentUserIdStr = String(currentUserId)
+                let targetUserIdStr = String(userId)
+                
+                let conversationMessages = allMessages.filter { message in
+                    return (message.sender_id == currentUserIdStr && message.receiver_id == targetUserIdStr) ||
+                           (message.sender_id == targetUserIdStr && message.receiver_id == currentUserIdStr)
+                }
+                
+                print("✅ Filtered \(conversationMessages.count) messages from \(allMessages.count) total messages for conversation with user \(userId)")
+                
+                // Debug the filtered messages
+                conversationMessages.forEach { message in
+                    print("💬 Message \(message.id): From \(message.sender_id) to \(message.receiver_id) - \(message.content)")
+                }
+                
+                // Sort by timestamp and return
+                let sortedMessages = conversationMessages.sorted { $0.timestamp < $1.timestamp }
+                completion(sortedMessages)
                 
             } catch {
                 print("❌ Failed to decode messages:", error)
