@@ -194,21 +194,20 @@ struct PageDues: View {
                                                     .shadow(color: Color(hex: "004aad").opacity(0.3), radius: 8, x: 0, y: 4)
                                                 }
 
-                                                if hasStripeAccount {
-                                                    Button(action: {
-                                                        createStripeAccount()
-                                                    }) {
-                                                        HStack(spacing: 8) {
-                                                            Image(systemName: "creditcard.circle")
-                                                                .font(.body)
-                                                            Text("Edit Stripe Info")
-                                                                .font(.body)
-                                                                .fontWeight(.medium)
-                                                        }
-                                                        .foregroundColor(Color(hex: "004aad"))
+                                                // Always show Stripe button for moderators
+                                                Button(action: {
+                                                    createStripeAccount()
+                                                }) {
+                                                    HStack(spacing: 8) {
+                                                        Image(systemName: hasStripeAccount ? "creditcard.circle" : "plus.circle")
+                                                            .font(.body)
+                                                        Text(hasStripeAccount ? "Edit Stripe Info" : "Set Up Stripe")
+                                                            .font(.body)
+                                                            .fontWeight(.medium)
                                                     }
-                                                    .padding(.top, 8)
+                                                    .foregroundColor(Color(hex: "004aad"))
                                                 }
+                                                .padding(.top, 8)
                                             }
                                         }
                                         .padding(24)
@@ -343,21 +342,20 @@ struct PageDues: View {
                                                         .shadow(color: Color(hex: "004aad").opacity(0.3), radius: 8, x: 0, y: 4)
                                                     }
 
-                                                    if hasStripeAccount {
-                                                        Button(action: {
-                                                            createStripeAccount()
-                                                        }) {
-                                                            HStack(spacing: 8) {
-                                                                Image(systemName: "creditcard.circle")
-                                                                    .font(.body)
-                                                                Text("Edit Stripe Info")
-                                                                    .font(.body)
-                                                                    .fontWeight(.medium)
-                                                            }
-                                                            .foregroundColor(Color(hex: "004aad"))
+                                                    // Always show Stripe button for moderators
+                                                    Button(action: {
+                                                        createStripeAccount()
+                                                    }) {
+                                                        HStack(spacing: 8) {
+                                                            Image(systemName: hasStripeAccount ? "creditcard.circle" : "plus.circle")
+                                                                .font(.body)
+                                                            Text(hasStripeAccount ? "Edit Stripe Info" : "Set Up Stripe")
+                                                                .font(.body)
+                                                                .fontWeight(.medium)
                                                         }
-                                                        .padding(.top, 8)
+                                                        .foregroundColor(Color(hex: "004aad"))
                                                     }
+                                                    .padding(.top, 8)
                                                 }
 
                                             } else {
@@ -469,6 +467,8 @@ struct PageDues: View {
             if let decoded = try? JSONDecoder().decode(CircleData.self, from: data) {
                 print("🧩 FETCHED duesAmount =", decoded.duesAmount ?? -1)
                 print("🧩 FETCHED isModerator =", decoded.isModerator)
+                print("🧩 FETCHED hasStripeAccount =", decoded.hasStripeAccount ?? false)
+                print("🧩 DEBUG: Edit Stripe Info should show = \(decoded.isModerator && (decoded.hasStripeAccount ?? false))")
 
                 DispatchQueue.main.async {
                     self.duesAmount = decoded.duesAmount
