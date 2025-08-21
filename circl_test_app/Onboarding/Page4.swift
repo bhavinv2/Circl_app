@@ -124,7 +124,7 @@ struct Page4: View {
                                 }
                             }
                             
-                            // Upload Status
+                            // Upload Status (only show during upload process)
                             if isUploading {
                                 HStack {
                                     ProgressView()
@@ -134,29 +134,10 @@ struct Page4: View {
                                         .font(.system(size: 16, weight: .medium))
                                         .foregroundColor(.white)
                                 }
-                            } else if uploadSuccess {
-                                HStack {
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .foregroundColor(.green)
-                                    Text("Profile picture uploaded successfully!")
-                                        .font(.system(size: 16, weight: .medium))
-                                        .foregroundColor(.white)
-                                }
-                            }
-                            
-                            // Upload Button (only show if image is selected and not uploaded yet)
-                            if selectedImage != nil && !uploadSuccess && !isUploading {
-                                Button(action: {
-                                    uploadProfileImage()
-                                }) {
-                                    Text("Upload Photo")
-                                        .font(.system(size: 18, weight: .bold))
-                                        .foregroundColor(Color(hex: "004aad"))
-                                        .frame(maxWidth: 200)
-                                        .padding(.vertical, 12)
-                                        .background(Color.white)
-                                        .cornerRadius(10)
-                                }
+                            } else if selectedImage != nil {
+                                Text("Photo ready to upload!")
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundColor(.white)
                             }
                         }
                         
@@ -174,16 +155,22 @@ struct Page4: View {
                                     .underline()
                             }
                             
-                            // Next Button (enabled if uploaded or skipping)
+                            // Next Button - uploads photo if selected, then navigates
                             Button(action: {
-                                navigateToPage5 = true
+                                if let _ = selectedImage, !isUploading {
+                                    // Upload image first, then navigate on success
+                                    uploadProfileImageAndNavigate()
+                                } else {
+                                    // No image selected or already uploading, just navigate
+                                    navigateToPage5 = true
+                                }
                             }) {
-                                Text("Next")
+                                Text(isUploading ? "Uploading..." : "Next")
                                     .font(.system(size: 24, weight: .bold))
                                     .foregroundColor(Color(hex: "004aad"))
                                     .frame(maxWidth: 300)
                                     .padding(.vertical, 15)
-                                    .background(Color(hex: "ffde59"))
+                                    .background(isUploading ? Color.gray : Color(hex: "ffde59"))
                                     .cornerRadius(10)
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 10)
@@ -191,6 +178,7 @@ struct Page4: View {
                                     )
                                     .padding(.horizontal, 50)
                             }
+                            .disabled(isUploading)
                         }
                         
                         Spacer(minLength: 50)
@@ -218,8 +206,11 @@ struct Page4: View {
         .navigationViewStyle(StackNavigationViewStyle())
     }
     
-    private func uploadProfileImage() {
-        guard let image = selectedImage else { return }
+    private func uploadProfileImageAndNavigate() {
+        guard let image = selectedImage else {
+            navigateToPage5 = true
+            return
+        }
         guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else {
             alertMessage = "User not found. Please complete registration first."
             showAlert = true
@@ -228,14 +219,14 @@ struct Page4: View {
         
         isUploading = true
         
-        let urlString = "https://circlapp.online/api/users/upload_profile_image/"
+        let urlString = "\(baseURL)users/upload_profile_image/"
         guard let url = URL(string: urlString) else {
             alertMessage = "Invalid upload URL"
             showAlert = true
             isUploading = false
             return
         }
-
+        
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         
@@ -243,17 +234,17 @@ struct Page4: View {
         if let token = UserDefaults.standard.string(forKey: "auth_token") {
             request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
         }
-
+        
         let boundary = UUID().uuidString
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-
+        
         var data = Data()
-
+        
         // Append user_id
         data.append("--\(boundary)\r\n".data(using: .utf8)!)
         data.append("Content-Disposition: form-data; name=\"user_id\"\r\n\r\n".data(using: .utf8)!)
         data.append("\(userId)\r\n".data(using: .utf8)!)
-
+        
         // Append image
         if let imageData = image.jpegData(compressionQuality: 0.8) {
             data.append("--\(boundary)\r\n".data(using: .utf8)!)
@@ -262,10 +253,10 @@ struct Page4: View {
             data.append(imageData)
             data.append("\r\n".data(using: .utf8)!)
         }
-
+        
         data.append("--\(boundary)--\r\n".data(using: .utf8)!)
         request.httpBody = data
-
+        
         URLSession.shared.dataTask(with: request) { responseData, response, error in
             DispatchQueue.main.async {
                 isUploading = false
@@ -277,28 +268,45 @@ struct Page4: View {
                     return
                 }
                 
+                if let responseData = responseData, let responseString = String(data: responseData, encoding: .utf8) {
+                    print("📩 Upload response:", responseString)
+                }
+                
                 if let httpResponse = response as? HTTPURLResponse {
                     print("📡 Upload response status:", httpResponse.statusCode)
                     
-                    if httpResponse.statusCode == 200 {
+                    if httpResponse.statusCode == 200 || httpResponse.statusCode == 201 {
                         uploadSuccess = true
                         print("✅ Profile picture uploaded successfully")
+                        // Navigate to next page after successful upload
+                        navigateToPage5 = true
+                    } else {
+                        print("❌ Upload failed with status:", httpResponse.statusCode)
+                        if let responseData = responseData, let responseString = String(data: responseData, encoding: .utf8) {
+                            print("❌ Error response:", responseString)
+                        }
+                        alertMessage = "Upload failed. Please try again."
+                        showAlert = true
+                    }
+                } else {
+                    // If no HTTP response, assume success if we got data and no error
+                    if responseData != nil {
+                        uploadSuccess = true
+                        print("✅ Profile picture uploaded successfully")
+                        // Navigate to next page after successful upload
+                        navigateToPage5 = true
                     } else {
                         alertMessage = "Upload failed. Please try again."
                         showAlert = true
                     }
                 }
-                
-                if let responseData = responseData, let responseString = String(data: responseData, encoding: .utf8) {
-                    print("📩 Upload response:", responseString)
-                }
             }
         }.resume()
     }
-}
-
-struct Page4_Previews: PreviewProvider {
-    static var previews: some View {
-        Page4()
+    
+    struct Page4_Previews: PreviewProvider {
+        static var previews: some View {
+            Page4()
+        }
     }
 }
