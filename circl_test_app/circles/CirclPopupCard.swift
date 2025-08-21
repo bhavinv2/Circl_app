@@ -2,7 +2,11 @@ import SwiftUI
 import Foundation
 
 struct CirclPopupCard: View {
-    var circle: CircleData
+    @State private var showMediaPicker = false
+    @State private var selectedImage: UIImage?
+
+    @State var circle: CircleData
+
     var isMember: Bool = false
     var onJoinPressed: (() -> Void)? = nil
     var onOpenCircle: (() -> Void)? = nil
@@ -24,10 +28,65 @@ struct CirclPopupCard: View {
             }
             .padding(.trailing)
 
-            Image(circle.imageName)
-                .resizable()
-                .frame(width: 100, height: 100)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
+            if let url = circle.profileImageURL, let imgURL = URL(string: url) {
+                AsyncImage(url: imgURL) { phase in
+                    switch phase {
+                    case .empty:
+                        ProgressView()
+                            .frame(width: 100, height: 100)
+
+                    case .success(let image):
+                        image.resizable()
+                            .scaledToFill()
+                            .frame(width: 100, height: 100)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+
+                    case .failure(_):
+                        Image(systemName: "photo")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 100, height: 100)
+                            .foregroundColor(.gray)
+                            .opacity(0.5)
+
+                    @unknown default:
+                        EmptyView()
+                    }
+                }
+
+
+            } else {
+                Image(systemName: "photo") // fallback if no profile image_url
+                    .resizable()
+                    .frame(width: 100, height: 100)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+            }
+
+
+
+            // ✅ Moderator-only upload button
+            if circle.isModerator {
+                Button("Upload Circl Photo") {
+                    showMediaPicker = true
+                }
+                .font(.subheadline)
+                .foregroundColor(.blue)
+                .padding(.top, 4)
+                .sheet(isPresented: $showMediaPicker) {
+                    MediaPicker(image: $selectedImage, videoURL: .constant(nil))
+                }
+                .onChange(of: showMediaPicker) { isShowing in
+                    if !isShowing, let img = selectedImage {
+                        uploadCircleImage(circleId: circle.id, image: img)
+
+                    }
+                }
+
+
+            }
+            
+            
+
 
             Text(circle.name)
                 .font(.title)
@@ -110,6 +169,13 @@ struct CirclPopupCard: View {
                 }
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .circleUpdated)) { notification in
+            if let updatedCircle = notification.object as? CircleData,
+               updatedCircle.id == circle.id {
+                circle = updatedCircle   // ✅ refresh local state
+            }
+        }
+
         .padding()
         .background(Color.white)
         .cornerRadius(20)

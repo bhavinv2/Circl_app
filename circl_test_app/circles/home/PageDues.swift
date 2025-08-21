@@ -35,7 +35,7 @@ struct PageDues: View {
                     VStack(spacing: 0) {
                         // Elegant Header
                         HStack {
-                            Button(action: { 
+                            Button(action: {
                                 withAnimation(.easeInOut(duration: 0.3)) {
                                     presentationMode.wrappedValue.dismiss()
                                 }

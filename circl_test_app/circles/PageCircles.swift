@@ -14,7 +14,8 @@ struct APICircle: Identifiable, Decodable {
     let is_moderator: Bool?  // ✅ Add this (optional for safety)
     let member_count: Int?
     let is_private: Bool
-    let has_dashboard: Bool?}
+    let has_dashboard: Bool?
+    let profile_image_url: String?  }
 
 
 
@@ -29,6 +30,8 @@ struct PageCircles: View {
     @State private var showAccessCodePrompt = false
     @State private var accessCodeInput = ""
     @State private var circlePendingJoin: CircleData? = nil
+    @State private var selectedCircle: CircleData? = nil
+    @State private var showCirclePopup = false
 
     @State private var showCreateCircleSheet = false
     @State private var circleName: String = ""
@@ -1149,7 +1152,9 @@ struct PageCircles: View {
                     creatorId: $0.creator_id,
                     isModerator: $0.is_moderator ?? false,
                     isPrivate: $0.is_private,
-                    hasDashboard: $0.has_dashboard ?? false
+                    hasDashboard: $0.has_dashboard ?? false,
+                    accessCode: nil,
+                    profileImageURL: $0.profile_image_url
                 )
             }
         }
@@ -1302,22 +1307,42 @@ struct PageCircles: View {
             HStack(alignment: .center, spacing: 16) {
                 // Enhanced circle image
                 ZStack {
-                    // Background circle
+                    // Background circle outline
                     Circle()
                         .fill(Color(hex: "004aad").opacity(0.1))
                         .frame(width: 90, height: 90)
-                    
-                    Image(circle.imageName)
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: 80, height: 80)
-                        .clipShape(Circle())
-                        .overlay(
-                            Circle()
-                                .stroke(Color(hex: "004aad").opacity(0.3), lineWidth: 2)
-                        )
-                        .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
+
+                    if let url = circle.profileImageURL, let imgURL = URL(string: url) {
+                        AsyncImage(url: imgURL) { phase in
+                            switch phase {
+                            case .success(let image):
+                                image.resizable()
+                                     .scaledToFill()
+                                     .frame(width: 80, height: 80)
+                                     .clipShape(Circle())
+                                     .overlay(
+                                         Circle().stroke(Color(hex: "004aad").opacity(0.3), lineWidth: 2)
+                                     )
+                                     .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
+                            case .failure(_):
+                                Image(systemName: "person.circle.fill")
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 80, height: 80)
+                                    .foregroundColor(.gray.opacity(0.6))
+                            default:
+                                ProgressView()
+                            }
+                        }
+                    } else {
+                        Image(systemName: "person.circle.fill")
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 80, height: 80)
+                            .foregroundColor(.gray.opacity(0.6))
+                    }
                 }
+
                 
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {

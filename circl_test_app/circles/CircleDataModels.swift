@@ -44,6 +44,7 @@ struct Channel: Identifiable, Codable, Hashable {
         case id, name, position
         case circleId = "circle_id"
         case isModeratorOnly = "is_moderator_only"
+        
     }
 }
 
@@ -67,7 +68,7 @@ struct CircleData: Identifiable, Decodable {
     let name: String
     let industry: String
     var memberCount: Int
-    let imageName: String
+    let imageName: String?
     let pricing: String
     let description: String
     let joinType: JoinType
@@ -79,7 +80,7 @@ struct CircleData: Identifiable, Decodable {
     let duesAmount: Int?
     let hasStripeAccount: Bool?
     let accessCode: String?   // ✅ add this
-
+    let profileImageURL: String?
 
     
     init(from decoder: Decoder) throws {
@@ -89,7 +90,8 @@ struct CircleData: Identifiable, Decodable {
         name = try container.decode(String.self, forKey: .name)
         industry = try container.decode(String.self, forKey: .industry)
         memberCount = try container.decode(Int.self, forKey: .memberCount)
-        imageName = try container.decode(String.self, forKey: .imageName)
+        imageName = try container.decodeIfPresent(String.self, forKey: .imageName)
+
         pricing = try container.decode(String.self, forKey: .pricing)
         description = try container.decode(String.self, forKey: .description)
         channels = try container.decode([String].self, forKey: .channels)
@@ -113,7 +115,7 @@ struct CircleData: Identifiable, Decodable {
         duesAmount = try container.decodeIfPresent(Int.self, forKey: .duesAmount)
         hasStripeAccount = try container.decodeIfPresent(Bool.self, forKey: .hasStripeAccount)
         accessCode = try container.decodeIfPresent(String.self, forKey: .accessCode)
-
+        profileImageURL = try container.decodeIfPresent(String.self, forKey: .profileImageURL) // ✅ add this
      
 
     }
@@ -135,7 +137,8 @@ struct CircleData: Identifiable, Decodable {
         hasDashboard: Bool? = false,
         duesAmount: Int? = nil,
         hasStripeAccount: Bool? = nil,
-        accessCode: String? = nil
+        accessCode: String? = nil,
+        profileImageURL: String? = nil
     ) {
         self.id = id
         self.name = name
@@ -153,6 +156,7 @@ struct CircleData: Identifiable, Decodable {
         self.duesAmount = duesAmount
         self.hasStripeAccount = hasStripeAccount
         self.accessCode = accessCode   // ✅ assign it
+        self.profileImageURL = profileImageURL 
     }
 
     
@@ -161,6 +165,7 @@ struct CircleData: Identifiable, Decodable {
         case duesAmount = "dues_amount"  // ✅ FIXED HERE
         case hasStripeAccount = "has_stripe_account"
         case accessCode = "access_code"   // ✅ match backend key
+        case profileImageURL = "profile_image_url"
     }
 
 
