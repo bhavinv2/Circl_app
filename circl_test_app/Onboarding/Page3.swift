@@ -6,6 +6,7 @@ struct Page3: View {
     @State private var firstName: String = ""
     @State private var lastName: String = ""
     @State private var email: String = ""
+    @State private var phoneNumber: String = ""
     @State private var isEmailValid: Bool = true
     
     // State for submission handling
@@ -181,6 +182,7 @@ struct Page3: View {
                             firstName: $firstName,
                             lastName: $lastName,
                             email: $email,
+                            phoneNumber: $phoneNumber,
                             isEmailValid: $isEmailValid
                         )
                         Spacer()
@@ -231,7 +233,7 @@ struct Page3: View {
                !lastName.isEmpty &&
                isEmailValid &&
                !email.isEmpty &&
-             
+               !phoneNumber.isEmpty &&
                selectedUsageInterest != nil &&
                selectedIndustryInterest != nil
     }
@@ -248,7 +250,7 @@ struct Page3: View {
             "first_name": firstName,
             "last_name": lastName,
             "email": email,
-           
+            "phone_number": phoneNumber,
             "main_usage": selectedUsageInterest ?? "",
             "industry_interest": selectedIndustryInterest ?? ""
         ]
@@ -352,6 +354,7 @@ struct PersonalInformationSection: View {
     @Binding var firstName: String
     @Binding var lastName: String
     @Binding var email: String
+    @Binding var phoneNumber: String
     @Binding var isEmailValid: Bool
 
     var body: some View {
@@ -399,8 +402,40 @@ struct PersonalInformationSection: View {
                             .foregroundColor(.red)
                     }
                 }
+                
+                TextField("Phone Number", text: Binding(
+                    get: { phoneNumber },
+                    set: { newValue in
+                        phoneNumber = formatPhoneNumber(newValue)
+                    }
+                ))
+                .padding()
+                .background(Color(.systemGray5))
+                .cornerRadius(10)
+                .keyboardType(.phonePad)
             }
         }
+    }
+    
+    private func formatPhoneNumber(_ newValue: String) -> String {
+        let filtered = newValue.filter { $0.isNumber }
+        let limitedInput = String(filtered.prefix(10))
+        
+        var formatted = ""
+        for (index, char) in limitedInput.enumerated() {
+            if index == 0 {
+                formatted.append("(")
+            }
+            if index == 3 {
+                formatted.append(") ")
+            }
+            if index == 6 {
+                formatted.append("-")
+            }
+            formatted.append(char)
+        }
+        
+        return formatted
     }
 
     private func isValidEmail(_ email: String) -> Bool {
