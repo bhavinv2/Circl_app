@@ -77,6 +77,7 @@ struct CircleData: Identifiable, Decodable {
     let isModerator: Bool
     let isPrivate: Bool
     var hasDashboard: Bool?
+    var isDashboardPublic: Bool?
     let duesAmount: Int?
     let hasStripeAccount: Bool?
     let accessCode: String?   // ✅ add this
@@ -99,6 +100,7 @@ struct CircleData: Identifiable, Decodable {
         isModerator = try container.decode(Bool.self, forKey: .isModerator)
         isPrivate = try container.decode(Bool.self, forKey: .isPrivate)
         hasDashboard = try container.decodeIfPresent(Bool.self, forKey: .hasDashboard)
+        isDashboardPublic = try container.decodeIfPresent(Bool.self, forKey: .isDashboardPublic)
 
 
         // Custom decoding for joinType
@@ -135,6 +137,7 @@ struct CircleData: Identifiable, Decodable {
         isModerator: Bool,
         isPrivate: Bool,   // ✅ ADD THIS
         hasDashboard: Bool? = false,
+        isDashboardPublic: Bool? = false,
         duesAmount: Int? = nil,
         hasStripeAccount: Bool? = nil,
         accessCode: String? = nil,
@@ -153,6 +156,7 @@ struct CircleData: Identifiable, Decodable {
         self.isModerator = isModerator
         self.isPrivate = isPrivate  // ✅ THIS will now work
         self.hasDashboard = hasDashboard  // ✅ this was missing
+        self.isDashboardPublic = isDashboardPublic
         self.duesAmount = duesAmount
         self.hasStripeAccount = hasStripeAccount
         self.accessCode = accessCode   // ✅ assign it
@@ -162,6 +166,7 @@ struct CircleData: Identifiable, Decodable {
     
     private enum CodingKeys: String, CodingKey {
         case id, name, industry, memberCount, imageName, pricing, description, joinType, channels, creatorId, isModerator, isPrivate, hasDashboard
+        case isDashboardPublic = "is_dashboard_public"
         case duesAmount = "dues_amount"  // ✅ FIXED HERE
         case hasStripeAccount = "has_stripe_account"
         case accessCode = "access_code"   // ✅ match backend key

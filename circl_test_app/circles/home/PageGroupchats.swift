@@ -15,6 +15,9 @@ struct PageGroupchats: View {
     @State private var announcements: [AnnouncementModel] = []
     @State private var showCreateAnnouncementPopup = false
     @State private var isDashboardEnabled: Bool
+    @State private var isDashboardPrivate: Bool = true // Inverted: true = private, false = public
+    @State private var showPrivacyWarning: Bool = false
+    @State private var pendingPrivacyChange: Bool = false
     @State var circle: CircleData
     @State private var navigateToDues = false
 
@@ -47,6 +50,7 @@ struct PageGroupchats: View {
         _circle = State(initialValue: circle) // ✅ not just `circle = ...`
         _selectedGroup = State(initialValue: circle.name)
         _isDashboardEnabled = State(initialValue: circle.hasDashboard ?? false)
+        _isDashboardPrivate = State(initialValue: !(circle.isDashboardPublic ?? false)) // Invert the logic
         lastCircleId = circle.id
     }
 
@@ -100,6 +104,7 @@ struct PageGroupchats: View {
                                                 circle = circl
                                                 selectedGroup = circl.name
                                                 isDashboardEnabled = circl.hasDashboard ?? false
+                                                isDashboardPrivate = !(circl.isDashboardPublic ?? false) // Invert the logic
                                                 lastCircleId = circl.id
                                                 // Refresh the current view with new circle data
                                                 fetchCategoriesAndChannels(for: circl.id)
@@ -559,18 +564,61 @@ struct PageGroupchats: View {
                                 .padding(.horizontal)
                                 .padding(.top, 8)
                             
-                            Toggle(isOn: $isDashboardEnabled) {
-                                Label("Enable Dashboard", systemImage: "chart.bar")
-                                    .font(.system(size: 14, weight: .medium))
+                            // Dashboard Settings Section
+                            VStack(alignment: .leading, spacing: 8) {
+                                // Enable/Disable Dashboard Toggle
+                                Toggle(isOn: $isDashboardEnabled) {
+                                    Label("Enable Dashboard", systemImage: "chart.bar")
+                                        .font(.system(size: 14, weight: .medium))
+                                }
+                                .toggleStyle(SwitchToggleStyle(tint: Color(hex: "004aad")))
+                                .onChange(of: isDashboardEnabled) { newValue in
+                                    if !newValue {
+                                        // If disabling dashboard, reset privacy to private (ON)
+                                        isDashboardPrivate = true
+                                    }
+                                    updateDashboardSettings(enabled: newValue, isPublic: !isDashboardPrivate) // Invert for API
+                                }
+                                
+                                // Dashboard Privacy Toggle (only shown when dashboard is enabled)
+                                if isDashboardEnabled {
+                                    Divider()
+                                        .padding(.vertical, 4)
+                                    
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        HStack {
+                                            Label("Dashboard Privacy", systemImage: isDashboardPrivate ? "eye.slash" : "eye")
+                                                .font(.system(size: 14, weight: .medium))
+                                            Spacer()
+                                            Text(isDashboardPrivate ? "Private" : "Public")
+                                                .font(.system(size: 12, weight: .medium))
+                                                .foregroundColor(isDashboardPrivate ? .orange : .green)
+                                        }
+                                        
+                                        Toggle(isOn: $isDashboardPrivate) {
+                                            Text(isDashboardPrivate ? "Only admins can see dashboard" : "All members can see dashboard")
+                                                .font(.system(size: 12))
+                                                .foregroundColor(.secondary)
+                                        }
+                                        .toggleStyle(SwitchToggleStyle(tint: Color(hex: "004aad")))
+                                        .onChange(of: isDashboardPrivate) { newValue in
+                                            if isDashboardPrivate && !newValue {
+                                                // Switching from private (ON) to public (OFF) - show warning
+                                                pendingPrivacyChange = newValue
+                                                showPrivacyWarning = true
+                                                isDashboardPrivate = true // Reset to true until confirmed
+                                            } else {
+                                                // Switching from public (OFF) to private (ON) - no warning needed
+                                                updateDashboardSettings(enabled: isDashboardEnabled, isPublic: !newValue) // Invert for API
+                                            }
+                                        }
+                                    }
+                                }
                             }
-                            .toggleStyle(SwitchToggleStyle(tint: Color(hex: "004aad")))
                             .padding(.horizontal)
-                            .padding(.vertical, 6)
+                            .padding(.vertical, 12)
                             .background(Color.white)
                             .cornerRadius(8)
-                            .onChange(of: isDashboardEnabled) { newValue in
-                                updateDashboardEnabled(to: newValue)
-                            }
                             
                      
 
@@ -905,6 +953,18 @@ struct PageGroupchats: View {
         } message: {
             Text("Are you sure? This action will permanently delete the circle and all its data.")
         }
+        
+        .alert("Make Dashboard Public?", isPresented: $showPrivacyWarning) {
+            Button("Make Public", role: .destructive) {
+                isDashboardPrivate = pendingPrivacyChange
+                updateDashboardSettings(enabled: isDashboardEnabled, isPublic: !pendingPrivacyChange) // Invert for API
+            }
+            Button("Keep Private", role: .cancel) {
+                pendingPrivacyChange = true // Reset to private (ON)
+            }
+        } message: {
+            Text("Making the dashboard public will allow all circle members to see the dashboard data, not just administrators. This change cannot be undone without switching back to private mode.")
+        }
 
         
     
@@ -1079,13 +1139,14 @@ struct PageGroupchats: View {
             }
         }.resume()
     }
-    func updateDashboardEnabled(to newValue: Bool) {
+    func updateDashboardSettings(enabled: Bool, isPublic: Bool) {
         guard let url = URL(string: "\(baseURL)circles/toggle_dashboard/") else { return }
 
         let payload: [String: Any] = [
             "circle_id": circle.id,
             "user_id": userId,
-            "has_dashboard": newValue
+            "has_dashboard": enabled,
+            "is_dashboard_public": isPublic
         ]
 
         var request = URLRequest(url: url)
@@ -1095,14 +1156,16 @@ struct PageGroupchats: View {
 
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
-                print("❌ Failed to toggle dashboard:", error.localizedDescription)
+                print("❌ Failed to update dashboard settings:", error.localizedDescription)
             } else if let data = data,
                       let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
-                print("✅ Dashboard toggle response:", json)
+                print("✅ Dashboard settings update response:", json)
 
                 DispatchQueue.main.async {
-                    self.circle.hasDashboard = newValue
-                    self.isDashboardEnabled = newValue
+                    self.circle.hasDashboard = enabled
+                    self.circle.isDashboardPublic = isPublic
+                    self.isDashboardEnabled = enabled
+                    self.isDashboardPrivate = !isPublic // Invert the logic for UI
 
                     // ✅ Tell wrapper to refresh
                     UserDefaults.standard.set(true, forKey: "should_refresh_circles")
@@ -1125,6 +1188,7 @@ struct PageGroupchats: View {
                 DispatchQueue.main.async {
                     self.circle = decoded
                     self.isDashboardEnabled = decoded.hasDashboard ?? false
+                    self.isDashboardPrivate = !(decoded.isDashboardPublic ?? false) // Invert the logic
                 }
             } catch {
                 print("❌ Failed to decode CircleData:", error)
@@ -1147,6 +1211,7 @@ struct PageGroupchats: View {
             let member_count: Int?
             let is_private: Bool?
             let has_dashboard: Bool?
+            let is_dashboard_public: Bool?
         }
 
         guard userId != 0,
@@ -1176,7 +1241,8 @@ struct PageGroupchats: View {
                         creatorId: apiCircle.creator_id,
                         isModerator: apiCircle.is_moderator ?? false,
                         isPrivate: apiCircle.is_private ?? false,
-                        hasDashboard: apiCircle.has_dashboard
+                        hasDashboard: apiCircle.has_dashboard,
+                        isDashboardPublic: apiCircle.is_dashboard_public
                     )
                 }
             }
@@ -1529,6 +1595,7 @@ struct PageGroupchatsWrapper: View {
             let member_count: Int?
             let is_private: Bool?    //
             let has_dashboard: Bool?
+            let is_dashboard_public: Bool?
         }
         
         guard let url = URL(string: "http://127.0.0.1:8000/api/circles/my_circles/\(userId)/") else { return }
@@ -1553,7 +1620,8 @@ struct PageGroupchatsWrapper: View {
                             creatorId: apiCircle.creator_id,
                             isModerator: apiCircle.is_moderator ?? false,
                             isPrivate: apiCircle.is_private ?? false,
-                            hasDashboard: apiCircle.has_dashboard
+                            hasDashboard: apiCircle.has_dashboard,
+                            isDashboardPublic: apiCircle.is_dashboard_public
 
                         )
                     }
