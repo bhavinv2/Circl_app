@@ -12,7 +12,7 @@ struct Page3: View {
     // State for submission handling
     @State private var isSubmitting: Bool = false
     @State private var submissionMessage: String = ""
-    @State private var navigateToPage5: Bool = false
+    @State private var navigateToPage4: Bool = false
     @State private var showAlert = false
 
     let usageInterestOptions = [
@@ -219,8 +219,8 @@ struct Page3: View {
                 }
                 .background(
                     NavigationLink(
-                        destination: Page5(),
-                        isActive: $navigateToPage5,
+                        destination: Page4(),
+                        isActive: $navigateToPage4,
                         label: { EmptyView() }
                     )
                 )
@@ -303,7 +303,7 @@ struct Page3: View {
                         }
 
                         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                            navigateToPage5 = true
+                            navigateToPage4 = true
                         }
 
                     } else if httpResponse.statusCode == 400 {
