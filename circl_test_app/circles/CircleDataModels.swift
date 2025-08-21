@@ -178,4 +178,12 @@ struct ChannelCategory: Identifiable, Codable {
     let name: String
     let position: Int
     let channels: [Channel]
+    
+    // Manual initializer for creating updated instances
+    init(id: Int?, name: String, position: Int, channels: [Channel]) {
+        self.id = id
+        self.name = name
+        self.position = position
+        self.channels = channels
+    }
 }

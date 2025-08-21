@@ -1,3 +1,31 @@
+/*
+ BACKEND TODO: Implement the following API endpoint for category reordering:
+ 
+ POST /api/circles/update_category_positions/
+ 
+ Request Body:
+ {
+   "circle_id": <int>,
+   "user_id": <int>,
+   "positions": [
+     {"id": <category_id>, "position": <new_position>},
+     {"id": <category_id>, "position": <new_position>},
+     ...
+   ]
+ }
+ 
+ Expected Response:
+ - 200 OK with JSON: {"success": true}
+ - 404 if circle not found
+ - 403 if user doesn't have permission
+ - 400 if invalid data
+ 
+ The endpoint should:
+ 1. Validate user has permission to modify the circle
+ 2. Update the position field for each category in the database
+ 3. Return success/error status
+ */
+
 import SwiftUI
 import Foundation
 
@@ -25,6 +53,12 @@ struct ManageChannelsView: View {
     @State private var channelNameForCategory: [Int: String] = [:]
     @State private var showAddPopup = false
     @State private var selectedCategoryId: Int? = nil
+    
+    // MARK: - Drag and Drop State
+    @State private var draggedCategory: ChannelCategory?
+    @State private var dragOffset: CGFloat = 0
+    @State private var isDragging = false
+    @State private var dropTargetIndex: Int? = nil
 
 
 
@@ -385,126 +419,26 @@ struct ManageChannelsView: View {
             } else {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {
+                        // Reorganization Instructions
+                        HStack(spacing: 8) {
+                            Image(systemName: "line.horizontal.3")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(Color(hex: "004aad"))
+                            
+                            Text("Hold and drag the ≡ handle to reorder categories")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(.secondary)
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color(hex: "004aad").opacity(0.05))
+                        )
+                        
+                        // Categories with drag and drop
                         ForEach(categories.sorted(by: { $0.position < $1.position })) { category in
-                            VStack(alignment: .leading, spacing: 8) {
-                                HStack(spacing: 8) {
-                                    Text(category.name)
-                                        .font(.system(size: 16, weight: .semibold))
-                                        .foregroundColor(.primary)
-
-                                    Menu {
-                                        Button(role: .destructive) {
-                                            deleteCategoryFromServer(categoryId: category.id ?? -1) { success in
-                                                if success {
-                                                    fetchCategories()
-                                                } else {
-                                                    errorMessage = "Failed to delete category"
-                                                    showingError = true
-                                                }
-                                            }
-                                        } label: {
-                                            Label("Delete Category", systemImage: "trash")
-                                        }
-                                    } label: {
-                                        Image(systemName: "ellipsis")
-                                            .font(.system(size: 16, weight: .medium))
-                                            .foregroundColor(.gray)
-                                    }
-
-                                    Spacer()
-
-                                    if selectedCategoryId != category.id {
-                                        Text("Add Channel")
-                                            .font(.system(size: 14))
-                                            .foregroundColor(.gray)
-                                            .padding(.trailing, 6)
-                                    }
-
-                                    Button(action: {
-                                        selectedCategoryId = (selectedCategoryId == category.id) ? nil : category.id
-                                    }) {
-                                        Image(systemName: selectedCategoryId == category.id ? "xmark.circle.fill" : "plus.circle.fill")
-                                            .font(.system(size: 20))
-                                            .foregroundColor(selectedCategoryId == category.id ? .red : Color(hex: "004aad"))
-                                    }
-                                }
-
-
-
-                                // ✅ INLINE CHANNEL CREATION BOX
-                                if selectedCategoryId == category.id {
-                                    HStack(spacing: 12) {
-                                        HStack(spacing: 8) {
-                                            Image(systemName: "number")
-                                                .foregroundColor(Color(hex: "004aad"))
-
-                                            TextField("Enter channel name", text: Binding(
-                                                get: { channelNameForCategory[category.id ?? -1] ?? "" },
-                                                set: { channelNameForCategory[category.id ?? -1] = $0 }
-                                            ))
-                                            .font(.system(size: 16))
-                                            .textFieldStyle(PlainTextFieldStyle())
-                                        }
-                                        .padding(.horizontal, 12)
-                                        .padding(.vertical, 10)
-                                        .background(RoundedRectangle(cornerRadius: 12).fill(Color.white))
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 12)
-                                                .stroke(Color(hex: "004aad").opacity(0.2), lineWidth: 1)
-                                        )
-
-                                        Button(action: {
-                                            let raw = channelNameForCategory[category.id ?? -1]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-                                            guard !raw.isEmpty else { return }
-                                            let channelName = raw.hasPrefix("#") ? raw : "#\(raw)"
-
-                                            if localChannels.contains(where: { $0.name.lowercased() == channelName.lowercased() }) {
-                                                errorMessage = "A channel with this name already exists"
-                                                showingError = true
-                                                return
-                                            }
-
-                                            isLoading = true
-                                            createChannelOnServer(channelName: channelName, categoryId: category.id) { success, _ in
-                                                DispatchQueue.main.async {
-                                                    isLoading = false
-                                                    if success {
-                                                        channelNameForCategory[category.id ?? -1] = ""
-                                                        selectedCategoryId = nil
-                                                        fetchCategories()
-                                                    } else {
-                                                        errorMessage = "Failed to add channel"
-                                                        showingError = true
-                                                    }
-                                                }
-                                            }
-                                        }) {
-                                            Image(systemName: "plus")
-                                                .font(.system(size: 18, weight: .semibold))
-                                                .foregroundColor(.white)
-                                                .frame(width: 44, height: 44)
-                                                .background(Circle().fill(Color(hex: "004aad")))
-                                        }
-                                    }
-                                    .padding(.vertical, 4)
-                                }
-
-                                ForEach(category.channels) { channel in
-                                    ChannelManagementRow(
-                                        channel: channel,
-                                        onDelete: { deleteChannel(channel) },
-                                        onMove: { _, _ in },
-                                        showDeleteButton: !isEditMode,
-                                        onToggleModeratorOnly: { toggleModeratorOnly($0) }
-                                        
-                                    )
-                                }
-                            }
-                            .padding()
-                            .background(Color.white)
-                            .cornerRadius(16)
-                            .shadow(color: Color.black.opacity(0.08), radius: 6, x: 0, y: 2)
-                            .padding(.horizontal, 4)
+                            categoryView(for: category)
                         }
 
                         // Uncategorized channels
@@ -626,6 +560,254 @@ struct ManageChannelsView: View {
         // Update the binding with local changes
         channels = localChannels
         presentationMode.wrappedValue.dismiss()
+    }
+    
+    // MARK: - Category View with Drag and Drop
+    @ViewBuilder
+    private func categoryView(for category: ChannelCategory) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                // Drag handle
+                VStack(spacing: 2) {
+                    Rectangle()
+                        .fill(Color.gray.opacity(0.6))
+                        .frame(width: 20, height: 2)
+                        .cornerRadius(1)
+                    Rectangle()
+                        .fill(Color.gray.opacity(0.6))
+                        .frame(width: 20, height: 2)
+                        .cornerRadius(1)
+                    Rectangle()
+                        .fill(Color.gray.opacity(0.6))
+                        .frame(width: 20, height: 2)
+                        .cornerRadius(1)
+                }
+                .opacity(isDragging && draggedCategory?.id == category.id ? 0.3 : 0.8)
+                .animation(.easeInOut(duration: 0.2), value: isDragging)
+                
+                Text(category.name)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.primary)
+
+                Menu {
+                    Button(role: .destructive) {
+                        deleteCategoryFromServer(categoryId: category.id ?? -1) { success in
+                            if success {
+                                fetchCategories()
+                            } else {
+                                errorMessage = "Failed to delete category"
+                                showingError = true
+                            }
+                        }
+                    } label: {
+                        Label("Delete Category", systemImage: "trash")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.gray)
+                }
+
+                Spacer()
+
+                if selectedCategoryId != category.id {
+                    Text("Add Channel")
+                        .font(.system(size: 14))
+                        .foregroundColor(.gray)
+                        .padding(.trailing, 6)
+                }
+
+                Button(action: {
+                    selectedCategoryId = (selectedCategoryId == category.id) ? nil : category.id
+                }) {
+                    Image(systemName: selectedCategoryId == category.id ? "xmark.circle.fill" : "plus.circle.fill")
+                        .font(.system(size: 20))
+                        .foregroundColor(selectedCategoryId == category.id ? .red : Color(hex: "004aad"))
+                }
+            }
+
+            // ✅ INLINE CHANNEL CREATION BOX
+            if selectedCategoryId == category.id {
+                HStack(spacing: 12) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "number")
+                            .foregroundColor(Color(hex: "004aad"))
+
+                        TextField("Enter channel name", text: Binding(
+                            get: { channelNameForCategory[category.id ?? -1] ?? "" },
+                            set: { channelNameForCategory[category.id ?? -1] = $0 }
+                        ))
+                        .font(.system(size: 16))
+                        .textFieldStyle(PlainTextFieldStyle())
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 10)
+                    .background(RoundedRectangle(cornerRadius: 12).fill(Color.white))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color(hex: "004aad").opacity(0.2), lineWidth: 1)
+                    )
+
+                    Button(action: {
+                        let raw = channelNameForCategory[category.id ?? -1]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                        guard !raw.isEmpty else { return }
+                        let channelName = raw.hasPrefix("#") ? raw : "#\(raw)"
+
+                        if localChannels.contains(where: { $0.name.lowercased() == channelName.lowercased() }) {
+                            errorMessage = "A channel with this name already exists"
+                            showingError = true
+                            return
+                        }
+
+                        isLoading = true
+                        createChannelOnServer(channelName: channelName, categoryId: category.id) { success, _ in
+                            DispatchQueue.main.async {
+                                isLoading = false
+                                if success {
+                                    channelNameForCategory[category.id ?? -1] = ""
+                                    selectedCategoryId = nil
+                                    fetchCategories()
+                                } else {
+                                    errorMessage = "Failed to add channel"
+                                    showingError = true
+                                }
+                            }
+                        }
+                    }) {
+                        Image(systemName: "plus")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundColor(.white)
+                            .frame(width: 44, height: 44)
+                            .background(Circle().fill(Color(hex: "004aad")))
+                    }
+                }
+                .padding(.vertical, 4)
+            }
+
+            ForEach(category.channels) { channel in
+                ChannelManagementRow(
+                    channel: channel,
+                    onDelete: { deleteChannel(channel) },
+                    onMove: { _, _ in },
+                    showDeleteButton: !isEditMode,
+                    onToggleModeratorOnly: { toggleModeratorOnly($0) }
+                )
+            }
+        }
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.white)
+                .shadow(color: Color.black.opacity(isDragging && draggedCategory?.id == category.id ? 0.2 : 0.08), 
+                       radius: isDragging && draggedCategory?.id == category.id ? 12 : 6, 
+                       x: 0, 
+                       y: isDragging && draggedCategory?.id == category.id ? 8 : 2)
+        )
+        .scaleEffect(isDragging && draggedCategory?.id == category.id ? 1.05 : 1.0)
+        .opacity(isDragging && draggedCategory?.id == category.id ? 0.9 : 1.0)
+        .padding(.horizontal, 4)
+        .offset(y: isDragging && draggedCategory?.id == category.id ? dragOffset : 0)
+        .animation(.easeInOut(duration: 0.2), value: isDragging)
+        .animation(.easeInOut(duration: 0.1), value: dragOffset)
+        .zIndex(isDragging && draggedCategory?.id == category.id ? 1 : 0)
+        .gesture(
+            LongPressGesture(minimumDuration: 0.3)
+                .onEnded { _ in
+                    // Start dragging state
+                    draggedCategory = category
+                    isDragging = true
+                    // Haptic feedback
+                    let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                    impactFeedback.impactOccurred()
+                }
+                .simultaneously(with:
+                    DragGesture()
+                        .onChanged { value in
+                            // Only update offset if this category is being dragged
+                            if isDragging && draggedCategory?.id == category.id {
+                                dragOffset = value.translation.height
+                                
+                                // Calculate potential drop target for visual feedback
+                                let sortedCategories = categories.sorted(by: { $0.position < $1.position })
+                                if let draggedIndex = sortedCategories.firstIndex(where: { $0.id == category.id }) {
+                                    let categoryHeight: CGFloat = 80
+                                    let sensitivity: CGFloat = 0.5
+                                    let dropOffset = Int(round(value.translation.height / (categoryHeight * sensitivity)))
+                                    let newIndex = max(0, min(sortedCategories.count - 1, draggedIndex + dropOffset))
+                                    dropTargetIndex = newIndex != draggedIndex ? newIndex : nil
+                                }
+                            }
+                        }
+                        .onEnded { value in
+                            // Handle drop only if this was the dragged category
+                            if isDragging && draggedCategory?.id == category.id {
+                                handleCategoryDrop(draggedCategory: category, translation: value.translation.height)
+                            }
+                            
+                            // Reset drag state
+                            isDragging = false
+                            draggedCategory = nil
+                            dragOffset = 0
+                            dropTargetIndex = nil
+                        }
+                )
+        )
+    }
+    
+    // MARK: - Drag and Drop Handling
+    private func handleCategoryDrop(draggedCategory: ChannelCategory, translation: CGFloat) {
+        print("🎯 handleCategoryDrop called with translation: \(translation)")
+        
+        let sortedCategories = categories.sorted(by: { $0.position < $1.position })
+        print("📋 Current categories: \(sortedCategories.map { "\($0.name)(\($0.position))" })")
+        
+        guard let draggedIndex = sortedCategories.firstIndex(where: { $0.id == draggedCategory.id }) else {
+            print("❌ Could not find dragged category in sorted list")
+            return
+        }
+        
+        // Calculate the approximate drop position based on translation
+        let categoryHeight: CGFloat = 80 // More accurate height for category cards
+        let sensitivity: CGFloat = 0.5 // Adjust sensitivity for reordering
+        let dropOffset = Int(round(translation / (categoryHeight * sensitivity)))
+        let newIndex = max(0, min(sortedCategories.count - 1, draggedIndex + dropOffset))
+        
+        print("📍 Drag details: draggedIndex=\(draggedIndex), dropOffset=\(dropOffset), newIndex=\(newIndex)")
+        
+        // Only proceed if the position actually changed
+        guard newIndex != draggedIndex else { 
+            print("📍 No position change needed")
+            return 
+        }
+        
+        print("📍 Moving category '\(draggedCategory.name)' from index \(draggedIndex) to \(newIndex)")
+        
+        // Calculate new positions for all categories
+        var updatedCategories = sortedCategories
+        let movedCategory = updatedCategories.remove(at: draggedIndex)
+        updatedCategories.insert(movedCategory, at: newIndex)
+        
+        // Update positions
+        for (index, _) in updatedCategories.enumerated() {
+            updatedCategories[index] = ChannelCategory(
+                id: updatedCategories[index].id,
+                name: updatedCategories[index].name,
+                position: index + 1,
+                channels: updatedCategories[index].channels
+            )
+        }
+        
+        print("📋 Updated categories: \(updatedCategories.map { "\($0.name)(\($0.position))" })")
+        
+        // Update local state immediately for UI responsiveness
+        categories = updatedCategories
+        
+        // Send to server
+        updateCategoryPositionsOnServer(categories: updatedCategories)
+        
+        // Haptic feedback for successful drop
+        let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+        impactFeedback.impactOccurred()
     }
     
     // MARK: - Backend API Functions
@@ -804,6 +986,103 @@ struct ManageChannelsView: View {
             }
         }.resume()
     }
+    
+    // MARK: - Category Position Update
+    private func updateCategoryPositionsOnServer(categories: [ChannelCategory]) {
+        guard let url = URL(string: "\(baseURL)circles/update_category_positions/") else {
+            print("❌ Invalid URL for updating category positions")
+            DispatchQueue.main.async {
+                self.errorMessage = "Failed to update category order - Invalid URL"
+                self.showingError = true
+            }
+            return
+        }
+        
+        // Validate categories have valid IDs
+        let validCategories = categories.filter { $0.id != nil && $0.id != -1 }
+        if validCategories.count != categories.count {
+            print("❌ Some categories have invalid IDs")
+            DispatchQueue.main.async {
+                self.errorMessage = "Failed to update category order - Invalid category data"
+                self.showingError = true
+            }
+            return
+        }
+        
+        let positions = validCategories.map { category in
+            ["id": category.id!, "position": category.position]
+        }
+        
+        let payload: [String: Any] = [
+            "circle_id": circleId,
+            "user_id": userId,
+            "positions": positions
+        ]
+        
+        print("🌐 Updating category positions")
+        print("📤 URL: \(url.absoluteString)")
+        print("📤 Payload: \(payload)")
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: payload)
+        } catch {
+            print("❌ Failed to serialize payload: \(error)")
+            DispatchQueue.main.async {
+                self.errorMessage = "Failed to update category order - Data error"
+                self.showingError = true
+            }
+            return
+        }
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    print("❌ Category position update error: \(error.localizedDescription)")
+                    self.errorMessage = "Network error - Categories reordered locally only"
+                    self.showingError = true
+                    return
+                }
+                
+                guard let httpResponse = response as? HTTPURLResponse else {
+                    print("❌ Invalid response")
+                    self.errorMessage = "Server communication error - Categories reordered locally only"
+                    self.showingError = true
+                    return
+                }
+                
+                print("📊 Category position update status: \(httpResponse.statusCode)")
+                
+                // Check if we got HTML response (404 error page)
+                if let data = data, let responseString = String(data: data, encoding: .utf8) {
+                    print("📥 Response: \(responseString)")
+                    
+                    if responseString.contains("<!DOCTYPE html>") || responseString.contains("<html") {
+                        print("❌ Server returned HTML (likely 404 - endpoint not implemented)")
+                        self.errorMessage = "Server endpoint not implemented yet - Categories reordered locally only. Changes will be lost when you refresh."
+                        self.showingError = true
+                        return
+                    }
+                }
+                
+                if httpResponse.statusCode == 200 || httpResponse.statusCode == 201 {
+                    print("✅ Category positions updated successfully")
+                } else if httpResponse.statusCode == 404 {
+                    print("❌ Endpoint not found (404)")
+                    self.errorMessage = "Server endpoint not implemented yet - Categories reordered locally only. Changes will be lost when you refresh."
+                    self.showingError = true
+                } else {
+                    print("❌ Server error: \(httpResponse.statusCode)")
+                    let errorDetails = data.flatMap { String(data: $0, encoding: .utf8) } ?? "Unknown error"
+                    self.errorMessage = "Server error (\(httpResponse.statusCode)) - Categories reordered locally only"
+                    self.showingError = true
+                }
+            }
+        }.resume()
+    }
 }
 
 // MARK: - Channel Management Row
@@ -897,4 +1176,4 @@ struct ManageChannelsView_Previews: PreviewProvider {
             ])
         )
     }
-} 
+}
