@@ -367,6 +367,7 @@ struct PageUnifiedNetworking: View {
             }
 
         }
+        .withNotifications() // ✅ Enable notifications on PageUnifiedNetworking
     }
     
     // MARK: - Header Section

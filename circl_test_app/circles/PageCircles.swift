@@ -846,6 +846,7 @@ struct PageCircles: View {
             print("🔄 showMyCircles changed:", newValue)
             loadCircles()
         }
+        .withNotifications() // ✅ Enable notifications on PageCircles
         }
         
         NavigationLink(

@@ -246,3 +246,46 @@ struct Message: Codable, Identifiable {
         }
     }
 }
+
+// MARK: - In-App Notification Models
+
+/// Types of in-app notifications
+enum NotificationType: String, Codable {
+    case directMessage = "direct_message"
+    case channelMessage = "channel_message"
+    case connectionRequest = "connection_request"
+    case circleInvite = "circle_invite"
+    case systemNotification = "system_notification"
+}
+
+/// Model for in-app banner notifications
+struct InAppNotification: Identifiable, Equatable {
+    let id = UUID()
+    let type: NotificationType
+    let title: String
+    let subtitle: String?
+    let senderName: String?
+    let profileImageURL: String?
+    let timestamp: Date
+    let messageId: Int?
+    let channelId: Int?
+    let circleId: Int?
+    
+    init(type: NotificationType, title: String, subtitle: String? = nil, 
+         senderName: String? = nil, profileImageURL: String? = nil,
+         messageId: Int? = nil, channelId: Int? = nil, circleId: Int? = nil) {
+        self.type = type
+        self.title = title
+        self.subtitle = subtitle
+        self.senderName = senderName
+        self.profileImageURL = profileImageURL
+        self.messageId = messageId
+        self.channelId = channelId
+        self.circleId = circleId
+        self.timestamp = Date()
+    }
+    
+    static func == (lhs: InAppNotification, rhs: InAppNotification) -> Bool {
+        return lhs.id == rhs.id
+    }
+}

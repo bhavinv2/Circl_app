@@ -259,6 +259,7 @@ struct PageMessages: View {
                 }
             }
         }
+        .withNotifications() // ✅ Enable notification overlay on PageMessages
     }
     
     // MARK: - Header Section (matching other pages)
@@ -304,6 +305,8 @@ struct PageMessages: View {
                     .foregroundColor(.white)
                 
                 Spacer()
+                
+                Spacer().frame(width: 8)
                 
                 // Right side - Home
                 NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
@@ -1173,14 +1176,35 @@ struct PageMessages: View {
                                 )
                             }
                             
-                DispatchQueue.main.async {
+                            DispatchQueue.main.async {
                                 print("=== MESSAGES DEBUG ===")
                                 convertedMessages.forEach { message in
                                     print("Message \(message.id): From \(message.sender_id) to \(message.receiver_id), Read: \(message.is_read), Content: \(message.content)")
                                 }
                                 print("=====================")
                                 
+                                // 🔔 Check for new unread messages and trigger notifications
                                 let userIdString = String(userId)
+                                let newUnreadMessages = convertedMessages.filter { message in
+                                    message.receiver_id == userIdString && !message.is_read
+                                }
+                                
+                                // Show notifications for new messages (limit to avoid spam)
+                                for message in newUnreadMessages.prefix(3) {
+                                    // Only show notification if we haven't shown it for this message ID already
+                                    if NotificationManager.shared.shouldShowNotificationForMessage(messageId: message.id) {
+                                        self.fetchUserProfile(userId: Int(message.sender_id) ?? 0) { profile in
+                                            let senderName = profile?.first_name ?? "Someone"
+                                            NotificationManager.shared.showMessageNotification(
+                                                senderName: senderName,
+                                                message: message.content,
+                                                profileImageURL: profile?.profile_image,
+                                                messageId: Int(message.id)
+                                            )
+                                        }
+                                    }
+                                }
+                                
                                 self.groupedMessages = Dictionary(grouping: convertedMessages) { message in
                                     return message.sender_id == userIdString ? message.receiver_id : message.sender_id
                                 }
@@ -1203,8 +1227,29 @@ struct PageMessages: View {
                             )
                         }
                         
-                    DispatchQueue.main.async {
+                        DispatchQueue.main.async {
+                            // 🔔 Check for new unread messages and trigger notifications
                             let userIdString = String(userId)
+                            let newUnreadMessages = convertedMessages.filter { message in
+                                message.receiver_id == userIdString && !message.is_read
+                            }
+                            
+                            // Show notifications for new messages (limit to avoid spam)
+                            for message in newUnreadMessages.prefix(3) {
+                                // Only show notification if we haven't shown it for this message ID already
+                                if NotificationManager.shared.shouldShowNotificationForMessage(messageId: message.id) {
+                                    self.fetchUserProfile(userId: Int(message.sender_id) ?? 0) { profile in
+                                        let senderName = profile?.first_name ?? "Someone"
+                                        NotificationManager.shared.showMessageNotification(
+                                            senderName: senderName,
+                                            message: message.content,
+                                            profileImageURL: profile?.profile_image,
+                                            messageId: Int(message.id)
+                                        )
+                                    }
+                                }
+                            }
+                            
                             self.groupedMessages = Dictionary(grouping: convertedMessages) { message in
                                 return message.sender_id == userIdString ? message.receiver_id : message.sender_id
                             }

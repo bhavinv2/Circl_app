@@ -1008,8 +1008,7 @@ struct PageForum: View {
                 showTutorial = true
             }
         }
-
-
+        .withNotifications() // ✅ Enable notifications on PageForum
         .alert("Select a category for your post", isPresented: $showCategoryAlert) {
             Button("Growth & Marketing") {
                 selectedCategory = "Growth & Marketing"

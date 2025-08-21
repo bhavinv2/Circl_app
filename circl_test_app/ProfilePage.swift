@@ -403,6 +403,7 @@ struct ProfilePage: View {
                 fetchNetwork()
             }
         }
+        .withNotifications() // ✅ Enable notifications on ProfilePage
     }
 
 // MARK: - Modern UI Components
