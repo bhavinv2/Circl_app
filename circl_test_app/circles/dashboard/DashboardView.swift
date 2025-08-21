@@ -71,7 +71,7 @@ struct DashboardView: View {
 
                         
                         NavigationLink(
-                            destination: MemberListPage(circleName: circle.name, circleId: circle.id)
+                            destination: DashboardMemberListPage(circleName: circle.name, circleId: circle.id)
                         ) {
                             SummaryCard(
                                 title: "Total Members",
