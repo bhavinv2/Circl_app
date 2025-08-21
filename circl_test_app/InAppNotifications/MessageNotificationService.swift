@@ -57,7 +57,6 @@ class MessageNotificationService: ObservableObject {
                 print("❌ Background message check network error:", error.localizedDescription)
                 return
             }
-            }
             
             if let data = data {
                 do {
