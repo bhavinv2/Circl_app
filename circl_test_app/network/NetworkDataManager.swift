@@ -638,3 +638,96 @@ else if let dict = json as? [String: Any] {
         print("✅ Added test mentors: \(testMentors.count)")
     }
 }
+func uploadCircleImage(circleId: Int, image: UIImage) {
+    let urlString = "\(baseURL)circles/upload_circle_image/"
+    guard let url = URL(string: urlString) else { return }
+
+    var request = URLRequest(url: url)
+    request.httpMethod = "POST"
+
+    if let token = UserDefaults.standard.string(forKey: "auth_token") {
+        request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+    }
+
+    let boundary = UUID().uuidString
+    request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+
+    var data = Data()
+
+    // circle_id
+    data.append("--\(boundary)\r\n".data(using: .utf8)!)
+    data.append("Content-Disposition: form-data; name=\"circle_id\"\r\n\r\n".data(using: .utf8)!)
+    data.append("\(circleId)\r\n".data(using: .utf8)!)
+
+    // ✅ add user_id
+    if let userId = UserDefaults.standard.value(forKey: "user_id") as? Int {
+        data.append("--\(boundary)\r\n".data(using: .utf8)!)
+        data.append("Content-Disposition: form-data; name=\"user_id\"\r\n\r\n".data(using: .utf8)!)
+        data.append("\(userId)\r\n".data(using: .utf8)!)
+    }
+
+    // profile_image
+    if let imgData = image.jpegData(compressionQuality: 0.8) {
+        data.append("--\(boundary)\r\n".data(using: .utf8)!)
+        data.append("Content-Disposition: form-data; name=\"profile_image\"; filename=\"circle.jpg\"\r\n".data(using: .utf8)!)
+        data.append("Content-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
+        data.append(imgData)
+        data.append("\r\n".data(using: .utf8)!)
+    }
+
+    data.append("--\(boundary)--\r\n".data(using: .utf8)!)
+
+    request.httpBody = data
+
+    URLSession.shared.dataTask(with: request) { data, response, error in
+        if let error = error {
+            print("❌ Circle image upload failed:", error.localizedDescription)
+            return
+        }
+        if let data = data, let responseStr = String(data: data, encoding: .utf8) {
+            print("✅ Upload response:", responseStr)
+
+            // 🔄 Fetch updated circle details right after upload
+            DispatchQueue.main.async {
+                fetchCircleDetails(circleId: circleId) { updatedCircle in
+                    if let updated = updatedCircle {
+                        NotificationCenter.default.post(name: .circleUpdated, object: updated)
+                    }
+                }
+            }
+        }
+    }.resume()
+}
+extension Notification.Name {
+    static let circleUpdated = Notification.Name("circleUpdated")
+}
+
+func fetchCircleDetails(circleId: Int, completion: @escaping (CircleData?) -> Void) {
+    guard let url = URL(string: "\(baseURL)circles/get_circle_details/?circle_id=\(circleId)&user_id=\(UserDefaults.standard.integer(forKey: "user_id"))") else {
+        completion(nil)
+        return
+    }
+
+    var request = URLRequest(url: url)
+    request.httpMethod = "GET"
+
+    if let token = UserDefaults.standard.string(forKey: "auth_token") {
+        request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+    }
+
+    URLSession.shared.dataTask(with: request) { data, response, error in
+        guard let data = data else {
+            completion(nil)
+            return
+        }
+        do {
+            let decoded = try JSONDecoder().decode(CircleData.self, from: data)
+            DispatchQueue.main.async {
+                completion(decoded)
+            }
+        } catch {
+            print("❌ Decoding circle details failed:", error)
+            completion(nil)
+        }
+    }.resume()
+}
