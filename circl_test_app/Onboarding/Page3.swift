@@ -18,7 +18,7 @@ struct Page3: View {
     let usageInterestOptions = [
         "Sell a Skill", "Make Investments", "Share Knowledge", "Be Part of the Community",
         "Find Investors", "Find Mentors", "Find Co-Founder/s", "Network with Entrepreneurs",
-        "Scale Your Business", "Start Your Business"
+        "Scale Your Business", "Start Your Business", "Student"
     ]
 
     let industryCategories: [(String, [String])] = [
