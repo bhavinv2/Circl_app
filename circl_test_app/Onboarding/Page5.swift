@@ -444,7 +444,7 @@ struct Page5: View {
     }
     
     func submitPersonalDetails(completion: @escaping (Bool) -> Void) {
-        guard let url = URL(string: "\(baseURL)users/update-personal-details/") else {
+        guard let url = URL(string: "https://circlapp.online/api/users/update-personal-details/") else {
             print("❌ Invalid API URL")
             completion(false)
             return
@@ -497,7 +497,7 @@ struct Page5: View {
     }
     
     func submitLocationToSkillsEndpoint(completion: @escaping (Bool) -> Void) {
-        guard let url = URL(string: "\(baseURL)users/update-skills-interests/") else {
+        guard let url = URL(string: "https://circlapp.online/api/users/update-skills-interests/") else {
             print("❌ Invalid API URL for skills/interests")
             completion(false)
             return
