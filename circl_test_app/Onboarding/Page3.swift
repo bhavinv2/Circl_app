@@ -174,42 +174,48 @@ struct Page3: View {
                         .offset(x: UIScreen.main.bounds.width / 2 - 115, y: 10)
                 }
 
-                ScrollView {
-                    VStack(spacing: 20) {
-                        TitleSection()
-                        Spacer()
-                        PersonalInformationSection(
-                            firstName: $firstName,
-                            lastName: $lastName,
-                            email: $email,
-                            phoneNumber: $phoneNumber,
-                            isEmailValid: $isEmailValid
-                        )
-                        Spacer()
-                        ExperienceSetupSection(
-                            usageInterestOptions: usageInterestOptions,
-                            industryCategories: industryCategories,
-                            selectedUsageInterest: $selectedUsageInterest,
-                            selectedIndustryInterest: $selectedIndustryInterest
-                        )
-                        Spacer()
-                        NextButton(
-                            isSubmitting: $isSubmitting,
-                            action: {
-                                if !isFormValid() {
-                                    submissionMessage = "Please fill out all fields correctly before continuing."
-                                    showAlert = true
-                                } else {
-                                    submitUserInfo()
-                                }
-                            },
-                            isFormValid: isFormValid()
-                        )
-                        Spacer()
-                    }
-                    .padding(.horizontal, 40)
+                VStack(spacing: 0) {
+                    Spacer(minLength: 30)
+                    
+                    TitleSection()
+                    
+                    Spacer(minLength: 20)
+                    
+                    PersonalInformationSection(
+                        firstName: $firstName,
+                        lastName: $lastName,
+                        email: $email,
+                        phoneNumber: $phoneNumber,
+                        isEmailValid: $isEmailValid
+                    )
+                    
+                    Spacer(minLength: 15)
+                    
+                    ExperienceSetupSection(
+                        usageInterestOptions: usageInterestOptions,
+                        industryCategories: industryCategories,
+                        selectedUsageInterest: $selectedUsageInterest,
+                        selectedIndustryInterest: $selectedIndustryInterest
+                    )
+                    
+                    Spacer(minLength: 20)
+                    
+                    NextButton(
+                        isSubmitting: $isSubmitting,
+                        action: {
+                            if !isFormValid() {
+                                submissionMessage = "Please fill out all fields correctly before continuing."
+                                showAlert = true
+                            } else {
+                                submitUserInfo()
+                            }
+                        },
+                        isFormValid: isFormValid()
+                    )
+                    
+                    Spacer(minLength: 30)
                 }
-                .dismissKeyboardOnScroll()
+                .padding(.horizontal, 30)
                 .alert(isPresented: $showAlert) {
                     Alert(
                         title: Text("Registration Error"),
@@ -337,15 +343,15 @@ struct Page3: View {
 
 struct TitleSection: View {
     var body: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 5) {
             Text("Create Your Account")
-                .font(.system(size: 32, weight: .bold))
+                .font(.system(size: 28, weight: .bold))
                 .foregroundColor(Color(hex: "ffde59"))
-                .padding(.top, 40)
 
             Rectangle()
                 .frame(height: 2)
                 .foregroundColor(.white)
+                .padding(.horizontal, 20)
         }
     }
 }
@@ -358,31 +364,31 @@ struct PersonalInformationSection: View {
     @Binding var isEmailValid: Bool
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 8) {
             Text("Personal Information")
-                .font(.system(size: 20, weight: .bold))
+                .font(.system(size: 18, weight: .bold))
                 .foregroundColor(.white)
 
-            VStack(spacing: 15) {
+            VStack(spacing: 10) {
                 TextField("First Name", text: Binding(
                     get: { firstName },
                     set: { firstName = $0.capitalized }
                 ))
-                .padding()
+                .padding(12)
                 .background(Color(.systemGray5))
-                .cornerRadius(10)
+                .cornerRadius(8)
                 .autocapitalization(.words)
                 
                 TextField("Last Name", text: Binding(
                     get: { lastName },
                     set: { lastName = $0.capitalized }
                 ))
-                .padding()
+                .padding(12)
                 .background(Color(.systemGray5))
-                .cornerRadius(10)
+                .cornerRadius(8)
                 .autocapitalization(.words)
 
-                VStack(alignment: .leading) {
+                VStack(alignment: .leading, spacing: 2) {
                     TextField("Email", text: Binding(
                         get: { email },
                         set: { newValue in
@@ -390,15 +396,15 @@ struct PersonalInformationSection: View {
                             isEmailValid = isValidEmail(newValue) || newValue.isEmpty
                         }
                     ))
-                    .padding()
+                    .padding(12)
                     .background(Color(.systemGray5))
-                    .cornerRadius(10)
+                    .cornerRadius(8)
                     .keyboardType(.emailAddress)
                     .autocapitalization(.none)
                     
                     if !isEmailValid && !email.isEmpty {
                         Text("Please enter a valid email address")
-                            .font(.caption)
+                            .font(.caption2)
                             .foregroundColor(.red)
                     }
                 }
@@ -409,9 +415,9 @@ struct PersonalInformationSection: View {
                         phoneNumber = formatPhoneNumber(newValue)
                     }
                 ))
-                .padding()
+                .padding(12)
                 .background(Color(.systemGray5))
-                .cornerRadius(10)
+                .cornerRadius(8)
                 .keyboardType(.phonePad)
             }
         }
@@ -453,12 +459,12 @@ struct ExperienceSetupSection: View {
     @Binding var selectedIndustryInterest: String?
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 8) {
             Text("Let Us Set Up Your Experience")
-                .font(.system(size: 20, weight: .bold))
+                .font(.system(size: 18, weight: .bold))
                 .foregroundColor(.white)
             
-            VStack(spacing: 15) {
+            VStack(spacing: 10) {
                 DropdownField(
                     placeholder: "Main Usage Interest",
                     options: usageInterestOptions,
@@ -471,11 +477,11 @@ struct ExperienceSetupSection: View {
                     selectedOption: $selectedIndustryInterest
                 )
                 
-                Spacer()
                 Text("*You Will Get Your Password Upon Approval")
-                    .font(.system(size: 15, weight: .bold))
+                    .font(.system(size: 13, weight: .medium))
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
+                    .padding(.top, 5)
             }
         }
     }
@@ -493,12 +499,16 @@ struct NextButton: View {
             }
         }) {
             Text(isSubmitting ? "Submitting..." : "Next")
-                .font(.system(size: 24, weight: .bold))
+                .font(.system(size: 22, weight: .bold))
                 .foregroundColor(Color(hex: "004aad"))
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 15)
-                .background(Color.white)
-                .cornerRadius(15)
+                .padding(.vertical, 12)
+                .background(Color(hex: "ffde59"))
+                .cornerRadius(12)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.white, lineWidth: 2)
+                )
                 .padding(.horizontal, 50)
                 .opacity(isFormValid ? 1.0 : 0.6)
         }
@@ -522,7 +532,7 @@ struct DropdownField: View {
         } label: {
             HStack {
                 Text(selectedOption ?? placeholder)
-                    .font(.system(size: 16, weight: .medium))
+                    .font(.system(size: 15, weight: .medium))
                     .foregroundColor(
                         selectedOption == nil ?
                             Color(hex: "004aad").opacity(0.6) :
@@ -531,11 +541,11 @@ struct DropdownField: View {
                 Spacer()
                 Image(systemName: "chevron.down")
                     .foregroundColor(Color(hex: "004aad"))
-                    .font(.system(size: 14, weight: .medium))
+                    .font(.system(size: 12, weight: .medium))
             }
-            .padding()
+            .padding(12)
             .background(Color(.systemGray5))
-            .cornerRadius(10)
+            .cornerRadius(8)
         }
     }
 }
@@ -561,7 +571,7 @@ struct CategorizedDropdownField: View {
         } label: {
             HStack {
                 Text(selectedOption ?? placeholder)
-                    .font(.system(size: 16, weight: .medium))
+                    .font(.system(size: 15, weight: .medium))
                     .foregroundColor(
                         selectedOption == nil ?
                         Color(hex: "004aad").opacity(0.6) :
@@ -570,11 +580,11 @@ struct CategorizedDropdownField: View {
                 Spacer()
                 Image(systemName: "chevron.down")
                     .foregroundColor(Color(hex: "004aad"))
-                    .font(.system(size: 14, weight: .medium))
+                    .font(.system(size: 12, weight: .medium))
             }
-            .padding()
+            .padding(12)
             .background(Color(.systemGray5))
-            .cornerRadius(10)
+            .cornerRadius(8)
         }
     }
 }

@@ -14,17 +14,25 @@ struct Page1: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color(hex: "004aad")
-                    .edgesIgnoringSafeArea(.all)
-                    .navigationBarBackButtonHidden(true)  // Hide back button
-                            .navigationBarHidden(true)  // Hide entire navigation bar if desired
+                // Subtle gradient background
+                LinearGradient(
+                    gradient: Gradient(colors: [
+                        Color(hex: "004aad"),
+                        Color(hex: "0056c7"),
+                        Color(hex: "004aad")
+                    ]),
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .edgesIgnoringSafeArea(.all)
+                .navigationBarBackButtonHidden(true)
+                .navigationBarHidden(true)
                 
-                ScrollView {
+                VStack(spacing: 0) {
+                    Spacer(minLength: 50)
                     
+                    // Logo Section with subtle enhancements
                     VStack(spacing: 20) {
-                        Spacer()
-
-                        // Circl Logo
                         Circle()
                             .foregroundColor(.white)
                             .overlay(
@@ -32,100 +40,101 @@ struct Page1: View {
                                     .font(.system(size: 55, weight: .bold))
                                     .foregroundColor(Color(hex: "004aad"))
                             )
-                            .frame(width: 250, height: 250)
-                            .offset(y: -30)
-
+                            .frame(width: 220, height: 220)
+                            .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
+                        
                         Text("Where Ideas Go Around")
                             .font(.system(size: 24, weight: .bold))
                             .foregroundColor(.white)
-                            .offset(y: -30)
-                        
-               
-
-                        Spacer()
-
-                        // Join Circl Button Inside a White Section
+                            .multilineTextAlignment(.center)
+                            .shadow(color: .black.opacity(0.2), radius: 3, x: 0, y: 2)
+                    }
+                    
+                    Spacer(minLength: 40)
+                    
+                    // Enhanced card layout
+                    VStack(spacing: 25) {
+                        // Join Circl Button with subtle styling
                         Button(action: {
                             isNavigatingToSignup = true
                         }) {
                             Text("Join Circl")
                                 .font(.system(size: 24, weight: .bold))
                                 .frame(maxWidth: .infinity)
-                                .padding(.vertical, 15)
+                                .padding(.vertical, 18)
                                 .background(Color(hex: "ffde59"))
                                 .foregroundColor(Color(hex: "004aad"))
-                                .cornerRadius(10)
+                                .cornerRadius(15)
+                                .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 3)
                         }
-                        .padding(.horizontal, 50)
-                        .padding(.top, 10) // Optional: adds breathing room below tagline
-                        .offset(y: -50)
-
-
-                        // Login Fields Below Join Circl
-                        VStack(spacing: 15) {
-                            // Email Field
-                            RoundedRectangle(cornerRadius: 20)
-                                .fill(Color(hex: "e2e2e2"))
-                                .frame(width: UIScreen.main.bounds.width - 100, height: 50)
+                        
+                        // Enhanced login card
+                        VStack(spacing: 18) {
+                            // Email Field with improved styling
+                            TextField("Email", text: $email)
+                                .padding(18)
+                                .background(Color.white.opacity(0.95))
+                                .foregroundColor(Color(hex: "004aad"))
+                                .cornerRadius(15)
+                                .autocapitalization(.none)
+                                .keyboardType(.emailAddress)
                                 .overlay(
-                                    TextField("Email", text: $email)
-                                        .padding(.horizontal)
-                                        .foregroundColor(Color(hex: "004aad"))
-                                        .autocapitalization(.none)
-                                        .keyboardType(.emailAddress)
+                                    RoundedRectangle(cornerRadius: 15)
+                                        .stroke(Color.white.opacity(0.3), lineWidth: 1)
                                 )
+                                .shadow(color: .black.opacity(0.05), radius: 3, x: 0, y: 2)
+                            
+                            // Password Field with improved styling
+                            SecureField("Password", text: $password)
+                                .padding(18)
+                                .background(Color.white.opacity(0.95))
+                                .foregroundColor(Color(hex: "004aad"))
+                                .cornerRadius(15)
                                 .overlay(
-                                    RoundedRectangle(cornerRadius: 20)
-                                        .stroke(Color.white, lineWidth: 3)
+                                    RoundedRectangle(cornerRadius: 15)
+                                        .stroke(Color.white.opacity(0.3), lineWidth: 1)
                                 )
-
-                            // Password Field
-                            RoundedRectangle(cornerRadius: 20)
-                                .fill(Color(hex: "e2e2e2"))
-                                .frame(width: UIScreen.main.bounds.width - 100, height: 50)
-                                .overlay(
-                                    SecureField("Password", text: $password)
-                                        .padding(.horizontal)
-                                        .foregroundColor(Color(hex: "004aad"))
-                                )
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 20)
-                                        .stroke(Color.white, lineWidth: 3)
-                                )
-
-                            // Login Button
+                                .shadow(color: .black.opacity(0.05), radius: 3, x: 0, y: 2)
+                            
+                            // Login Button with enhanced styling
                             Button(action: loginUser) {
                                 Text("Login")
-                                    .font(.system(size: 24, weight: .bold))
+                                    .font(.system(size: 22, weight: .bold))
                                     .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 15)
+                                    .padding(.vertical, 18)
                                     .background(Color(hex: "ffde59"))
                                     .foregroundColor(Color(hex: "004aad"))
-                                    .cornerRadius(10)
+                                    .cornerRadius(15)
+                                    .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 3)
                             }
-                            .padding(.horizontal, 50)
                         }
-
+                        .padding(30)
+                        .background(Color.white.opacity(0.15))
+                        .cornerRadius(25)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 25)
+                                .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                        )
+                        .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
+                        
+                        // Enhanced forgot password
                         Button(action: {
                             isShowingForgotPasswordPopup = true
                         }) {
                             Text("Forgot your password?")
-                                .font(.system(size: 18))
-                                .foregroundColor(.white)
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(.white.opacity(0.9))
                                 .underline()
+                                .shadow(color: .black.opacity(0.2), radius: 2, x: 0, y: 1)
                         }
-                        .padding(.top, 10)
-
-
-                        Spacer()
                     }
-                    .padding(.top, 50)
+                    .padding(.horizontal, 40)
                     
+                    Spacer(minLength: 50)
                 }
-                .dismissKeyboardOnScroll()
-
-                
-                
+                .onTapGesture {
+                    hideKeyboard()
+                }
             }
             .sheet(isPresented: $isShowingForgotPasswordPopup) {
                 VStack(spacing: 20) {
@@ -148,7 +157,6 @@ struct Page1: View {
                     Button("Submit") {
                         submitForgotPasswordRequest()
                     }
-
                     .padding()
                     .frame(maxWidth: .infinity)
                     .background(Color(hex: "ffde59"))
@@ -170,13 +178,10 @@ struct Page1: View {
             } message: {
                 Text("The email or password you entered is incorrect. Please try again.")
             }
-
-            
             .navigationDestination(isPresented: $isLoggedIn) {
                 PageForum()
                     .navigationBarBackButtonHidden(true)
             }
-
             .navigationDestination(isPresented: $isNavigatingToSignup) {
                 Page2() // Navigate to signup page
             }
@@ -185,7 +190,6 @@ struct Page1: View {
                     let storedLoginState = UserDefaults.standard.bool(forKey: "isLoggedIn")
                     if storedLoginState && !isLoggedIn {
                         isLoggedIn = true
-                        
                     }
                 }
             }
@@ -229,12 +233,10 @@ struct Page1: View {
                             if let jsonResponse = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
                                 print("🔎 Parsed Login Response: \(jsonResponse)")
 
-
                                 var hasUserID = false
                                 var hasToken = false
 
                                 if let userID = jsonResponse["user_id"] as? Int {
-                                    
                                     UserDefaults.standard.set(userID, forKey: "user_id")
                                     print("✅ user_id stored: \(userID)")
                                     hasUserID = true
@@ -245,7 +247,6 @@ struct Page1: View {
                                     sendDeviceTokenToBackend(token: savedToken)
                                     UserDefaults.standard.removeObject(forKey: "pending_push_token")
                                 }
-
 
                                 if let token = jsonResponse["token"] as? String {
                                     UserDefaults.standard.set(token, forKey: "auth_token")
@@ -274,7 +275,6 @@ struct Page1: View {
                                         isLoggedIn = UserDefaults.standard.bool(forKey: "isLoggedIn")
                                     }
                                 }
-
                             }
                         } catch {
                             showInvalidCredentialsAlert = true
