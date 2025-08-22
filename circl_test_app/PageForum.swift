@@ -462,17 +462,17 @@ struct ForumMainContent: View {
                     .clipShape(Circle())
                     
                     VStack(alignment: .leading, spacing: 8) {
-                        // Main text input area
-                        TextField("", text: $postContent)
+                        // Main text input area with dynamic height
+                        TextField("", text: $postContent, axis: .vertical)
                             .font(.system(size: 18, weight: .regular))
-                            .lineLimit(3...)
+                            .lineLimit(1...5)
                             .textFieldStyle(PlainTextFieldStyle())
                             .placeholder(when: postContent.isEmpty) {
                                 Text("What's happening?")
                                     .font(.system(size: 18, weight: .regular))
                                     .foregroundColor(.gray.opacity(0.5))
                             }
-                            .frame(minHeight: 20)
+                            .frame(minHeight: 22)
                         
                         // Bottom action row
                         HStack(spacing: 0) {
