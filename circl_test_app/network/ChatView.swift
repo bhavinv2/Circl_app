@@ -49,8 +49,6 @@ struct ChatView: View {
             .background(Color(.systemBackground))
             .ignoresSafeArea(.all, edges: [.top, .bottom])
             .navigationBarHidden(true)
-            .padding(.bottom, keyboardHeight)
-            .animation(.easeInOut(duration: 0.3), value: keyboardHeight)
             .onAppear {
                 if let realMessages = realMessages {
                     loadRealMessages(realMessages)
@@ -323,6 +321,14 @@ struct ChatView: View {
                     .onSubmit {
                         sendMessage()
                     }
+                    .toolbar {
+                        ToolbarItemGroup(placement: .keyboard) {
+                            Spacer()
+                            Button("Done") {
+                                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                            }
+                        }
+                    }
                 
                 // Send button
                 Button(action: {
@@ -346,9 +352,11 @@ struct ChatView: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
-            .padding(.bottom, keyboardHeight > 0 ? 0 : 20) // Adjust bottom padding based on keyboard
+            .padding(.bottom, keyboardHeight > 0 ? 0 : 34) // Safe area bottom when no keyboard
         }
         .background(Color(.systemBackground))
+        .padding(.bottom, keyboardHeight)
+        .animation(.easeInOut(duration: 0.3), value: keyboardHeight)
         .sheet(isPresented: $showingMediaPicker) {
             MediaPicker(image: $selectedImage, videoURL: $selectedVideoURL)
         }
@@ -671,7 +679,10 @@ struct ChatView: View {
             if let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
                 let keyboardHeight = keyboardFrame.height
                 // Subtract safe area bottom inset to avoid double padding
-                let safeAreaBottom = UIApplication.shared.windows.first?.safeAreaInsets.bottom ?? 0
+                let safeAreaBottom = UIApplication.shared.connectedScenes
+                    .compactMap { $0 as? UIWindowScene }
+                    .flatMap { $0.windows }
+                    .first { $0.isKeyWindow }?.safeAreaInsets.bottom ?? 0
                 self.keyboardHeight = keyboardHeight - safeAreaBottom
             }
         }

@@ -602,13 +602,16 @@ struct PageGroupchats: View {
                                         }
                                         .toggleStyle(SwitchToggleStyle(tint: Color(hex: "004aad")))
                                         .onChange(of: isDashboardPrivate) { newValue in
-                                            if isDashboardPrivate && !newValue {
-                                                // Switching from private (ON) to public (OFF) - show warning
+                                            if !newValue && isDashboardPrivate {
+                                                // User is trying to switch from private (true) to public (false) - show warning
                                                 pendingPrivacyChange = newValue
                                                 showPrivacyWarning = true
-                                                isDashboardPrivate = true // Reset to true until confirmed
+                                                // Temporarily revert the change
+                                                DispatchQueue.main.async {
+                                                    isDashboardPrivate = true
+                                                }
                                             } else {
-                                                // Switching from public (OFF) to private (ON) - no warning needed
+                                                // Switching from public (false) to private (true) - no warning needed
                                                 updateDashboardSettings(enabled: isDashboardEnabled, isPublic: !newValue) // Invert for API
                                             }
                                         }

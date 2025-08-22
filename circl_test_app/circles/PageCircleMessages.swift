@@ -1,6 +1,7 @@
 import SwiftUI
 import Foundation
 import AVKit
+import UIKit
 
 struct PageCircleMessages: View {
     let channel: Channel
@@ -35,6 +36,7 @@ struct PageCircleMessages: View {
     @State private var newMessage: String = ""
     @AppStorage("user_id") private var userId: Int = 0
     @State private var messages: [ChatMessage] = []
+    @State private var keyboardHeight: CGFloat = 0
 
 
     @State private var showMenu = false
@@ -92,6 +94,8 @@ struct PageCircleMessages: View {
                 messagesScrollView
                 inputBar
             }
+            .padding(.bottom, keyboardHeight)
+            .animation(.easeInOut(duration: 0.3), value: keyboardHeight)
             .zIndex(0)
 
             // Tap-out background
@@ -119,6 +123,10 @@ struct PageCircleMessages: View {
             fetchMessages()
             fetchChannelsInCircle()
             fetchMembers()
+            addKeyboardObservers()
+        }
+        .onDisappear {
+            removeKeyboardObservers()
         }
 
         .background(
@@ -489,6 +497,14 @@ struct PageCircleMessages: View {
                     .padding(12)
                     .background(Color(.systemGray6))
                     .cornerRadius(20)
+                    .toolbar {
+                        ToolbarItemGroup(placement: .keyboard) {
+                            Spacer()
+                            Button("Done") {
+                                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                            }
+                        }
+                    }
 
                 // Send button
                 Button(action: {
@@ -1114,6 +1130,38 @@ struct FullImageViewer: View {
                 }
             }
         }
+    }
+    
+    // MARK: - Keyboard Handling
+    private func addKeyboardObservers() {
+        NotificationCenter.default.addObserver(
+            forName: UIResponder.keyboardWillShowNotification,
+            object: nil,
+            queue: .main
+        ) { notification in
+            if let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
+                let keyboardHeight = keyboardFrame.height
+                let safeAreaBottom = UIApplication.shared.connectedScenes
+                    .compactMap { $0 as? UIWindowScene }
+                    .flatMap { $0.windows }
+                    .first { $0.isKeyWindow }?.safeAreaInsets.bottom ?? 0
+                
+                self.keyboardHeight = keyboardHeight - safeAreaBottom
+            }
+        }
+        
+        NotificationCenter.default.addObserver(
+            forName: UIResponder.keyboardWillHideNotification,
+            object: nil,
+            queue: .main
+        ) { _ in
+            self.keyboardHeight = 0
+        }
+    }
+    
+    private func removeKeyboardObservers() {
+        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: nil)
+        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
     }
 }
 
