@@ -319,7 +319,7 @@ struct ForumMainContent: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Header - Twitter/X style layout
+            // Fixed Header - Twitter/X style layout
             VStack(spacing: 0) {
                 HStack {
                     // Left side - Profile
@@ -444,7 +444,7 @@ struct ForumMainContent: View {
             .background(Color(hex: "004aad"))
             .ignoresSafeArea(edges: .top)
             
-            // Compose Area - Twitter/X style
+            // Fixed Compose Area - Twitter/X style
             VStack(spacing: 0) {
                 HStack(alignment: .top, spacing: 12) {
                     // Profile Image
@@ -461,20 +461,18 @@ struct ForumMainContent: View {
                     .frame(width: 40, height: 40)
                     .clipShape(Circle())
                     
-                    VStack(alignment: .leading, spacing: 0) {
+                    VStack(alignment: .leading, spacing: 8) {
                         // Main text input area
                         TextField("", text: $postContent)
-                            .font(.system(size: 20, weight: .regular))
-                            .lineLimit(6...)
+                            .font(.system(size: 18, weight: .regular))
+                            .lineLimit(3...)
                             .textFieldStyle(PlainTextFieldStyle())
                             .placeholder(when: postContent.isEmpty) {
                                 Text("What's happening?")
-                                    .font(.system(size: 20, weight: .regular))
+                                    .font(.system(size: 18, weight: .regular))
                                     .foregroundColor(.gray.opacity(0.5))
                             }
-                            .padding(.vertical, 4)
-                        
-                        Spacer(minLength: 12)
+                            .frame(minHeight: 20)
                         
                         // Bottom action row
                         HStack(spacing: 0) {
@@ -537,7 +535,7 @@ struct ForumMainContent: View {
                     }
                 }
                 .padding(.horizontal, 16)
-                .padding(.vertical, 12)
+                .padding(.vertical, 16)
                 
                 Divider()
                     .background(Color.gray.opacity(0.2))
@@ -545,7 +543,7 @@ struct ForumMainContent: View {
             .background(Color.white)
             .shadow(color: Color.black.opacity(0.03), radius: 1, x: 0, y: 1)
 
-            // Feed Content
+            // Scrollable Feed Content Only
             if isLoading || isTabSwitchLoading {
                 VStack {
                     Spacer()
@@ -555,6 +553,7 @@ struct ForumMainContent: View {
                     Spacer()
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(Color.white)
             } else {
                 ScrollView {
                     LazyVStack(spacing: 0) {
@@ -594,10 +593,10 @@ struct ForumMainContent: View {
                     .padding(.bottom, 80) // Add padding for bottom navigation
                 }
                 .background(Color.white)
+                .dismissKeyboardOnScroll()
             }
         }
         .background(Color.white)
-        .dismissKeyboardOnScroll()
         .ignoresSafeArea(edges: .top)
     }
 }
