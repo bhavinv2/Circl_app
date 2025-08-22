@@ -645,7 +645,8 @@ struct PageBusinessProfile: View {
 //                contactUsSection
             }
             .padding(.horizontal, 20)
-            .padding(.vertical, 16)
+            .padding(.top, 16)
+            .padding(.bottom, 120) // Add extra bottom padding to account for navigation bar
         }
         .background(Color(UIColor.systemGray6))
         .dismissKeyboardOnScroll()
