@@ -492,11 +492,13 @@ struct PageCircleMessages: View {
                 }
 
                 // Message text field
-                TextField("Message \(currentChannel.name)...", text: $newMessage)
+                TextField("Message \(currentChannel.name)...", text: $newMessage, axis: .vertical)
                     .textFieldStyle(.plain)
+                    .lineLimit(1...5)
                     .padding(12)
                     .background(Color(.systemGray6))
                     .cornerRadius(20)
+                    .frame(minHeight: 44)
                     .toolbar {
                         ToolbarItemGroup(placement: .keyboard) {
                             Spacer()

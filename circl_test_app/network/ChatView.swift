@@ -312,12 +312,14 @@ struct ChatView: View {
                 }
                 
                 // Text input
-                TextField("Write a message...", text: $messageText)
+                TextField("Write a message...", text: $messageText, axis: .vertical)
                     .font(.system(size: 16))
+                    .lineLimit(1...5)
                     .padding(.vertical, 12)
                     .padding(.horizontal, 16)
                     .background(Color(.systemGray6))
                     .cornerRadius(20)
+                    .frame(minHeight: 44)
                     .onSubmit {
                         sendMessage()
                     }
