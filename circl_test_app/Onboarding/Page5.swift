@@ -1,6 +1,7 @@
 import SwiftUI
 import MapKit
 import Foundation
+import UIKit
 struct Page5: View {
     @State private var birthday: String = ""
     @State private var isUnderage: Bool = false
@@ -129,6 +130,14 @@ struct Page5: View {
                             .alert("You must be 18 years or older to sign up.", isPresented: $isUnderage) {
                                 Button("OK", role: .cancel) { }
                             }
+                            .toolbar {
+                                ToolbarItemGroup(placement: .keyboard) {
+                                    Spacer()
+                                    Button("Done") {
+                                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                                    }
+                                }
+                            }
                         
                         // Location Field - Updated to handle spaces in city names
                         VStack(alignment: .leading) {
@@ -139,6 +148,14 @@ struct Page5: View {
                                 .textFieldStyle(RoundedTextFieldStyle())
                                 .frame(maxWidth: 300)
                                 .autocapitalization(.words)
+                                .toolbar {
+                                    ToolbarItemGroup(placement: .keyboard) {
+                                        Spacer()
+                                        Button("Done") {
+                                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                                        }
+                                    }
+                                }
                             
                             if !locationValidationMessage.isEmpty {
                                 Text(locationValidationMessage)
@@ -195,6 +212,14 @@ struct Page5: View {
                             .frame(maxWidth: 300)
                             .alert("Invalid Personality Type format. Use XXXX-Y.", isPresented: $showInvalidPersonalityAlert) {
                                 Button("OK", role: .cancel) { }
+                            }
+                            .toolbar {
+                                ToolbarItemGroup(placement: .keyboard) {
+                                    Spacer()
+                                    Button("Done") {
+                                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                                    }
+                                }
                             }
                         
                         Link("Take the 16 personalities test", destination: URL(string: "https://www.16personalities.com/")!)

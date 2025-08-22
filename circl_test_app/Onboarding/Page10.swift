@@ -1,5 +1,6 @@
 import SwiftUI
 import Foundation
+import UIKit
 struct Page10: View {
     @State private var answer1: String = ""
     @State private var answer2: String = ""
@@ -201,6 +202,14 @@ struct FreeResponseField: View {
                 )
                 .font(.system(size: 16))
                 .foregroundColor(.primary)
+                .toolbar {
+                    ToolbarItemGroup(placement: .keyboard) {
+                        Spacer()
+                        Button("Done") {
+                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                        }
+                    }
+                }
 
             if text.isEmpty {
                 Text(placeholder)

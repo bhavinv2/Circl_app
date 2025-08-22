@@ -1131,8 +1131,10 @@ struct FullImageViewer: View {
             }
         }
     }
-    
-    // MARK: - Keyboard Handling
+}
+
+// MARK: - PageCircleMessages Extension for Keyboard Handling
+extension PageCircleMessages {
     private func addKeyboardObservers() {
         NotificationCenter.default.addObserver(
             forName: UIResponder.keyboardWillShowNotification,

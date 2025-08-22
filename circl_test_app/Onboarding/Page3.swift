@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct Page3: View {
     @State private var selectedUsageInterest: String? = nil
@@ -378,6 +379,14 @@ struct PersonalInformationSection: View {
                 .background(Color(.systemGray5))
                 .cornerRadius(8)
                 .autocapitalization(.words)
+                .toolbar {
+                    ToolbarItemGroup(placement: .keyboard) {
+                        Spacer()
+                        Button("Done") {
+                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                        }
+                    }
+                }
                 
                 TextField("Last Name", text: Binding(
                     get: { lastName },
@@ -387,6 +396,14 @@ struct PersonalInformationSection: View {
                 .background(Color(.systemGray5))
                 .cornerRadius(8)
                 .autocapitalization(.words)
+                .toolbar {
+                    ToolbarItemGroup(placement: .keyboard) {
+                        Spacer()
+                        Button("Done") {
+                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                        }
+                    }
+                }
 
                 VStack(alignment: .leading, spacing: 2) {
                     TextField("Email", text: Binding(
@@ -401,6 +418,14 @@ struct PersonalInformationSection: View {
                     .cornerRadius(8)
                     .keyboardType(.emailAddress)
                     .autocapitalization(.none)
+                    .toolbar {
+                        ToolbarItemGroup(placement: .keyboard) {
+                            Spacer()
+                            Button("Done") {
+                                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                            }
+                        }
+                    }
                     
                     if !isEmailValid && !email.isEmpty {
                         Text("Please enter a valid email address")
@@ -419,6 +444,14 @@ struct PersonalInformationSection: View {
                 .background(Color(.systemGray5))
                 .cornerRadius(8)
                 .keyboardType(.phonePad)
+                .toolbar {
+                    ToolbarItemGroup(placement: .keyboard) {
+                        Spacer()
+                        Button("Done") {
+                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                        }
+                    }
+                }
             }
         }
     }
