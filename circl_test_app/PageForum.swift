@@ -81,6 +81,7 @@ struct ForumPost: View {
     let profileImageName: String
     let company: String
     let postID: Int
+    let userID: Int
     var onComment: () -> Void
     let commentCount: Int
     let likeCount: Int
@@ -93,10 +94,17 @@ struct ForumPost: View {
 
     @State private var showDeleteConfirmation = false
     @State private var showReportSheet = false
+    @State private var showingOptionsMenu = false
+    @State private var showingReportDialog = false
+    @State private var showingBlockConfirmation = false
+    @State private var selectedReportReason = ""
+    @State private var blockReason = ""
+    @State private var shouldReportAndBlock = false
 
     var body: some View {
-        VStack(spacing: 0) {
-            HStack(alignment: .top, spacing: 12) {
+        ZStack {
+            VStack(spacing: 0) {
+                HStack(alignment: .top, spacing: 12) {
                 // Profile Image - Twitter/X style
                 Button(action: onTapProfile) {
                     AsyncImage(url: URL(string: profileImageName)) { phase in
@@ -134,22 +142,17 @@ struct ForumPost: View {
                         
                         Spacer()
                         
-                        Menu {
-                            if isCurrentUser {
-                                Button("Delete Post", role: .destructive) {
-                                    showDeleteConfirmation = true
-                                }
-                            } else {
-                                Button("Report Post", role: .destructive) {
-                                    showReportSheet = true
-                                }
+                        Button(action: {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                showingOptionsMenu = true
                             }
-                        } label: {
+                        }) {
                             Image(systemName: "ellipsis")
                                 .font(.system(size: 16))
                                 .foregroundColor(.secondary)
                                 .padding(4)
                         }
+                        .buttonStyle(PlainButtonStyle())
                     }
                     
                     // Tweet Content
@@ -213,14 +216,435 @@ struct ForumPost: View {
             // Separator line
             Divider()
                 .background(Color.gray.opacity(0.3))
+            }
+            .background(Color.white)
+        
+        // Options menu overlay
+        if showingOptionsMenu {
+            // Tap-out background
+            Color.black.opacity(0.3)
+                .ignoresSafeArea(.all)
+                .onTapGesture {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        showingOptionsMenu = false
+                    }
+                }
+            
+            // Options menu
+            HStack {
+                Spacer()
+                VStack {
+                    optionsMenu
+                        .padding(.top, 65) // Position directly below the three dots
+                    Spacer()
+                }
+                .padding(.trailing, 16)
+            }
         }
-        .background(Color.white)
+        
+        // Report Dialog
+        if showingReportDialog {
+            Color.black.opacity(0.4)
+                .ignoresSafeArea(.all)
+                .onTapGesture {
+                    showingReportDialog = false
+                    selectedReportReason = ""
+                }
+            
+            VStack {
+                Spacer()
+                reportDialogView
+                Spacer()
+            }
+        }
+        
+        // Block Confirmation
+        if showingBlockConfirmation {
+            Color.black.opacity(0.4)
+                .ignoresSafeArea(.all)
+                .onTapGesture {
+                    showingBlockConfirmation = false
+                    blockReason = ""
+                    shouldReportAndBlock = false
+                }
+            
+            VStack {
+                Spacer()
+                blockConfirmationView
+                Spacer()
+            }
+        }
+        }
         .alert("Delete Post?", isPresented: $showDeleteConfirmation) {
             Button("Delete", role: .destructive, action: onDelete)
         }
         .sheet(isPresented: $showReportSheet) {
             ReportPostView(postID: postID, isPresented: $showReportSheet)
         }
+    }
+    
+    // MARK: - Options Menu
+    var optionsMenu: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            if isCurrentUser {
+                // Delete Post
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        showingOptionsMenu = false
+                    }
+                    showDeleteConfirmation = true
+                }) {
+                    HStack(spacing: 12) {
+                        Image(systemName: "trash.fill")
+                            .font(.system(size: 16))
+                            .foregroundColor(.red)
+                            .frame(width: 20)
+                        
+                        Text("Delete Post")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.red)
+                        
+                        Spacer()
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                }
+                .buttonStyle(PlainButtonStyle())
+            } else {
+                // Report User
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        showingOptionsMenu = false
+                    }
+                    reportUser()
+                }) {
+                    HStack(spacing: 12) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.system(size: 16))
+                            .foregroundColor(.red)
+                            .frame(width: 20)
+                        
+                        Text("Report User")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.red)
+                        
+                        Spacer()
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                }
+                .buttonStyle(PlainButtonStyle())
+                
+                Divider()
+                    .padding(.horizontal, 16)
+                
+                // Block User
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        showingOptionsMenu = false
+                    }
+                    blockUser()
+                }) {
+                    HStack(spacing: 12) {
+                        Image(systemName: "hand.raised.fill")
+                            .font(.system(size: 16))
+                            .foregroundColor(.red)
+                            .frame(width: 20)
+                        
+                        Text("Block User")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.red)
+                        
+                        Spacer()
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                }
+                .buttonStyle(PlainButtonStyle())
+            }
+        }
+        .frame(width: 160)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color(.systemBackground))
+                .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
+        )
+        .transition(.asymmetric(
+            insertion: .scale(scale: 0.8).combined(with: .opacity),
+            removal: .scale(scale: 0.8).combined(with: .opacity)
+        ))
+    }
+    
+    // MARK: - User Actions (Report and Block functions)
+    private func reportUser() {
+        showingReportDialog = true
+    }
+    
+    private func blockUser() {
+        showingBlockConfirmation = true
+    }
+    
+    private func submitReport() {
+        let reportData: [String: Any] = [
+            "reported_user_id": userID,
+            "reporter_id": UserDefaults.standard.integer(forKey: "user_id"),
+            "reason": selectedReportReason,
+            "report_type": "user_report"
+        ]
+        
+        guard let url = URL(string: "\(baseURL)users/report_user/") else { return }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+        request.httpBody = try? JSONSerialization.data(withJSONObject: reportData)
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                print("✅ User reported successfully")
+                showingReportDialog = false
+                selectedReportReason = ""
+            }
+        }.resume()
+    }
+
+    private func confirmBlock() {
+        let blockData: [String: Any] = [
+            "blocked_user_id": userID,
+            "blocker_id": UserDefaults.standard.integer(forKey: "user_id"),
+            "reason": blockReason,
+            "should_report": shouldReportAndBlock
+        ]
+        
+        guard let url = URL(string: "\(baseURL)users/block_user/") else { return }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+        request.httpBody = try? JSONSerialization.data(withJSONObject: blockData)
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                print("✅ User blocked successfully")
+                showingBlockConfirmation = false
+                // Note: In a post context, we might want to refresh the feed instead of dismissing
+            }
+        }.resume()
+    }
+    
+    // MARK: - Report and Block UI Views
+    var reportDialogView: some View {
+        // Report reasons for single-step process
+        let reportReasons = [
+            "Harassment or threatening behavior",
+            "Spam or unwanted messages",
+            "Inappropriate content",
+            "Fake profile or impersonation",
+            "Scam or fraud",
+            "Other"
+        ]
+        
+        return VStack(spacing: 0) {
+            // Header
+            HStack {
+                Text("Report \(author)")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundColor(.primary)
+                Spacer()
+                Button("Cancel") {
+                    showingReportDialog = false
+                    selectedReportReason = ""
+                }
+                .foregroundColor(Color(hex: "004aad"))
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 16)
+            
+            Divider()
+            
+            VStack(alignment: .leading, spacing: 16) {
+                Text("Why are you reporting this person?")
+                    .font(.system(size: 16, weight: .medium))
+                    .padding(.horizontal, 20)
+                    .padding(.top, 20)
+                
+                // Single list of all report reasons
+                ScrollView {
+                    LazyVStack(spacing: 8) {
+                        ForEach(reportReasons, id: \.self) { reason in
+                            Button(action: {
+                                selectedReportReason = reason
+                                submitReport()
+                            }) {
+                                HStack {
+                                    Image(systemName: "exclamationmark.triangle.fill")
+                                        .font(.system(size: 16))
+                                        .foregroundColor(.red)
+                                        .frame(width: 20)
+                                    
+                                    Text(reason)
+                                        .font(.system(size: 15))
+                                        .foregroundColor(.primary)
+                                        .multilineTextAlignment(.leading)
+                                    
+                                    Spacer()
+                                    
+                                    Image(systemName: "chevron.right")
+                                        .font(.system(size: 12))
+                                        .foregroundColor(.secondary)
+                                }
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 16)
+                                .background(Color(.systemGray6))
+                                .cornerRadius(10)
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                }
+                .frame(maxHeight: 300)
+                
+                Text("Reports are anonymous. We'll review this and take appropriate action.")
+                    .font(.system(size: 13))
+                    .foregroundColor(.secondary)
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 20)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: 500)
+        .background(Color(.systemBackground))
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
+        .padding(.horizontal, 30)
+    }
+
+    var blockConfirmationView: some View {
+        let blockReasons = [
+            "I don't want to hear from this person",
+            "This person is harassing me", 
+            "This is spam",
+            "I don't know this person",
+            "Something else"
+        ]
+        
+        return VStack(spacing: 0) {
+            // Header
+            HStack {
+                Text("Block \(author)?")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundColor(.primary)
+                Spacer()
+                Button("Cancel") {
+                    showingBlockConfirmation = false
+                    blockReason = ""
+                    shouldReportAndBlock = false
+                }
+                .foregroundColor(Color(hex: "004aad"))
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 16)
+            
+            Divider()
+            
+            VStack(alignment: .leading, spacing: 20) {
+                Text("They won't be able to message you or see your posts. They won't be notified that you blocked them.")
+                    .font(.system(size: 14))
+                    .foregroundColor(.secondary)
+                    .padding(.horizontal, 20)
+                    .padding(.top, 20)
+                
+                // Block reason selection
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Reason for blocking (optional)")
+                        .font(.system(size: 15, weight: .medium))
+                        .padding(.horizontal, 20)
+                    
+                    ForEach(blockReasons, id: \.self) { reason in
+                        Button(action: {
+                            blockReason = reason
+                        }) {
+                            HStack {
+                                Image(systemName: blockReason == reason ? "checkmark.circle.fill" : "circle")
+                                    .font(.system(size: 20))
+                                    .foregroundColor(blockReason == reason ? Color(hex: "004aad") : .secondary)
+                                
+                                Text(reason)
+                                    .font(.system(size: 14))
+                                    .foregroundColor(.primary)
+                                
+                                Spacer()
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 12)
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    }
+                }
+                
+                // Report and block option
+                Button(action: {
+                    shouldReportAndBlock.toggle()
+                }) {
+                    HStack {
+                        Image(systemName: shouldReportAndBlock ? "checkmark.square.fill" : "square")
+                            .font(.system(size: 20))
+                            .foregroundColor(shouldReportAndBlock ? Color(hex: "004aad") : .secondary)
+                        
+                        Text("Also report this person")
+                            .font(.system(size: 14))
+                            .foregroundColor(.primary)
+                        
+                        Spacer()
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 12)
+                }
+                .buttonStyle(PlainButtonStyle())
+                
+                // Action buttons
+                VStack(spacing: 12) {
+                    Button(action: {
+                        confirmBlock()
+                    }) {
+                        Text("Block")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                            .background(Color.red)
+                            .cornerRadius(10)
+                    }
+                    
+                    Button(action: {
+                        showingBlockConfirmation = false
+                        blockReason = ""
+                        shouldReportAndBlock = false
+                    }) {
+                        Text("Cancel")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(Color(hex: "004aad"))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                            .background(Color(.systemGray6))
+                            .cornerRadius(10)
+                    }
+                }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 20)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: 600)
+        .background(Color(.systemBackground))
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
+        .padding(.horizontal, 30)
     }
 }
 
@@ -319,7 +743,7 @@ struct ForumMainContent: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Fixed Header - Twitter/X style layout
+            // Header - Twitter/X style layout
             VStack(spacing: 0) {
                 HStack {
                     // Left side - Profile
@@ -444,7 +868,7 @@ struct ForumMainContent: View {
             .background(Color(hex: "004aad"))
             .ignoresSafeArea(edges: .top)
             
-            // Fixed Compose Area - Twitter/X style
+            // Compose Area - Twitter/X style
             VStack(spacing: 0) {
                 HStack(alignment: .top, spacing: 12) {
                     // Profile Image
@@ -461,18 +885,20 @@ struct ForumMainContent: View {
                     .frame(width: 40, height: 40)
                     .clipShape(Circle())
                     
-                    VStack(alignment: .leading, spacing: 8) {
-                        // Main text input area with dynamic height
-                        TextField("", text: $postContent, axis: .vertical)
-                            .font(.system(size: 18, weight: .regular))
-                            .lineLimit(1...5)
+                    VStack(alignment: .leading, spacing: 0) {
+                        // Main text input area
+                        TextField("", text: $postContent)
+                            .font(.system(size: 20, weight: .regular))
+                            .lineLimit(6...)
                             .textFieldStyle(PlainTextFieldStyle())
                             .placeholder(when: postContent.isEmpty) {
                                 Text("What's happening?")
-                                    .font(.system(size: 18, weight: .regular))
+                                    .font(.system(size: 20, weight: .regular))
                                     .foregroundColor(.gray.opacity(0.5))
                             }
-                            .frame(minHeight: 22)
+                            .padding(.vertical, 4)
+                        
+                        Spacer(minLength: 12)
                         
                         // Bottom action row
                         HStack(spacing: 0) {
@@ -535,7 +961,7 @@ struct ForumMainContent: View {
                     }
                 }
                 .padding(.horizontal, 16)
-                .padding(.vertical, 16)
+                .padding(.vertical, 12)
                 
                 Divider()
                     .background(Color.gray.opacity(0.2))
@@ -543,7 +969,7 @@ struct ForumMainContent: View {
             .background(Color.white)
             .shadow(color: Color.black.opacity(0.03), radius: 1, x: 0, y: 1)
 
-            // Scrollable Feed Content Only
+            // Feed Content
             if isLoading || isTabSwitchLoading {
                 VStack {
                     Spacer()
@@ -553,7 +979,6 @@ struct ForumMainContent: View {
                     Spacer()
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(Color.white)
             } else {
                 ScrollView {
                     LazyVStack(spacing: 0) {
@@ -566,6 +991,7 @@ struct ForumMainContent: View {
                                 profileImageName: post.profileImage ?? "",
                                 company: "Circl",
                                 postID: post.id,
+                                userID: post.user_id,
                                 onComment: {
                                     selectedPostIdForComments = post
                                 },
@@ -593,10 +1019,10 @@ struct ForumMainContent: View {
                     .padding(.bottom, 80) // Add padding for bottom navigation
                 }
                 .background(Color.white)
-                .dismissKeyboardOnScroll()
             }
         }
         .background(Color.white)
+        .dismissKeyboardOnScroll()
         .ignoresSafeArea(edges: .top)
     }
 }
