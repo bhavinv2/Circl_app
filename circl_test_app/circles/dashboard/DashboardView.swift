@@ -71,7 +71,7 @@ struct DashboardView: View {
 
                         
                         NavigationLink(
-                            destination: DashboardMemberListPage(circleName: circle.name, circleId: circle.id)
+                            destination: MemberListPage(circleName: circle.name, circleId: circle.id)
                         ) {
                             SummaryCard(
                                 title: "Total Members",
@@ -83,19 +83,19 @@ struct DashboardView: View {
                         .buttonStyle(PlainButtonStyle()) // Prevents blue highlight on tap
 
                         
-                        SummaryCard(
-                            title: "Total Points",
-                            value: "\(summary.total_points)",
-                            icon: "star.fill",
-                            color: .orange
-                        )
-                        
-                        SummaryCard(
-                            title: "Revenue",
-                            value: "$\(summary.total_revenue)",
-                            icon: "dollarsign.circle.fill",
-                            color: .purple
-                        )
+//                        SummaryCard(
+//                            title: "Total Points",
+//                            value: "\(summary.total_points)",
+//                            icon: "star.fill",
+//                            color: .orange
+//                        )
+//                        
+//                        SummaryCard(
+//                            title: "Revenue",
+//                            value: "$\(summary.total_revenue)",
+//                            icon: "dollarsign.circle.fill",
+//                            color: .purple
+//                        )
                     }
                     .padding(.horizontal, 20)
                 }
