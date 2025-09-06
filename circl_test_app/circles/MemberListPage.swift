@@ -1,13 +1,14 @@
 import SwiftUI
 import Foundation
 
-// Copy this from PageCircleMessages.swift
 struct Member: Identifiable, Decodable, Hashable {
     let id: Int
     let full_name: String
     let profile_image: String?
     let user_id: Int
-    let is_moderator: Bool   // ✅ Add this
+    let is_moderator: Bool
+    let email: String          // ✅ new
+    let has_paid: Bool         // ✅ new
 }
 
 
@@ -42,9 +43,20 @@ struct MemberListPage: View {
                                 .frame(width: 40, height: 40)
                                 .clipShape(Circle())
 
-                                Text(member.full_name)
-                                    .font(.body)
-                                    .foregroundColor(.primary)
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(member.full_name)
+                                        .font(.body)
+                                        .foregroundColor(.primary)
+
+                                    Text(member.has_paid ? "Paid ✅" : "Not Paid ❌")
+                                        .font(.caption)
+                                        .foregroundColor(member.has_paid ? .green : .red)
+
+                                    Text(member.email)
+                                        .font(.caption2)
+                                        .foregroundColor(.gray)
+                                }
+
 
                                 Spacer()
 
@@ -89,7 +101,8 @@ struct MemberListPage: View {
             profile_image: member.profile_image,
             first_name: member.full_name,
             last_name: "",
-            email: "",
+            email: member.email,
+
             main_usage: "",
             industry_interest: "",
             title: "",

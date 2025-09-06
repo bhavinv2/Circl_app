@@ -90,12 +90,12 @@ struct DashboardView: View {
 //                            color: .orange
 //                        )
 //                        
-//                        SummaryCard(
-//                            title: "Revenue",
-//                            value: "$\(summary.total_revenue)",
-//                            icon: "dollarsign.circle.fill",
-//                            color: .purple
-//                        )
+                        SummaryCard(
+                            title: "Revenue",
+                            value: "$\(summary.total_revenue)",
+                            icon: "dollarsign.circle.fill",
+                            color: .purple
+                        )
                     }
                     .padding(.horizontal, 20)
                 }
