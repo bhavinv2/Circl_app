@@ -42,6 +42,8 @@ struct CalendarView: View {
     @State private var newDescription: String = ""
     @State private var newStartTime: Date = Date()
     @State private var newEndTime: Date = Date()
+    @State private var showQRScanner = false
+    @State private var enableQRCheckin = true
 
 
     
@@ -77,12 +79,34 @@ struct CalendarView: View {
                     
                     Spacer()
                     
+<<<<<<< Updated upstream
                     Button(action: {
                         showCreateEvent = true
                     }) {
                         Image(systemName: "plus.circle.fill")
                             .font(.title2)
                             .foregroundColor(Color(hex: "004aad"))
+=======
+                    HStack(spacing: 16) {
+                        // QR Scanner button for all users
+                        Button(action: {
+                            showQRScanner = true
+                        }) {
+                            Image(systemName: "qrcode.viewfinder")
+                                .font(.title2)
+                                .foregroundColor(Color(hex: "004aad"))
+                        }
+                        
+                        if isModerator {
+                            Button(action: {
+                                showCreateEvent = true
+                            }) {
+                                Image(systemName: "plus.circle.fill")
+                                    .font(.title2)
+                                    .foregroundColor(Color(hex: "004aad"))
+                            }
+                        }
+>>>>>>> Stashed changes
                     }
                 }
                 .padding(.horizontal, 20)
@@ -169,6 +193,13 @@ struct CalendarView: View {
                                             isCheckedIn: checkedInEvents.contains(event.id),
                                             onCheckIn: {
                                                 checkInToEvent(event.id)
+<<<<<<< Updated upstream
+=======
+                                            },
+                                            isModerator: isModerator,
+                                            onDelete: {
+                                                deleteEvent(event.id)
+>>>>>>> Stashed changes
                                             }
                                         )
                                     }
@@ -196,10 +227,14 @@ struct CalendarView: View {
                 description: $newDescription,              // ✅ new
                 selectedStartTime: $newStartTime,          // ✅ new
                 selectedEndTime: $newEndTime,              // ✅ new
+                enableQRCheckin: $enableQRCheckin,         // ✅ new
                 eventTypes: eventTypes,
                 onSave: { createEvent() },
                 onCancel: { showCreateEvent = false }
             )
+        }
+        .sheet(isPresented: $showQRScanner) {
+            QRScannerView(isPresented: $showQRScanner)
         }
         .onAppear {
             print("🔧 CalendarView onAppear - defaultShowAllEvents: \(defaultShowAllEvents), showAllEvents: \(showAllEvents)")
@@ -353,8 +388,14 @@ struct CalendarView: View {
             "points": Int(newEventPoints) ?? 10,
             "revenue": Int(newEventRevenue) ?? 0,
             "date": dateString,
+<<<<<<< Updated upstream
             "start_time": timeFormatter.string(from: newStartTime),
             "end_time": timeFormatter.string(from: newEndTime),
+=======
+            "start_time": timeFormatter.string(from: newStartTime),  // ✅ new
+            "end_time": timeFormatter.string(from: newEndTime),      // ✅ new
+            "enable_qr_checkin": enableQRCheckin,                   // ✅ new
+>>>>>>> Stashed changes
             "circle_id": circle.id
         ]
 
@@ -378,6 +419,40 @@ struct CalendarView: View {
                     return
                 }
                 
+<<<<<<< Updated upstream
+=======
+                // Reset form
+                newEventName = ""
+                newEventType = "Workshop"
+                newEventPoints = "10"
+                newEventRevenue = "0"
+                selectedEventDate = Date()
+                enableQRCheckin = true
+                showCreateEvent = false
+                
+                // Refresh events
+                fetchEvents()
+            }
+        }.resume()
+    }
+    
+    func deleteEvent(_ eventId: Int) {
+        guard let url = URL(string: "\(baseURL)circles/delete_event/\(eventId)/?user_id=\(userId)") else {
+            print("❌ Invalid URL for deleteEvent")
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "DELETE"   // ✅ must match backend
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    print("❌ Error deleting event: \(error.localizedDescription)")
+                    return
+                }
+
+>>>>>>> Stashed changes
                 if let httpResponse = response as? HTTPURLResponse {
                     print("📊 Create event response status: \(httpResponse.statusCode)")
                 }
@@ -533,6 +608,26 @@ struct EventCard: View {
                                 .foregroundColor(.blue)
                         }
                         .buttonStyle(BorderlessButtonStyle())
+                        
+                        Spacer()
+                        
+                        // Attendees navigation button
+                        NavigationLink(destination: EventAttendeesView(event: event)) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "person.2.circle")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(Color(hex: "004aad"))
+                                
+                                Text("Attendees")
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundColor(Color(hex: "004aad"))
+                                
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 10))
+                                    .foregroundColor(Color(hex: "004aad"))
+                            }
+                        }
+                        .buttonStyle(BorderlessButtonStyle())
                     }
 
                     HStack(spacing: 8) {
@@ -569,6 +664,36 @@ struct EventCard: View {
                                     .font(.caption)
                                     .foregroundColor(.gray)
                             }
+<<<<<<< Updated upstream
+=======
+
+                            // ✅ Moderator actions
+                            if isModerator {
+                                VStack(alignment: .leading, spacing: 8) {
+                                    NavigationLink(destination: QRCodeGeneratorView(event: event)) {
+                                        Label("Generate QR Code", systemImage: "qrcode")
+                                            .font(.caption)
+                                            .foregroundColor(Color(hex: "004aad"))
+                                    }
+                                    
+                                    Button(role: .destructive) {
+                                        showDeleteConfirm = true   // 👈 trigger alert
+                                    } label: {
+                                        Label("Delete Event", systemImage: "trash")
+                                            .font(.caption)
+                                    }
+                                    .alert("Are you sure you want to delete this event?",
+                                           isPresented: $showDeleteConfirm) {
+                                        Button("Cancel", role: .cancel) {}
+                                        Button("Delete", role: .destructive) {
+                                            onDelete()   // 👈 actually delete
+                                        }
+                                    }
+                                }
+                                .padding(.top, 4)
+                            }
+
+>>>>>>> Stashed changes
                         }
                         .transition(.opacity.combined(with: .slide))
                     }
@@ -576,7 +701,7 @@ struct EventCard: View {
 
                 Spacer()
 
-                // ✅ Check-in button
+                                // ✅ Check-in button
                 Button(action: onCheckIn) {
                     HStack(spacing: 6) {
                         Image(systemName: isCheckedIn ? "checkmark.circle.fill" : "plus.circle")
@@ -593,6 +718,7 @@ struct EventCard: View {
                             .stroke(isCheckedIn ? .green : Color(hex: "004aad"), lineWidth: 1)
                     )
                 }
+                .buttonStyle(BorderlessButtonStyle())
                 .disabled(isCheckedIn)
             }
 
@@ -641,6 +767,7 @@ struct CreateEventSheet: View {
     @Binding var description: String
     @Binding var selectedStartTime: Date
     @Binding var selectedEndTime: Date
+    @Binding var enableQRCheckin: Bool
 
     
     let eventTypes: [String]
@@ -767,6 +894,26 @@ struct CreateEventSheet: View {
 //                                    .textFieldStyle(RoundedBorderTextFieldStyle())
 //                                    .keyboardType(.numberPad)
 //                            }
+                        }
+                        
+                        // QR Code Check-in Toggle
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("QR Code Check-in")
+                                .font(.headline)
+                                .foregroundColor(.primary)
+                            
+                            Toggle(isOn: $enableQRCheckin) {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Enable QR Code Check-in")
+                                        .font(.system(size: 16, weight: .medium))
+                                        .foregroundColor(.primary)
+                                    
+                                    Text("Attendees can scan a QR code to check into this event")
+                                        .font(.system(size: 14))
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                            .toggleStyle(SwitchToggleStyle(tint: Color(hex: "004aad")))
                         }
                     }
                     .padding(.horizontal, 20)
