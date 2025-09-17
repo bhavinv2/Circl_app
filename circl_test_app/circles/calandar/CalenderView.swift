@@ -142,16 +142,18 @@ struct CalendarView: View {
                                     showAllEvents.toggle()
                                     if showAllEvents {
                                         events = allEvents
+                                        print("📊 Showing all \(allEvents.count) events")
                                     } else {
-                                        // Filter events for selected date again
+                                        // Filter events for selected date again using consistent parsing
                                         let calendar = Calendar.current
                                         events = allEvents.filter { event in
                                             guard let eventDateString = event.date,
-                                                  let eventDate = ISO8601DateFormatter().date(from: eventDateString) else {
+                                                  let eventDate = parseEventDate(eventDateString) else {
                                                 return false
                                             }
                                             return calendar.isDate(eventDate, inSameDayAs: selectedDate)
                                         }
+                                        print("📊 Filtered to \(events.count) events for selected date")
                                     }
                                 }) {
                                     Text(showAllEvents ? "Back to Date" : "Show All")
@@ -288,6 +290,40 @@ struct CalendarView: View {
         return formatter
     }
     
+    // Helper function to parse event dates in multiple formats
+    private func parseEventDate(_ dateString: String) -> Date? {
+        // Try ISO8601 format first (with timezone)
+        if let date = ISO8601DateFormatter().date(from: dateString) {
+            return date
+        }
+        
+        // Try simple date format (yyyy-MM-dd)
+        let simpleDateFormatter = DateFormatter()
+        simpleDateFormatter.dateFormat = "yyyy-MM-dd"
+        simpleDateFormatter.timeZone = TimeZone.current
+        if let date = simpleDateFormatter.date(from: dateString) {
+            return date
+        }
+        
+        // Try with time included (yyyy-MM-dd HH:mm:ss)
+        let dateTimeFormatter = DateFormatter()
+        dateTimeFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        dateTimeFormatter.timeZone = TimeZone.current
+        if let date = dateTimeFormatter.date(from: dateString) {
+            return date
+        }
+        
+        // Try ISO format without timezone
+        let isoNoTzFormatter = DateFormatter()
+        isoNoTzFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+        isoNoTzFormatter.timeZone = TimeZone.current
+        if let date = isoNoTzFormatter.date(from: dateString) {
+            return date
+        }
+        
+        return nil
+    }
+    
     // MARK: - API Functions
     func fetchEvents() {
         print("🔧 fetchEvents() called - defaultShowAllEvents: \(defaultShowAllEvents), showAllEvents: \(showAllEvents), circle.id: \(circle.id)")
@@ -325,6 +361,7 @@ struct CalendarView: View {
 
                 do {
                     let decodedEvents = try JSONDecoder().decode([CalendarEvent].self, from: data)
+<<<<<<< Updated upstream
                     print("📊 Decoded \(decodedEvents.count) events from API")
 
                     // Filter events by circle ID
@@ -355,6 +392,35 @@ struct CalendarView: View {
                         print("📅 Filtered to \(filtered.count) events for selected date")
                         self.events = filtered
                     }
+=======
+                    print("📥 Decoded \(decodedEvents.count) events from API")
+
+                    // Filter events to match selectedDate (ignoring time)
+                    let calendar = Calendar.current
+                    let filtered = decodedEvents.filter { event in
+                        guard let eventDateString = event.date else {
+                            print("⚠️ Event \(event.id) has no date")
+                            return false
+                        }
+                        
+                        // Try multiple date formats for better compatibility
+                        let eventDate = self.parseEventDate(eventDateString)
+                        guard let date = eventDate else {
+                            print("⚠️ Could not parse date '\(eventDateString)' for event \(event.id)")
+                            return false
+                        }
+                        
+                        let isMatch = calendar.isDate(date, inSameDayAs: selectedDate)
+                        if isMatch {
+                            print("✅ Event '\(event.title)' matches selected date")
+                        }
+                        return isMatch
+                    }
+
+                    self.allEvents = decodedEvents
+                    self.events = showAllEvents ? decodedEvents : filtered
+                    print("📊 Showing \(self.events.count) events for selected date")
+>>>>>>> Stashed changes
 
 
                 } catch {
@@ -373,13 +439,24 @@ struct CalendarView: View {
             return
         }
         
+<<<<<<< Updated upstream
         // Use simple date format to match API expectations
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd"
+=======
+        // Use consistent date formatting for better compatibility
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+        dateFormatter.timeZone = TimeZone.current
+>>>>>>> Stashed changes
         let dateString = dateFormatter.string(from: selectedEventDate)
         
         let timeFormatter = DateFormatter()
         timeFormatter.dateFormat = "HH:mm:ss"
+<<<<<<< Updated upstream
+=======
+        timeFormatter.timeZone = TimeZone.current
+>>>>>>> Stashed changes
         
         let parameters: [String: Any] = [
             "title": newEventName,
@@ -388,6 +465,7 @@ struct CalendarView: View {
             "points": Int(newEventPoints) ?? 10,
             "revenue": Int(newEventRevenue) ?? 0,
             "date": dateString,
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
             "start_time": timeFormatter.string(from: newStartTime),
             "end_time": timeFormatter.string(from: newEndTime),
@@ -400,6 +478,14 @@ struct CalendarView: View {
         ]
 
         print("🔄 Creating event with parameters: \(parameters)")
+=======
+            "start_time": timeFormatter.string(from: newStartTime),
+            "end_time": timeFormatter.string(from: newEndTime),
+            "circle_id": circle.id
+        ]
+
+        print("🚀 Creating event with parameters: \(parameters)")
+>>>>>>> Stashed changes
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -420,6 +506,7 @@ struct CalendarView: View {
                 }
                 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 =======
                 // Reset form
                 newEventName = ""
@@ -432,6 +519,49 @@ struct CalendarView: View {
                 
                 // Refresh events
                 fetchEvents()
+=======
+                if let httpResponse = response as? HTTPURLResponse {
+                    print("📡 Create event response status: \(httpResponse.statusCode)")
+                    
+                    if let data = data, let responseString = String(data: data, encoding: .utf8) {
+                        print("📥 Create event response: \(responseString)")
+                    }
+                    
+                    if httpResponse.statusCode == 200 || httpResponse.statusCode == 201 {
+                        print("✅ Event created successfully!")
+                        
+                        // Store the event date before resetting the form
+                        let createdEventDate = selectedEventDate
+                        
+                        // Reset form
+                        newEventName = ""
+                        newEventType = "Workshop"
+                        newEventPoints = "10"
+                        newEventRevenue = "0"
+                        newDescription = ""
+                        selectedEventDate = Date()
+                        newStartTime = Date()
+                        newEndTime = Date()
+                        showCreateEvent = false
+                        
+                        // Force refresh events with a small delay to ensure backend processing
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                            print("🔄 Refreshing events after creation...")
+                            
+                            // If the selected date is different from the event date, update it
+                            let calendar = Calendar.current
+                            if !calendar.isDate(createdEventDate, inSameDayAs: selectedDate) {
+                                print("📅 Updating selected date to show new event")
+                                selectedDate = createdEventDate
+                            }
+                            
+                            fetchEvents()
+                        }
+                    } else {
+                        print("❌ Event creation failed with status: \(httpResponse.statusCode)")
+                    }
+                }
+>>>>>>> Stashed changes
             }
         }.resume()
     }

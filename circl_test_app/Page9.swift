@@ -149,7 +149,6 @@ struct Page9: View {
     }
 
     var body: some View {
-        NavigationView { // ✅ Ensures navigation works properly
             ZStack {
                 // Background Color
                 Color(hex: "004aad")
@@ -400,10 +399,7 @@ struct Page9: View {
                                 .padding(.bottom, 20)
                         }
                         
-                        // ✅ Navigation to Page 10
-                        NavigationLink(destination: Page10(), isActive: $navigateToPage10) {
-                            EmptyView()
-                        }
+                        // ✅ Navigation to Page 10 will be handled by navigationDestination
                         
                         Spacer()
                     }
@@ -417,8 +413,9 @@ struct Page9: View {
             } message: {
                 Text("Please fill out all fields before continuing.")
             }
-
-        }
+            .navigationDestination(isPresented: $navigateToPage10) {
+                Page10()
+            }
     }
 }
 

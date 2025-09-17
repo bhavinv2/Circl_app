@@ -108,9 +108,6 @@ struct Page10: View {
                     )
                 }
 
-                NavigationLink(destination: Page18(), isActive: $isNavigating) {
-                    EmptyView()
-                }
 
                 Spacer()
             }
@@ -125,6 +122,9 @@ struct Page10: View {
         .navigationBarHidden(true)
         .navigationBarBackButtonHidden(true)
         .statusBarHidden(false) // Change to true if you want to hide the status bar completely
+        .navigationDestination(isPresented: $isNavigating) {
+            Page18()
+        }
         .onAppear {
             // Additional way to hide navigation bar
             UINavigationBar.appearance().isHidden = true

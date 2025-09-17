@@ -35,7 +35,6 @@ struct Page5: View {
                     "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"]
     
     var body: some View {
-        NavigationView {
             ZStack {
                 Color(hex: "004aad")
                     .edgesIgnoringSafeArea(.all)
@@ -254,6 +253,7 @@ struct Page5: View {
                 }
                 .navigationBarHidden(true)
             }
+<<<<<<< Updated upstream:circl_test_app/Page5.swift
             .background(
                 NavigationLink(
                     destination: Page13(),
@@ -263,6 +263,11 @@ struct Page5: View {
             )
         }
         .navigationViewStyle(StackNavigationViewStyle())
+=======
+            .navigationDestination(isPresented: $navigateToPage13) {
+                Page13()
+            }
+>>>>>>> Stashed changes:circl_test_app/Onboarding/Page5.swift
     }
     
     private func isFormComplete() -> Bool {
