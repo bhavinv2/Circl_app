@@ -291,7 +291,7 @@ struct Page1: View {
             }
 
             .navigationDestination(isPresented: $isNavigatingToSignup) {
-                Page2() // Navigate to signup page
+                Page17() // Navigate to signup page
             }
             .onAppear {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { // Small delay to ensure consistency

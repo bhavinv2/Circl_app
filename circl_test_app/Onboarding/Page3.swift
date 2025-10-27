@@ -6,7 +6,14 @@ struct Page3: View {
     @State private var firstName: String = ""
     @State private var lastName: String = ""
     @State private var email: String = ""
+<<<<<<< Updated upstream
+=======
+    @State private var phoneNumber: String = ""
+    @State private var password: String = ""
+    @State private var confirmPassword: String = ""
+>>>>>>> Stashed changes
     @State private var isEmailValid: Bool = true
+    @State private var isPasswordValid: Bool = true
     
     // State for submission handling
     @State private var isSubmitting: Bool = false
@@ -82,6 +89,7 @@ struct Page3: View {
                 // Enhanced Animated Background
                 animatedBackground
                 
+<<<<<<< Updated upstream
                 // Enhanced Top Left Cloud with animations
                 topLeftCloudGroup
                 
@@ -314,6 +322,164 @@ struct Page3: View {
                         colors: [Color.white, Color.white.opacity(0.9)],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
+=======
+                // Top Left Cloud
+                ZStack {
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 120, height: 120)
+                        .offset(x: -UIScreen.main.bounds.width / 2 + 60, y: -UIScreen.main.bounds.height / 2 + 60)
+                    
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 100, height: 100)
+                        .offset(x: -UIScreen.main.bounds.width / 2 + 30, y: -UIScreen.main.bounds.height / 2 + 40)
+                    
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 100, height: 100)
+                        .offset(x: -UIScreen.main.bounds.width / 2 + 110, y: -UIScreen.main.bounds.height / 2 + 30)
+                    
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 100, height: 100)
+                        .offset(x: -UIScreen.main.bounds.width / 2 + 170, y: -UIScreen.main.bounds.height / 2 + 30)
+                    
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 100, height: 100)
+                        .offset(x: -UIScreen.main.bounds.width / 2 + 210, y: -UIScreen.main.bounds.height / 2 + 60)
+                    
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 80, height: 80)
+                        .offset(x: -UIScreen.main.bounds.width / 2 + 90, y: -UIScreen.main.bounds.height / 2 + 50)
+                    
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 90, height: 90)
+                        .offset(x: -UIScreen.main.bounds.width / 2 + 50, y: -UIScreen.main.bounds.height / 2 + 30)
+                    
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 110, height: 110)
+                        .offset(x: -UIScreen.main.bounds.width / 2 + 150, y: -UIScreen.main.bounds.height / 2 + 80)
+                }
+
+                // Bottom Left Cloud
+                ZStack {
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 120, height: 120)
+                        .offset(x: -UIScreen.main.bounds.width / 2 + 30, y: UIScreen.main.bounds.height / 2 - 80)
+                    
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 100, height: 100)
+                        .offset(x: -UIScreen.main.bounds.width / 2 + 30, y: UIScreen.main.bounds.height / 2 - 40)
+                    
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 100, height: 100)
+                        .offset(x: -UIScreen.main.bounds.width / 2 + 170, y: UIScreen.main.bounds.height / 2 - 20)
+                    
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 90, height: 90)
+                        .offset(x: -UIScreen.main.bounds.width / 2 + 80, y: UIScreen.main.bounds.height / 2 - 40)
+                    
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 110, height: 110)
+                        .offset(x: -UIScreen.main.bounds.width / 2 + 150, y: UIScreen.main.bounds.height / 2 - 80)
+                }
+
+                // Middle Right Cloud
+                ZStack {
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 120, height: 120)
+                        .offset(x: UIScreen.main.bounds.width / 2 - 60, y: 0)
+                    
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 80, height: 100)
+                        .offset(x: UIScreen.main.bounds.width / 2 - 30, y: -20)
+                    
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 80, height: 80)
+                        .offset(x: UIScreen.main.bounds.width / 2 - 0, y: 20)
+                    
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 90, height: 90)
+                        .offset(x: UIScreen.main.bounds.width / 2 - 100, y: -40)
+                    
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 90, height: 90)
+                        .offset(x: UIScreen.main.bounds.width / 2 - 115, y: 10)
+                }
+
+                VStack(spacing: 0) {
+                    Spacer(minLength: 30)
+                    
+                    TitleSection()
+                    
+                    Spacer(minLength: 20)
+                    
+                    PersonalInformationSection(
+                        firstName: $firstName,
+                        lastName: $lastName,
+                        email: $email,
+                        phoneNumber: $phoneNumber,
+                        password: $password,
+                        confirmPassword: $confirmPassword,
+                        isEmailValid: $isEmailValid,
+                        isPasswordValid: $isPasswordValid
+                    )
+                    
+                    Spacer(minLength: 15)
+                    
+                    ExperienceSetupSection(
+                        usageInterestOptions: usageInterestOptions,
+                        industryCategories: industryCategories,
+                        selectedUsageInterest: $selectedUsageInterest,
+                        selectedIndustryInterest: $selectedIndustryInterest
+                    )
+                    
+                    Spacer(minLength: 20)
+                    
+                    NextButton(
+                        isSubmitting: $isSubmitting,
+                        action: {
+                            if !isFormValid() {
+                                submissionMessage = "Please fill out all fields correctly before continuing."
+                                showAlert = true
+                            } else {
+                                submitUserInfo()
+                            }
+                        },
+                        isFormValid: isFormValid()
+                    )
+                    
+                    Spacer(minLength: 30)
+                }
+                .padding(.horizontal, 30)
+                .alert(isPresented: $showAlert) {
+                    Alert(
+                        title: Text("Registration Error"),
+                        message: Text(submissionMessage),
+                        dismissButton: .default(Text("OK"))
+                    )
+                }
+                .background(
+                    NavigationLink(
+                        destination: Page4(),
+                        isActive: $navigateToPage4,
+                        label: { EmptyView() }
+>>>>>>> Stashed changes
                     )
                 )
                 .shadow(color: Color.black.opacity(0.3), radius: 2, x: 0, y: 1)
@@ -382,7 +548,14 @@ struct Page3: View {
                !lastName.isEmpty &&
                isEmailValid &&
                !email.isEmpty &&
+<<<<<<< Updated upstream
              
+=======
+               !phoneNumber.isEmpty &&
+               !password.isEmpty &&
+               !confirmPassword.isEmpty &&
+               isPasswordValid &&
+>>>>>>> Stashed changes
                selectedUsageInterest != nil &&
                selectedIndustryInterest != nil
     }
@@ -399,7 +572,12 @@ struct Page3: View {
             "first_name": firstName,
             "last_name": lastName,
             "email": email,
+<<<<<<< Updated upstream
            
+=======
+            "phone_number": phoneNumber,
+            "password": password,
+>>>>>>> Stashed changes
             "main_usage": selectedUsageInterest ?? "",
             "industry_interest": selectedIndustryInterest ?? ""
         ]
@@ -488,7 +666,14 @@ struct PersonalInformationSection: View {
     @Binding var firstName: String
     @Binding var lastName: String
     @Binding var email: String
+<<<<<<< Updated upstream
+=======
+    @Binding var phoneNumber: String
+    @Binding var password: String
+    @Binding var confirmPassword: String
+>>>>>>> Stashed changes
     @Binding var isEmailValid: Bool
+    @Binding var isPasswordValid: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -536,8 +721,84 @@ struct PersonalInformationSection: View {
                             .foregroundColor(.red)
                     }
                 }
+<<<<<<< Updated upstream
 
                
+=======
+                
+                TextField("Phone Number", text: Binding(
+                    get: { phoneNumber },
+                    set: { newValue in
+                        phoneNumber = formatPhoneNumber(newValue)
+                    }
+                ))
+                .padding(12)
+                .background(Color(.systemGray5))
+                .cornerRadius(8)
+                .keyboardType(.phonePad)
+                .toolbar {
+                    ToolbarItemGroup(placement: .keyboard) {
+                        Spacer()
+                        Button("Done") {
+                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                        }
+                    }
+                }
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    SecureField("Password", text: Binding(
+                        get: { password },
+                        set: { newValue in
+                            password = newValue
+                            isPasswordValid = passwordsMatch() && isValidPassword(newValue)
+                        }
+                    ))
+                    .padding(12)
+                    .background(Color(.systemGray5))
+                    .cornerRadius(8)
+                    .toolbar {
+                        ToolbarItemGroup(placement: .keyboard) {
+                            Spacer()
+                            Button("Done") {
+                                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                            }
+                        }
+                    }
+                    
+                    if !password.isEmpty && !isValidPassword(password) {
+                        Text("Password must be at least 8 characters long")
+                            .font(.caption2)
+                            .foregroundColor(.red)
+                    }
+                }
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    SecureField("Confirm Password", text: Binding(
+                        get: { confirmPassword },
+                        set: { newValue in
+                            confirmPassword = newValue
+                            isPasswordValid = passwordsMatch() && isValidPassword(password)
+                        }
+                    ))
+                    .padding(12)
+                    .background(Color(.systemGray5))
+                    .cornerRadius(8)
+                    .toolbar {
+                        ToolbarItemGroup(placement: .keyboard) {
+                            Spacer()
+                            Button("Done") {
+                                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                            }
+                        }
+                    }
+                    
+                    if !confirmPassword.isEmpty && !passwordsMatch() {
+                        Text("Passwords do not match")
+                            .font(.caption2)
+                            .foregroundColor(.red)
+                    }
+                }
+>>>>>>> Stashed changes
             }
         }
     }
@@ -546,6 +807,14 @@ struct PersonalInformationSection: View {
         let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
         let emailPredicate = NSPredicate(format: "SELF MATCHES %@", emailRegex)
         return emailPredicate.evaluate(with: email)
+    }
+    
+    private func isValidPassword(_ password: String) -> Bool {
+        return password.count >= 8
+    }
+    
+    private func passwordsMatch() -> Bool {
+        return password == confirmPassword
     }
 }
 

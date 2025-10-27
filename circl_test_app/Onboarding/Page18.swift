@@ -82,69 +82,67 @@ struct Page18: View {
                     .offset(x: -(UIScreen.main.bounds.width / 2 - 140), y: UIScreen.main.bounds.height / 2 - 30)
             }
 
-            VStack(spacing: 30) {
+            VStack(spacing: 0) {
                 Spacer()
 
-                // Title and Separator Line
-                VStack(spacing: 8) {
-                    Text("Joining Circl")
-                        .font(.system(size: 32, weight: .bold))
-                        .foregroundColor(Color(hex: "ffde59"))
+                VStack(spacing: 20) {
+                    // Title and Separator Line
+                    VStack(spacing: 8) {
+                        Text("Joining Circl")
+                            .font(.system(size: 32, weight: .bold))
+                            .foregroundColor(Color(hex: "ffde59"))
 
-                    Rectangle()
-                        .frame(height: 2)
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 40)
-                }
+                        Rectangle()
+                            .frame(height: 2)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 40)
+                    }
 
-                // Scrollable Body Text
-                ScrollView {
+                    // Body Text
                     VStack(spacing: 20) {
-                        Text("We are Circl, your partner in all aspects of your entrepreneurship journey.")
+                        (Text("Circl is ")
+                            .font(.system(size: 23, weight: .bold))
+                            .foregroundColor(.white)
+                        + Text("the ecosystem")
+                            .font(.system(size: 23, weight: .bold))
+                            .foregroundColor(.white)
+                            .underline()
+                        + Text(" to build on your potential.")
+                            .font(.system(size: 23, weight: .bold))
+                            .foregroundColor(.white))
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 40)
+
+                        Text("From landing your first real project with a local business, getting hired, or launching your own startup, this is where momentum begins.")
                             .font(.system(size: 23, weight: .bold))
                             .foregroundColor(.white)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 40)
 
-                        Text("This is an exclusive community only allowing humble, honest, collaborative, diligent, resourceful, hardworking, and integrity-filled individuals that are eager to learn and grow.")
-                            .font(.system(size: 23, weight: .bold))
-                            .foregroundColor(.white)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 40)
-
-                        Text("Creating an application and an account means you adhere to our virtues.")
-                            .font(.system(size: 23, weight: .bold))
-                            .foregroundColor(.white)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 40)
-
-                        Text("We utilize community governance to ensure all standards are met.")
+                        Text("Here, you don't build alone, you build with people who mean it.")
                             .font(.system(size: 23, weight: .bold))
                             .foregroundColor(.white)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 40)
                     }
-                    .padding(.top, 20)
-                }
-                .frame(maxHeight: 450) // Limit the scrollable height
+                    .padding(.top, 10)
 
-                Spacer()
-
-                // Next Button
-                NavigationLink(destination: Page19()) {
-                    Text("Next")
-                        .font(.system(size: 24, weight: .bold))
-                        .foregroundColor(Color(hex: "004aad"))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 15)
-                        .background(Color(hex: "ffde59"))
-                        .cornerRadius(10)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10)
-                                .stroke(Color.white, lineWidth: 2) // White outline
-                        )
-                        .padding(.horizontal, 50)
-                        .padding(.bottom, 40)
+                    // Next Button
+                    NavigationLink(destination: Page19()) {
+                        Text("Next")
+                            .font(.system(size: 24, weight: .bold))
+                            .foregroundColor(Color(hex: "004aad"))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 15)
+                            .background(Color(hex: "ffde59"))
+                            .cornerRadius(10)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(Color.white, lineWidth: 2) // White outline
+                            )
+                            .padding(.horizontal, 50)
+                    }
+                    .padding(.top, 30)
                 }
 
                 Spacer()

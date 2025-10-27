@@ -28,6 +28,13 @@ struct PageCircleMessages: View {
     @State private var selectedImage: UIImage?
     @State private var selectedVideoURL: URL?
     @State private var showingMediaPicker = false
+<<<<<<< Updated upstream
+=======
+    @State private var showMediaMenu = false
+    
+    @State private var showingFullImage = false
+    @State private var fullImageURL: String?
+>>>>>>> Stashed changes
 
     @State private var newMessage: String = ""
     @AppStorage("user_id") private var userId: Int = 0
@@ -195,7 +202,7 @@ struct PageCircleMessages: View {
                 VStack(alignment: .center, spacing: 4) {
                     HStack(spacing: 8) {
                         Text(circleName)
-                            .font(.system(size: 20, weight: .bold, design: .rounded))
+                            .font(.system(size: 20, weight: .bold))
                             .foregroundStyle(LinearGradient(
                                 colors: [Color.white, Color.white.opacity(0.95)],
                                 startPoint: .topLeading,
@@ -231,8 +238,7 @@ struct PageCircleMessages: View {
                                     .font(.system(size: 12))
 
                                 Text(selectedCategory?.name ?? "Select")
-
-                                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                                    .font(.system(size: 13, weight: .semibold))
                                     .foregroundColor(Color(hex: "004aad"))
                                     .lineLimit(1)
 
@@ -406,6 +412,7 @@ struct PageCircleMessages: View {
                     .font(.system(size: 22, weight: .bold))
                     .foregroundColor(Color(hex: "004aad"))
             }
+<<<<<<< Updated upstream
 
             // Message text field
             TextField("Message \(currentChannel.name)...", text: $newMessage)
@@ -413,6 +420,44 @@ struct PageCircleMessages: View {
                 .padding(12)
                 .background(Color(.systemGray6))
                 .cornerRadius(20)
+=======
+            
+            // Text input and buttons
+            HStack(spacing: 8) {
+                // + button (opens media menu)
+                Button(action: {
+                    showMediaMenu = true
+                }) {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 22, weight: .bold))
+                        .foregroundColor(Color(hex: "004aad"))
+                }
+                .actionSheet(isPresented: $showMediaMenu) {
+                    ActionSheet(
+                        title: Text("Choose Media Source"),
+                        buttons: [
+                            .default(Text("Camera")) {
+                                // Open camera - you'll need to modify MediaPicker to support camera
+                                showingMediaPicker = true
+                            },
+                            .default(Text("Photo Library")) {
+                                // Open photo library 
+                                showingMediaPicker = true
+                            },
+                            .cancel()
+                        ]
+                    )
+                }
+
+                // Message text field
+                TextField("Message \(currentChannel.name)...", text: $newMessage, axis: .vertical)
+                    .textFieldStyle(.plain)
+                    .lineLimit(1...5)
+                    .padding(12)
+                    .background(Color(.systemGray6))
+                    .cornerRadius(20)
+                    .frame(minHeight: 44)
+>>>>>>> Stashed changes
 
             // Send button
             Button(action: {
