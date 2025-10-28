@@ -174,6 +174,7 @@ class NetworkDataManager: ObservableObject {
         print("📧 NetworkDataManager - Converting \(userNetworkEmails.count) emails to profiles")
         
         var convertedProfiles: [InviteProfileData] = []
+<<<<<<< Updated upstream
         
         for (index, email) in userNetworkEmails.enumerated() {
             // Create a profile from the email (simplified approach)
@@ -181,6 +182,18 @@ class NetworkDataManager: ObservableObject {
             let username = emailParts.first ?? "user"
             let domain = emailParts.count > 1 ? emailParts[1] : "example.com"
             
+=======
+        for dict in userNetworkRaw {
+            let id = (dict["id"] as? Int) ?? (dict["user_id"] as? Int) ?? -1
+            guard id != -1, let email = dict["email"] as? String else { continue }
+
+            // Use the same simple approach as mentors and entrepreneurs
+            let firstName = dict["first_name"] as? String ?? ""
+            let lastName = dict["last_name"] as? String ?? ""
+            let name = "\(firstName) \(lastName)".trimmingCharacters(in: .whitespacesAndNewlines)
+            let username = (dict["username"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+
+>>>>>>> Stashed changes
             let profile = InviteProfileData(
                 user_id: 1000 + index,
                 name: username.capitalized,

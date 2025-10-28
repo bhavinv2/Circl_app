@@ -29,7 +29,10 @@ struct PageCircleMessages: View {
     @State private var selectedVideoURL: URL?
     @State private var showingMediaPicker = false
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 =======
+=======
+>>>>>>> Stashed changes
     @State private var showMediaMenu = false
     
     @State private var showingFullImage = false
@@ -441,7 +444,11 @@ struct PageCircleMessages: View {
                                 showingMediaPicker = true
                             },
                             .default(Text("Photo Library")) {
+<<<<<<< Updated upstream
                                 // Open photo library 
+=======
+                                // Open photo library
+>>>>>>> Stashed changes
                                 showingMediaPicker = true
                             },
                             .cancel()
@@ -457,6 +464,9 @@ struct PageCircleMessages: View {
                     .background(Color(.systemGray6))
                     .cornerRadius(20)
                     .frame(minHeight: 44)
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 
             // Send button

@@ -447,7 +447,7 @@ struct PageMessages: View {
                                         .foregroundColor(.primary)
                                         .lineLimit(1)
                                     
-                                    Text("@\(user.username)")
+                                    Text(user.company.isEmpty ? "Network Connection" : user.company)
                                         .font(.system(size: 14))
                                         .foregroundColor(.secondary)
                                         .lineLimit(1)

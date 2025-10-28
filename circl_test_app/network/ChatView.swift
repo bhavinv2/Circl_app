@@ -16,6 +16,9 @@ struct ChatView: View {
     @State private var showMediaMenu = false
     @State private var showProfileSheet = false
     @State private var selectedProfile: FullProfile?
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
     @Environment(\.presentationMode) var presentationMode
     
@@ -35,6 +38,14 @@ struct ChatView: View {
         .navigationBarHidden(true)
         .onAppear {
             loadDummyMessages()
+        }
+        .sheet(isPresented: $showProfileSheet) {
+            if let profile = selectedProfile {
+                DynamicProfilePreview(
+                    profileData: profile,
+                    isInNetwork: true // Assuming they're in network if they're chatting
+                )
+            }
         }
         .sheet(isPresented: $showProfileSheet) {
             if let profile = selectedProfile {
@@ -132,6 +143,7 @@ struct ChatView: View {
                             .font(.system(size: 12))
                             .foregroundColor(.white.opacity(0.8))
                     }
+<<<<<<< Updated upstream
                 }
                 
 >>>>>>> Stashed changes
@@ -185,6 +197,8 @@ struct ChatView: View {
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                     }
+=======
+>>>>>>> Stashed changes
                 }
                 
                 Spacer()
@@ -293,6 +307,75 @@ struct ChatView: View {
         return false
     }
     
+    // MARK: - Helper for grouping messages by date
+    private var groupedMessages: [(String, [NetworkChatMessage])] {
+        let calendar = Calendar.current
+        let grouped = Dictionary(grouping: messages) { message in
+            calendar.startOfDay(for: message.timestamp)
+        }
+        
+        return grouped.sorted { $0.key < $1.key }.map { (date, messages) in
+            let formatter = DateFormatter()
+            formatter.dateFormat = "MMM d"
+            let dateString = formatter.string(from: date).uppercased()
+            return (dateString, messages.sorted { $0.timestamp < $1.timestamp })
+        }
+    }
+    
+    // MARK: - Helper to determine if message should show timestamp
+    private func shouldShowTimestamp(for message: NetworkChatMessage, in messages: [NetworkChatMessage]) -> Bool {
+        guard let currentIndex = messages.firstIndex(where: { $0.id == message.id }) else { return true }
+        
+        // Always show timestamp for the last message
+        if currentIndex == messages.count - 1 { return true }
+        
+        let nextMessage = messages[currentIndex + 1]
+        
+        // Show timestamp if next message is from different sender
+        if message.isFromCurrentUser != nextMessage.isFromCurrentUser { return true }
+        
+        // Show timestamp if there's a significant time gap (more than 5 minutes)
+        let timeDifference = nextMessage.timestamp.timeIntervalSince(message.timestamp)
+        if timeDifference > 300 { return true } // 5 minutes = 300 seconds
+        
+        return false
+    }
+    
+    // MARK: - Helper to determine if message should show profile info (name/picture)
+    private func shouldShowProfileInfo(for message: NetworkChatMessage, in messages: [NetworkChatMessage]) -> Bool {
+        guard let currentIndex = messages.firstIndex(where: { $0.id == message.id }) else { return true }
+        
+        // Always show profile info for the first message
+        if currentIndex == 0 { return true }
+        
+        let previousMessage = messages[currentIndex - 1]
+        
+        // Show profile info if previous message is from different sender
+        if message.isFromCurrentUser != previousMessage.isFromCurrentUser { return true }
+        
+        // Show profile info if there's a significant time gap (more than 5 minutes)
+        let timeDifference = message.timestamp.timeIntervalSince(previousMessage.timestamp)
+        if timeDifference > 300 { return true } // 5 minutes = 300 seconds
+        
+        return false
+    }
+    
+    // MARK: - Helper to determine if message is in a cluster (consecutive messages from same sender)
+    private func isInMessageCluster(for message: NetworkChatMessage, in messages: [NetworkChatMessage]) -> Bool {
+        guard let currentIndex = messages.firstIndex(where: { $0.id == message.id }) else { return false }
+        
+        // Check if previous message is from same sender and within time threshold
+        if currentIndex > 0 {
+            let previousMessage = messages[currentIndex - 1]
+            if message.isFromCurrentUser == previousMessage.isFromCurrentUser {
+                let timeDifference = message.timestamp.timeIntervalSince(previousMessage.timestamp)
+                if timeDifference <= 300 { return true } // 5 minutes = 300 seconds
+            }
+        }
+        
+        return false
+    }
+    
     // MARK: - LinkedIn Messages Section
     var linkedinMessagesSection: some View {
         ScrollViewReader { proxy in
@@ -318,8 +401,13 @@ struct ChatView: View {
                         // Messages for this date
                         ForEach(messagesForDate) { message in
                             LinkedInMessageBubble(
+<<<<<<< Updated upstream
                                 message: message, 
                                 user: user, 
+=======
+                                message: message,
+                                user: user,
+>>>>>>> Stashed changes
                                 showTimestamp: shouldShowTimestamp(for: message, in: messagesForDate),
                                 showProfileInfo: shouldShowProfileInfo(for: message, in: messagesForDate),
                                 isInCluster: isInMessageCluster(for: message, in: messagesForDate),
@@ -336,6 +424,9 @@ struct ChatView: View {
                                     }
                                 }
                             )
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
                             .id(message.id)
                         }
@@ -365,9 +456,15 @@ struct ChatView: View {
             
             HStack(spacing: 12) {
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                 // Attachment button
                 Button(action: {
                     // Handle attachment
+=======
+                // Blue plus button (opens media menu)
+                Button(action: {
+                    showMediaMenu = true
+>>>>>>> Stashed changes
 =======
                 // Blue plus button (opens media menu)
                 Button(action: {
@@ -388,6 +485,22 @@ struct ChatView: View {
                             },
                             .default(Text("Photo Library")) {
                                 // Open photo library 
+                                showingMediaPicker = true
+                            },
+                            .cancel()
+                        ]
+                    )
+                }
+                .actionSheet(isPresented: $showMediaMenu) {
+                    ActionSheet(
+                        title: Text("Choose Media Source"),
+                        buttons: [
+                            .default(Text("Camera")) {
+                                // Open camera - you'll need to modify MediaPicker to support camera
+                                showingMediaPicker = true
+                            },
+                            .default(Text("Photo Library")) {
+                                // Open photo library
                                 showingMediaPicker = true
                             },
                             .cancel()
@@ -531,9 +644,12 @@ struct ChatView: View {
                 content: "Thanks! I'm excited to explore potential collaboration opportunities.",
                 isFromCurrentUser: true,
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                 timestamp: Calendar.current.date(byAdding: .hour, value: -2, to: Date()) ?? Date(),
                 isRead: true
 =======
+=======
+>>>>>>> Stashed changes
                 timestamp: Calendar.current.date(byAdding: .minute, value: -118, to: Date()) ?? Date(),
                 isRead: true,
                 actualSenderName: nil,
@@ -547,6 +663,7 @@ struct ChatView: View {
                 content: "I saw your presentation on AI in product development. Really impressive work!",
                 isFromCurrentUser: false,
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                 timestamp: Calendar.current.date(byAdding: .minute, value: -90, to: Date()) ?? Date(),
                 isRead: true
 =======
@@ -556,6 +673,20 @@ struct ChatView: View {
                 mediaURL: nil
 >>>>>>> Stashed changes
             ),
+            NetworkChatMessage(
+                id: "3a",
+                content: "The part about machine learning optimization was particularly insightful",
+                isFromCurrentUser: false,
+                timestamp: Calendar.current.date(byAdding: .minute, value: -64, to: Date()) ?? Date(),
+=======
+                timestamp: Calendar.current.date(byAdding: .minute, value: -65, to: Date()) ?? Date(),
+>>>>>>> Stashed changes
+                isRead: true,
+                actualSenderName: user.name,
+                mediaURL: nil
+            ),
+            
+            // My response cluster (1 hour ago - quick response)
             NetworkChatMessage(
                 id: "3a",
                 content: "The part about machine learning optimization was particularly insightful",
@@ -572,9 +703,12 @@ struct ChatView: View {
                 content: "Thank you! I'd love to hear about what you're working on as well.",
                 isFromCurrentUser: true,
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                 timestamp: Calendar.current.date(byAdding: .minute, value: -85, to: Date()) ?? Date(),
                 isRead: true
 =======
+=======
+>>>>>>> Stashed changes
                 timestamp: Calendar.current.date(byAdding: .minute, value: -63, to: Date()) ?? Date(),
                 isRead: true,
                 actualSenderName: nil,
@@ -771,7 +905,7 @@ struct ChatView: View {
     }
     
     private func blockUser() {
-        // TODO: Implement block user functionality  
+        // TODO: Implement block user functionality
         print("🚫 Block user: \(user.name)")
     }
     

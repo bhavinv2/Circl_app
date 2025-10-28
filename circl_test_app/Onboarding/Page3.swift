@@ -11,6 +11,9 @@ struct Page3: View {
     @State private var phoneNumber: String = ""
     @State private var password: String = ""
     @State private var confirmPassword: String = ""
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
     @State private var isEmailValid: Bool = true
     @State private var isPasswordValid: Bool = true
@@ -555,6 +558,9 @@ struct Page3: View {
                !password.isEmpty &&
                !confirmPassword.isEmpty &&
                isPasswordValid &&
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
                selectedUsageInterest != nil &&
                selectedIndustryInterest != nil
@@ -577,6 +583,9 @@ struct Page3: View {
 =======
             "phone_number": phoneNumber,
             "password": password,
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
             "main_usage": selectedUsageInterest ?? "",
             "industry_interest": selectedIndustryInterest ?? ""
@@ -671,6 +680,9 @@ struct PersonalInformationSection: View {
     @Binding var phoneNumber: String
     @Binding var password: String
     @Binding var confirmPassword: String
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
     @Binding var isEmailValid: Bool
     @Binding var isPasswordValid: Bool
@@ -798,6 +810,9 @@ struct PersonalInformationSection: View {
                             .foregroundColor(.red)
                     }
                 }
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
             }
         }

@@ -134,6 +134,7 @@ struct Page5: View {
                     
                     VStack(spacing: 15) {
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                         // Birthday Field
                         TextField("Birthday (MM/DD/YYYY)", text: $birthday)
                             .onChange(of: birthday) { newValue in
@@ -147,6 +148,8 @@ struct Page5: View {
                                 Button("OK", role: .cancel) { }
                             }
 =======
+=======
+>>>>>>> Stashed changes
                         // Birthday Field with Modern Date Picker
                         VStack(alignment: .leading, spacing: 8) {
                             Button(action: {
@@ -180,7 +183,11 @@ struct Page5: View {
                                             .fontWeight(.semibold)
                                             .padding(.top, 20)
                                         
+<<<<<<< Updated upstream
                                         DatePicker("Birthday", 
+=======
+                                        DatePicker("Birthday",
+>>>>>>> Stashed changes
                                                  selection: $selectedBirthdate,
                                                  in: dateRange,
                                                  displayedComponents: .date)
@@ -215,6 +222,9 @@ struct Page5: View {
                         .alert("You must be 18 years or older to sign up.", isPresented: $isUnderage) {
                             Button("OK", role: .cancel) { }
                         }
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
                         
                         // Location Field - Updated to handle spaces in city names
@@ -286,7 +296,10 @@ struct Page5: View {
                                 Text("This is your amount of time to work on a project or a new venture with others!")
                             }
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 =======
+=======
+>>>>>>> Stashed changes
                             .frame(width: 24)
                         }
                         .frame(maxWidth: 300)
@@ -327,6 +340,9 @@ struct Page5: View {
                             .frame(width: 24)
                         }
                         .frame(maxWidth: 300)
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
                         
                         Link("Take the 16 personalities test", destination: URL(string: "https://www.16personalities.com/")!)
