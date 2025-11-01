@@ -201,6 +201,19 @@ struct PageSettings: View {
                     .cornerRadius(16)
                     .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 2)
 
+                    // Tutorial & Help Section
+                    VStack(spacing: 12) {
+                        sectionHeader(title: "Tutorial & Help", icon: "questionmark.circle.fill")
+                        
+                        VStack(spacing: 8) {
+                            TutorialSettingsView()
+                        }
+                    }
+                    .padding(20)
+                    .background(Color.white)
+                    .cornerRadius(16)
+                    .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 2)
+
                     // Help & Support Section
                     VStack(spacing: 12) {
                         sectionHeader(title: "Help & Support", icon: "headphones")

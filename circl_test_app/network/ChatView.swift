@@ -12,6 +12,9 @@ struct ChatView: View {
     @State private var selectedVideoURL: URL?
     @State private var showingMediaPicker = false
     @State private var showingOptionsMenu = false
+    @State private var showMediaMenu = false
+    @State private var showProfileSheet = false
+    @State private var selectedProfile: FullProfile?
     @Environment(\.presentationMode) var presentationMode
     
     // Real messages from PageMessages
@@ -84,6 +87,14 @@ struct ChatView: View {
                 }
             }
         }
+        .sheet(isPresented: $showProfileSheet) {
+            if let profile = selectedProfile {
+                DynamicProfilePreview(
+                    profileData: profile,
+                    isInNetwork: true // Assuming they're in network if they're chatting
+                )
+            }
+        }
     }
     
     // MARK: - LinkedIn Header Section
@@ -105,42 +116,66 @@ struct ChatView: View {
                         .foregroundColor(.white)
                 }
                 
-                // Profile picture
-                AsyncImage(url: URL(string: user.profile_image ?? "")) { phase in
-                    switch phase {
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: 36, height: 36)
-                            .clipShape(Circle())
-                    default:
-                        Circle()
-                            .fill(Color.white.opacity(0.2))
-                            .frame(width: 36, height: 36)
-                            .overlay(
-                                Image(systemName: "person.fill")
-                                    .font(.system(size: 16))
-                                    .foregroundColor(.white)
-                            )
+                // Profile picture - tappable
+                Button(action: {
+                    print("👤 Tapped header profile for: \(user.name)")
+                    if let userId = Int(user.id) {
+                        fetchUserProfile(userId: userId) { profile in
+                            if let profile = profile {
+                                selectedProfile = profile
+                                showProfileSheet = true
+                            }
+                        }
+                    }
+                }) {
+                    AsyncImage(url: URL(string: user.profile_image ?? "")) { phase in
+                        switch phase {
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 36, height: 36)
+                                .clipShape(Circle())
+                        default:
+                            Circle()
+                                .fill(Color.white.opacity(0.2))
+                                .frame(width: 36, height: 36)
+                                .overlay(
+                                    Image(systemName: "person.fill")
+                                        .font(.system(size: 16))
+                                        .foregroundColor(.white)
+                                )
+                        }
                     }
                 }
                 
-                // User info
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(user.name)
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(.white)
-                    
-                    // Position (placeholder for now)
-                    Text("CEO")
-                        .font(.system(size: 12))
-                        .foregroundColor(.white.opacity(0.9))
-                    
-                    // Company name
-                    Text(user.company)
-                        .font(.system(size: 12))
-                        .foregroundColor(.white.opacity(0.8))
+                // User info - tappable
+                Button(action: {
+                    print("👤 Tapped header user info for: \(user.name)")
+                    if let userId = Int(user.id) {
+                        fetchUserProfile(userId: userId) { profile in
+                            if let profile = profile {
+                                selectedProfile = profile
+                                showProfileSheet = true
+                            }
+                        }
+                    }
+                }) {
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text(user.name)
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(.white)
+                        
+                        // Position (placeholder for now)
+                        Text("CEO")
+                            .font(.system(size: 12))
+                            .foregroundColor(.white.opacity(0.9))
+                        
+                        // Company name
+                        Text(user.company)
+                            .font(.system(size: 12))
+                            .foregroundColor(.white.opacity(0.8))
+                    }
                 }
                 
                 Spacer()
@@ -167,28 +202,120 @@ struct ChatView: View {
         .background(Color(hex: "004aad"))
     }
     
+    // MARK: - Helper for grouping messages by date
+    private var groupedMessages: [(String, [NetworkChatMessage])] {
+        let calendar = Calendar.current
+        let grouped = Dictionary(grouping: messages) { message in
+            calendar.startOfDay(for: message.timestamp)
+        }
+        
+        return grouped.sorted { $0.key < $1.key }.map { (date, messages) in
+            let formatter = DateFormatter()
+            formatter.dateFormat = "MMM d"
+            let dateString = formatter.string(from: date).uppercased()
+            return (dateString, messages.sorted { $0.timestamp < $1.timestamp })
+        }
+    }
+    
+    // MARK: - Helper to determine if message should show timestamp
+    private func shouldShowTimestamp(for message: NetworkChatMessage, in messages: [NetworkChatMessage]) -> Bool {
+        guard let currentIndex = messages.firstIndex(where: { $0.id == message.id }) else { return true }
+        
+        // Always show timestamp for the last message
+        if currentIndex == messages.count - 1 { return true }
+        
+        let nextMessage = messages[currentIndex + 1]
+        
+        // Show timestamp if next message is from different sender
+        if message.isFromCurrentUser != nextMessage.isFromCurrentUser { return true }
+        
+        // Show timestamp if there's a significant time gap (more than 5 minutes)
+        let timeDifference = nextMessage.timestamp.timeIntervalSince(message.timestamp)
+        if timeDifference > 300 { return true } // 5 minutes = 300 seconds
+        
+        return false
+    }
+    
+    // MARK: - Helper to determine if message should show profile info (name/picture)
+    private func shouldShowProfileInfo(for message: NetworkChatMessage, in messages: [NetworkChatMessage]) -> Bool {
+        guard let currentIndex = messages.firstIndex(where: { $0.id == message.id }) else { return true }
+        
+        // Always show profile info for the first message
+        if currentIndex == 0 { return true }
+        
+        let previousMessage = messages[currentIndex - 1]
+        
+        // Show profile info if previous message is from different sender
+        if message.isFromCurrentUser != previousMessage.isFromCurrentUser { return true }
+        
+        // Show profile info if there's a significant time gap (more than 5 minutes)
+        let timeDifference = message.timestamp.timeIntervalSince(previousMessage.timestamp)
+        if timeDifference > 300 { return true } // 5 minutes = 300 seconds
+        
+        return false
+    }
+    
+    // MARK: - Helper to determine if message is in a cluster (consecutive messages from same sender)
+    private func isInMessageCluster(for message: NetworkChatMessage, in messages: [NetworkChatMessage]) -> Bool {
+        guard let currentIndex = messages.firstIndex(where: { $0.id == message.id }) else { return false }
+        
+        // Check if previous message is from same sender and within time threshold
+        if currentIndex > 0 {
+            let previousMessage = messages[currentIndex - 1]
+            if message.isFromCurrentUser == previousMessage.isFromCurrentUser {
+                let timeDifference = message.timestamp.timeIntervalSince(previousMessage.timestamp)
+                if timeDifference <= 300 { return true } // 5 minutes = 300 seconds
+            }
+        }
+        
+        return false
+    }
+    
     // MARK: - LinkedIn Messages Section
     var linkedinMessagesSection: some View {
         ScrollViewReader { proxy in
             ScrollView {
-                LazyVStack(spacing: 16) {
-                    // Date separator
-                    HStack {
-                        Spacer()
-                        Text("JUN 16")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(.secondary)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 4)
-                            .background(Color(.systemGray6))
-                            .cornerRadius(8)
-                        Spacer()
-                    }
-                    .padding(.vertical, 8)
-                    
-                    ForEach(messages) { message in
-                        LinkedInMessageBubble(message: message, user: user)
+                LazyVStack(spacing: 8) {
+                    ForEach(Array(groupedMessages.enumerated()), id: \.offset) { index, group in
+                        let (dateString, messagesForDate) = group
+                        
+                        // Date separator
+                        HStack {
+                            Spacer()
+                            Text(dateString)
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(.secondary)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 4)
+                                .background(Color(.systemGray6))
+                                .cornerRadius(8)
+                            Spacer()
+                        }
+                        .padding(.vertical, 8)
+                        
+                        // Messages for this date
+                        ForEach(messagesForDate) { message in
+                            LinkedInMessageBubble(
+                                message: message,
+                                user: user,
+                                showTimestamp: shouldShowTimestamp(for: message, in: messagesForDate),
+                                showProfileInfo: shouldShowProfileInfo(for: message, in: messagesForDate),
+                                isInCluster: isInMessageCluster(for: message, in: messagesForDate),
+                                onTapProfile: {
+                                    print("👤 Tapped profile for: \(user.name)")
+                                    // Convert String id back to Int for API call
+                                    if let userId = Int(user.id) {
+                                        fetchUserProfile(userId: userId) { profile in
+                                            if let profile = profile {
+                                                selectedProfile = profile
+                                                showProfileSheet = true
+                                            }
+                                        }
+                                    }
+                                }
+                            )
                             .id(message.id)
+                        }
                     }
                     
                     // Typing indicator
@@ -297,9 +424,9 @@ struct ChatView: View {
             Divider()
             
             HStack(spacing: 12) {
-                // Blue plus button (now opens media picker)
+                // Blue plus button (opens media menu)
                 Button(action: {
-                    showingMediaPicker = true
+                    showMediaMenu = true
                 }) {
                     Image(systemName: "plus")
                         .font(.system(size: 20, weight: .medium))
@@ -309,6 +436,22 @@ struct ChatView: View {
                             Circle()
                                 .fill(Color(hex: "004aad"))
                         )
+                }
+                .actionSheet(isPresented: $showMediaMenu) {
+                    ActionSheet(
+                        title: Text("Choose Media Source"),
+                        buttons: [
+                            .default(Text("Camera")) {
+                                // Open camera - you'll need to modify MediaPicker to support camera
+                                showingMediaPicker = true
+                            },
+                            .default(Text("Photo Library")) {
+                                // Open photo library
+                                showingMediaPicker = true
+                            },
+                            .cancel()
+                        ]
+                    )
                 }
                 
                 // Text input
@@ -320,17 +463,6 @@ struct ChatView: View {
                     .background(Color(.systemGray6))
                     .cornerRadius(20)
                     .frame(minHeight: 44)
-                    .onSubmit {
-                        sendMessage()
-                    }
-                    .toolbar {
-                        ToolbarItemGroup(placement: .keyboard) {
-                            Spacer()
-                            Button("Done") {
-                                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                            }
-                        }
-                    }
                 
                 // Send button
                 Button(action: {
@@ -552,6 +684,7 @@ struct ChatView: View {
     
     private func loadDummyMessages() {
         let dummyMessages = [
+            // First cluster - Sarah's opening messages (2 hours ago)
             NetworkChatMessage(
                 id: "1",
                 content: "Hey! Great to connect with you.",
@@ -561,33 +694,50 @@ struct ChatView: View {
                 actualSenderName: user.name,
                 mediaURL: nil
             ),
+            
+            // My response cluster (2 hours ago - quick response)
             NetworkChatMessage(
                 id: "2",
                 content: "Thanks! I'm excited to explore potential collaboration opportunities.",
                 isFromCurrentUser: true,
-                timestamp: Calendar.current.date(byAdding: .hour, value: -2, to: Date()) ?? Date(),
+                timestamp: Calendar.current.date(byAdding: .minute, value: -118, to: Date()) ?? Date(),
                 isRead: true,
                 actualSenderName: nil,
                 mediaURL: nil
             ),
+            
+            // Sarah's second cluster - multiple messages (1 hour ago)
             NetworkChatMessage(
                 id: "3",
                 content: "I saw your presentation on AI in product development. Really impressive work!",
                 isFromCurrentUser: false,
-                timestamp: Calendar.current.date(byAdding: .minute, value: -90, to: Date()) ?? Date(),
+                timestamp: Calendar.current.date(byAdding: .minute, value: -65, to: Date()) ?? Date(),
                 isRead: true,
                 actualSenderName: user.name,
                 mediaURL: nil
             ),
             NetworkChatMessage(
+                id: "3a",
+                content: "The part about machine learning optimization was particularly insightful",
+                isFromCurrentUser: false,
+                timestamp: Calendar.current.date(byAdding: .minute, value: -64, to: Date()) ?? Date(),
+                isRead: true,
+                actualSenderName: user.name,
+                mediaURL: nil
+            ),
+            
+            // My response cluster (1 hour ago - quick response)
+            NetworkChatMessage(
                 id: "4",
                 content: "Thank you! I'd love to hear about what you're working on as well.",
                 isFromCurrentUser: true,
-                timestamp: Calendar.current.date(byAdding: .minute, value: -85, to: Date()) ?? Date(),
+                timestamp: Calendar.current.date(byAdding: .minute, value: -63, to: Date()) ?? Date(),
                 isRead: true,
                 actualSenderName: nil,
                 mediaURL: nil
             ),
+            
+            // Sarah's final cluster (30 minutes ago)
             NetworkChatMessage(
                 id: "5",
                 content: "We're building some exciting fintech solutions. Would you be interested in a quick call this week to discuss potential synergies?",
@@ -776,10 +926,43 @@ struct ChatView: View {
     }
     
     private func blockUser() {
-        // TODO: Implement block user functionality  
+        // TODO: Implement block user functionality
         print("🚫 Block user: \(user.name)")
     }
     
+    private func fetchUserProfile(userId: Int, completion: @escaping (FullProfile?) -> Void) {
+        guard let url = URL(string: "https://circlapp.online/api/users/profile/\(userId)/") else {
+            completion(nil)
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            guard let data = data else {
+                completion(nil)
+                return
+            }
+
+            do {
+                let profile = try JSONDecoder().decode(FullProfile.self, from: data)
+                DispatchQueue.main.async {
+                    completion(profile)
+                }
+            } catch {
+                print("Error decoding profile: \(error)")
+                DispatchQueue.main.async {
+                    completion(nil)
+                }
+            }
+        }.resume()
+    }
 
 }
 
@@ -788,39 +971,53 @@ struct ChatView: View {
 struct LinkedInMessageBubble: View {
     let message: NetworkChatMessage
     let user: NetworkUser
+    let showTimestamp: Bool
+    let showProfileInfo: Bool
+    let isInCluster: Bool
+    let onTapProfile: () -> Void
     
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
             if !message.isFromCurrentUser {
-                // Profile picture for other user (left side)
-                AsyncImage(url: URL(string: user.profile_image ?? "")) { phase in
-                    switch phase {
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: 36, height: 36)
-                            .clipShape(Circle())
-                    default:
-                        Circle()
-                            .fill(Color(.systemGray4))
-                            .frame(width: 36, height: 36)
-                            .overlay(
-                                Image(systemName: "person.fill")
-                                    .font(.system(size: 16))
-                                    .foregroundColor(.white)
-                            )
+                // Profile picture for other user (left side) - conditional and tappable
+                if showProfileInfo {
+                    Button(action: onTapProfile) {
+                        AsyncImage(url: URL(string: user.profile_image ?? "")) { phase in
+                            switch phase {
+                            case .success(let image):
+                                image
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 36, height: 36)
+                                    .clipShape(Circle())
+                            default:
+                                Circle()
+                                    .fill(Color(.systemGray4))
+                                    .frame(width: 36, height: 36)
+                                    .overlay(
+                                        Image(systemName: "person.fill")
+                                            .font(.system(size: 16))
+                                            .foregroundColor(.white)
+                                    )
+                            }
+                        }
                     }
+                } else {
+                    // Spacer to maintain alignment when no profile picture
+                    Spacer()
+                        .frame(width: 36, height: 36)
                 }
             }
             
             VStack(alignment: message.isFromCurrentUser ? .trailing : .leading, spacing: 4) {
-                // Sender name (only show for other users)
-                if !message.isFromCurrentUser {
+                // Sender name (only show for other users and when showProfileInfo is true) - tappable
+                if !message.isFromCurrentUser && showProfileInfo {
                     HStack(spacing: 4) {
-                        Text(message.senderName)
-                            .font(.caption)
-                            .foregroundColor(.gray)
+                        Button(action: onTapProfile) {
+                            Text(message.senderName)
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                        }
                         Spacer()
                     }
                 }
@@ -945,37 +1142,19 @@ struct LinkedInMessageBubble: View {
                 .cornerRadius(12)
                 .frame(maxWidth: UIScreen.main.bounds.width * 0.7, alignment: message.isFromCurrentUser ? .trailing : .leading)
                 
-                // Timestamp
-                Text(message.formattedTime)
-                    .font(.caption2)
-                    .foregroundColor(.gray)
-            }
-            
-            if message.isFromCurrentUser {
-                // Profile picture for current user (right side)
-                AsyncImage(url: URL(string: UserDefaults.standard.string(forKey: "user_profile_image_url") ?? "")) { phase in
-                    switch phase {
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: 36, height: 36)
-                            .clipShape(Circle())
-                    default:
-                        Circle()
-                            .fill(Color(.systemGray4))
-                            .frame(width: 36, height: 36)
-                            .overlay(
-                                Image(systemName: "person.fill")
-                                    .font(.system(size: 16))
-                                    .foregroundColor(.white)
-                            )
-                    }
+                // Timestamp (conditional)
+                if showTimestamp {
+                    Text(message.formattedTime)
+                        .font(.caption2)
+                        .foregroundColor(.gray)
                 }
             }
+            
+
         }
         .frame(maxWidth: .infinity, alignment: message.isFromCurrentUser ? .trailing : .leading)
         .padding(.horizontal, 4)
+        .padding(.top, isInCluster ? 2 : 8) // Tighter spacing for clustered messages
     }
 }
 
@@ -1035,6 +1214,9 @@ struct LinkedInTypingIndicator: View {
 
 struct NetworkChatBubble: View {
     let message: NetworkChatMessage
+    let showTimestamp: Bool
+    let showProfileInfo: Bool
+    let isInCluster: Bool
     
     var body: some View {
         HStack {
@@ -1056,15 +1238,19 @@ struct NetworkChatBubble: View {
                                 .fill(Color(hex: "004aad"))
                         )
                     
-                    Text(message.formattedTime)
-                        .font(.system(size: 11))
-                        .foregroundColor(.secondary)
+                    if showTimestamp {
+                        Text(message.formattedTime)
+                            .font(.system(size: 11))
+                            .foregroundColor(.secondary)
+                    }
                 }
             } else {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(message.senderName)
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(.secondary)
+                    if showProfileInfo {
+                        Text(message.senderName)
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(.secondary)
+                    }
                     
                     Text(message.content)
                         .font(.system(size: 16))
@@ -1076,9 +1262,11 @@ struct NetworkChatBubble: View {
                                 .fill(Color(.systemGray5))
                         )
                     
-                    Text(message.formattedTime)
-                        .font(.system(size: 11))
-                        .foregroundColor(.secondary)
+                    if showTimestamp {
+                        Text(message.formattedTime)
+                            .font(.system(size: 11))
+                            .foregroundColor(.secondary)
+                    }
                 }
                 
                 Spacer(minLength: 60)
@@ -1136,6 +1324,9 @@ struct TypingIndicator: View {
 
 struct PremiumChatBubble: View {
     let message: NetworkChatMessage
+    let showTimestamp: Bool
+    let showProfileInfo: Bool
+    let isInCluster: Bool
     
     var body: some View {
         HStack {
@@ -1171,10 +1362,12 @@ struct PremiumChatBubble: View {
                     .shadow(color: Color(hex: "004aad").opacity(0.3), radius: 8, x: 0, y: 4)
                     .frame(maxWidth: 280, alignment: .trailing)
                     
-                    Text(message.formattedTime)
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(.secondary)
-                        .padding(.trailing, 4)
+                    if showTimestamp {
+                        Text(message.formattedTime)
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(.secondary)
+                            .padding(.trailing, 4)
+                    }
                 }
             } else {
                 // Other user message (left side)
@@ -1201,20 +1394,24 @@ struct PremiumChatBubble: View {
                     .shadow(color: .black.opacity(0.08), radius: 6, x: 0, y: 3)
                     .frame(maxWidth: 280, alignment: .leading)
                     
-                    HStack(spacing: 6) {
-                        Text(message.senderName)
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(Color(hex: "004aad"))
-                        
-                        Text("•")
-                            .font(.system(size: 12, weight: .bold))
-                            .foregroundColor(.secondary)
-                        
-                        Text(message.formattedTime)
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(.secondary)
+                    if showTimestamp {
+                        HStack(spacing: 6) {
+                            if showProfileInfo {
+                                Text(message.senderName)
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .foregroundColor(Color(hex: "004aad"))
+                                
+                                Text("•")
+                                    .font(.system(size: 12, weight: .bold))
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            Text(message.formattedTime)
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(.secondary)
+                        }
+                        .padding(.leading, 4)
                     }
-                    .padding(.leading, 4)
                 }
                 
                 Spacer()

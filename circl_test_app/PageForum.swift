@@ -592,6 +592,7 @@ struct ForumMainContent: View {
                     }
                     .padding(.bottom, 80) // Add padding for bottom navigation
                 }
+                .tutorialHighlight(id: "home_feed_content")
                 .background(Color.white)
                 .dismissKeyboardOnScroll()
             }
@@ -820,6 +821,7 @@ struct PageForum: View {
                                 .padding(.horizontal, 20)
                                 .padding(.vertical, 16)
                             }
+                            .tutorialHighlight(id: "professional_services")
                             .transaction { transaction in
                                 transaction.disablesAnimations = true
                             }
@@ -1006,8 +1008,17 @@ struct PageForum: View {
             if !hasSeenTutorial {
                 showTutorial = true
             }
+            
+            // Check if tutorial should be triggered after onboarding completion
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                TutorialManager.shared.checkAndTriggerTutorial()
+            }
+            
+            // Check if tutorial should be triggered for new users
+            TutorialManager.shared.checkAndTriggerTutorial()
         }
         .withNotifications() // ✅ Enable notifications on PageForum
+        .withTutorialOverlay() // ✅ Enable tutorial system on PageForum
         .alert("Select a category for your post", isPresented: $showCategoryAlert) {
             Button("Growth & Marketing") {
                 selectedCategory = "Growth & Marketing"

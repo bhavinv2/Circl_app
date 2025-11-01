@@ -465,6 +465,7 @@ struct PageBusinessProfile: View {
 
         }
         .withNotifications() // ✅ Enable notifications on PageBusinessProfile
+        .withTutorialOverlay() // ✅ Enable tutorial overlay on PageBusinessProfile
     }
     func fetchCurrentUserProfile() {
         guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else { return }

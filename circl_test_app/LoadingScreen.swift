@@ -95,54 +95,8 @@ struct LoadingScreen: View {
     }
 }
 
-// MARK: - App Launch Coordinator
-struct AppLaunchView: View {
-    @State private var showLoadingScreen = true
-    @State private var isUserLoggedIn = false
-    
-    var body: some View {
-        Group {
-            if showLoadingScreen {
-                LoadingScreen()
-            } else if isUserLoggedIn {
-                // User is logged in, go directly to main app
-                PageForum()
-            } else {
-                // User not logged in, show login screen
-                Page1()
-            }
-        }
-        .onAppear {
-            // Check authentication state
-            checkAuthenticationState()
-            
-            // Show loading screen for exactly 3 seconds
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
-                showLoadingScreen = false
-            }
-        }
-    }
-    
-    private func checkAuthenticationState() {
-        // Check if user has a valid auth token
-        if let authToken = UserDefaults.standard.string(forKey: "auth_token"), 
-           !authToken.isEmpty {
-            // Additional check for user_id to ensure complete login state
-            let userId = UserDefaults.standard.value(forKey: "user_id") as? Int ?? 0
-            
-            if userId > 0 {
-                print("✅ User is authenticated - redirecting to main app")
-                isUserLoggedIn = true
-            } else {
-                print("❌ Auth token exists but no user_id - showing login")
-                isUserLoggedIn = false
-            }
-        } else {
-            print("❌ No auth token found - showing login")
-            isUserLoggedIn = false
-        }
-    }
-}
+// MARK: - App Launch Coordinator (moved to TutorialNavigation.swift)
+// This struct is now defined in TutorialNavigation.swift with tutorial integration
 
 struct LoadingScreen_Previews: PreviewProvider {
     static var previews: some View {

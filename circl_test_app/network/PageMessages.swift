@@ -260,6 +260,7 @@ struct PageMessages: View {
             }
         }
         .withNotifications() // ✅ Enable notification overlay on PageMessages
+        .withTutorialOverlay() // ✅ Enable tutorial overlay on PageMessages
     }
     
     // MARK: - Header Section (matching other pages)
@@ -448,7 +449,7 @@ struct PageMessages: View {
                                         .foregroundColor(.primary)
                                         .lineLimit(1)
                                     
-                                    Text("@\(user.username)")
+                                    Text(user.company.isEmpty ? "Network Connection" : user.company)
                                         .font(.system(size: 14))
                                         .foregroundColor(.secondary)
                                         .lineLimit(1)

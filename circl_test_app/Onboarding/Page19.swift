@@ -3,6 +3,7 @@ import SwiftUI
 struct Page19: View {
     @State private var animateConfetti = false
     @State private var confettiOpacity: Double = 0.0
+    @State private var shouldNavigateToForum = false
     
     var body: some View {
         NavigationView {
@@ -135,7 +136,7 @@ struct Page19: View {
                             .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
                             .overlay(
                                 Text("Circl.")
-                                    .font(.system(size: 55, weight: .bold))
+                                    .font(.system(size: 42, weight: .bold))
                                     .foregroundColor(Color(hex: "004aad"))
                             )
                             .frame(width: 180, height: 180)
@@ -153,20 +154,11 @@ struct Page19: View {
                                 .foregroundColor(.white)
                                 .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 2)
                             
-                            VStack(spacing: 12) {
-                                Text("We can't wait to see you in our community.")
-                                    .font(.system(size: 18, weight: .medium))
-                                    .foregroundColor(.white.opacity(0.9))
-                                    .multilineTextAlignment(.center)
-                                    .lineSpacing(4)
-                                
-                                Text("Your application is being reviewed. You'll receive an email with login credentials once approved.")
-                                    .font(.system(size: 16, weight: .regular))
-                                    .foregroundColor(.white.opacity(0.8))
-                                    .multilineTextAlignment(.center)
-                                    .lineSpacing(4)
-                            }
-                            .padding(.horizontal, 40)
+                            Text("Welcome to your future, go dream big and build your way to the top!")
+                                .font(.system(size: 23, weight: .bold))
+                                .foregroundColor(.white)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 40)
                         }
                     }
                     
@@ -174,11 +166,11 @@ struct Page19: View {
                     
                     // Buttons Section
                     VStack(spacing: 20) {
-                        NavigationLink(destination: Page1().navigationBarBackButtonHidden(true)) {
-                            HStack {
-                                Image(systemName: "arrow.left")
-                                Text("Back to Log-in")
-                            }
+                        Button(action: {
+                            // Set tutorial trigger flag when completing onboarding
+                            triggerTutorialAndNavigate()
+                        }) {
+                            Text("Continue to Circl")
                             .font(.system(size: 18, weight: .bold))
                             .frame(maxWidth: .infinity)
                             .padding()
@@ -189,10 +181,14 @@ struct Page19: View {
                         }
                         .padding(.horizontal, 30)
                         
-                        Link(destination: URL(string: "https://youtu.be/-xEFg7Vodco?si=ZVzh9zmjQhe8E4-Q")!) {
+                        ShareLink(
+                            item: URL(string: "https://apps.apple.com/us/app/circl-the-entrepreneurs-hub/id6741139445")!,
+                            subject: Text("Join Circl with me!"),
+                            message: Text("I want to see you win this year. Join Circl with me.")
+                        ) {
                             HStack {
-                                Image(systemName: "play.fill")
-                                Text("How to Use Our Platform")
+                                Image(systemName: "person.2.fill")
+                                Text("Invite your Friends")
                             }
                             .font(.system(size: 18, weight: .bold))
                             .frame(maxWidth: .infinity)
@@ -210,9 +206,64 @@ struct Page19: View {
             .navigationBarTitle("")
             .navigationBarHidden(true)
             .navigationBarBackButtonHidden(true)
+            
+            // Hidden NavigationLink for programmatic navigation
+            NavigationLink(
+                destination: PageForum().navigationBarBackButtonHidden(true),
+                isActive: $shouldNavigateToForum
+            ) {
+                EmptyView()
+            }
+            .hidden()
         }
         .navigationViewStyle(StackNavigationViewStyle())
         .navigationBarBackButtonHidden(true)
+    }
+    
+    // MARK: - Tutorial Integration Function
+    private func triggerTutorialAndNavigate() {
+        print("🎬 Starting tutorial integration process...")
+        
+        // Clear any existing tutorial data to ensure fresh start
+        TutorialManager.shared.clearAllTutorialData()
+        
+        // Get onboarding data from UserDefaults or previous pages
+        let onboardingData = gatherOnboardingData()
+        
+        // Detect and set user type based on onboarding responses
+        TutorialManager.shared.detectAndSetUserType(from: onboardingData)
+        
+        // Mark that onboarding was just completed to trigger tutorial
+        UserDefaults.standard.set(true, forKey: "just_completed_onboarding")
+        UserDefaults.standard.set(true, forKey: "onboarding_completed")
+        UserDefaults.standard.synchronize()
+        
+        print("🎯 User type detected: \(TutorialManager.shared.userType.displayName)")
+        print("✅ Onboarding flags set - tutorial will start after navigation to PageForum")
+        
+        // Navigate to PageForum
+        shouldNavigateToForum = true
+    }
+    
+    // MARK: - Gather Onboarding Data
+    private func gatherOnboardingData() -> OnboardingData {
+        // Retrieve onboarding data from UserDefaults
+        // This assumes you're storing the user's selections during onboarding
+        let usageInterests = UserDefaults.standard.string(forKey: "selected_usage_interest") ?? ""
+        let industryInterests = UserDefaults.standard.string(forKey: "selected_industry_interest") ?? ""
+        let location = UserDefaults.standard.string(forKey: "user_location") ?? ""
+        
+        print("📊 Onboarding Data Retrieved:")
+        print("   • Usage Interests: '\(usageInterests)'")
+        print("   • Industry Interests: '\(industryInterests)'")
+        print("   • Location: '\(location)'")
+        
+        return OnboardingData(
+            usageInterests: usageInterests,
+            industryInterests: industryInterests,
+            location: location,
+            userGoals: nil
+        )
     }
 }
 

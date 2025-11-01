@@ -479,6 +479,7 @@ struct PageCircles: View {
                                                 .shadow(color: Color.green.opacity(0.3), radius: 8, x: 0, y: 4)
                                         )
                                     }
+                                    .tutorialHighlight(id: "create_circle_button")
                                     .scaleEffect(showCreateCircleSheet ? 0.95 : 1.0)
                                     .animation(.spring(response: 0.3, dampingFraction: 0.6), value: showCreateCircleSheet)
                                 }
@@ -847,6 +848,7 @@ struct PageCircles: View {
             loadCircles()
         }
         .withNotifications() // ✅ Enable notifications on PageCircles
+        .withTutorialOverlay() // ✅ Enable tutorial overlay on PageCircles
         }
         
         NavigationLink(

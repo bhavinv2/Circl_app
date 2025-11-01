@@ -215,6 +215,7 @@ func deleteAnnouncement(
 struct AnnouncementCard: View {
     let announcement: AnnouncementModel
     @State private var isExpanded = false
+    @State private var displayName: String = ""
     let circle: CircleData
     let userId: Int
     var onDelete: () -> Void
@@ -243,7 +244,7 @@ struct AnnouncementCard: View {
                             .multilineTextAlignment(.leading)
                         
                         HStack(spacing: 6) {
-                            Text("By \(announcement.user)")
+                            Text("By \(displayName.isEmpty ? displayNameFromUser(announcement.user) : displayName)")
                                 .font(.system(size: 12, weight: .medium))
                                 .foregroundColor(.white.opacity(0.8))
                             
@@ -380,6 +381,13 @@ struct AnnouncementCard: View {
                     lineWidth: 1
                 )
         )
+        .onAppear {
+            fetchUserDisplayName(for: announcement.user) { name in
+                if let name = name {
+                    displayName = name
+                }
+            }
+        }
     }
 }
 
@@ -465,5 +473,125 @@ struct AllAnnouncementsView: View {
             .navigationBarTitleDisplayMode(.inline)
         }
     }
+}
+
+// MARK: - Helper Functions
+private func displayNameFromUser(_ user: String) -> String {
+    // If the user field contains an email address, convert it to a display name
+    if user.contains("@") {
+        // Extract the part before @ and clean it up
+        let emailName = user.components(separatedBy: "@").first ?? user
+        
+        // Clean up email name: replace dots/underscores with spaces, capitalize each word
+        let cleanName = emailName
+            .replacingOccurrences(of: ".", with: " ")
+            .replacingOccurrences(of: "_", with: " ")
+            .replacingOccurrences(of: "-", with: " ")
+            .components(separatedBy: " ")
+            .map { $0.capitalized }
+            .joined(separator: " ")
+        
+        return cleanName.isEmpty ? user : cleanName
+    }
+    
+    // If it's already a proper name, return as is
+    return user
+}
+
+// MARK: - User Profile Fetching
+private func fetchUserDisplayName(for userEmail: String, completion: @escaping (String?) -> Void) {
+    // First, try to find user ID by email from local network data or a lookup API
+    fetchUserIdByEmail(userEmail) { userId in
+        guard let userId = userId else {
+            completion(nil)
+            return
+        }
+        
+        // Now fetch the user profile using the ID
+        fetchUserProfile(userId: userId) { profile in
+            if let profile = profile {
+                completion("\(profile.first_name) \(profile.last_name)".trimmingCharacters(in: .whitespacesAndNewlines))
+            } else {
+                completion(nil)
+            }
+        }
+    }
+}
+
+private func fetchUserIdByEmail(_ email: String, completion: @escaping (Int?) -> Void) {
+    // Use the same API endpoint pattern as other user lookups
+    let baseURL = "https://circlapp.online/api/"
+    guard let url = URL(string: "\(baseURL)users/lookup_by_email/") else {
+        completion(nil)
+        return
+    }
+    
+    var request = URLRequest(url: url)
+    request.httpMethod = "POST"
+    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    
+    if let token = UserDefaults.standard.string(forKey: "auth_token") {
+        request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+    }
+    
+    let payload = ["email": email]
+    do {
+        request.httpBody = try JSONSerialization.data(withJSONObject: payload)
+    } catch {
+        completion(nil)
+        return
+    }
+    
+    URLSession.shared.dataTask(with: request) { data, response, error in
+        guard let data = data else {
+            completion(nil)
+            return
+        }
+        
+        do {
+            if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let userId = json["user_id"] as? Int {
+                completion(userId)
+            } else {
+                completion(nil)
+            }
+        } catch {
+            completion(nil)
+        }
+    }.resume()
+}
+
+private func fetchUserProfile(userId: Int, completion: @escaping (FullProfile?) -> Void) {
+    let baseURL = "https://circlapp.online/api/"
+    let urlString = "\(baseURL)users/profile/\(userId)/"
+    guard let url = URL(string: urlString) else {
+        completion(nil)
+        return
+    }
+
+    var request = URLRequest(url: url)
+    request.httpMethod = "GET"
+    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+    if let token = UserDefaults.standard.string(forKey: "auth_token") {
+        request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+    }
+
+    URLSession.shared.dataTask(with: request) { data, response, error in
+        guard let data = data else {
+            completion(nil)
+            return
+        }
+
+        do {
+            let decoded = try JSONDecoder().decode(FullProfile.self, from: data)
+            DispatchQueue.main.async {
+                completion(decoded)
+            }
+        } catch {
+            print("❌ Failed to decode user profile:", error)
+            completion(nil)
+        }
+    }.resume()
 }
 

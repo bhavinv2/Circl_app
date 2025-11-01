@@ -171,10 +171,61 @@ struct ProfilePage: View {
                         .opacity(cardOpacity)
                         .animation(.easeOut(duration: 0.8).delay(0.1), value: cardOpacity)
 
-                        // Add spacing between profile card and content cards
-                        Spacer().frame(height: 40)
+                        // Reduced spacing between profile card and premium button
+                        Spacer().frame(height: 20)
 
                         VStack(spacing: 24) {
+                            // Premium Subscribe Button
+                            Button(action: {
+                                SubscriptionManager.shared.showPaywall()
+                            }) {
+                                HStack {
+                                    Image(systemName: "crown.fill")
+                                        .font(.system(size: 18, weight: .semibold))
+                                        .foregroundColor(.yellow)
+                                    
+                                    Text("Upgrade to Premium")
+                                        .font(.system(size: 18, weight: .semibold))
+                                        .foregroundColor(.white)
+                                    
+                                    Spacer()
+                                    
+                                    Image(systemName: "arrow.right")
+                                        .font(.system(size: 16, weight: .semibold))
+                                        .foregroundColor(.white)
+                                }
+                                .padding(.horizontal, 24)
+                                .padding(.vertical, 16)
+                                .background(
+                                    LinearGradient(
+                                        colors: [Color.customHex("004aad"), Color.customHex("0066ff")],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+                                .clipShape(RoundedRectangle(cornerRadius: 16))
+                                .overlay(
+                                    // Clean gold border
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .stroke(
+                                            LinearGradient(
+                                                colors: [
+                                                    Color.yellow.opacity(0.8),
+                                                    Color.orange.opacity(0.6),
+                                                    Color.yellow.opacity(0.4)
+                                                ],
+                                                startPoint: .topLeading,
+                                                endPoint: .bottomTrailing
+                                            ),
+                                            lineWidth: 2
+                                        )
+                                )
+                                .shadow(color: Color.customHex("004aad").opacity(0.3), radius: 8, x: 0, y: 4)
+                            }
+                            .offset(y: cardOffset)
+                            .opacity(cardOpacity)
+                            .animation(.easeOut(duration: 0.8).delay(0.15), value: cardOpacity)
+                            
                             // Bio Section
                             ModernCard(title: "Bio") {
                                 if isEditing {
@@ -404,6 +455,8 @@ struct ProfilePage: View {
             }
         }
         .withNotifications() // ✅ Enable notifications on ProfilePage
+        .withSubscriptionPaywall() // ✅ Enable subscription paywall on ProfilePage
+        .withTutorialOverlay() // ✅ Enable tutorial overlay on ProfilePage
     }
 
 // MARK: - Modern UI Components
@@ -657,6 +710,7 @@ struct ProfileHeaderCard: View {
         .padding(.horizontal, 20)
     }
 }
+
 
 struct StatCard: View {
     let title: String

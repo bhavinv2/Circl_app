@@ -368,6 +368,7 @@ struct PageUnifiedNetworking: View {
 
         }
         .withNotifications() // ✅ Enable notifications on PageUnifiedNetworking
+        .withTutorialOverlay() // ✅ Enable tutorial overlay on PageUnifiedNetworking
     }
     
     // MARK: - Header Section
@@ -471,6 +472,7 @@ struct PageUnifiedNetworking: View {
                     }
                 }
             }
+            .tutorialHighlight(id: "network_search")
             .padding(.horizontal, 18)
             .padding(.bottom, 12)
         }

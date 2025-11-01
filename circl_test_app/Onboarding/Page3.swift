@@ -8,7 +8,10 @@ struct Page3: View {
     @State private var lastName: String = ""
     @State private var email: String = ""
     @State private var phoneNumber: String = ""
+    @State private var password: String = ""
+    @State private var confirmPassword: String = ""
     @State private var isEmailValid: Bool = true
+    @State private var isPasswordValid: Bool = true
     
     // State for submission handling
     @State private var isSubmitting: Bool = false
@@ -187,7 +190,10 @@ struct Page3: View {
                         lastName: $lastName,
                         email: $email,
                         phoneNumber: $phoneNumber,
-                        isEmailValid: $isEmailValid
+                        password: $password,
+                        confirmPassword: $confirmPassword,
+                        isEmailValid: $isEmailValid,
+                        isPasswordValid: $isPasswordValid
                     )
                     
                     Spacer(minLength: 15)
@@ -241,6 +247,9 @@ struct Page3: View {
                isEmailValid &&
                !email.isEmpty &&
                !phoneNumber.isEmpty &&
+               !password.isEmpty &&
+               !confirmPassword.isEmpty &&
+               isPasswordValid &&
                selectedUsageInterest != nil &&
                selectedIndustryInterest != nil
     }
@@ -258,6 +267,7 @@ struct Page3: View {
             "last_name": lastName,
             "email": email,
             "phone_number": phoneNumber,
+            "password": password,
             "main_usage": selectedUsageInterest ?? "",
             "industry_interest": selectedIndustryInterest ?? ""
         ]
@@ -308,6 +318,12 @@ struct Page3: View {
                         } else {
                             print("❌ Failed to extract user_id from response.")
                         }
+
+                        // Store onboarding selections for tutorial system
+                        UserDefaults.standard.set(selectedUsageInterest ?? "", forKey: "selected_usage_interest")
+                        UserDefaults.standard.set(selectedIndustryInterest ?? "", forKey: "selected_industry_interest")
+                        UserDefaults.standard.synchronize()
+                        print("📌 Stored onboarding selections for tutorial system")
 
                         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                             navigateToPage4 = true
@@ -362,7 +378,10 @@ struct PersonalInformationSection: View {
     @Binding var lastName: String
     @Binding var email: String
     @Binding var phoneNumber: String
+    @Binding var password: String
+    @Binding var confirmPassword: String
     @Binding var isEmailValid: Bool
+    @Binding var isPasswordValid: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -452,6 +471,60 @@ struct PersonalInformationSection: View {
                         }
                     }
                 }
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    SecureField("Password", text: Binding(
+                        get: { password },
+                        set: { newValue in
+                            password = newValue
+                            isPasswordValid = passwordsMatch() && isValidPassword(newValue)
+                        }
+                    ))
+                    .padding(12)
+                    .background(Color(.systemGray5))
+                    .cornerRadius(8)
+                    .toolbar {
+                        ToolbarItemGroup(placement: .keyboard) {
+                            Spacer()
+                            Button("Done") {
+                                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                            }
+                        }
+                    }
+                    
+                    if !password.isEmpty && !isValidPassword(password) {
+                        Text("Password must be at least 8 characters long")
+                            .font(.caption2)
+                            .foregroundColor(.red)
+                    }
+                }
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    SecureField("Confirm Password", text: Binding(
+                        get: { confirmPassword },
+                        set: { newValue in
+                            confirmPassword = newValue
+                            isPasswordValid = passwordsMatch() && isValidPassword(password)
+                        }
+                    ))
+                    .padding(12)
+                    .background(Color(.systemGray5))
+                    .cornerRadius(8)
+                    .toolbar {
+                        ToolbarItemGroup(placement: .keyboard) {
+                            Spacer()
+                            Button("Done") {
+                                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                            }
+                        }
+                    }
+                    
+                    if !confirmPassword.isEmpty && !passwordsMatch() {
+                        Text("Passwords do not match")
+                            .font(.caption2)
+                            .foregroundColor(.red)
+                    }
+                }
             }
         }
     }
@@ -481,6 +554,14 @@ struct PersonalInformationSection: View {
         let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
         let emailPredicate = NSPredicate(format: "SELF MATCHES %@", emailRegex)
         return emailPredicate.evaluate(with: email)
+    }
+    
+    private func isValidPassword(_ password: String) -> Bool {
+        return password.count >= 8
+    }
+    
+    private func passwordsMatch() -> Bool {
+        return password == confirmPassword
     }
 }
 

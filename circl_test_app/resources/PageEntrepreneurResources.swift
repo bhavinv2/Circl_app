@@ -208,6 +208,7 @@ struct PageEntrepreneurResources: View {
                 loadUserData()              // fallback values
                 fetchCurrentUserProfile()   // ✅ live fetch ensures profile pic loads
             }
+            .withTutorialOverlay() // ✅ Enable tutorial overlay on PageEntrepreneurResources
 
         }
     }
