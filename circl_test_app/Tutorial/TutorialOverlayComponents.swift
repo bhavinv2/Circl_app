@@ -190,108 +190,112 @@ struct TutorialTooltip: View {
     }
     
     private var tutorialControls: some View {
-        HStack(spacing: 12) {
-            // Previous button
-            Button(action: onPrevious) {
-                HStack(spacing: 6) {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 14, weight: .semibold))
-                    Text("Previous")
-                        .font(.system(size: 16, weight: .semibold))
-                }
-                .foregroundColor(Color(hex: "004aad"))
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
-                .background(
-                    RoundedRectangle(cornerRadius: 25)
-                        .stroke(Color(hex: "004aad"), lineWidth: 2)
-                )
-            }
-            .disabled(tutorialManager.currentStepIndex == 0)
-            .opacity(tutorialManager.currentStepIndex == 0 ? 0.5 : 1.0)
+        GeometryReader { geometry in
+            let screenWidth = geometry.size.width
+            let isSmallScreen = screenWidth < 350 // iPhone SE, mini screens
+            let buttonSpacing: CGFloat = isSmallScreen ? 8 : 12
+            let horizontalPadding: CGFloat = isSmallScreen ? 12 : 16
+            let fontSize: CGFloat = isSmallScreen ? 12 : 13
             
-            Spacer()
-            
-            // Skip button
-            Button(action: onSkip) {
-                Text("Skip Tutorial")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(.secondary)
-                    .underline()
-            }
-            
-            Spacer()
-            
-            // Next/Complete button with NavigationLink
-            if let destination = step.navigationDestination, !isLastStep {
-                // Use NavigationLink for steps that need navigation (like Page13)
-                NavigationLink(destination: getDestinationView(for: destination)) {
-                    HStack(spacing: 6) {
-                        Text("Next")
-                            .font(.system(size: 16, weight: .semibold))
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 14, weight: .semibold))
-                    }
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 12)
-                    .background(
-                        LinearGradient(
-                            gradient: Gradient(colors: [
-                                Color(hex: "004aad"),
-                                Color(hex: "0066ff")
-                            ]),
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
-                    .cornerRadius(25)
-                    .shadow(color: Color(hex: "004aad").opacity(0.3), radius: 6, x: 0, y: 3)
-                }
-                .simultaneousGesture(TapGesture().onEnded {
-                    // Advance tutorial step when navigating
-                    onNext()
-                })
-            } else {
-                // Regular button for steps without navigation or final step
-                Button(action: onNext) {
-                    HStack(spacing: 6) {
-                        Text(isLastStep ? "Complete" : "Next")
-                            .font(.system(size: 16, weight: .semibold))
-                        
-                        if !isLastStep {
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 14, weight: .semibold))
-                        } else {
-                            Image(systemName: "checkmark")
-                                .font(.system(size: 14, weight: .bold))
+            HStack(spacing: buttonSpacing) {
+                // Previous button - responsive sizing
+                if tutorialManager.currentStepIndex > 0 {
+                    Button(action: onPrevious) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: fontSize - 1, weight: .semibold))
+                            Text("Previous")
+                                .font(.system(size: fontSize, weight: .semibold))
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.8)
                         }
-                    }
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 12)
-                    .background(
-                        LinearGradient(
-                            gradient: Gradient(colors: [
-                                Color(hex: "004aad"),
-                                Color(hex: "0066ff")
-                            ]),
-                            startPoint: .leading,
-                            endPoint: .trailing
+                        .foregroundColor(Color(hex: "004aad"))
+                        .padding(.horizontal, horizontalPadding)
+                        .padding(.vertical, 10)
+                        .frame(maxWidth: screenWidth * 0.28) // 28% of screen width
+                        .background(
+                            RoundedRectangle(cornerRadius: 25)
+                                .stroke(Color(hex: "004aad"), lineWidth: 2)
                         )
-                    )
-                    .cornerRadius(25)
-                    .shadow(color: Color(hex: "004aad").opacity(0.3), radius: 6, x: 0, y: 3)
+                    }
+                } else {
+                    // Invisible spacer to maintain layout when Previous is hidden
+                    Rectangle()
+                        .fill(Color.clear)
+                        .frame(maxWidth: screenWidth * 0.28)
+                }
+                
+                Spacer(minLength: 0)
+                
+                // Skip button - adaptive text
+                Button(action: onSkip) {
+                    Text(isSmallScreen ? "Skip" : "Skip Tutorial")
+                        .font(.system(size: fontSize - 1, weight: .medium))
+                        .foregroundColor(.secondary)
+                        .underline()
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                }
+                
+                Spacer(minLength: 0)
+                
+                // Next/Complete button - responsive sizing
+                if let destination = step.navigationDestination, !isLastStep {
+                    NavigationLink(destination: getDestinationView(for: destination)) {
+                        nextButtonContent(isSmallScreen: isSmallScreen, fontSize: fontSize, horizontalPadding: horizontalPadding, screenWidth: screenWidth)
+                    }
+                    .simultaneousGesture(TapGesture().onEnded {
+                        onNext()
+                    })
+                } else {
+                    Button(action: onNext) {
+                        nextButtonContent(isSmallScreen: isSmallScreen, fontSize: fontSize, horizontalPadding: horizontalPadding, screenWidth: screenWidth)
+                    }
                 }
             }
+            .padding(.horizontal, isSmallScreen ? 16 : 20)
+            .padding(.vertical, 12)
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 12)
+        .frame(height: 60) // Fixed height to prevent layout shifts
         .background(
             RoundedRectangle(cornerRadius: 20)
                 .fill(Color(.systemBackground).opacity(0.95))
                 .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
         )
+    }
+    
+    @ViewBuilder
+    private func nextButtonContent(isSmallScreen: Bool, fontSize: CGFloat, horizontalPadding: CGFloat, screenWidth: CGFloat) -> some View {
+        HStack(spacing: 4) {
+            Text(isLastStep ? "Complete" : "Next")
+                .font(.system(size: fontSize, weight: .semibold))
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+            
+            if !isLastStep {
+                Image(systemName: "chevron.right")
+                    .font(.system(size: fontSize - 1, weight: .semibold))
+            } else {
+                Image(systemName: "checkmark")
+                    .font(.system(size: fontSize - 1, weight: .bold))
+            }
+        }
+        .foregroundColor(.white)
+        .padding(.horizontal, horizontalPadding)
+        .padding(.vertical, 10)
+        .frame(maxWidth: screenWidth * 0.28) // 28% of screen width
+        .background(
+            LinearGradient(
+                gradient: Gradient(colors: [
+                    Color(hex: "004aad"),
+                    Color(hex: "0066ff")
+                ]),
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+        )
+        .cornerRadius(25)
+        .shadow(color: Color(hex: "004aad").opacity(0.3), radius: 6, x: 0, y: 3)
     }
     
     private var isLastStep: Bool {
