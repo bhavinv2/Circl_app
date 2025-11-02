@@ -61,11 +61,11 @@ struct AppLaunchView: View {
 // MARK: - Main App View (Simplified)
 struct MainAppView: View {
     @StateObject private var tutorialManager = TutorialManager.shared
-    @State private var selectedTab = 0
+    @ObservedObject private var navigationManager = NavigationManager.shared
     
     var body: some View {
         NavigationView {
-            TabView(selection: $selectedTab) {
+            TabView(selection: $navigationManager.selectedTab) {
                 // Home Tab
                 PageForum()
                     .tutorialHighlight(id: "home_tab")
@@ -163,61 +163,123 @@ struct TutorialSettingsView: View {
     
     var body: some View {
         VStack(spacing: 12) {
-            // Tutorial Type Dropdown
-            Button(action: {
-                showingDropdown = true
-            }) {
-                HStack(spacing: 16) {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 10)
-                            .fill(
-                                LinearGradient(
-                                    colors: [Color(hex: "004aad"), Color(hex: "0066ff")],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
+            // Custom Tutorial Type Dropdown
+            VStack(spacing: 0) {
+                // Main dropdown button
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        showingDropdown.toggle()
+                    }
+                }) {
+                    HStack(spacing: 16) {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(
+                                    LinearGradient(
+                                        colors: [Color(hex: "004aad"), Color(hex: "0066ff")],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
                                 )
-                            )
-                            .frame(width: 44, height: 44)
-                        
-                        Image(systemName: "questionmark.circle.fill")
-                            .font(.system(size: 20, weight: .semibold))
-                            .foregroundColor(.white)
+                                .frame(width: 44, height: 44)
+                            
+                            Image(systemName: "questionmark.circle.fill")
+                                .font(.system(size: 20, weight: .semibold))
+                                .foregroundColor(.white)
+                        }
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Tutorial Type")
+                                .font(.system(size: 17, weight: .medium))
+                                .foregroundColor(.primary)
+                                .multilineTextAlignment(.leading)
+                            
+                            Text(selectedUserType?.displayName ?? "Select Tutorial Type")
+                                .font(.system(size: 14))
+                                .foregroundColor(selectedUserType != nil ? .primary : .secondary)
+                                .multilineTextAlignment(.leading)
+                        }
+
+                        Spacer()
+
+                        Image(systemName: "chevron.down")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.secondary)
+                            .rotationEffect(.degrees(showingDropdown ? 180 : 0))
+                            .animation(.easeInOut(duration: 0.2), value: showingDropdown)
                     }
-
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Tutorial Type")
-                            .font(.system(size: 17, weight: .medium))
-                            .foregroundColor(.primary)
-                            .multilineTextAlignment(.leading)
-                        
-                        Text(selectedUserType?.displayName ?? "Select Tutorial Type")
-                            .font(.system(size: 14))
-                            .foregroundColor(selectedUserType != nil ? .primary : .secondary)
-                            .multilineTextAlignment(.leading)
-                    }
-
-                    Spacer()
-
-                    Image(systemName: "chevron.down")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.secondary)
-                        .rotationEffect(.degrees(showingDropdown ? 180 : 0))
-                        .animation(.easeInOut(duration: 0.2), value: showingDropdown)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color.gray.opacity(0.1))
+                    )
+                    .contentShape(Rectangle())
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color.gray.opacity(0.1))
-                )
-                .contentShape(Rectangle())
+                .buttonStyle(PlainButtonStyle())
+                
+                // Custom dropdown menu
+                if showingDropdown {
+                    VStack(spacing: 0) {
+                        ForEach(UserType.allCases.filter { $0 != .other }, id: \.self) { userType in
+                            Button(action: {
+                                selectedUserType = userType
+                                withAnimation(.easeInOut(duration: 0.3)) {
+                                    showingDropdown = false
+                                }
+                            }) {
+                                HStack {
+                                    Text(userType.displayName)
+                                        .font(.system(size: 16, weight: .medium))
+                                        .foregroundColor(.primary)
+                                    
+                                    Spacer()
+                                    
+                                    if selectedUserType == userType {
+                                        Image(systemName: "checkmark")
+                                            .font(.system(size: 14, weight: .semibold))
+                                            .foregroundColor(Color(hex: "004aad"))
+                                    }
+                                }
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 12)
+                                .background(
+                                    selectedUserType == userType ? 
+                                    Color(hex: "004aad").opacity(0.1) : 
+                                    Color.clear
+                                )
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            
+                            if userType != UserType.allCases.filter({ $0 != .other }).last {
+                                Divider()
+                                    .padding(.horizontal, 16)
+                            }
+                        }
+                    }
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color(.systemBackground))
+                            .shadow(
+                                color: Color.black.opacity(0.1),
+                                radius: 10,
+                                x: 0,
+                                y: 4
+                            )
+                    )
+                    .padding(.top, 4)
+                    .transition(.asymmetric(
+                        insertion: .opacity.combined(with: .move(edge: .top)),
+                        removal: .opacity.combined(with: .move(edge: .top))
+                    ))
+                }
             }
-            .buttonStyle(PlainButtonStyle())
             
             // Start Tutorial Button (appears when user type is selected)
             if let selectedType = selectedUserType {
-                Button(action: {
-                    startTutorialForSelectedType(selectedType)
+                NavigationLink(destination: PageForum().onAppear {
+                    tutorialManager.startTutorialForUserType(selectedType)
                 }) {
                     HStack {
                         Image(systemName: "play.fill")
@@ -243,37 +305,6 @@ struct TutorialSettingsView: View {
                 .animation(.easeInOut(duration: 0.3), value: selectedUserType)
             }
         }
-        .actionSheet(isPresented: $showingDropdown) {
-            ActionSheet(
-                title: Text("Select Tutorial Type"),
-                message: Text("Choose which tutorial you'd like to experience"),
-                buttons: createUserTypeButtons()
-            )
-        }
-    }
-    
-    private func createUserTypeButtons() -> [ActionSheet.Button] {
-        var buttons: [ActionSheet.Button] = []
-        
-        // Add button for each user type
-        for userType in UserType.allCases {
-            buttons.append(.default(Text(userType.displayName)) {
-                selectedUserType = userType
-            })
-        }
-        
-        // Add cancel button
-        buttons.append(.cancel())
-        
-        return buttons
-    }
-    
-    private func startTutorialForSelectedType(_ userType: UserType) {
-        // Start tutorial for selected type
-        tutorialManager.startTutorialForUserType(userType)
-        
-        print("🚀 Tutorial started for \(userType.displayName) from settings")
-        print("� Tutorial will display overlay with NavigationLinks for navigation")
     }
 }
 

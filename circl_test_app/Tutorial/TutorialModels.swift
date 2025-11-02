@@ -9,6 +9,7 @@ enum UserType: String, CaseIterable, Codable {
     case mentor = "mentor"
     case communityBuilder = "communityBuilder"
     case investor = "investor"
+    case other = "other"
     
     var displayName: String {
         switch self {
@@ -18,6 +19,7 @@ enum UserType: String, CaseIterable, Codable {
         case .mentor: return "Mentor"
         case .communityBuilder: return "Community Builder"
         case .investor: return "Investor"
+        case .other: return "Other"
         }
     }
     
@@ -340,6 +342,8 @@ class TutorialManager: ObservableObject {
             return createCommunityBuilderTutorial()
         case .investor:
             return createInvestorTutorial()
+        case .other:
+            return createGeneralTutorial()
         }
     }
     
@@ -459,6 +463,10 @@ class TutorialManager: ObservableObject {
             print("❌ No tutorial flow found for user type: \(userType)")
             return
         }
+        
+        // Navigate to PageForum first (tutorials start from forum)
+        NavigationManager.shared.navigateToForum()
+        print("🧭 Navigated to PageForum for tutorial start")
         
         // Force start the tutorial (bypassing all checks)
         currentFlow = flow

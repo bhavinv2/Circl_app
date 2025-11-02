@@ -26,7 +26,7 @@ struct TutorialOverlay: ViewModifier {
                     onJoinCircl: {
                         // Navigate to circles page
                         tutorialManager.completeTutorial()
-                        // Add navigation to circles here if needed
+                        NavigationManager.shared.navigateToCircles()
                     },
                     onInviteFriends: {
                         // Share functionality is handled by ShareLink
@@ -457,124 +457,123 @@ struct CommunityWelcomeOverlay: View {
     let onInviteFriends: () -> Void
     let onGetStarted: () -> Void
     
-    @State private var animateContent = false
-    @State private var showConfetti = false
+    @State private var showContent = false
+    @State private var selectedBackgroundImage: String = ""
+    
+    private func getRandomTutorialEndingImage() -> String {
+        let availableImages = ["Tutorial1", "Tutorial2", "Tutorial3", "Tutorial4", "Tutorial5", "Tutorial6", "Tutorial7"]
+        return availableImages.randomElement() ?? "Tutorial1"
+    }
     
     var body: some View {
         ZStack {
-            // Background with gradient
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    Color(hex: "004aad"),
-                    Color(hex: "0066cc")
-                ]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
+            // Full screen background image - appears instantly for 0.6s impact (like paywall)
+            Image(selectedBackgroundImage)
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .clipped()
+                .ignoresSafeArea()
             
-            // Content
-            VStack(spacing: 30) {
-                Spacer()
-                
-                // Celebration Icon
-                VStack(spacing: 20) {
-                    Image(systemName: "hands.clap.fill")
-                        .font(.system(size: 60))
-                        .foregroundColor(.white)
-                        .scaleEffect(animateContent ? 1.2 : 1.0)
-                        .animation(
-                            Animation.easeInOut(duration: 1.5)
-                                .repeatForever(autoreverses: true),
-                            value: animateContent
-                        )
-                    
-                    Text("Welcome to the Circl Community!")
-                        .font(.system(size: 28, weight: .bold))
-                        .foregroundColor(.white)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 20)
-                    
-                    Text("Thank you for being part of our growing ecosystem")
-                        .font(.system(size: 18))
-                        .foregroundColor(.white.opacity(0.9))
-                        .multilineTextAlignment(.center)
+            // Content overlay (appears after 0.6s like paywall)
+            if showContent {
+                ScrollView {
+                    VStack(spacing: 0) {
+                        // Main content with white rounded background
+                        VStack(spacing: 30) {
+                            // Header Section
+                            VStack(spacing: 20) {
+                                Text("Congratulations on becoming one of us!")
+                                    .font(.system(size: 28, weight: .bold))
+                                    .foregroundColor(.black)
+                                    .multilineTextAlignment(.center)
+                                
+                                Text("This thriving collaborative ecosystem grows stronger with incredible members like you joining us")
+                                    .font(.system(size: 18))
+                                    .foregroundColor(.gray)
+                                    .multilineTextAlignment(.center)
+                            }
+                            .padding(.top, 40)
+                            
+                            // Community Description
+                            VStack(spacing: 15) {
+                                Text("Circl brings together employees, students, entrepreneurs, community builders, investors, and mentors into one dynamic ecosystem. The network effect is powerful here. Every connection you make and collaboration you build elevates the future for everyone involved.")
+                                    .font(.system(size: 16))
+                                    .foregroundColor(.black)
+                                    .multilineTextAlignment(.center)
+                                    .lineLimit(nil)
+                            }
+                            
+                            // Action Buttons
+                            VStack(spacing: 15) {
+                                // Join a Circl Button
+                                Button(action: onJoinCircl) {
+                                    HStack {
+                                        Image(systemName: "circle.grid.3x3.fill")
+                                        Text("Join a Circl")
+                                    }
+                                    .font(.system(size: 18, weight: .semibold))
+                                    .foregroundColor(.white)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 16)
+                                    .background(Color(hex: "004aad"))
+                                    .cornerRadius(12)
+                                }
+                                
+                                // Invite Friends Button
+                                ShareLink(
+                                    item: URL(string: "https://apps.apple.com/us/app/circl-the-entrepreneurs-hub/id6741139445")!,
+                                    subject: Text("Join Circl with me!"),
+                                    message: Text("I want to see you win this year. Join Circl with me and let's grow this ecosystem together!")
+                                ) {
+                                    HStack {
+                                        Image(systemName: "person.2.fill")
+                                        Text("Invite Friends")
+                                    }
+                                    .font(.system(size: 18, weight: .semibold))
+                                    .foregroundColor(Color(hex: "004aad"))
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 16)
+                                    .background(Color.white)
+                                    .cornerRadius(12)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .stroke(Color(hex: "004aad"), lineWidth: 1)
+                                    )
+                                }
+                                
+                                // Get Started Button
+                                Button(action: onGetStarted) {
+                                    Text("Get Started")
+                                        .font(.system(size: 18, weight: .semibold))
+                                        .foregroundColor(.gray)
+                                        .padding(.vertical, 12)
+                                }
+                            }
+                        }
                         .padding(.horizontal, 30)
-                }
-                
-                // Community Message
-                VStack(spacing: 15) {
-                    Text("🤝 Built on Collaboration")
-                        .font(.system(size: 20, weight: .semibold))
-                        .foregroundColor(.white)
-                    
-                    Text("Circl connects employees, students, entrepreneurs, investors, and mentors in one powerful ecosystem. The network effect is real here - every connection strengthens our entire community.")
-                        .font(.system(size: 16))
-                        .foregroundColor(.white.opacity(0.9))
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 25)
-                        .lineLimit(nil)
-                }
-                
-                // Action Buttons
-                VStack(spacing: 15) {
-                    // Join a Circl Button
-                    Button(action: onJoinCircl) {
-                        HStack {
-                            Image(systemName: "circle.grid.3x3.fill")
-                            Text("Join a Circl")
-                        }
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundColor(Color(hex: "004aad"))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(Color.white)
-                        .cornerRadius(12)
-                        .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
-                    }
-                    .padding(.horizontal, 30)
-                    
-                    // Invite Friends Button
-                    ShareLink(
-                        item: URL(string: "https://apps.apple.com/us/app/circl-the-entrepreneurs-hub/id6741139445")!,
-                        subject: Text("Join Circl with me!"),
-                        message: Text("I want to see you win this year. Join Circl with me and let's grow this ecosystem together!")
-                    ) {
-                        HStack {
-                            Image(systemName: "person.2.fill")
-                            Text("Invite Friends")
-                        }
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(Color.white.opacity(0.2))
-                        .cornerRadius(12)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                        .padding(.bottom, 40)
+                        .background(
+                            RoundedRectangle(cornerRadius: 20)
+                                .fill(Color.white)
+                                .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
                         )
-                    }
-                    .padding(.horizontal, 30)
-                    
-                    // Get Started Button
-                    Button(action: onGetStarted) {
-                        Text("Get Started")
-                            .font(.system(size: 18, weight: .semibold))
-                            .foregroundColor(.white.opacity(0.8))
-                            .padding(.vertical, 12)
+                        .padding(.horizontal, 20)
+                        .padding(.top, 100) // Give space for background to show
                     }
                 }
-                
-                Spacer()
+                .transition(.move(edge: .bottom))
             }
         }
         .onAppear {
-            animateContent = true
+            // Select random background image once when view appears
+            selectedBackgroundImage = getRandomTutorialEndingImage()
             
-            // Show confetti effect
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                showConfetti = true
+            // Show background for 0.6 seconds, then show content (like paywall)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                withAnimation(.easeOut(duration: 0.5)) {
+                    showContent = true
+                }
             }
         }
     }

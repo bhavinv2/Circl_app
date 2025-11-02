@@ -36,11 +36,18 @@ class NavigationManager: ObservableObject {
         navigationTrigger.circleId = circleId
         navigationTrigger.triggerTime = Date()
     }
+    
+    func navigateToForum() {
+        selectedTab = 0 // Forum tab (assuming it's the first tab)
+        navigationTrigger.shouldNavigateToForum = true
+        navigationTrigger.triggerTime = Date()
+    }
 }
 
 struct NavigationTrigger {
     var chatMessageId: Int?
     var channelId: Int?
     var circleId: Int?
+    var shouldNavigateToForum: Bool = false
     var triggerTime: Date?
 }

@@ -19,6 +19,12 @@ extension SubscriptionManager {
             return createCommunityBuilderSubscription()
         case .investor:
             return createInvestorSubscription()
+        case .other:
+            // .other should not be used in normal flow - detectUserType() always returns a specific type
+            // If this case is hit, there's a logic error. Log it and fallback to appropriate subscription
+            print("⚠️ WARNING: .other user type detected in subscription flow - this should not happen")
+            print("🔧 Check detectUserType() logic in TutorialModels.swift")
+            return createCommunityBuilderSubscription() // Safe fallback, but investigate why this happened
         }
     }
     
