@@ -29,6 +29,49 @@ struct DashboardView: View {
     @State private var isLoading = false
     @State private var selectedTimeframe: String = "all"
     
+    // Kanban Task Manager State
+    @State private var projects: [Project] = []
+    @State private var standaloneTasks: [TaskItem] = []
+    @State private var showCreateMenu = false
+    @State private var showCreateTaskPopup = false
+    @State private var showCreateProjectPopup = false
+    @State private var showTaskDetails = false
+    @State private var showProjectDetails = false
+    @State private var selectedTask: TaskItem?
+    @State private var selectedProject: Project?
+    @State private var selectedProjectForTask: Project?
+    @State private var viewMode: TaskViewMode = .kanban
+    
+    // Task creation state
+    @State private var newTaskTitle = ""
+    @State private var newTaskDescription = ""
+    @State private var newTaskAssignees = ""
+    @State private var newTaskStartDate = Date()
+    @State private var newTaskEndDate = Calendar.current.date(byAdding: .day, value: 7, to: Date()) ?? Date()
+    @State private var newTaskPriority: TaskItem.TaskPriority = .medium
+    @State private var newTaskStatus: TaskStatus = .notStarted
+    
+    // Project creation state
+    @State private var newProjectName = ""
+    @State private var newProjectDescription = ""
+    @State private var newProjectColor: Project.ProjectColor = .blue
+    @State private var newProjectStartDate = Date()
+    @State private var newProjectEndDate = Calendar.current.date(byAdding: .month, value: 1, to: Date()) ?? Date()
+    
+    enum TaskViewMode: String, CaseIterable {
+        case kanban = "Kanban"
+        case projects = "Projects"
+    }
+    
+    // Computed property for all tasks
+    var allTasks: [TaskItem] {
+        var tasks = standaloneTasks
+        for project in projects {
+            tasks.append(contentsOf: project.tasks)
+        }
+        return tasks
+    }
+    
     let timeframes = ["all", "weekly", "monthly"]
     
     var body: some View {
@@ -120,6 +163,111 @@ struct DashboardView: View {
                             }
                         }
                         .padding(.horizontal, 20)
+                    }
+                }
+                
+                // Task Manager Section
+                VStack(alignment: .leading, spacing: 16) {
+                    HStack {
+                        Text("Task Manager")
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(.primary)
+                        
+                        Spacer()
+                        
+                        // View Mode Picker
+                        Picker("View Mode", selection: $viewMode) {
+                            ForEach(TaskViewMode.allCases, id: \.self) { mode in
+                                Text(mode.rawValue).tag(mode)
+                            }
+                        }
+                        .pickerStyle(SegmentedPickerStyle())
+                        .frame(width: 150)
+                        
+                        // Create Menu Button
+                        Menu {
+                            Button(action: {
+                                showCreateTaskPopup = true
+                            }) {
+                                Label("New Task", systemImage: "plus.circle")
+                            }
+                            
+                            Button(action: {
+                                showCreateProjectPopup = true
+                            }) {
+                                Label("New Project", systemImage: "folder.badge.plus")
+                            }
+                        } label: {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.system(size: 24))
+                                .foregroundColor(Color(hex: "004aad"))
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                    
+                    // Content based on view mode
+                    if viewMode == .kanban {
+                        KanbanBoardView(
+                            tasks: allTasks,
+                            standaloneTasks: $standaloneTasks,
+                            projects: $projects,
+                            selectedTask: $selectedTask,
+                            showTaskDetails: $showTaskDetails
+                        )
+                    } else {
+                        ProjectGridView(
+                            projects: $projects,
+                            selectedProject: $selectedProject,
+                            showProjectDetails: $showProjectDetails,
+                            selectedTask: $selectedTask,
+                            showTaskDetails: $showTaskDetails
+                        )
+                    }
+                }
+                .sheet(isPresented: $showCreateTaskPopup) {
+                    CreateTaskView(
+                        isPresented: $showCreateTaskPopup,
+                        standaloneTasks: $standaloneTasks,
+                        projects: $projects,
+                        title: $newTaskTitle,
+                        description: $newTaskDescription,
+                        assignees: $newTaskAssignees,
+                        startDate: $newTaskStartDate,
+                        endDate: $newTaskEndDate,
+                        priority: $newTaskPriority,
+                        status: $newTaskStatus,
+                        selectedProject: $selectedProjectForTask
+                    )
+                }
+                .sheet(isPresented: $showCreateProjectPopup) {
+                    CreateProjectView(
+                        isPresented: $showCreateProjectPopup,
+                        projects: $projects,
+                        name: $newProjectName,
+                        description: $newProjectDescription,
+                        color: $newProjectColor,
+                        startDate: $newProjectStartDate,
+                        endDate: $newProjectEndDate
+                    )
+                }
+                .sheet(isPresented: $showTaskDetails) {
+                    if let task = selectedTask {
+                        TaskDetailView(
+                            task: bindingForTask(task),
+                            isPresented: $showTaskDetails,
+                            projects: $projects,
+                            standaloneTasks: $standaloneTasks
+                        )
+                    }
+                }
+                .sheet(isPresented: $showProjectDetails) {
+                    if let project = selectedProject {
+                        ProjectDetailView(
+                            project: bindingForProject(project),
+                            isPresented: $showProjectDetails,
+                            showTaskDetails: $showTaskDetails,
+                            selectedTask: $selectedTask
+                        )
                     }
                 }
                 
@@ -231,7 +379,6 @@ struct DashboardView: View {
         
         guard let url = URL(string: urlString) else {
             print("❌ Invalid URL for leaderboard")
-            loadSampleLeaderboard()
             return
         }
         
@@ -243,13 +390,11 @@ struct DashboardView: View {
                 
                 if let error = error {
                     print("❌ Network error: \(error.localizedDescription)")
-                    loadSampleLeaderboard()
                     return
                 }
                 
                 guard let data = data else {
                     print("❌ No data received")
-                    loadSampleLeaderboard()
                     return
                 }
                 
@@ -258,7 +403,6 @@ struct DashboardView: View {
                     self.leaderboard = Array(decodedLeaderboard.prefix(10)) // Top 10
                 } catch {
                     print("❌ Failed to decode leaderboard: \(error)")
-                    loadSampleLeaderboard()
                 }
             }
         }.resume()
@@ -278,16 +422,57 @@ struct DashboardView: View {
                 "Social": 5
             ]
         )
+        
+        // Create sample project and task for testing
+        let sampleProject = Project(
+            name: "Sample Project",
+            description: "This is a sample project for testing",
+            color: .blue,
+            startDate: Date(),
+            endDate: Calendar.current.date(byAdding: .month, value: 1, to: Date()) ?? Date()
+        )
+        
+        let sampleTask = TaskItem(
+            title: "Sample Task",
+            description: "This is a sample task",
+            status: .inProgress,
+            projectId: sampleProject.id,
+            assignees: ["John Doe", "Jane Smith"],
+            startDate: Date(),
+            endDate: Calendar.current.date(byAdding: .day, value: 7, to: Date()) ?? Date(),
+            priority: .high
+        )
+        
+        // Add sample data
+        projects = [sampleProject]
+        projects[0].tasks = [sampleTask]
     }
     
-    func loadSampleLeaderboard() {
-        leaderboard = [
-            LeaderboardEntry(user_id: 1, name: "Alice Johnson", email: "alice@example.com", points: 95),
-            LeaderboardEntry(user_id: 2, name: "Bob Smith", email: "bob@example.com", points: 87),
-            LeaderboardEntry(user_id: 3, name: "Charlie Brown", email: "charlie@example.com", points: 72),
-            LeaderboardEntry(user_id: 4, name: "Diana Prince", email: "diana@example.com", points: 68),
-            LeaderboardEntry(user_id: 5, name: "Ethan Hunt", email: "ethan@example.com", points: 55)
-        ]
+    // REMOVED: loadSampleLeaderboard() function to prevent dummy data from appearing
+    // The leaderboard will now show empty when no real data is available
+    
+    // Helper functions to get bindings
+    private func bindingForTask(_ task: TaskItem) -> Binding<TaskItem> {
+        // Check standalone tasks first
+        if let index = standaloneTasks.firstIndex(where: { $0.id == task.id }) {
+            return $standaloneTasks[index]
+        }
+        
+        // Check project tasks
+        for projectIndex in projects.indices {
+            if let taskIndex = projects[projectIndex].tasks.firstIndex(where: { $0.id == task.id }) {
+                return $projects[projectIndex].tasks[taskIndex]
+            }
+        }
+        
+        fatalError("Task not found")
+    }
+    
+    private func bindingForProject(_ project: Project) -> Binding<Project> {
+        guard let index = projects.firstIndex(where: { $0.id == project.id }) else {
+            fatalError("Project not found")
+        }
+        return $projects[index]
     }
 }
 
@@ -400,9 +585,16 @@ struct SummaryCard: View {
         .padding(16)
         .background(Color(.systemBackground))
         .cornerRadius(12)
-        .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
+        .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
     }
 }
+
+// MARK: - Task Manager Module Imports
+// Task Manager components are now modularized for better organization:
+// - TaskModels.swift: TaskItem, Project, TaskStatus models  
+// - KanbanComponents.swift: KanbanBoardView, KanbanColumnView, TaskCardView
+// - ProjectViews.swift: ProjectGridView, ProjectCardView, ProjectDetailView 
+// - TaskViews.swift: CreateTaskView, CreateProjectView, TaskDetailView
 
 // MARK: - Event Type Row Component
 struct EventTypeRow: View {
