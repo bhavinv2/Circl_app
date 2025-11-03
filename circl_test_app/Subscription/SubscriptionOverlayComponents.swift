@@ -7,9 +7,25 @@ struct SubscriptionPaywallOverlay: ViewModifier {
     func body(content: Content) -> some View {
         content
             .fullScreenCover(isPresented: $subscriptionManager.isShowingPaywall) {
-                if let paywallContent = subscriptionManager.currentContent {
-                    PaywallFullScreenView(content: paywallContent)
+                Group {
+                    if let paywallContent = subscriptionManager.currentContent {
+                        PaywallFullScreenView(content: paywallContent)
+                            .onAppear {
+                                print("🎯 OVERLAY: PaywallFullScreenView appeared")
+                            }
+                    } else {
+                        Color.clear
+                            .onAppear {
+                                print("🎯 OVERLAY: ERROR - No paywall content available")
+                            }
+                    }
                 }
+                .onAppear {
+                    print("🎯 OVERLAY: fullScreenCover is presenting")
+                }
+            }
+            .onChange(of: subscriptionManager.isShowingPaywall) { newValue in
+                print("🎯 OVERLAY: isShowingPaywall changed to \(newValue)")
             }
     }
 }

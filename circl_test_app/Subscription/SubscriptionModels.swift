@@ -62,6 +62,7 @@ class SubscriptionManager: ObservableObject {
     
     private let userDefaults = UserDefaults.standard
     private let hasSeenPaywallKey = "has_seen_paywall"
+    private var contentShowWorkItem: DispatchWorkItem?
     
     private init() {
         loadPaywallStatus()
@@ -69,29 +70,92 @@ class SubscriptionManager: ObservableObject {
     
     // MARK: - Paywall Management
     func showPaywall(for userType: UserType) {
-        print("🎯 Showing paywall for \(userType.displayName)")
+        print("🎯 PAYWALL SHOW: Starting for \(userType.displayName)")
+        print("🎯 PAYWALL SHOW: Current state before: \(subscriptionState)")
+        print("🎯 PAYWALL SHOW: isShowingPaywall before: \(isShowingPaywall)")
         
-        // Get content for user type
-        currentContent = createSubscriptionContent(for: userType)
+        // Cancel any pending content show operations
+        contentShowWorkItem?.cancel()
         
-        // Instantly show full-screen paywall with background only
-        subscriptionState = .showingBackground
-        isShowingPaywall = true
-        
-        // After 0.6 seconds, show content overlay (let user absorb background)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-            withAnimation(.easeInOut(duration: 0.4)) {
-                self.subscriptionState = .showingContent
+        // If paywall is already showing, just reset content without dismissing modal
+        if isShowingPaywall {
+            print("🎯 PAYWALL SHOW: Paywall already showing, just updating content")
+            subscriptionState = .notShowing
+            currentContent = nil
+            selectedPlan = nil
+            
+            // Get new content for user type
+            currentContent = createSubscriptionContent(for: userType)
+            
+            // Restart the sequence
+            subscriptionState = .showingBackground
+            
+            // Create new work item for content showing
+            contentShowWorkItem = DispatchWorkItem { [weak self] in
+                guard let self = self else { return }
+                print("🎯 PAYWALL SHOW: Executing delayed content show (update)")
+                withAnimation(.easeInOut(duration: 0.4)) {
+                    self.subscriptionState = .showingContent
+                }
+                print("🎯 PAYWALL SHOW: Set to showingContent (update)")
+            }
+            
+            // Schedule content show after 0.6 seconds
+            if let workItem = contentShowWorkItem {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6, execute: workItem)
+            }
+        } else {
+            // Fresh paywall presentation
+            print("🎯 PAYWALL SHOW: Fresh presentation")
+            
+            // Reset state properly before showing
+            subscriptionState = .notShowing
+            currentContent = nil
+            selectedPlan = nil
+            
+            print("🎯 PAYWALL SHOW: State reset to notShowing")
+            
+            // Get content for user type
+            currentContent = createSubscriptionContent(for: userType)
+            
+            // Instantly show full-screen paywall with background only
+            subscriptionState = .showingBackground
+            isShowingPaywall = true
+            
+            print("🎯 PAYWALL SHOW: Set to showingBackground, isShowingPaywall = true")
+            
+            // Create new work item for content showing
+            contentShowWorkItem = DispatchWorkItem { [weak self] in
+                guard let self = self else { return }
+                print("🎯 PAYWALL SHOW: Executing delayed content show (fresh)")
+                withAnimation(.easeInOut(duration: 0.4)) {
+                    self.subscriptionState = .showingContent
+                }
+                print("🎯 PAYWALL SHOW: Set to showingContent (fresh)")
+            }
+            
+            // Schedule content show after 0.6 seconds
+            if let workItem = contentShowWorkItem {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6, execute: workItem)
             }
         }
     }
     
     func dismissPaywall() {
-        subscriptionState = .dismissed
+        print("🎯 PAYWALL DISMISS: Starting dismissal")
+        print("🎯 PAYWALL DISMISS: Current state before: \(subscriptionState)")
+        
+        // Cancel any pending content show operations
+        contentShowWorkItem?.cancel()
+        contentShowWorkItem = nil
+        
+        subscriptionState = .notShowing
         isShowingPaywall = false
         markPaywallAsSeen()
         currentContent = nil
         selectedPlan = nil
+        
+        print("🎯 PAYWALL DISMISS: Completed, isShowingPaywall = false")
     }
     
     func completeSubscription() {
