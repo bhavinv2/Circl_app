@@ -224,6 +224,9 @@ class TutorialManager: ObservableObject {
     // Track which tutorial type is currently running (may differ from userType)
     private var currentTutorialType: UserType = .communityBuilder
     
+    // Prevent multiple simultaneous tutorial starts
+    private var isTutorialStarting: Bool = false
+    
     private let userDefaults = UserDefaults.standard
     private let progressKey = "tutorial_progress"
     private let userTypeKey = "user_type_detected"
@@ -256,9 +259,9 @@ class TutorialManager: ObservableObject {
     func startTutorial(for userType: UserType? = nil) {
         let targetUserType = userType ?? self.userType
         
-        // Don't start if already completed
+        // Don't start if already completed (unless this is a manual restart)
         if hasTutorialBeenCompleted(for: targetUserType) {
-            print("Tutorial already completed for user type: \(targetUserType)")
+            print("Tutorial already completed for user type: \(targetUserType) - use restartTutorial() to replay")
             return
         }
         
@@ -267,6 +270,10 @@ class TutorialManager: ObservableObject {
             return
         }
         
+        // Reset navigation to starting position (PageForum = tab 0)
+        NavigationManager.shared.selectedTab = 0
+        
+        // Reset tutorial state
         currentFlow = flow
         currentStepIndex = 0
         currentTutorialType = targetUserType // Track which tutorial type is running
@@ -274,6 +281,7 @@ class TutorialManager: ObservableObject {
         isShowingTutorial = true
         
         print("Started tutorial for \(targetUserType.displayName): \(flow.title)")
+        print("🧭 Reset navigation to PageForum (tab 0)")
     }
     
     func nextStep() {
@@ -304,14 +312,19 @@ class TutorialManager: ObservableObject {
     }
     
     func skipTutorial() {
+        print("⏭️ Skipping tutorial for \(currentTutorialType.displayName)")
         tutorialState = .skipped
         isShowingTutorial = false
         markTutorialAsCompleted()
         currentFlow = nil
         currentTutorialType = userType // Reset to user's actual type
+        
+        // Don't reset navigation when skipping - let user stay where they are
+        print("📊 Tutorial skipped - navigation preserved")
     }
     
     func completeTutorial() {
+        print("🎉 Completing tutorial for \(currentTutorialType.displayName)")
         tutorialState = .completed
         isShowingTutorial = false
         markTutorialAsCompleted()
@@ -320,6 +333,9 @@ class TutorialManager: ObservableObject {
         showTutorialCompletionMessage()
         currentFlow = nil
         currentTutorialType = userType // Reset to user's actual type
+        
+        // Don't reset navigation when completing - let user stay where they ended
+        print("📊 Tutorial completed - navigation preserved at final position")
     }
     
     private func showTutorialCompletionMessage() {
@@ -410,26 +426,61 @@ class TutorialManager: ObservableObject {
         print("✅ Tutorial data cleared")
     }
     
+    func resetTutorialCompletely() {
+        print("🔄 COMPLETE TUTORIAL RESET - Clearing all state...")
+        
+        // Clear all UserDefaults
+        userDefaults.removeObject(forKey: completedFlowsKey)
+        userDefaults.removeObject(forKey: progressKey)
+        userDefaults.removeObject(forKey: "just_completed_onboarding")
+        userDefaults.synchronize()
+        
+        // Reset all @Published properties
+        isShowingTutorial = false
+        currentFlow = nil
+        currentStepIndex = 0
+        tutorialState = .notStarted
+        
+        // Reset navigation to PageForum
+        NavigationManager.shared.selectedTab = 0
+        
+        print("✅ Complete tutorial reset finished")
+        print("📊 State: showing=\(isShowingTutorial), step=\(currentStepIndex), tab=\(NavigationManager.shared.selectedTab)")
+    }
+    
     // MARK: - Utility Methods
     func shouldShowTutorial() -> Bool {
         // Show tutorial if:
-        // 1. User just completed onboarding
+        // 1. User just completed onboarding (PRIORITY - always show)
         // 2. Tutorial hasn't been completed for this user type
         // 3. User manually requested tutorial restart
         
         let hasCompletedOnboarding = userDefaults.bool(forKey: "onboarding_completed")
+        let justCompletedOnboarding = userDefaults.bool(forKey: "just_completed_onboarding")
         let hasSeenTutorial = hasTutorialBeenCompleted(for: userType)
         
         print("🔍 shouldShowTutorial() check:")
         print("   • hasCompletedOnboarding: \(hasCompletedOnboarding)")
+        print("   • justCompletedOnboarding: \(justCompletedOnboarding)")
         print("   • hasSeenTutorial for \(userType.displayName): \(hasSeenTutorial)")
-        print("   • Should show: \(hasCompletedOnboarding && !hasSeenTutorial)")
         
-        return hasCompletedOnboarding && !hasSeenTutorial
+        // PRIORITY: If user just completed onboarding, ALWAYS show tutorial
+        if justCompletedOnboarding {
+            print("   • 🎯 PRIORITY: Just completed onboarding - MUST show tutorial!")
+            return true
+        }
+        
+        // Normal case: Show if onboarding done and tutorial not seen
+        let shouldShow = hasCompletedOnboarding && !hasSeenTutorial
+        print("   • Should show (normal case): \(shouldShow)")
+        
+        return shouldShow
     }
     
     func restartTutorial() {
-        // Allow users to replay tutorial from settings
+        print("🔄 Restarting tutorial for \(userType.displayName)")
+        
+        // Clear completion status for this user type
         var completedFlows = getCompletedFlows()
         completedFlows.remove(userType.rawValue)
         
@@ -437,7 +488,21 @@ class TutorialManager: ObservableObject {
             userDefaults.set(data, forKey: completedFlowsKey)
         }
         
-        startTutorial(for: userType)
+        // Reset current tutorial state completely
+        isShowingTutorial = false
+        currentFlow = nil
+        currentStepIndex = 0
+        tutorialState = .notStarted
+        
+        // Reset navigation to starting position (PageForum = tab 0)
+        NavigationManager.shared.selectedTab = 0
+        
+        // Start fresh tutorial
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            self.startTutorial(for: self.userType)
+        }
+        
+        print("✅ Tutorial restart complete - navigation reset to PageForum")
     }
     
     func startTutorialForUserType(_ userType: UserType) {
@@ -458,26 +523,29 @@ class TutorialManager: ObservableObject {
         currentStepIndex = 0
         tutorialState = .notStarted
         
+        // Reset navigation to starting position (PageForum = tab 0)
+        NavigationManager.shared.selectedTab = 0
+        print("🧭 Reset navigation to PageForum (tab 0)")
+        
         // Get the tutorial flow
         guard let flow = getTutorialFlow(for: userType) else {
             print("❌ No tutorial flow found for user type: \(userType)")
             return
         }
         
-        // Navigate to PageForum first (tutorials start from forum)
-        NavigationManager.shared.navigateToForum()
-        print("🧭 Navigated to PageForum for tutorial start")
-        
-        // Force start the tutorial (bypassing all checks)
-        currentFlow = flow
-        currentStepIndex = 0
-        currentTutorialType = userType // Track which tutorial type is running
-        tutorialState = .inProgress(stepIndex: 0)
-        isShowingTutorial = true
-        
-        print("✅ Successfully started tutorial for \(userType.displayName): \(flow.title)")
-        print("📊 Tutorial state: showing=\(isShowingTutorial), step=\(currentStepIndex)/\(flow.steps.count)")
-        print("🎯 Current tutorial type: \(currentTutorialType.displayName)")
+        // Start the tutorial with a small delay to ensure navigation has settled
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            // Force start the tutorial (bypassing all checks)
+            self.currentFlow = flow
+            self.currentStepIndex = 0
+            self.currentTutorialType = userType // Track which tutorial type is running
+            self.tutorialState = .inProgress(stepIndex: 0)
+            self.isShowingTutorial = true
+            
+            print("✅ Successfully started tutorial for \(userType.displayName): \(flow.title)")
+            print("📊 Tutorial state: showing=\(self.isShowingTutorial), step=\(self.currentStepIndex)/\(flow.steps.count)")
+            print("🎯 Current tutorial type: \(self.currentTutorialType.displayName)")
+        }
     }
     
     var currentStep: TutorialStep? {
@@ -495,6 +563,18 @@ class TutorialManager: ObservableObject {
     func checkAndTriggerTutorial() {
         print("🔍 Checking if tutorial should be triggered...")
         
+        // Prevent multiple simultaneous starts
+        guard !isTutorialStarting else {
+            print("⏸️ Tutorial start already in progress - skipping duplicate trigger")
+            return
+        }
+        
+        // Don't interrupt an active tutorial
+        guard !isShowingTutorial else {
+            print("⏸️ Tutorial already active - skipping trigger")
+            return
+        }
+        
         // Debug all the key flags
         let onboardingCompleted = userDefaults.bool(forKey: "onboarding_completed")
         let justCompletedOnboarding = userDefaults.bool(forKey: "just_completed_onboarding")
@@ -507,26 +587,88 @@ class TutorialManager: ObservableObject {
         print("   • completed tutorial flows: \(completedFlows)")
         print("   • has tutorial been completed for \(userType.displayName): \(hasTutorialBeenCompleted(for: userType))")
         
+        // CRITICAL FIX: Priority check for post-onboarding tutorial
+        if justCompletedOnboarding {
+            print("🎯 CRITICAL: User just completed onboarding - forcing tutorial start!")
+            
+            // Set starting flag to prevent duplicates
+            isTutorialStarting = true
+            
+            // Clear the flag immediately
+            userDefaults.set(false, forKey: "just_completed_onboarding")
+            
+            // Ensure we have a valid user type (fallback to communityBuilder if needed)
+            if userType == .other || userType.rawValue.isEmpty {
+                print("⚠️ Invalid user type detected, falling back to communityBuilder")
+                setUserType(.communityBuilder)
+            }
+            
+            // Reset navigation to ensure we're on PageForum
+            NavigationManager.shared.selectedTab = 0
+            
+            print("🚀 Starting post-onboarding tutorial for \(userType.displayName) user...")
+            
+            // Start tutorial with a longer delay to ensure everything is loaded
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                // Force start the tutorial bypassing all completion checks
+                self.forceStartTutorial()
+                self.isTutorialStarting = false // Clear the flag
+            }
+            
+            return // Skip the normal shouldShowTutorial() check
+        }
+        
+        // Normal tutorial check for other scenarios
         guard shouldShowTutorial() else { 
             print("❌ Tutorial should not be shown (already completed or onboarding not done)")
             return 
         }
         
-        print("✅ Just completed onboarding: \(justCompletedOnboarding)")
-        print("✅ Current user type: \(userType.displayName)")
+        print("✅ Starting tutorial via normal flow for \(userType.displayName)")
         
-        if justCompletedOnboarding {
-            // Clear the flag
-            userDefaults.set(false, forKey: "just_completed_onboarding")
-            
-            print("🚀 Starting tutorial for \(userType.displayName) user...")
-            
-            // Start tutorial after a brief delay to let the main app load
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                self.startTutorial(for: self.userType)
-            }
-        } else {
-            print("⚠️ just_completed_onboarding flag is false - tutorial won't start")
+        // Set starting flag
+        isTutorialStarting = true
+        
+        // Start tutorial after a brief delay to let the main app load
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            self.startTutorial(for: self.userType)
+            self.isTutorialStarting = false // Clear the flag
         }
+    }
+    
+    // MARK: - Force Start Tutorial (for post-onboarding)
+    private func forceStartTutorial() {
+        print("🔥 FORCE STARTING tutorial for post-onboarding user (\(userType.displayName))")
+        
+        // Clear any existing tutorial state
+        isShowingTutorial = false
+        currentFlow = nil
+        currentStepIndex = 0
+        tutorialState = .notStarted
+        
+        // Get the tutorial flow
+        if let flow = getTutorialFlow(for: userType) {
+            currentFlow = flow
+            currentTutorialType = userType
+        } else {
+            print("❌ CRITICAL: No tutorial flow found for user type: \(userType)")
+            // Fallback to community builder tutorial if no flow exists
+            if let fallbackFlow = getTutorialFlow(for: .communityBuilder) {
+                currentFlow = fallbackFlow
+                currentTutorialType = .communityBuilder
+                print("✅ Using fallback communityBuilder tutorial")
+            } else {
+                print("💥 FATAL: No tutorial flows available at all!")
+                return
+            }
+        }
+        
+        // Force start the tutorial
+        currentStepIndex = 0
+        tutorialState = .inProgress(stepIndex: 0)
+        isShowingTutorial = true
+        
+        print("✅ Post-onboarding tutorial started successfully!")
+        print("� Tutorial state: showing=\(isShowingTutorial), step=\(currentStepIndex), flow=\(currentFlow?.title ?? "none")")
     }
 }

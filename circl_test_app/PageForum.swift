@@ -693,7 +693,7 @@ struct PageForum: View {
                     .frame(maxWidth: .infinity)
                     
                     // Connect and Network
-                    NavigationLink(destination: PageMyNetwork().navigationBarBackButtonHidden(true)) {
+                    NavigationLink(destination: PageUnifiedNetworking().navigationBarBackButtonHidden(true)) {
                         VStack(spacing: 4) {
                             Image(systemName: "person.2")
                                 .font(.system(size: 22, weight: .medium))

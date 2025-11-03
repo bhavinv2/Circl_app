@@ -16,8 +16,12 @@ struct TutorialOverlay: ViewModifier {
     
     @ViewBuilder
     private var tutorialOverlayView: some View {
+        // Debug tutorial overlay visibility
+        let _ = print("🎭 TutorialOverlay check: isShowingTutorial=\(tutorialManager.isShowingTutorial), currentStep=\(tutorialManager.currentStep?.title ?? "nil")")
+        
         if tutorialManager.isShowingTutorial,
            let currentStep = tutorialManager.currentStep {
+            let _ = print("🎭 TutorialOverlay: SHOWING overlay for step '\(currentStep.title)'")
             
             // Check if this is the community welcome step
             if currentStep.targetView == "community_welcome" {
@@ -39,7 +43,7 @@ struct TutorialOverlay: ViewModifier {
             } else {
                 ZStack {
                     // Semi-transparent backdrop
-                    Color.black.opacity(0.7)
+                    Color.black.opacity(0.5)
                         .ignoresSafeArea()
                         .onTapGesture {
                             // Allow tap to dismiss or move to next step
@@ -63,6 +67,8 @@ struct TutorialOverlay: ViewModifier {
                 }
                 .transition(.opacity)
             }
+        } else {
+            let _ = print("🎭 TutorialOverlay: NOT SHOWING - isShowingTutorial=\(tutorialManager.isShowingTutorial), hasCurrentStep=\(tutorialManager.currentStep != nil)")
         }
     }
     
@@ -241,12 +247,12 @@ struct TutorialTooltip: View {
                 
                 // Next/Complete button - responsive sizing
                 if let destination = step.navigationDestination, !isLastStep {
-                    NavigationLink(destination: getDestinationView(for: destination)) {
+                    Button(action: {
+                        navigateToDestination(destination)
+                        onNext()
+                    }) {
                         nextButtonContent(isSmallScreen: isSmallScreen, fontSize: fontSize, horizontalPadding: horizontalPadding, screenWidth: screenWidth)
                     }
-                    .simultaneousGesture(TapGesture().onEnded {
-                        onNext()
-                    })
                 } else {
                     Button(action: onNext) {
                         nextButtonContent(isSmallScreen: isSmallScreen, fontSize: fontSize, horizontalPadding: horizontalPadding, screenWidth: screenWidth)
@@ -323,6 +329,46 @@ struct TutorialTooltip: View {
             ProfilePage()
         default:
             PageForum() // Default fallback
+        }
+    }
+    
+    private func navigateToDestination(_ destination: String) {
+        let oldTab = NavigationManager.shared.selectedTab
+        print("🧭 Tutorial navigation: \(destination) (from tab \(oldTab))")
+        
+        switch destination {
+        case "PageForum":
+            NavigationManager.shared.forceNavigateTo(tab: 0)
+            print("🎯 Force navigated to PageForum (tab 0)")
+        case "PageUnifiedNetworking":
+            NavigationManager.shared.forceNavigateTo(tab: 1)
+            print("🎯 Force navigated to PageUnifiedNetworking (tab 1)")
+        case "PageCircles":
+            NavigationManager.shared.forceNavigateTo(tab: 2)
+            print("🎯 Force navigated to PageCircles (tab 2)")
+        case "PageBusinessProfile":
+            NavigationManager.shared.forceNavigateTo(tab: 3)
+            print("🎯 Force navigated to PageBusinessProfile (tab 3)")
+        case "ProfilePage":
+            NavigationManager.shared.forceNavigateTo(tab: 4)
+            print("🎯 Force navigated to ProfilePage (tab 4)")
+        case "PageEntrepreneurResources":
+            // This page isn't in main TabView - stay on current tab for now
+            print("⚠️ Tutorial navigation: PageEntrepreneurResources not in main TabView - staying on tab \(oldTab)")
+        case "PageMessages":
+            // This page isn't in main TabView - stay on current tab for now  
+            print("⚠️ Tutorial navigation: PageMessages not in main TabView - staying on tab \(oldTab)")
+        default:
+            NavigationManager.shared.forceNavigateTo(tab: 0) // Default to PageForum
+            print("🎯 Unknown destination '\(destination)' - force defaulted to PageForum (tab 0)")
+        }
+        
+        // Verify navigation actually happened
+        let newTab = NavigationManager.shared.selectedTab
+        if oldTab != newTab {
+            print("✅ Navigation successful: tab \(oldTab) → \(newTab)")
+        } else {
+            print("📍 Navigation stayed on tab \(oldTab)")
         }
     }
 }
@@ -420,7 +466,7 @@ struct TutorialSpotlight: View {
         GeometryReader { geometry in
             // Create a mask that highlights the target area
             Rectangle()
-                .fill(Color.black.opacity(0.7))
+                .fill(Color.black.opacity(0.5))
                 .mask(
                     Rectangle()
                         .fill(Color.black)

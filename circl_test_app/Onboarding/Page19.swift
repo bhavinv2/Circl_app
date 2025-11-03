@@ -222,13 +222,18 @@ struct Page19: View {
     
     // MARK: - Tutorial Integration Function
     private func triggerTutorialAndNavigate() {
+        print("🎬 ========= ONBOARDING COMPLETION PROCESS =========")
         print("🎬 Starting tutorial integration process...")
         
         // Clear any existing tutorial data to ensure fresh start
         TutorialManager.shared.clearAllTutorialData()
+        print("🎬 Cleared existing tutorial data")
         
         // Get onboarding data from UserDefaults or previous pages
         let onboardingData = gatherOnboardingData()
+        print("🎬 Gathered onboarding data:")
+        print("   • Usage interests: \(onboardingData.usageInterests)")
+        print("   • Industry interests: \(onboardingData.industryInterests)")
         
         // Detect and set user type based on onboarding responses
         TutorialManager.shared.detectAndSetUserType(from: onboardingData)
@@ -239,7 +244,26 @@ struct Page19: View {
         UserDefaults.standard.synchronize()
         
         print("🎯 User type detected: \(TutorialManager.shared.userType.displayName)")
-        print("✅ Onboarding flags set - tutorial will start after navigation to PageForum")
+        print("✅ Onboarding flags set:")
+        print("   • just_completed_onboarding: \(UserDefaults.standard.bool(forKey: "just_completed_onboarding"))")
+        print("   • onboarding_completed: \(UserDefaults.standard.bool(forKey: "onboarding_completed"))")
+        print("✅ Tutorial will start after navigation to PageForum")
+        
+        // IMMEDIATE CHECK: Try to trigger tutorial right away
+        print("🚀 IMMEDIATE: Attempting tutorial trigger from onboarding")
+        TutorialManager.shared.checkAndTriggerTutorial()
+        
+        // SAFETY CHECK: Schedule a backup tutorial trigger
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+            print("🛡️ SAFETY CHECK: Backup tutorial trigger after onboarding (3s delay)")
+            TutorialManager.shared.checkAndTriggerTutorial()
+        }
+        
+        // ADDITIONAL SAFETY: Another backup trigger
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+            print("🛡️ ADDITIONAL SAFETY: Second backup tutorial trigger (5s delay)")
+            TutorialManager.shared.checkAndTriggerTutorial()
+        }
         
         // Navigate to PageForum
         shouldNavigateToForum = true

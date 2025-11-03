@@ -16,9 +16,9 @@ struct AppLaunchView: View {
             if showLoadingScreen {
                 LoadingScreen()
             } else if isUserLoggedIn {
-                // User is logged in, show main app with tutorial overlay
+                // User is logged in, show main app
+                // NOTE: Tutorial overlay is applied by individual pages, not here
                 MainAppView()
-                    .withTutorialOverlay()
                     .onAppear {
                         tutorialManager.checkAndTriggerTutorial()
                     }
@@ -59,75 +59,56 @@ struct AppLaunchView: View {
 }
 
 // MARK: - Main App View (Simplified)
+// NOTE: This TabView is used ONLY for programmatic navigation during tutorials
+// It's completely invisible and non-interactive - the custom navigation bars in each page are what users see
 struct MainAppView: View {
     @StateObject private var tutorialManager = TutorialManager.shared
     @ObservedObject private var navigationManager = NavigationManager.shared
-    
+    @State private var forceRefresh = UUID()
+
     var body: some View {
-        NavigationView {
-            TabView(selection: $navigationManager.selectedTab) {
-                // Home Tab
-                PageForum()
-                    .tutorialHighlight(id: "home_tab")
-                    .tabItem {
-                        VStack {
-                            Image(systemName: "house.fill")
-                            Text("Home")
-                        }
-                    }
-                    .tag(0)
-                
-                // Network Tab
-                PageUnifiedNetworking()
-                    .tutorialHighlight(id: "network_tab")
-                    .tabItem {
-                        VStack {
-                            Image(systemName: "person.2.fill")
-                            Text("Network")
-                        }
-                    }
-                    .tag(1)
-                
-                // Circles Tab
-                PageCircles()
-                    .tutorialHighlight(id: "circles_tab")
-                    .tabItem {
-                        VStack {
-                            Image(systemName: "circle.grid.2x2.fill")
-                            Text("Circles")
-                        }
-                    }
-                    .tag(2)
-                
-                // Business Tab
-                PageBusinessProfile()
-                    .tutorialHighlight(id: "business_tab")
-                    .tabItem {
-                        VStack {
-                            Image(systemName: "building.2.fill")
-                            Text("Business")
-                        }
-                    }
-                    .tag(3)
-                
-                // Profile Tab
-                ProfilePage()
-                    .tutorialHighlight(id: "profile_tab")
-                    .tabItem {
-                        VStack {
-                            Image(systemName: "person.fill")
-                            Text("Profile")
-                        }
-                    }
-                    .tag(4)
+        ZStack {
+            // VISIBLE CONTENT: Render the current page with its own custom navigation UI
+            Group {
+                switch navigationManager.selectedTab {
+                case 0:
+                    PageForum()
+                        .onAppear { print("🏠 MainAppView: Showing PageForum (tab 0)") }
+                case 1:
+                    PageUnifiedNetworking()
+                        .onAppear { print("🌐 MainAppView: Showing PageUnifiedNetworking (tab 1)") }
+                case 2:
+                    PageCircles()
+                        .onAppear { print("⭕ MainAppView: Showing PageCircles (tab 2)") }
+                case 3:
+                    PageBusinessProfile()
+                        .onAppear { print("🏢 MainAppView: Showing PageBusinessProfile (tab 3)") }
+                case 4:
+                    ProfilePage()
+                        .onAppear { print("👤 MainAppView: Showing ProfilePage (tab 4)") }
+                default:
+                    PageForum()
+                        .onAppear { print("🏠 MainAppView: Showing PageForum (default)") }
+                }
             }
+
+            // HIDDEN NAVIGATOR: Removed TabView to eliminate binding conflicts
+            // Navigation is now handled purely through the switch statement above
         }
-        .withTutorialOverlay()
         .onAppear {
+            print("🏗️ MainAppView appeared - selectedTab = \(navigationManager.selectedTab)")
+            NavigationManager.shared.debugNavigationState()
+            
             // Check if tutorial should be triggered after app launch
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                 tutorialManager.checkAndTriggerTutorial()
             }
+        }
+        .id(forceRefresh) // Force SwiftUI to re-render when this changes
+        .onChange(of: navigationManager.selectedTab) { newTab in
+            print("🔄 MainAppView detected selectedTab change to: \(newTab)")
+            print("🔄 Force refreshing UI to ensure page update...")
+            forceRefresh = UUID() // Force SwiftUI re-render
         }
     }
 }
@@ -359,7 +340,7 @@ struct TutorialCompletionView: View {
     
     var body: some View {
         ZStack {
-            Color.black.opacity(0.8)
+            Color.black.opacity(0.5)
                 .ignoresSafeArea()
             
             VStack(spacing: 30) {
