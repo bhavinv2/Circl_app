@@ -103,19 +103,19 @@ struct Page17: View {
                 
                 // Body Text
                 ScrollView {
-                    VStack(spacing: 20) {
-                        Text("We will not allow businesses to be created here that produce, supply, or use: tobacco/nicotine products, unethical health, cannabis, gambling activities, casinos/online casinos, adult entertainment, predatory lending, counterfeit/knockoff products, miracle health products, whatever is deemed unethical/exploitative by Circl.")
-                            .font(.system(size: 23, weight: .bold))
+                    VStack(spacing: 22) {
+                        Text("Circl will not tolerate businesses that use unethical, exploitative, hatemongering, illegal, or other harmful practices or products. If a business is reported as such, it will be handled on a case-by-case basis, and we reserve the right to remove or suspend the offending parties if we determine it to be necessary.")
+                            .font(.system(size: 26, weight: .bold))
                             .foregroundColor(.white)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 40)
-                            .padding(.top, 25) // Move body text down by 25 pixels
+                            .padding(.top, 22) // Move body text down by 25 pixels
                         
-                        Text("We have the right to remove you from our platform if any of these are met or deemed by Circl.")
-                            .font(.system(size: 23, weight: .bold))
-                            .foregroundColor(.white)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 40)
+//                        Text("We have the right to remove you from our platform if any of these are met or deemed by Circl.")
+//                            .font(.system(size: 23, weight: .bold))
+//                            .foregroundColor(.white)
+//                            .multilineTextAlignment(.center)
+//                            .padding(.horizontal, 40)
                     }
                 }
                 
@@ -142,10 +142,10 @@ struct Page17: View {
             }
         }
     }
-    
-    struct Page17_Previews: PreviewProvider {
-        static var previews: some View {
-            Page17()
-        }
+}
+
+struct Page17_Previews: PreviewProvider {
+    static var previews: some View {
+        Page17()
     }
 }
