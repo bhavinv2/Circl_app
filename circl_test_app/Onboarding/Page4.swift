@@ -304,9 +304,10 @@ struct Page4: View {
         }.resume()
     }
     
-    struct Page4_Previews: PreviewProvider {
-        static var previews: some View {
-            Page4()
-        }
+}
+
+struct Page4_Previews: PreviewProvider {
+    static var previews: some View {
+        Page4()
     }
 }
