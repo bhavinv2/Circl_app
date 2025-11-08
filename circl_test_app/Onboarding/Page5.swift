@@ -19,7 +19,7 @@ struct Page5: View {
     @State private var navigateToPage13 = false
     @State private var isSubmitting: Bool = false
 
-    let genderOptions = ["Male", "Female", "Prefer not to say"]
+    let genderOptions = ["Man", "Woman", "Prefer not to say"]
     let availabilityOptions = [
         "Full-time (40+ hrs/week)",
         "Part-time (20-40 hrs/week)",
