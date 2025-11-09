@@ -13,6 +13,7 @@ struct PageSkillSellingMatching: View {
     @State private var selectedFilter: String = "all"
     @State private var showFilters = false
     @AppStorage("user_id") private var userId: Int = 0
+    @AppStorage("marketplace_banner_dismissed") private var bannerDismissed: Bool = false
 
     var body: some View {
         NavigationView {
@@ -316,6 +317,28 @@ struct PageSkillSellingMatching: View {
                         
                         Spacer()
                         
+                        // Show create button when banner is dismissed
+                        if bannerDismissed {
+                            Button(action: {
+                                // Handle create listing action
+                                bannerDismissed = false // This would navigate to create listing page
+                            }) {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "plus")
+                                        .font(.system(size: 12, weight: .semibold))
+                                        .foregroundColor(.white)
+                                    Text("Create")
+                                        .font(.system(size: 12, weight: .semibold))
+                                        .foregroundColor(.white)
+                                }
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 6)
+                                .background(Color.green)
+                                .cornerRadius(8)
+                            }
+                            .padding(.trailing, 8)
+                        }
+                        
                         Button(action: {
                             showFilters.toggle()
                         }) {
@@ -341,17 +364,59 @@ struct PageSkillSellingMatching: View {
                             FilterButton(title: "All", isSelected: selectedFilter == "all") {
                                 selectedFilter = "all"
                             }
-                            FilterButton(title: "Remote", isSelected: selectedFilter == "remote") {
-                                selectedFilter = "remote"
-                            }
-                            FilterButton(title: "Equity", isSelected: selectedFilter == "equity") {
-                                selectedFilter = "equity"
-                            }
-                            FilterButton(title: "Full-Time", isSelected: selectedFilter == "fulltime") {
-                                selectedFilter = "fulltime"
-                            }
-                            FilterButton(title: "Startup", isSelected: selectedFilter == "startup") {
-                                selectedFilter = "startup"
+                            
+                            // Project-specific filters by major/field
+                            if selectedTab == "projects" {
+                                FilterButton(title: "Offering", isSelected: selectedFilter == "offering") {
+                                    selectedFilter = "offering"
+                                }
+                                FilterButton(title: "Requesting", isSelected: selectedFilter == "requesting") {
+                                    selectedFilter = "requesting"
+                                }
+                                FilterButton(title: "Computer Science", isSelected: selectedFilter == "cs") {
+                                    selectedFilter = "cs"
+                                }
+                                FilterButton(title: "Finance", isSelected: selectedFilter == "finance") {
+                                    selectedFilter = "finance"
+                                }
+                                FilterButton(title: "Marketing", isSelected: selectedFilter == "marketing") {
+                                    selectedFilter = "marketing"
+                                }
+                                FilterButton(title: "Engineering", isSelected: selectedFilter == "engineering") {
+                                    selectedFilter = "engineering"
+                                }
+                                FilterButton(title: "Design", isSelected: selectedFilter == "design") {
+                                    selectedFilter = "design"
+                                }
+                                FilterButton(title: "Sales", isSelected: selectedFilter == "sales") {
+                                    selectedFilter = "sales"
+                                }
+                                FilterButton(title: "Accounting", isSelected: selectedFilter == "accounting") {
+                                    selectedFilter = "accounting"
+                                }
+                                FilterButton(title: "Legal", isSelected: selectedFilter == "legal") {
+                                    selectedFilter = "legal"
+                                }
+                                FilterButton(title: "Human Resources", isSelected: selectedFilter == "hr") {
+                                    selectedFilter = "hr"
+                                }
+                                FilterButton(title: "Sciences", isSelected: selectedFilter == "sciences") {
+                                    selectedFilter = "sciences"
+                                }
+                            } else {
+                                // Job Board specific filters (employment type)
+                                FilterButton(title: "Remote", isSelected: selectedFilter == "remote") {
+                                    selectedFilter = "remote"
+                                }
+                                FilterButton(title: "Equity", isSelected: selectedFilter == "equity") {
+                                    selectedFilter = "equity"
+                                }
+                                FilterButton(title: "Full-Time", isSelected: selectedFilter == "fulltime") {
+                                    selectedFilter = "fulltime"
+                                }
+                                FilterButton(title: "Startup", isSelected: selectedFilter == "startup") {
+                                    selectedFilter = "startup"
+                                }
                             }
                         }
                         .padding(.horizontal, 16)
@@ -360,37 +425,62 @@ struct PageSkillSellingMatching: View {
                 }
                 .background(Color(UIColor.systemBackground))
                 
-                // Post Your Own Section
-                VStack(spacing: 0) {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(selectedTab == "projects" ? "Post Your Project" : "Post a Job")
-                                .font(.system(size: 16, weight: .semibold))
-                                .foregroundColor(.primary)
-                            Text(selectedTab == "projects" ? "Find collaborators or offer your services" : "Find the perfect candidate")
-                                .font(.system(size: 14))
-                                .foregroundColor(.secondary)
+                // Post Your Own Section - Only show if not dismissed
+                if !bannerDismissed {
+                    VStack(spacing: 0) {
+                        ZStack {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(selectedTab == "projects" ? "Post Your Project" : "Post a Job")
+                                        .font(.system(size: 16, weight: .semibold))
+                                        .foregroundColor(.primary)
+                                    Text(selectedTab == "projects" ? "Find collaborators or offer your services" : "Find the perfect candidate")
+                                        .font(.system(size: 14))
+                                        .foregroundColor(.secondary)
+                                }
+                                
+                                Spacer()
+                                
+                                Button(action: {
+                                    // Handle post creation and dismiss banner
+                                    bannerDismissed = true
+                                }) {
+                                    Text("Create Listing")
+                                        .font(.system(size: 14, weight: .semibold))
+                                        .foregroundColor(.white)
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 8)
+                                        .background(Color.green)
+                                        .cornerRadius(8)
+                                }
+                            }
+                            
+                            // Dismiss button positioned in top-right corner
+                            VStack {
+                                HStack {
+                                    Spacer()
+                                    Button(action: {
+                                        withAnimation(.easeInOut(duration: 0.3)) {
+                                            bannerDismissed = true
+                                        }
+                                    }) {
+                                        Image(systemName: "xmark")
+                                            .font(.system(size: 12, weight: .semibold))
+                                            .foregroundColor(.secondary)
+                                            .frame(width: 20, height: 20)
+                                    }
+                                    .offset(x: 8, y: -5) // Move down by 2 more pixels (was -7, now -5)
+                                }
+                                .padding(.top, -8) // Adjust top padding
+                                Spacer()
+                            }
                         }
-                        
-                        Spacer()
-                        
-                        Button(action: {
-                            // Handle post creation
-                        }) {
-                            Text("Create Listing")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundColor(.white)
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 8)
-                                .background(Color(hex: "004aad"))
-                                .cornerRadius(8)
-                        }
+                        .padding(16)
+                        .background(Color(hex: "004aad").opacity(0.05))
+                        .cornerRadius(12)
+                        .padding(.horizontal, 16)
+                        .padding(.bottom, 20)
                     }
-                    .padding(16)
-                    .background(Color(hex: "004aad").opacity(0.05))
-                    .cornerRadius(12)
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 20)
                 }
                 
                 // Listings Content
@@ -439,6 +529,100 @@ struct ProjectListingsView: View {
     var filteredProjects: [ProjectListing] {
         let projects = MockData.projects
         switch filter {
+        case "offering":
+            return projects.filter { $0.isOffering }
+        case "requesting":
+            return projects.filter { !$0.isOffering }
+        case "cs":
+            return projects.filter { project in
+                project.skills.contains { skill in
+                    let csSkills = ["SwiftUI", "iOS", "React", "Node.js", "AI/ML", "Python", "JavaScript", "Programming", "Development", "Swift", "Web Development", "Mobile", "Backend", "Frontend", "Software", "Coding", "Tech", "App Development", "Full Stack", "Machine Learning", "AI", "Data Science"]
+                    return csSkills.contains { csSkill in
+                        skill.lowercased().contains(csSkill.lowercased())
+                    }
+                }
+            }
+        case "finance":
+            return projects.filter { project in
+                project.skills.contains { skill in
+                    let financeSkills = ["Finance", "FinTech", "Accounting", "Investment", "Banking", "Economics", "Financial", "Trading", "Valuation", "Financial Modeling", "Excel", "CFA", "FP&A", "Financial Analysis", "Budgeting", "Forecasting"]
+                    return financeSkills.contains { financeSkill in
+                        skill.lowercased().contains(financeSkill.lowercased())
+                    }
+                }
+            }
+        case "marketing":
+            return projects.filter { project in
+                project.skills.contains { skill in
+                    let marketingSkills = ["Marketing Strategy", "Growth", "Content Creation", "Social Media", "SEO", "Digital Marketing", "Branding", "Marketing", "Content", "SEM", "Brand", "Advertising", "Campaign", "Analytics", "Lead Generation", "B2B Marketing", "Performance Marketing"]
+                    return marketingSkills.contains { marketingSkill in
+                        skill.lowercased().contains(marketingSkill.lowercased())
+                    }
+                }
+            }
+        case "engineering":
+            return projects.filter { project in
+                project.skills.contains { skill in
+                    let engineeringSkills = ["Engineering", "Mechanical", "Electrical", "Civil", "Software Engineering", "Systems", "Chemical", "CAD", "Design", "Product Design", "Hardware", "Manufacturing", "Prototyping", "3D Modeling"]
+                    return engineeringSkills.contains { engineeringSkill in
+                        skill.lowercased().contains(engineeringSkill.lowercased())
+                    }
+                }
+            }
+        case "design":
+            return projects.filter { project in
+                project.skills.contains { skill in
+                    let designSkills = ["UI/UX", "Design", "Figma", "Graphic Design", "Product Design", "Web Design", "UI", "UX", "Graphic", "Visual", "Creative", "Adobe", "Sketch", "Branding", "Logo", "User Experience", "Illustration"]
+                    return designSkills.contains { designSkill in
+                        skill.lowercased().contains(designSkill.lowercased())
+                    }
+                }
+            }
+        case "sales":
+            return projects.filter { project in
+                project.skills.contains { skill in
+                    let salesSkills = ["Sales", "Business Development", "Lead Generation", "CRM", "Client Relations", "Account Management", "B2B", "B2C", "Customer Success", "Relationship Management", "Negotiation", "Sales Strategy", "Pipeline Management"]
+                    return salesSkills.contains { salesSkill in
+                        skill.lowercased().contains(salesSkill.lowercased())
+                    }
+                }
+            }
+        case "accounting":
+            return projects.filter { project in
+                project.skills.contains { skill in
+                    let accountingSkills = ["Accounting", "Bookkeeping", "Tax", "Financial Analysis", "Auditing", "QuickBooks", "Financial Reporting", "CPA", "Payroll", "Compliance", "GAAP", "Cost Accounting", "Management Accounting"]
+                    return accountingSkills.contains { accountingSkill in
+                        skill.lowercased().contains(accountingSkill.lowercased())
+                    }
+                }
+            }
+        case "legal":
+            return projects.filter { project in
+                project.skills.contains { skill in
+                    let legalSkills = ["Legal", "Law", "Contract", "Compliance", "Litigation", "Corporate Law", "Legal Research", "Paralegal", "Attorney", "Legal Writing", "Intellectual Property", "IP", "Patent", "Trademark", "Legal Analysis", "Regulatory", "Privacy Law", "GDPR"]
+                    return legalSkills.contains { legalSkill in
+                        skill.lowercased().contains(legalSkill.lowercased())
+                    }
+                }
+            }
+        case "hr":
+            return projects.filter { project in
+                project.skills.contains { skill in
+                    let hrSkills = ["Human Resources", "HR", "Recruitment", "Talent Acquisition", "Employee Relations", "Compensation", "Benefits", "Performance Management", "Training", "Development", "Onboarding", "Payroll", "HR Analytics", "Diversity", "Inclusion", "Organizational Development", "HRIS"]
+                    return hrSkills.contains { hrSkill in
+                        skill.lowercased().contains(hrSkill.lowercased())
+                    }
+                }
+            }
+        case "sciences":
+            return projects.filter { project in
+                project.skills.contains { skill in
+                    let scienceSkills = ["Biology", "Chemistry", "Physics", "Research", "Laboratory", "Data Analysis", "Scientific Writing", "Statistics", "Biotech", "Pharmaceutical", "Clinical Research", "Environmental Science", "Life Sciences", "Molecular Biology", "Genetics", "Biochemistry", "Microbiology", "Neuroscience", "Psychology", "Scientific Research"]
+                    return scienceSkills.contains { scienceSkill in
+                        skill.lowercased().contains(scienceSkill.lowercased())
+                    }
+                }
+            }
         case "remote":
             return projects.filter { $0.isRemote }
         case "equity":
@@ -490,7 +674,7 @@ struct ProjectCard: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            // Header with badges
+            // Header with title and REQUESTING/OFFERING badge in top-right
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(project.title)
@@ -499,22 +683,27 @@ struct ProjectCard: View {
                     Text(project.company)
                         .font(.system(size: 14))
                         .foregroundColor(.secondary)
+                    Text(project.industry)
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(Color(hex: "004aad"))
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 2)
+                        .background(Color(hex: "004aad").opacity(0.1))
+                        .cornerRadius(4)
                 }
                 Spacer()
-                Text(project.timePosted)
-                    .font(.system(size: 12))
-                    .foregroundColor(.secondary)
-            }
-            
-            // Badges
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
-                    Badge(text: project.type, color: .blue)
-                    Badge(text: project.compensationType, color: .green)
-                    if project.isRemote {
-                        Badge(text: "Remote", color: .purple)
-                    }
-                    Badge(text: project.companyType, color: .orange)
+                VStack(alignment: .trailing, spacing: 4) {
+                    // Offering or Requesting badge
+                    Text(project.isOffering ? "OFFERING" : "REQUESTING")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(project.isOffering ? Color.green : Color(hex: "004aad"))
+                        .cornerRadius(12)
+                    Text(project.timePosted)
+                        .font(.system(size: 12))
+                        .foregroundColor(.secondary)
                 }
             }
             
@@ -524,19 +713,26 @@ struct ProjectCard: View {
                 .foregroundColor(.primary)
                 .lineLimit(3)
             
-            // Skills
-            if !project.skills.isEmpty {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        ForEach(project.skills, id: \.self) { skill in
-                            Text(skill)
-                                .font(.system(size: 12))
-                                .foregroundColor(Color(hex: "004aad"))
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
-                                .background(Color(hex: "004aad").opacity(0.1))
-                                .cornerRadius(6)
-                        }
+            // All tags in one row
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    // Project type and compensation
+                    Badge(text: project.type, color: .blue)
+                    Badge(text: project.compensationType, color: .green)
+                    if project.isRemote {
+                        Badge(text: "Remote", color: .purple)
+                    }
+                    Badge(text: project.companyType, color: .orange)
+                    
+                    // Skills
+                    ForEach(project.skills, id: \.self) { skill in
+                        Text(skill)
+                            .font(.system(size: 12))
+                            .foregroundColor(Color(hex: "004aad"))
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color(hex: "004aad").opacity(0.1))
+                            .cornerRadius(6)
                     }
                 }
             }
@@ -544,9 +740,9 @@ struct ProjectCard: View {
             // Action buttons
             HStack {
                 Button(action: {
-                    // Handle apply/request work
+                    // Handle apply/request work or hire
                 }) {
-                    Text("Request Work")
+                    Text(project.isOffering ? "Hire" : "Request Work")
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundColor(.white)
                         .padding(.horizontal, 16)
@@ -704,6 +900,7 @@ struct ProjectListing {
     let id: String
     let title: String
     let company: String
+    let industry: String // "HealthTech", "FinTech", "EdTech", "E-commerce", etc.
     let type: String // "Project Collaboration", "Service Offering", "Co-Founder Search", etc.
     let description: String
     let skills: [String]
@@ -711,6 +908,7 @@ struct ProjectListing {
     let isRemote: Bool
     let companyType: String // "Startup", "Small Business", "Enterprise"
     let timePosted: String
+    let isOffering: Bool // true = offering services, false = requesting services
 }
 
 struct JobListing {
@@ -734,61 +932,183 @@ struct MockData {
             id: "p1",
             title: "Looking for iOS Developer Co-Founder",
             company: "HealthTech Startup",
+            industry: "HealthTech",
             type: "Co-Founder Search",
             description: "Building the next generation health monitoring app. Looking for a technical co-founder with iOS expertise to join as CTO. Equity-based opportunity with huge market potential.",
             skills: ["SwiftUI", "iOS", "Healthcare", "Startup"],
             compensationType: "Equity Position",
             isRemote: true,
             companyType: "Startup",
-            timePosted: "2h ago"
+            timePosted: "2h ago",
+            isOffering: false
         ),
         ProjectListing(
             id: "p2",
             title: "UI/UX Designer for SaaS Dashboard",
             company: "TechFlow Solutions",
+            industry: "SaaS",
             type: "Contract",
             description: "Need an experienced designer to create a beautiful dashboard for our B2B SaaS platform. 3-month project with potential for ongoing work.",
             skills: ["Figma", "UI/UX", "SaaS", "Dashboard Design"],
             compensationType: "Paid Contract",
             isRemote: true,
             companyType: "Startup",
-            timePosted: "4h ago"
+            timePosted: "4h ago",
+            isOffering: false
         ),
         ProjectListing(
             id: "p3",
-            title: "Marketing Strategy Collaboration",
-            company: "EcoTech Innovations",
-            type: "Project Collaboration",
-            description: "Environmental startup looking for marketing expert to help develop go-to-market strategy. Great opportunity to make an impact in sustainability.",
-            skills: ["Marketing Strategy", "Sustainability", "Growth"],
-            compensationType: "Collaboration",
-            isRemote: false,
-            companyType: "Startup",
-            timePosted: "1d ago"
+            title: "Marketing Strategy Consultant",
+            company: "GrowthHackers Pro",
+            industry: "Marketing",
+            type: "Service Offering",
+            description: "Experienced growth marketer offering consulting services. Helped 20+ startups achieve 300%+ growth in user acquisition.",
+            skills: ["Marketing Strategy", "Growth", "Analytics"],
+            compensationType: "Hourly Consulting",
+            isRemote: true,
+            companyType: "Freelance",
+            timePosted: "1d ago",
+            isOffering: true
         ),
         ProjectListing(
             id: "p4",
-            title: "Full-Stack Developer for Equity",
+            title: "Senior Full-Stack Developer Needed",
             company: "FinanceAI",
+            industry: "FinTech",
             type: "Equity-Based Role",
             description: "Join our AI-powered finance platform as a senior developer. Offering significant equity stake in a fast-growing company.",
             skills: ["React", "Node.js", "AI/ML", "Finance"],
             compensationType: "Equity Position",
             isRemote: true,
             companyType: "Startup",
-            timePosted: "2d ago"
+            timePosted: "2d ago",
+            isOffering: false
         ),
         ProjectListing(
             id: "p5",
             title: "Content Creator Service",
             company: "CreativeWorks",
+            industry: "Marketing",
             type: "Service Offering",
             description: "Professional content creator available for hire. Specializing in tech startup content, social media strategy, and brand storytelling.",
             skills: ["Content Creation", "Social Media", "Branding"],
             compensationType: "Service Offering",
             isRemote: true,
             companyType: "Freelance",
-            timePosted: "3d ago"
+            timePosted: "3d ago",
+            isOffering: true
+        ),
+        ProjectListing(
+            id: "p6",
+            title: "iOS Developer Available",
+            company: "TechFreelancer",
+            industry: "Technology",
+            type: "Service Offering",
+            description: "Senior iOS developer with 8+ years experience available for contract work. Specializing in SwiftUI, health apps, and fintech applications.",
+            skills: ["SwiftUI", "iOS", "HealthKit", "Core Data"],
+            compensationType: "Hourly Rate",
+            isRemote: true,
+            companyType: "Freelance",
+            timePosted: "5h ago",
+            isOffering: true
+        ),
+        ProjectListing(
+            id: "p7",
+            title: "Seeking Marketing Co-Founder",
+            company: "AI Startup",
+            industry: "AI/Tech",
+            type: "Co-Founder Search",
+            description: "AI startup looking for marketing co-founder to lead growth strategy. Great opportunity to join early-stage company with strong technical foundation.",
+            skills: ["Growth Marketing", "B2B SaaS", "Startup Experience"],
+            compensationType: "Equity + Salary",
+            isRemote: true,
+            companyType: "Startup",
+            timePosted: "6h ago",
+            isOffering: false
+        ),
+        ProjectListing(
+            id: "p8",
+            title: "Financial Analyst Available",
+            company: "FinanceExpert",
+            industry: "Finance",
+            type: "Service Offering",
+            description: "CFA-certified financial analyst available for consulting. Expertise in investment analysis, financial modeling, and startup valuation.",
+            skills: ["Finance", "Investment", "Financial Analysis", "Excel"],
+            compensationType: "Hourly Rate",
+            isRemote: true,
+            companyType: "Freelance",
+            timePosted: "1d ago",
+            isOffering: true
+        ),
+        ProjectListing(
+            id: "p9",
+            title: "Need Sales Strategy Help",
+            company: "B2B SaaS Startup",
+            industry: "SaaS",
+            type: "Project Collaboration",
+            description: "Early-stage SaaS company looking for sales expert to help build our go-to-market strategy and train our founding team.",
+            skills: ["Sales", "Business Development", "B2B SaaS"],
+            compensationType: "Paid Contract",
+            isRemote: false,
+            companyType: "Startup",
+            timePosted: "8h ago",
+            isOffering: false
+        ),
+        ProjectListing(
+            id: "p10",
+            title: "Mechanical Engineer for Product Design",
+            company: "HardwareTech",
+            industry: "Hardware",
+            type: "Contract",
+            description: "Hardware startup seeking mechanical engineer for 6-month contract to design consumer product. Experience with CAD and prototyping required.",
+            skills: ["Engineering", "Mechanical", "CAD", "Product Design"],
+            compensationType: "Paid Contract",
+            isRemote: false,
+            companyType: "Startup",
+            timePosted: "12h ago",
+            isOffering: false
+        ),
+        ProjectListing(
+            id: "p11",
+            title: "Legal Consultant Available",
+            company: "LegalExpert Pro",
+            industry: "Legal Services",
+            type: "Service Offering",
+            description: "Experienced corporate attorney offering legal consulting services. Specializing in startup law, contracts, and intellectual property protection.",
+            skills: ["Legal", "Corporate Law", "Contract", "Intellectual Property"],
+            compensationType: "Hourly Rate",
+            isRemote: true,
+            companyType: "Freelance",
+            timePosted: "4h ago",
+            isOffering: true
+        ),
+        ProjectListing(
+            id: "p12",
+            title: "Need HR System Implementation",
+            company: "GrowingStartup",
+            industry: "Technology",
+            type: "Project Collaboration",
+            description: "Fast-growing startup needs HR professional to implement employee onboarding, performance management, and benefits administration systems.",
+            skills: ["Human Resources", "HRIS", "Performance Management", "Onboarding"],
+            compensationType: "Paid Contract",
+            isRemote: false,
+            companyType: "Startup",
+            timePosted: "7h ago",
+            isOffering: false
+        ),
+        ProjectListing(
+            id: "p13",
+            title: "Research Data Analysis Expert",
+            company: "BioTech Research",
+            industry: "BioTech",
+            type: "Service Offering",
+            description: "PhD in Biology with expertise in statistical analysis and scientific research. Available for data analysis projects in life sciences and biotech.",
+            skills: ["Research", "Data Analysis", "Biology", "Statistics", "Scientific Writing"],
+            compensationType: "Project-based",
+            isRemote: true,
+            companyType: "Freelance",
+            timePosted: "2d ago",
+            isOffering: true
         )
     ]
     
