@@ -12,6 +12,8 @@ struct PageSkillSellingMatching: View {
     @State private var selectedTab: String = "projects" // "projects" or "jobboard"
     @State private var selectedFilter: String = "all"
     @State private var showFilters = false
+    @State private var showCreateProjectSheet = false
+    @State private var showCreateJobSheet = false
     @AppStorage("user_id") private var userId: Int = 0
     @AppStorage("marketplace_banner_dismissed") private var bannerDismissed: Bool = false
 
@@ -188,6 +190,13 @@ struct PageSkillSellingMatching: View {
                 }
             }
         }
+        // Sheet modifiers for create listing forms
+        .sheet(isPresented: $showCreateProjectSheet) {
+            CreateProjectSheet(isPresented: $showCreateProjectSheet)
+        }
+        .sheet(isPresented: $showCreateJobSheet) {
+            CreateJobSheet(isPresented: $showCreateJobSheet)
+        }
         // Load data when view appears
         .onAppear {
             loadMarketplaceData()
@@ -320,8 +329,11 @@ struct PageSkillSellingMatching: View {
                         // Show create button when banner is dismissed
                         if bannerDismissed {
                             Button(action: {
-                                // Handle create listing action
-                                bannerDismissed = false // This would navigate to create listing page
+                                if selectedTab == "projects" {
+                                    showCreateProjectSheet = true
+                                } else {
+                                    showCreateJobSheet = true
+                                }
                             }) {
                                 HStack(spacing: 4) {
                                     Image(systemName: "plus")
@@ -443,6 +455,11 @@ struct PageSkillSellingMatching: View {
                                 
                                 Button(action: {
                                     // Handle post creation and dismiss banner
+                                    if selectedTab == "projects" {
+                                        showCreateProjectSheet = true
+                                    } else {
+                                        showCreateJobSheet = true
+                                    }
                                     bannerDismissed = true
                                 }) {
                                     Text("Create Listing")
@@ -1239,6 +1256,556 @@ struct MockData {
                 }
             }
         }.resume()
+    }
+}
+
+// MARK: - Create Project Sheet
+struct CreateProjectSheet: View {
+    @Binding var isPresented: Bool
+    @State private var title: String = ""
+    @State private var company: String = ""
+    @State private var industry: String = ""
+    @State private var description: String = ""
+    @State private var selectedType: String = "Project Collaboration"
+    @State private var selectedCompensation: String = "Paid Contract"
+    @State private var selectedCompanyType: String = "Startup"
+    @State private var isRemote: Bool = true
+    @State private var isOffering: Bool = false
+    @State private var skillInput: String = ""
+    @State private var skills: [String] = []
+    
+    let projectTypes = ["Project Collaboration", "Service Offering", "Co-Founder Search", "Contract", "Internship"]
+    let compensationTypes = ["Paid Contract", "Equity Position", "Hourly Rate", "Equity + Salary", "Collaboration", "Project-based"]
+    let companyTypes = ["Startup", "Small Business", "Enterprise", "Freelance", "Non-Profit"]
+    let industries = ["HealthTech", "FinTech", "SaaS", "E-commerce", "AI/Tech", "Marketing", "Legal Services", "BioTech", "Hardware", "EdTech"]
+    
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                VStack(spacing: 24) {
+                    // Header
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Create Project Listing")
+                            .font(.system(size: 24, weight: .bold))
+                            .foregroundColor(.primary)
+                        Text("Find collaborators or offer your services")
+                            .font(.system(size: 16))
+                            .foregroundColor(.secondary)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    // Offering/Requesting Toggle
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Type")
+                            .font(.system(size: 16, weight: .semibold))
+                        
+                        HStack(spacing: 12) {
+                            Button(action: { isOffering = false }) {
+                                HStack {
+                                    Image(systemName: isOffering ? "circle" : "checkmark.circle.fill")
+                                        .foregroundColor(isOffering ? .gray : Color(hex: "004aad"))
+                                    Text("Requesting Services")
+                                        .foregroundColor(isOffering ? .gray : Color(hex: "004aad"))
+                                }
+                                .font(.system(size: 14, weight: .medium))
+                            }
+                            
+                            Button(action: { isOffering = true }) {
+                                HStack {
+                                    Image(systemName: isOffering ? "checkmark.circle.fill" : "circle")
+                                        .foregroundColor(isOffering ? Color.green : .gray)
+                                    Text("Offering Services")
+                                        .foregroundColor(isOffering ? Color.green : .gray)
+                                }
+                                .font(.system(size: 14, weight: .medium))
+                            }
+                        }
+                    }
+                    
+                    // Basic Information
+                    VStack(spacing: 16) {
+                        FormField(title: "Project Title", text: $title, placeholder: "e.g. iOS Developer for Health App")
+                        FormField(title: "Company/Organization", text: $company, placeholder: "Your company name")
+                        
+                        // Industry Picker
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Industry")
+                                .font(.system(size: 16, weight: .semibold))
+                            
+                            Menu {
+                                ForEach(industries, id: \.self) { industryOption in
+                                    Button(industryOption) {
+                                        industry = industryOption
+                                    }
+                                }
+                            } label: {
+                                HStack {
+                                    Text(industry.isEmpty ? "Select Industry" : industry)
+                                        .foregroundColor(industry.isEmpty ? .gray : .primary)
+                                    Spacer()
+                                    Image(systemName: "chevron.down")
+                                        .foregroundColor(.gray)
+                                }
+                                .padding()
+                                .background(Color(UIColor.systemGray6))
+                                .cornerRadius(8)
+                            }
+                        }
+                    }
+                    
+                    // Project Details
+                    VStack(spacing: 16) {
+                        // Project Type
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Project Type")
+                                .font(.system(size: 16, weight: .semibold))
+                            
+                            Menu {
+                                ForEach(projectTypes, id: \.self) { type in
+                                    Button(type) {
+                                        selectedType = type
+                                    }
+                                }
+                            } label: {
+                                HStack {
+                                    Text(selectedType)
+                                        .foregroundColor(.primary)
+                                    Spacer()
+                                    Image(systemName: "chevron.down")
+                                        .foregroundColor(.gray)
+                                }
+                                .padding()
+                                .background(Color(UIColor.systemGray6))
+                                .cornerRadius(8)
+                            }
+                        }
+                        
+                        // Compensation Type
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Compensation")
+                                .font(.system(size: 16, weight: .semibold))
+                            
+                            Menu {
+                                ForEach(compensationTypes, id: \.self) { compensation in
+                                    Button(compensation) {
+                                        selectedCompensation = compensation
+                                    }
+                                }
+                            } label: {
+                                HStack {
+                                    Text(selectedCompensation)
+                                        .foregroundColor(.primary)
+                                    Spacer()
+                                    Image(systemName: "chevron.down")
+                                        .foregroundColor(.gray)
+                                }
+                                .padding()
+                                .background(Color(UIColor.systemGray6))
+                                .cornerRadius(8)
+                            }
+                        }
+                        
+                        // Company Type
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Company Type")
+                                .font(.system(size: 16, weight: .semibold))
+                            
+                            Menu {
+                                ForEach(companyTypes, id: \.self) { companyType in
+                                    Button(companyType) {
+                                        selectedCompanyType = companyType
+                                    }
+                                }
+                            } label: {
+                                HStack {
+                                    Text(selectedCompanyType)
+                                        .foregroundColor(.primary)
+                                    Spacer()
+                                    Image(systemName: "chevron.down")
+                                        .foregroundColor(.gray)
+                                }
+                                .padding()
+                                .background(Color(UIColor.systemGray6))
+                                .cornerRadius(8)
+                            }
+                        }
+                    }
+                    
+                    // Remote Work Toggle
+                    HStack {
+                        Text("Remote Work")
+                            .font(.system(size: 16, weight: .semibold))
+                        Spacer()
+                        Toggle("", isOn: $isRemote)
+                            .tint(Color(hex: "004aad"))
+                    }
+                    
+                    // Description
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Project Description")
+                            .font(.system(size: 16, weight: .semibold))
+                        
+                        TextEditor(text: $description)
+                            .frame(minHeight: 120)
+                            .padding(8)
+                            .background(Color(UIColor.systemGray6))
+                            .cornerRadius(8)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                            )
+                    }
+                    
+                    // Skills Section
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Required Skills")
+                            .font(.system(size: 16, weight: .semibold))
+                        
+                        HStack {
+                            TextField("Add a skill", text: $skillInput)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                            
+                            Button("Add") {
+                                if !skillInput.isEmpty && !skills.contains(skillInput) {
+                                    skills.append(skillInput)
+                                    skillInput = ""
+                                }
+                            }
+                            .foregroundColor(Color(hex: "004aad"))
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(Color(hex: "004aad").opacity(0.1))
+                            .cornerRadius(6)
+                        }
+                        
+                        // Display added skills
+                        if !skills.isEmpty {
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 8) {
+                                    ForEach(skills.indices, id: \.self) { index in
+                                        HStack(spacing: 4) {
+                                            Text(skills[index])
+                                                .font(.system(size: 12))
+                                            Button(action: {
+                                                skills.remove(at: index)
+                                            }) {
+                                                Image(systemName: "xmark.circle.fill")
+                                                    .font(.system(size: 12))
+                                                    .foregroundColor(.gray)
+                                            }
+                                        }
+                                        .foregroundColor(Color(hex: "004aad"))
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 4)
+                                        .background(Color(hex: "004aad").opacity(0.1))
+                                        .cornerRadius(6)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                .padding(20)
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        isPresented = false
+                    }
+                    .foregroundColor(.gray)
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Post") {
+                        // Handle project creation
+                        createProject()
+                    }
+                    .foregroundColor(isFormValid ? Color(hex: "004aad") : .gray)
+                    .disabled(!isFormValid)
+                }
+            }
+        }
+    }
+    
+    private var isFormValid: Bool {
+        !title.isEmpty && !company.isEmpty && !industry.isEmpty && !description.isEmpty && !skills.isEmpty
+    }
+    
+    private func createProject() {
+        // Handle project creation logic
+        print("Creating project: \(title)")
+        isPresented = false
+    }
+}
+
+// MARK: - Create Job Sheet
+struct CreateJobSheet: View {
+    @Binding var isPresented: Bool
+    @State private var title: String = ""
+    @State private var company: String = ""
+    @State private var location: String = ""
+    @State private var description: String = ""
+    @State private var salaryRange: String = ""
+    @State private var selectedType: String = "Full-Time"
+    @State private var selectedExperience: String = "Mid-Level"
+    @State private var isRemote: Bool = false
+    @State private var skillInput: String = ""
+    @State private var skills: [String] = []
+    @State private var benefits: [String] = []
+    @State private var benefitInput: String = ""
+    
+    let jobTypes = ["Full-Time", "Part-Time", "Contract", "Internship", "Freelance"]
+    let experienceLevels = ["Entry-Level", "Mid-Level", "Senior-Level", "Executive", "Student"]
+    
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                VStack(spacing: 24) {
+                    // Header
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Post Job Opening")
+                            .font(.system(size: 24, weight: .bold))
+                            .foregroundColor(.primary)
+                        Text("Find the perfect candidate for your team")
+                            .font(.system(size: 16))
+                            .foregroundColor(.secondary)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    // Basic Information
+                    VStack(spacing: 16) {
+                        FormField(title: "Job Title", text: $title, placeholder: "e.g. Senior iOS Developer")
+                        FormField(title: "Company", text: $company, placeholder: "Company name")
+                        FormField(title: "Location", text: $location, placeholder: "e.g. San Francisco, CA")
+                        FormField(title: "Salary Range", text: $salaryRange, placeholder: "e.g. $80k - $120k")
+                    }
+                    
+                    // Job Details
+                    VStack(spacing: 16) {
+                        // Job Type
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Job Type")
+                                .font(.system(size: 16, weight: .semibold))
+                            
+                            Menu {
+                                ForEach(jobTypes, id: \.self) { type in
+                                    Button(type) {
+                                        selectedType = type
+                                    }
+                                }
+                            } label: {
+                                HStack {
+                                    Text(selectedType)
+                                        .foregroundColor(.primary)
+                                    Spacer()
+                                    Image(systemName: "chevron.down")
+                                        .foregroundColor(.gray)
+                                }
+                                .padding()
+                                .background(Color(UIColor.systemGray6))
+                                .cornerRadius(8)
+                            }
+                        }
+                        
+                        // Experience Level
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Experience Level")
+                                .font(.system(size: 16, weight: .semibold))
+                            
+                            Menu {
+                                ForEach(experienceLevels, id: \.self) { level in
+                                    Button(level) {
+                                        selectedExperience = level
+                                    }
+                                }
+                            } label: {
+                                HStack {
+                                    Text(selectedExperience)
+                                        .foregroundColor(.primary)
+                                    Spacer()
+                                    Image(systemName: "chevron.down")
+                                        .foregroundColor(.gray)
+                                }
+                                .padding()
+                                .background(Color(UIColor.systemGray6))
+                                .cornerRadius(8)
+                            }
+                        }
+                    }
+                    
+                    // Remote Work Toggle
+                    HStack {
+                        Text("Remote Position")
+                            .font(.system(size: 16, weight: .semibold))
+                        Spacer()
+                        Toggle("", isOn: $isRemote)
+                            .tint(Color(hex: "004aad"))
+                    }
+                    
+                    // Job Description
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Job Description")
+                            .font(.system(size: 16, weight: .semibold))
+                        
+                        TextEditor(text: $description)
+                            .frame(minHeight: 120)
+                            .padding(8)
+                            .background(Color(UIColor.systemGray6))
+                            .cornerRadius(8)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                            )
+                    }
+                    
+                    // Skills Section
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Required Skills")
+                            .font(.system(size: 16, weight: .semibold))
+                        
+                        HStack {
+                            TextField("Add a skill", text: $skillInput)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                            
+                            Button("Add") {
+                                if !skillInput.isEmpty && !skills.contains(skillInput) {
+                                    skills.append(skillInput)
+                                    skillInput = ""
+                                }
+                            }
+                            .foregroundColor(Color(hex: "004aad"))
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(Color(hex: "004aad").opacity(0.1))
+                            .cornerRadius(6)
+                        }
+                        
+                        // Display added skills
+                        if !skills.isEmpty {
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 8) {
+                                    ForEach(skills.indices, id: \.self) { index in
+                                        HStack(spacing: 4) {
+                                            Text(skills[index])
+                                                .font(.system(size: 12))
+                                            Button(action: {
+                                                skills.remove(at: index)
+                                            }) {
+                                                Image(systemName: "xmark.circle.fill")
+                                                    .font(.system(size: 12))
+                                                    .foregroundColor(.gray)
+                                            }
+                                        }
+                                        .foregroundColor(Color(hex: "004aad"))
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 4)
+                                        .background(Color(hex: "004aad").opacity(0.1))
+                                        .cornerRadius(6)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Benefits Section
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Benefits & Perks")
+                            .font(.system(size: 16, weight: .semibold))
+                        
+                        HStack {
+                            TextField("Add a benefit", text: $benefitInput)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                            
+                            Button("Add") {
+                                if !benefitInput.isEmpty && !benefits.contains(benefitInput) {
+                                    benefits.append(benefitInput)
+                                    benefitInput = ""
+                                }
+                            }
+                            .foregroundColor(Color(hex: "004aad"))
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(Color(hex: "004aad").opacity(0.1))
+                            .cornerRadius(6)
+                        }
+                        
+                        // Display added benefits
+                        if !benefits.isEmpty {
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 8) {
+                                    ForEach(benefits.indices, id: \.self) { index in
+                                        HStack(spacing: 4) {
+                                            Text(benefits[index])
+                                                .font(.system(size: 12))
+                                            Button(action: {
+                                                benefits.remove(at: index)
+                                            }) {
+                                                Image(systemName: "xmark.circle.fill")
+                                                    .font(.system(size: 12))
+                                                    .foregroundColor(.gray)
+                                            }
+                                        }
+                                        .foregroundColor(Color.green)
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 4)
+                                        .background(Color.green.opacity(0.1))
+                                        .cornerRadius(6)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                .padding(20)
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        isPresented = false
+                    }
+                    .foregroundColor(.gray)
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Post") {
+                        // Handle job creation
+                        createJob()
+                    }
+                    .foregroundColor(isFormValid ? Color(hex: "004aad") : .gray)
+                    .disabled(!isFormValid)
+                }
+            }
+        }
+    }
+    
+    private var isFormValid: Bool {
+        !title.isEmpty && !company.isEmpty && !location.isEmpty && !description.isEmpty && !skills.isEmpty
+    }
+    
+    private func createJob() {
+        // Handle job creation logic
+        print("Creating job: \(title)")
+        isPresented = false
+    }
+}
+
+// MARK: - Form Field Component
+struct FormField: View {
+    let title: String
+    @Binding var text: String
+    let placeholder: String
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title)
+                .font(.system(size: 16, weight: .semibold))
+            
+            TextField(placeholder, text: $text)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .font(.system(size: 16))
+        }
     }
 }
 
