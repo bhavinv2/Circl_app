@@ -223,6 +223,9 @@ struct Page3: View {
                     Spacer(minLength: 30)
                 }
                 .padding(.horizontal, 30)
+                .onTapGesture {
+                    hideKeyboard()
+                }
                 .alert(isPresented: $showAlert) {
                     Alert(
                         title: Text("Registration Error"),
@@ -398,14 +401,6 @@ struct PersonalInformationSection: View {
                 .background(Color(.systemGray5))
                 .cornerRadius(8)
                 .autocapitalization(.words)
-                .toolbar {
-                    ToolbarItemGroup(placement: .keyboard) {
-                        Spacer()
-                        Button("Done") {
-                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                        }
-                    }
-                }
                 
                 TextField("Last Name", text: Binding(
                     get: { lastName },
@@ -415,14 +410,6 @@ struct PersonalInformationSection: View {
                 .background(Color(.systemGray5))
                 .cornerRadius(8)
                 .autocapitalization(.words)
-                .toolbar {
-                    ToolbarItemGroup(placement: .keyboard) {
-                        Spacer()
-                        Button("Done") {
-                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                        }
-                    }
-                }
 
                 VStack(alignment: .leading, spacing: 2) {
                     TextField("Email", text: Binding(
@@ -437,14 +424,6 @@ struct PersonalInformationSection: View {
                     .cornerRadius(8)
                     .keyboardType(.emailAddress)
                     .autocapitalization(.none)
-                    .toolbar {
-                        ToolbarItemGroup(placement: .keyboard) {
-                            Spacer()
-                            Button("Done") {
-                                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                            }
-                        }
-                    }
                     
                     if !isEmailValid && !email.isEmpty {
                         Text("Please enter a valid email address")
@@ -463,14 +442,6 @@ struct PersonalInformationSection: View {
                 .background(Color(.systemGray5))
                 .cornerRadius(8)
                 .keyboardType(.phonePad)
-                .toolbar {
-                    ToolbarItemGroup(placement: .keyboard) {
-                        Spacer()
-                        Button("Done") {
-                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                        }
-                    }
-                }
                 
                 VStack(alignment: .leading, spacing: 2) {
                     SecureField("Password", text: Binding(
@@ -483,14 +454,6 @@ struct PersonalInformationSection: View {
                     .padding(12)
                     .background(Color(.systemGray5))
                     .cornerRadius(8)
-                    .toolbar {
-                        ToolbarItemGroup(placement: .keyboard) {
-                            Spacer()
-                            Button("Done") {
-                                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                            }
-                        }
-                    }
                     
                     if !password.isEmpty && !isValidPassword(password) {
                         Text("Password must be at least 8 characters long")
@@ -510,14 +473,6 @@ struct PersonalInformationSection: View {
                     .padding(12)
                     .background(Color(.systemGray5))
                     .cornerRadius(8)
-                    .toolbar {
-                        ToolbarItemGroup(placement: .keyboard) {
-                            Spacer()
-                            Button("Done") {
-                                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                            }
-                        }
-                    }
                     
                     if !confirmPassword.isEmpty && !passwordsMatch() {
                         Text("Passwords do not match")

@@ -212,14 +212,6 @@ struct Page5: View {
                                 .textFieldStyle(RoundedTextFieldStyle())
                                 .frame(maxWidth: 300)
                                 .autocapitalization(.words)
-                                .toolbar {
-                                    ToolbarItemGroup(placement: .keyboard) {
-                                        Spacer()
-                                        Button("Done") {
-                                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                                        }
-                                    }
-                                }
                             
                             if !locationValidationMessage.isEmpty {
                                 Text(locationValidationMessage)
@@ -295,14 +287,6 @@ struct Page5: View {
                                 .alert("Invalid Personality Type format. Use XXXX-Y.", isPresented: $showInvalidPersonalityAlert) {
                                     Button("OK", role: .cancel) { }
                                 }
-                                .toolbar {
-                                    ToolbarItemGroup(placement: .keyboard) {
-                                        Spacer()
-                                        Button("Done") {
-                                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                                        }
-                                    }
-                                }
                             
                             Button(action: {
                                 showPersonalityTypeInfo = true
@@ -376,6 +360,9 @@ struct Page5: View {
                     Spacer()
                 }
                 .navigationBarHidden(true)
+                .onTapGesture {
+                    hideKeyboard()
+                }
             }
             .background(
                 NavigationLink(
