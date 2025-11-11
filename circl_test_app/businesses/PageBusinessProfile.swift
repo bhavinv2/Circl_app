@@ -157,20 +157,20 @@ struct PageBusinessProfile: View {
                             transaction.disablesAnimations = true
                         }
                         
-                        // Business Profile (Current page - highlighted)
-                        VStack(spacing: 4) {
-                            Image(systemName: "building.2.fill")
-                                .font(.system(size: 22, weight: .medium))
-                                .foregroundColor(Color(hex: "004aad"))
-                                .scaleEffect(isAnimating ? 1.1 : 1.0)
-                                .animation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true), value: isAnimating)
-                            Text("Business")
-                                .font(.system(size: 10, weight: .medium))
-                                .foregroundColor(Color(hex: "004aad"))
+                        // Growth Hub (Current page - highlighted)
+                        NavigationLink(destination: PageSkillSellingPlaceholder().navigationBarBackButtonHidden(true)) {
+                            VStack(spacing: 4) {
+                                Image(systemName: "dollarsign.circle.fill")
+                                    .font(.system(size: 22, weight: .medium))
+                                    .foregroundColor(Color(hex: "004aad"))
+                                Text("Growth Hub")
+                                    .font(.system(size: 10, weight: .medium))
+                                    .foregroundColor(Color(hex: "004aad"))
+                            }
+                            .frame(maxWidth: .infinity)
                         }
-                        .frame(maxWidth: .infinity)
-                        .onAppear {
-                            isAnimating = true
+                        .transaction { transaction in
+                            transaction.disablesAnimations = true
                         }
                         
                         // More / Additional Resources

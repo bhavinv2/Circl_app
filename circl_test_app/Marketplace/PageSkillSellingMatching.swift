@@ -79,12 +79,12 @@ struct PageSkillSellingMatching: View {
                             transaction.disablesAnimations = true
                         }
                         
-                        // Marketplace (Current page - highlighted)
+                        // Growth Hub (Current page - highlighted)
                         VStack(spacing: 4) {
                             Image(systemName: "dollarsign.circle.fill")
                                 .font(.system(size: 22, weight: .medium))
                                 .foregroundColor(Color(hex: "004aad"))
-                            Text("Marketplace")
+                            Text("Growth Hub")
                                 .font(.system(size: 10, weight: .medium))
                                 .foregroundColor(Color(hex: "004aad"))
                         }

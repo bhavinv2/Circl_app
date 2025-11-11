@@ -1015,13 +1015,13 @@ struct PageUnifiedNetworking: View {
                 transaction.disablesAnimations = true
             }
             
-            // Business Profile
-            NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true)) {
+            // Growth Hub
+            NavigationLink(destination: PageSkillSellingPlaceholder().navigationBarBackButtonHidden(true)) {
                 VStack(spacing: 4) {
-                    Image(systemName: "building.2")
+                    Image(systemName: "dollarsign.circle")
                         .font(.system(size: 22, weight: .medium))
                         .foregroundColor(Color(UIColor.label).opacity(0.6))
-                    Text("Business")
+                    Text("Growth Hub")
                         .font(.system(size: 10, weight: .medium))
                         .foregroundColor(Color(UIColor.label).opacity(0.6))
                 }
