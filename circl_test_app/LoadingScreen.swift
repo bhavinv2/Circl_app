@@ -4,7 +4,7 @@ struct LoadingScreen: View {
     @State private var progressValue: Double = 0
     @State private var logoScale: CGFloat = 0.8
     @State private var logoOpacity: Double = 0
-    @State private var selectedLoadingScreen: String = ""
+    @State private var selectedLoadingScreen: String = "Test_Loading_Screen_1" // Default to ensure image shows
     
     // Array of available loading screens
     private let loadingScreens = [
@@ -19,6 +19,10 @@ struct LoadingScreen: View {
     
     var body: some View {
         ZStack {
+            // Fallback background color in case image fails to load
+            Color(.systemGray4)
+                .ignoresSafeArea(.all)
+            
             // Fullscreen background loading image (randomly selected)
             Image(selectedLoadingScreen)
                 .resizable()
@@ -26,6 +30,9 @@ struct LoadingScreen: View {
                 .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
                 .clipped()
                 .ignoresSafeArea(.all)
+                .onAppear {
+                    print("🖼️ LoadingScreen: Attempting to load image: \(selectedLoadingScreen)")
+                }
             
             // Dark overlay for better logo visibility
             Color.black.opacity(0.3)
@@ -79,7 +86,9 @@ struct LoadingScreen: View {
         }
         .onAppear {
             // Randomly select a loading screen
-            selectedLoadingScreen = loadingScreens.randomElement() ?? "Test_Loading_Screen_1"
+            let newScreen = loadingScreens.randomElement() ?? "Test_Loading_Screen_1"
+            selectedLoadingScreen = newScreen
+            print("🖼️ LoadingScreen: Selected background image: \(newScreen)")
             
             // Animate logo appearance
             withAnimation(.easeOut(duration: 0.8)) {

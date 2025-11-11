@@ -625,6 +625,47 @@ struct PageBusinessProfile: View {
             .padding(.horizontal, 16)
             .padding(.bottom, 16)
             .padding(.top, 8)
+            
+            // Tab Buttons Row - PageForum style tabs
+            HStack(spacing: 0) {
+                Spacer()
+                
+                // Profile Tab
+                NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
+                    VStack(spacing: 8) {
+                        Text("Your Profile")
+                            .font(.system(size: 15, weight: .regular))
+                            .foregroundColor(.white)
+                        
+                        Rectangle()
+                            .fill(Color.clear)
+                            .frame(height: 3)
+                    }
+                    .frame(width: 90)
+                }
+                .transaction { transaction in
+                    transaction.disablesAnimations = true
+                }
+                
+                Spacer()
+                
+                // Business Tab - Always active since this is the business profile page
+                HStack {
+                    VStack(spacing: 8) {
+                        Text("Business Profile")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(.white)
+                        
+                        Rectangle()
+                            .fill(Color.white)
+                            .frame(height: 3)
+                    }
+                    .frame(width: 110)
+                }
+                
+                Spacer()
+            }
+            .padding(.bottom, 8)
         }
         .padding(.top, 50) // Add safe area padding for status bar and notch
         .background(Color(hex: "004aad"))

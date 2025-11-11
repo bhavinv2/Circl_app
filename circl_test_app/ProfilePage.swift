@@ -92,17 +92,18 @@ struct ProfilePage: View {
     */
 
     var body: some View {
-        ZStack {
-            VStack(spacing: 0) {
-                // HEADER SECTION
+        NavigationView {
+            ZStack {
                 VStack(spacing: 0) {
-                    ZStack {
-                        // Center - Circl Logo (positioned in center of entire header)
-                        NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
-                            Text("Circl.")
-                                .font(.system(size: 24, weight: .bold))
-                                .foregroundColor(.white)
-                        }
+                    // HEADER SECTION
+                    VStack(spacing: 0) {
+                        ZStack {
+                            // Center - Circl Logo (positioned in center of entire header)
+                            NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
+                                Text("Circl.")
+                                    .font(.system(size: 24, weight: .bold))
+                                    .foregroundColor(.white)
+                            }
                         
                         // Left and Right content overlaid on top
                         HStack {
@@ -148,6 +149,44 @@ struct ProfilePage: View {
                     .padding(.horizontal, 16)
                     .padding(.bottom, 16)
                     .padding(.top, 8)
+                    
+                    // Tab Buttons Row - PageForum style tabs
+                    HStack(spacing: 0) {
+                        Spacer()
+                        
+                        // Profile Tab - Always active since this page shows profile content
+                        HStack {
+                            VStack(spacing: 8) {
+                                Text("Your Profile")
+                                    .font(.system(size: 15, weight: .semibold))
+                                    .foregroundColor(.white)
+                                
+                                Rectangle()
+                                    .fill(Color.white)
+                                    .frame(height: 3)
+                            }
+                            .frame(width: 90)
+                        }
+                        
+                        Spacer()
+                        
+                        // Business Tab - Navigate to PageBusinessProfile
+                        NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true)) {
+                            VStack(spacing: 8) {
+                                Text("Business Profile")
+                                    .font(.system(size: 15, weight: .regular))
+                                    .foregroundColor(.white)
+                                
+                                Rectangle()
+                                    .fill(Color.clear)
+                                    .frame(height: 3)
+                            }
+                            .frame(width: 110)
+                        }
+                        
+                        Spacer()
+                    }
+                    .padding(.bottom, 8)
                 }
                 .padding(.top, 50)
                 .background(Color(hex: "004aad"))
@@ -155,9 +194,9 @@ struct ProfilePage: View {
 
                 // MAIN CONTENT
                 ScrollView {
-                    VStack(spacing: 0) {
-                        // Add top spacing after header
-                        Spacer().frame(height: 30)
+                        VStack(spacing: 0) {
+                            // Add top spacing after header
+                            Spacer().frame(height: 30)
                         
                         // Profile Header Card
                         ProfileHeaderCard(
@@ -341,10 +380,10 @@ struct ProfilePage: View {
             .ignoresSafeArea(edges: .top)
             
             // MARK: - Twitter/X Style Bottom Navigation
-            VStack {
-                Spacer()
-                
-                HStack(spacing: 0) {
+        VStack {
+            Spacer()
+            
+            HStack(spacing: 0) {
                     // Forum / Home
                     NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
                         VStack(spacing: 4) {
@@ -441,7 +480,9 @@ struct ProfilePage: View {
             .zIndex(1)
         }
         .edgesIgnoringSafeArea(.bottom)
-        .onAppear {
+        .navigationBarHidden(true)
+    }
+    .onAppear {
             // Start animations
             withAnimation(.easeOut(duration: 0.8)) {
                 cardOffset = 0
