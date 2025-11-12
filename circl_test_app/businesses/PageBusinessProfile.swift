@@ -660,7 +660,7 @@ struct PageBusinessProfile: View {
                             .fill(Color.white)
                             .frame(height: 3)
                     }
-                    .frame(width: 110)
+                    .frame(width: 140)  // Increased width to fit "Business Profile" on one line
                 }
                 
                 Spacer()
