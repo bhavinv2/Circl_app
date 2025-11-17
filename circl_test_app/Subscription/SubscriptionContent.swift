@@ -12,11 +12,12 @@ extension SubscriptionManager {
                 price: "$7.99",
                 period: "monthly",
                 features: [
-                    "Unlimited connections, mentor matches, and Circle creation",
+                    "Unlimited daily connections (vs 4/day free limit), mentor matches, and Circle creation",
                     "Earn more with 50% less transaction fee at 7% compared to 14% transaction fee",
                     "Full circles dashboard access: Task Manager, KPI Tracking, Calendar and Events feature",
-                    "2 free marketplace boosts",
-                    "Priority Access to future products such as CRM integration and Video call features"
+                    "2 free marketplace boosts (30% more visibility, $15 value each)",
+                    "Priority Access to future products such as CRM integration and Video call features",
+                    "* Must validate student email via profile to qualify for Student+ pricing"
                 ]
             ),
             SubscriptionPlan(
@@ -24,14 +25,14 @@ extension SubscriptionManager {
                 price: "$29.99",
                 period: "monthly",
                 features: [
-                    "Unlimited connections, mentor matches, and Circle creation",
+                    "Unlimited daily connections (vs 4/day free limit), mentor matches, and Circle creation",
                     "Earn more with 50% less transaction fee at 7% compared to 14% transaction fee", 
                     "Full circles dashboard access: Task Manager, KPI Tracking, Calendar and Events feature",
-                    "Unlimited job and project listings and monetization",
-                    "Advanced circle dashboard: Analytics, CRM import/API integration",
-                    "2 free marketplace boosts + 1 monthly recurring boost",
+                    "Unlimited job and project listings and monetization (vs 2/month free limit)",
+                    "Advanced circle dashboard: Real-time analytics, CRM import/API integration",
+                    "2 free marketplace boosts + 1 monthly recurring boost (45% more visibility, $45 value)",
                     "Priority Access to future products such as CRM integration and Video call features",
-                    "Enhanced networking tools and advanced search filters"
+                    "Advanced search filters: Industry, location, experience level, funding stage"
                 ],
                 isPopular: true
             ),
@@ -40,33 +41,36 @@ extension SubscriptionManager {
                 price: "$54.99",
                 period: "monthly",
                 features: [
-                    "Unlimited connections, mentor matches, and Circle creation",
+                    "Unlimited daily connections (vs 4/day free limit), mentor matches, and Circle creation",
                     "Earn more with 50% less transaction fee at 7% compared to 14% transaction fee",
                     "Full circles dashboard access: Task Manager, KPI Tracking, Calendar and Events feature",
-                    "Unlimited job and project listings and monetization",
-                    "Advanced circle dashboard: Analytics, CRM import/API integration",
-                    "2 free marketplace boosts + 2 monthly recurring boosts",
+                    "Unlimited job and project listings and monetization (vs 2/month free limit)",
+                    "Advanced circle dashboard: Real-time analytics, CRM import/API integration",
+                    "2 free marketplace boosts + 2 monthly recurring boosts (60% more visibility, $60 value)",
                     "Early Access to new products including CRM integration and Video call features",
-                    "Enhanced networking tools and advanced search filters",
-                    "Priority support and exclusive founder resources",
-                    "Enhanced investor access and networking opportunities"
+                    "Advanced search filters: Industry, location, experience level, funding stage",
+                    "Priority support with 24-hour response guarantee",
+                    "Access to 500+ verified investors and exclusive networking events"
                 ]
-            ),
+            )
+            // Enterprise Gold - Commented out for now
+            /*
             SubscriptionPlan(
                 title: "Enterprise Gold",
                 price: "Pricing Varies",
                 period: "", // Intentionally blank; UI hides period when empty
                 features: [
                     "Custom ecosystem curation: mentors, investors, marketplace boosts",
-                    "Tailored solutions for organizations and businesses",
-                    "Dedicated support and advanced analytics",
-                    "White-label branding options",
-                    "Advanced integrations and API access",
-                    "Custom reporting and insights",
+                    "Tailored solutions for organizations and teams of 10+ members",
+                    "Dedicated support with same-day response and advanced analytics dashboard",
+                    "White-label branding options and custom domain setup",
+                    "Advanced integrations: Salesforce, HubSpot APIs",
+                    "Custom reporting: ROI tracking, team performance, engagement metrics",
                     "Full Access to all products including CRM integration and Video call features",
-                    "Dedicated account manager and priority development requests"
+                    "Dedicated account manager and priority feature development requests"
                 ]
             )
+            */
         ]
     }
     
