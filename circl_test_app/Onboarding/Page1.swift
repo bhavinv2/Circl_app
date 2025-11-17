@@ -28,6 +28,9 @@ struct Page1: View {
                 .edgesIgnoringSafeArea(.all)
                 .navigationBarBackButtonHidden(true)
                 .navigationBarHidden(true)
+                .onTapGesture {
+                    hideKeyboard()
+                }
                 
                 VStack(spacing: 0) {
                     Spacer(minLength: 50)
@@ -84,14 +87,6 @@ struct Page1: View {
                                         .stroke(Color.white.opacity(0.3), lineWidth: 1)
                                 )
                                 .shadow(color: .black.opacity(0.05), radius: 3, x: 0, y: 2)
-                                .toolbar {
-                                    ToolbarItemGroup(placement: .keyboard) {
-                                        Spacer()
-                                        Button("Done") {
-                                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                                        }
-                                    }
-                                }
                             
                             // Password Field with improved styling
                             SecureField("Password", text: $password)
@@ -104,14 +99,6 @@ struct Page1: View {
                                         .stroke(Color.white.opacity(0.3), lineWidth: 1)
                                 )
                                 .shadow(color: .black.opacity(0.05), radius: 3, x: 0, y: 2)
-                                .toolbar {
-                                    ToolbarItemGroup(placement: .keyboard) {
-                                        Spacer()
-                                        Button("Done") {
-                                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                                        }
-                                    }
-                                }
                             
                             // Login Button with enhanced styling
                             Button(action: loginUser) {
@@ -149,9 +136,6 @@ struct Page1: View {
                     
                     Spacer(minLength: 50)
                 }
-                .onTapGesture {
-                    hideKeyboard()
-                }
             }
             .sheet(isPresented: $isShowingForgotPasswordPopup) {
                 VStack(spacing: 20) {
@@ -170,14 +154,6 @@ struct Page1: View {
                         .keyboardType(.emailAddress)
                         .autocapitalization(.none)
                         .padding(.horizontal)
-                        .toolbar {
-                            ToolbarItemGroup(placement: .keyboard) {
-                                Spacer()
-                                Button("Done") {
-                                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                                }
-                            }
-                        }
 
                     Button("Submit") {
                         submitForgotPasswordRequest()
@@ -192,6 +168,9 @@ struct Page1: View {
                     Spacer()
                 }
                 .padding()
+                .onTapGesture {
+                    hideKeyboard()
+                }
             }
             .alert("Password Reset", isPresented: $forgotPasswordConfirmationShown) {
                 Button("OK", role: .cancel) { }
