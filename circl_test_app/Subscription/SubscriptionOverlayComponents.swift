@@ -84,10 +84,33 @@ struct PaywallContentView: View {
     let content: SubscriptionContent
     @ObservedObject var subscriptionManager = SubscriptionManager.shared
     @State private var showContent = false
+    @State private var showConfetti = false
+    @State private var confettiOpacity: Double = 0.0
     
     var body: some View {
         ScrollView {
-            VStack(spacing: 0) {
+            ZStack {
+                // Confetti Explosion
+                if showConfetti {
+                    SubscriptionConfettiExplosionView()
+                        .opacity(confettiOpacity)
+                        .onAppear {
+                            withAnimation(.easeIn(duration: 0.5)) {
+                                confettiOpacity = 1.0
+                            }
+                            
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                                withAnimation(.easeOut(duration: 1.0)) {
+                                    confettiOpacity = 0.0
+                                }
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                                    showConfetti = false
+                                }
+                            }
+                        }
+                }
+                
+                VStack(spacing: 0) {
                 // Close Button (stays on background image)
                 HStack {
                     Spacer()
@@ -148,7 +171,13 @@ struct PaywallContentView: View {
                         let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
                         impactFeedback.impactOccurred()
                         
-                        subscriptionManager.completeSubscription()
+                        // Trigger confetti animation
+                        showConfetti = true
+                        
+                        // Delay subscription completion to show confetti
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                            subscriptionManager.completeSubscription()
+                        }
                     }) {
                         HStack {
                             Text("Start Your Journey")
@@ -198,6 +227,7 @@ struct PaywallContentView: View {
                 .background(Color.white.opacity(0.92))
                 .cornerRadius(30)
                 .padding(.horizontal, 20)
+            }
             }
         }
         .onAppear {
@@ -355,4 +385,89 @@ extension View {
     func withSubscriptionPaywall() -> some View {
         self.modifier(SubscriptionPaywallOverlay())
     }
+}
+
+// MARK: - Subscription Confetti Animation
+struct SubscriptionConfettiExplosionView: View {
+    @State private var particles: [SubscriptionParticle] = []
+    
+    let colors: [Color] = [
+        .green, .pink, .purple, .yellow,
+        Color(red: 0.4, green: 0.8, blue: 1.0), // Light blue
+        Color(hex: "004aad"), // Brand blue
+        Color(hex: "ffde59"), // Brand yellow
+        .orange
+    ]
+    
+    var body: some View {
+        ZStack {
+            ForEach(particles.indices, id: \.self) { index in
+                Circle()
+                    .fill(colors[index % colors.count])
+                    .frame(width: particles[index].size, height: particles[index].size)
+                    .offset(x: particles[index].x, y: particles[index].y)
+                    .opacity(particles[index].opacity)
+            }
+        }
+        .onAppear {
+            createExplosion()
+        }
+    }
+    
+    func createExplosion() {
+        particles = []
+        
+        let screenWidth = UIScreen.main.bounds.width
+        let screenHeight = UIScreen.main.bounds.height
+        
+        // Create particles that explode from left and right sides
+        for i in 0..<120 {
+            let size = CGFloat.random(in: 4...10)
+            let duration = Double.random(in: 2.0...4.5)
+            let delay = Double.random(in: 0...0.4)
+            
+            // Determine if particle comes from left or right side
+            let fromLeft = i % 2 == 0
+            let startX: CGFloat = fromLeft ? -screenWidth/2 + 20 : screenWidth/2 - 20
+            
+            // Random explosion trajectory
+            let targetX = CGFloat.random(in: -screenWidth/3...screenWidth/3)
+            let targetY = CGFloat.random(in: -screenHeight/4...screenHeight/2)
+            
+            particles.append(SubscriptionParticle(
+                x: startX, y: -screenHeight/4,
+                size: size,
+                opacity: 0
+            ))
+            
+            let lastIndex = particles.count - 1
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                withAnimation(.easeOut(duration: duration * 0.4)) {
+                    if lastIndex < particles.count {
+                        particles[lastIndex].x = targetX
+                        particles[lastIndex].y = targetY
+                        particles[lastIndex].opacity = 1
+                    }
+                }
+                
+                // Fall down effect
+                DispatchQueue.main.asyncAfter(deadline: .now() + duration * 0.4) {
+                    withAnimation(.easeIn(duration: duration * 0.6)) {
+                        if lastIndex < particles.count {
+                            particles[lastIndex].y += screenHeight
+                            particles[lastIndex].opacity = 0
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+struct SubscriptionParticle {
+    var x: CGFloat
+    var y: CGFloat
+    var size: CGFloat
+    var opacity: Double
 }
