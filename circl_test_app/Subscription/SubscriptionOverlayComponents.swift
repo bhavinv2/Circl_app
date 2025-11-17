@@ -55,26 +55,17 @@ struct PaywallBackgroundView: View {
     let content: SubscriptionContent
     
     private func getRandomBackgroundImage() -> String {
-        let availableImages: [String]
+        // Unified random selection from all paywall backgrounds
+        let allPaywallBackgrounds = [
+            "CommunityBuilderPaywall", "CommunityBuilderPaywall2",
+            "EntrepreneurPaywall", "EntrepreneurPaywall2",
+            "StudentEntrepreneurPaywall", "StudentEntrepreneurPaywall2",
+            "StudentPaywall", "StudentPaywall2", "StudentPaywall3",
+            "MentorPaywall", "MentorPaywall2", "MentorPaywall3",
+            "InvestorPaywall", "InvestorPaywall2", "InvestorPaywall3"
+        ]
         
-        switch content.backgroundImage {
-        case "CommunityBuilderPaywall":
-            availableImages = ["CommunityBuilderPaywall", "CommunityBuilderPaywall2"]
-        case "EntrepreneurPaywall":
-            availableImages = ["EntrepreneurPaywall", "EntrepreneurPaywall2"]
-        case "StudentEntrepreneurPaywall":
-            availableImages = ["StudentEntrepreneurPaywall", "StudentEntrepreneurPaywall2"]
-        case "StudentPaywall":
-            availableImages = ["StudentPaywall", "StudentPaywall2", "StudentPaywall3"]
-        case "MentorPaywall":
-            availableImages = ["MentorPaywall", "MentorPaywall2", "MentorPaywall3"]
-        case "InvestorPaywall":
-            availableImages = ["InvestorPaywall", "InvestorPaywall2", "InvestorPaywall3"]
-        default:
-            return content.backgroundImage
-        }
-        
-        return availableImages.randomElement() ?? content.backgroundImage
+        return allPaywallBackgrounds.randomElement() ?? "EntrepreneurPaywall"
     }
     
     var body: some View {
@@ -153,6 +144,10 @@ struct PaywallContentView: View {
                     
                     // Subscribe Button
                     Button(action: {
+                        // Haptic feedback for button press
+                        let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                        impactFeedback.impactOccurred()
+                        
                         subscriptionManager.completeSubscription()
                     }) {
                         HStack {
@@ -346,6 +341,10 @@ struct SubscriptionPlanCard: View {
         .scaleEffect(isSelected ? 1.02 : 1.0)
         .animation(.easeInOut(duration: 0.2), value: isSelected)
         .onTapGesture {
+            // Haptic feedback for plan selection
+            let selectionFeedback = UISelectionFeedbackGenerator()
+            selectionFeedback.selectionChanged()
+            
             onSelect()
         }
     }
