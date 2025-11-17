@@ -13,10 +13,10 @@ extension SubscriptionManager {
                 period: "monthly",
                 features: [
                     "Unlimited connections, mentor matches, and Circle creation",
-                    "Lower marketplace commission: 7% transaction fee",
-                    "Full dashboard access, including KPI tracking and CRM integration (for marketplace projects)",
+                    "Earn more with 50% less transaction fee at 7% compared to 14% transaction fee",
+                    "Full circles dashboard access: Task Manager, KPI Tracking, Calendar and Events feature",
                     "2 free marketplace boosts",
-                    "1 free investor spotlight boost"
+                    "Priority Access to future products such as CRM integration and Video call features"
                 ]
             ),
             SubscriptionPlan(
@@ -25,12 +25,13 @@ extension SubscriptionManager {
                 period: "monthly",
                 features: [
                     "Unlimited connections, mentor matches, and Circle creation",
-                    "Lower marketplace commission: 7% transaction fee", 
-                    "Full dashboard access, including KPI tracking and CRM integration",
+                    "Earn more with 50% less transaction fee at 7% compared to 14% transaction fee", 
+                    "Full circles dashboard access: Task Manager, KPI Tracking, Calendar and Events feature",
                     "Unlimited job and project listings and monetization",
-                    "Advanced circle dashboard: KPI tracking, CRM import/API",
-                    "2 free marketplace boosts",
-                    "1 free investor spotlight boost"
+                    "Advanced circle dashboard: Analytics, CRM import/API integration",
+                    "2 free marketplace boosts + 1 monthly recurring boost",
+                    "Priority Access to future products such as CRM integration and Video call features",
+                    "Enhanced networking tools and advanced search filters"
                 ],
                 isPopular: true
             ),
@@ -40,12 +41,13 @@ extension SubscriptionManager {
                 period: "monthly",
                 features: [
                     "Unlimited connections, mentor matches, and Circle creation",
-                    "Lower marketplace commission: 7% transaction fee",
-                    "Full dashboard access, including KPI tracking and CRM integration", 
+                    "Earn more with 50% less transaction fee at 7% compared to 14% transaction fee",
+                    "Full circles dashboard access: Task Manager, KPI Tracking, Calendar and Events feature",
                     "Unlimited job and project listings and monetization",
-                    "Advanced circle dashboard: KPI tracking, CRM import/API",
-                    "2 free marketplace boosts",
-                    "1 free investor spotlight boost",
+                    "Advanced circle dashboard: Analytics, CRM import/API integration",
+                    "2 free marketplace boosts + 2 monthly recurring boosts",
+                    "Early Access to new products including CRM integration and Video call features",
+                    "Enhanced networking tools and advanced search filters",
                     "Priority support and exclusive founder resources",
                     "Enhanced investor access and networking opportunities"
                 ]
@@ -60,7 +62,9 @@ extension SubscriptionManager {
                     "Dedicated support and advanced analytics",
                     "White-label branding options",
                     "Advanced integrations and API access",
-                    "Custom reporting and insights"
+                    "Custom reporting and insights",
+                    "Full Access to all products including CRM integration and Video call features",
+                    "Dedicated account manager and priority development requests"
                 ]
             )
         ]
