@@ -235,10 +235,12 @@ struct SubscriptionPlanCard: View {
                             Text(plan.price)
                                 .font(.system(size: 28, weight: .bold))
                                 .foregroundColor(Color(hex: "004aad"))
-                            
-                            Text("/\(plan.period)")
-                                .font(.system(size: 16))
-                                .foregroundColor(Color(hex: "0066ff"))
+                            // Show period only when provided (e.g., Enterprise shows "Pricing Varies")
+                            if !plan.period.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                                Text("/\(plan.period)")
+                                    .font(.system(size: 16))
+                                    .foregroundColor(Color(hex: "0066ff"))
+                            }
                         }
                         
                         if let originalPrice = plan.originalPrice,
@@ -273,22 +275,30 @@ struct SubscriptionPlanCard: View {
                     }
                 }
                 
-                // Features
-                VStack(alignment: .leading, spacing: 8) {
-                    ForEach(plan.features, id: \.self) { feature in
-                        HStack {
-                            Image(systemName: "checkmark")
-                                .font(.system(size: 12, weight: .bold))
-                                .foregroundColor(.green)
-                            
-                            Text(feature)
-                                .font(.system(size: 14))
-                                .foregroundColor(Color(hex: "004aad").opacity(0.8))
-                            
-                            Spacer()
+                // Features - Scrollable within the card
+                ScrollView(.vertical, showsIndicators: true) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        ForEach(plan.features, id: \.self) { feature in
+                            HStack(alignment: .top, spacing: 8) {
+                                Image(systemName: "checkmark")
+                                    .font(.system(size: 12, weight: .bold))
+                                    .foregroundColor(.green)
+                                    .padding(.top, 2) // Align with text baseline
+                                
+                                Text(feature)
+                                    .font(.system(size: 14))
+                                    .foregroundColor(Color(hex: "004aad").opacity(0.8))
+                                    .multilineTextAlignment(.leading)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                
+                                Spacer()
+                            }
                         }
                     }
+                    .padding(.bottom, 8) // Extra bottom padding for scroll comfort
                 }
+                .frame(maxHeight: 200) // Constrain scroll area height
+                .clipped() // Ensure content doesn't overflow
             }
         }
         .padding(20)
