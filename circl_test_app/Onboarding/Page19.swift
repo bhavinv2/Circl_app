@@ -4,7 +4,8 @@ struct Page19: View {
     @State private var animateConfetti = false
     @State private var confettiOpacity: Double = 0.0
     @State private var shouldNavigateToForum = false
-    
+    @EnvironmentObject var appState: AppState
+
     var body: some View {
         NavigationView {
             ZStack {
@@ -167,9 +168,9 @@ struct Page19: View {
                     // Buttons Section
                     VStack(spacing: 20) {
                         Button(action: {
-                            // Set tutorial trigger flag when completing onboarding
-                            triggerTutorialAndNavigate()
+                            performSilentLogin()
                         }) {
+
                             Text("Continue to Circl")
                             .font(.system(size: 18, weight: .bold))
                             .frame(maxWidth: .infinity)
@@ -220,6 +221,78 @@ struct Page19: View {
         .navigationBarBackButtonHidden(true)
     }
     
+    
+    private func performSilentLogin() {
+        guard
+            let email = UserDefaults.standard.string(forKey: "signup_email"),
+            let password = UserDefaults.standard.string(forKey: "signup_password")
+        else {
+            print("❌ Silent Login Failed: Missing signup_email/signup_password")
+            return
+        }
+
+        print("🔐 Performing silent login for:", email)
+
+        guard let url = URL(string: "https://circlapp.online/api/login/") else { return }
+
+        let loginData: [String: String] = ["email": email, "password": password]
+        let json = try! JSONSerialization.data(withJSONObject: loginData)
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = json
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+
+                if let error = error {
+                    print("❌ Silent login error:", error.localizedDescription)
+                    return
+                }
+
+                guard
+                    let http = response as? HTTPURLResponse,
+                    http.statusCode == 200,
+                    let data = data,
+                    let dict = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+                else {
+                    print("❌ Silent login failed: invalid response")
+                    return
+                }
+
+                print("✅ Silent login success:", dict)
+
+                // STORE EVERYTHING EXACTLY LIKE PAGE1
+                if let token = dict["token"] as? String {
+                    UserDefaults.standard.set(token, forKey: "auth_token")
+                    print("🔐 Saved auth_token:", token)
+                }
+
+                if let userID = dict["user_id"] as? Int {
+                    UserDefaults.standard.set(userID, forKey: "user_id")
+                }
+
+                if let email = dict["email"] as? String {
+                    UserDefaults.standard.set(email, forKey: "user_email")
+                }
+
+                UserDefaults.standard.set(true, forKey: "isLoggedIn")
+                appState.isLoggedIn = true
+
+                // Send pending push token if necessary
+                if let savedToken = UserDefaults.standard.string(forKey: "pending_push_token") {
+                    sendDeviceTokenToBackend(token: savedToken)
+                    UserDefaults.standard.removeObject(forKey: "pending_push_token")
+                }
+
+                // Continue the normal onboarding flow
+                triggerTutorialAndNavigate()
+            }
+        }.resume()
+    }
+
+    
     // MARK: - Tutorial Integration Function
     private func triggerTutorialAndNavigate() {
         print("🎬 ========= ONBOARDING COMPLETION PROCESS =========")
@@ -249,26 +322,64 @@ struct Page19: View {
         print("   • onboarding_completed: \(UserDefaults.standard.bool(forKey: "onboarding_completed"))")
         print("✅ Tutorial will start after navigation to PageForum")
         
-        // IMMEDIATE CHECK: Try to trigger tutorial right away
-        print("🚀 IMMEDIATE: Attempting tutorial trigger from onboarding")
+        // IMMEDIATE CHECK: Trigger tutorial
         TutorialManager.shared.checkAndTriggerTutorial()
         
-        // SAFETY CHECK: Schedule a backup tutorial trigger
+        // Backup tutorial triggers
         DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
-            print("🛡️ SAFETY CHECK: Backup tutorial trigger after onboarding (3s delay)")
             TutorialManager.shared.checkAndTriggerTutorial()
         }
-        
-        // ADDITIONAL SAFETY: Another backup trigger
         DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
-            print("🛡️ ADDITIONAL SAFETY: Second backup tutorial trigger (5s delay)")
             TutorialManager.shared.checkAndTriggerTutorial()
         }
         
-        // Navigate to PageForum
+        
+        // ================================================
+        // 🔥🔥 IMPORTANT PART YOU WERE MISSING 🔥🔥
+        // MATCH PAGE1 LOGIN BEHAVIOR TO INITIALIZE SESSION
+        // ================================================
+        
+        print("🔐 Setting login state for new user...")
+        
+        // Tell the app the user is logged in
+        UserDefaults.standard.set(true, forKey: "isLoggedIn")
+        appState.isLoggedIn = true
+        
+        // Pull stored user_id & auth token (saved during register API)
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            print("✅ Using saved auth_token after onboarding: \(token)")
+        } else {
+            print("❌ ERROR: No auth token saved during onboarding!")
+        }
+        
+        let userID = UserDefaults.standard.integer(forKey: "user_id")
+        if userID != 0 {
+            print("✅ user_id confirmed: \(userID)")
+        } else {
+            print("❌ ERROR: No user_id saved during onboarding!")
+        }
+        
+        // If push token was saved before onboarding, send it now
+        if let savedToken = UserDefaults.standard.string(forKey: "pending_push_token") {
+            print("📤 Sending saved push token after onboarding: \(savedToken)")
+            sendDeviceTokenToBackend(token: savedToken)
+            UserDefaults.standard.removeObject(forKey: "pending_push_token")
+        }
+        
+        // Handle pending deep-link join
+        if let pendingId = pendingDeepLinkCircleId {
+            print("🔥 Processing pending deep link AFTER ONBOARDING:", pendingId)
+            pendingDeepLinkCircleId = nil
+            Task { await joinCircleFromDeepLink(pendingId) }
+        }
+        
+        
+        // ================================================
+        // 🚀 Navigate to the forum
+        // ================================================
         shouldNavigateToForum = true
     }
-    
+
     // MARK: - Gather Onboarding Data
     private func gatherOnboardingData() -> OnboardingData {
         // Retrieve onboarding data from UserDefaults

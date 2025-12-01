@@ -178,6 +178,8 @@ struct CirclPopupCard: View {
             }
 
         }
+        
+        
         .onReceive(NotificationCenter.default.publisher(for: .circleUpdated)) { notification in
             if let updatedCircle = notification.object as? CircleData,
                updatedCircle.id == circle.id {

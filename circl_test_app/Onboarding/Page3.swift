@@ -322,6 +322,13 @@ struct Page3: View {
                             print("❌ Failed to extract user_id from response.")
                         }
 
+                        // ⭐⭐⭐ ADD THESE LINES HERE ⭐⭐⭐
+                        UserDefaults.standard.set(email, forKey: "signup_email")
+                        UserDefaults.standard.set(password, forKey: "signup_password")
+                        UserDefaults.standard.synchronize()
+                        print("🔐 Saved signup email + password for silent login")
+                        // ⭐⭐⭐ END INSERTION ⭐⭐⭐
+
                         // Store onboarding selections for tutorial system
                         UserDefaults.standard.set(selectedUsageInterest ?? "", forKey: "selected_usage_interest")
                         UserDefaults.standard.set(selectedIndustryInterest ?? "", forKey: "selected_industry_interest")
@@ -331,8 +338,8 @@ struct Page3: View {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                             navigateToPage4 = true
                         }
-
-                    } else if httpResponse.statusCode == 400 {
+                    }
+ else if httpResponse.statusCode == 400 {
                         if let data = data,
                            let errorDict = try? JSONSerialization.jsonObject(with: data) as? [String: [String]],
                            let emailErrors = errorDict["email"] {
@@ -385,6 +392,9 @@ struct PersonalInformationSection: View {
     @Binding var confirmPassword: String
     @Binding var isEmailValid: Bool
     @Binding var isPasswordValid: Bool
+    @State private var showPassword = false
+    @State private var showConfirmPassword = false
+
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -444,13 +454,36 @@ struct PersonalInformationSection: View {
                 .keyboardType(.phonePad)
                 
                 VStack(alignment: .leading, spacing: 2) {
-                    SecureField("Password", text: Binding(
-                        get: { password },
-                        set: { newValue in
-                            password = newValue
-                            isPasswordValid = passwordsMatch() && isValidPassword(newValue)
+                    HStack {
+                        if showPassword {
+                            TextField("Password", text: Binding(
+                                get: { password },
+                                set: { newValue in
+                                    password = newValue
+                                    isPasswordValid = passwordsMatch() && isValidPassword(newValue)
+                                }
+                            ))
+                            .textContentType(.oneTimeCode)
+                            .autocorrectionDisabled(true)
+                            .textInputAutocapitalization(.never)
+                        } else {
+                            SecureField("Password", text: Binding(
+                                get: { password },
+                                set: { newValue in
+                                    password = newValue
+                                    isPasswordValid = passwordsMatch() && isValidPassword(newValue)
+                                }
+                            ))
+                            .textContentType(.oneTimeCode)
+                            .autocorrectionDisabled(true)
+                            .textInputAutocapitalization(.never)
                         }
-                    ))
+                        
+                        Button(action: { showPassword.toggle() }) {
+                            Image(systemName: showPassword ? "eye.slash.fill" : "eye.fill")
+                                .foregroundColor(.gray)
+                        }
+                    }
                     .padding(12)
                     .background(Color(.systemGray5))
                     .cornerRadius(8)
@@ -463,13 +496,36 @@ struct PersonalInformationSection: View {
                 }
                 
                 VStack(alignment: .leading, spacing: 2) {
-                    SecureField("Confirm Password", text: Binding(
-                        get: { confirmPassword },
-                        set: { newValue in
-                            confirmPassword = newValue
-                            isPasswordValid = passwordsMatch() && isValidPassword(password)
+                    HStack {
+                        if showConfirmPassword {
+                            TextField("Confirm Password", text: Binding(
+                                get: { confirmPassword },
+                                set: { newValue in
+                                    confirmPassword = newValue
+                                    isPasswordValid = passwordsMatch() && isValidPassword(password)
+                                }
+                            ))
+                            .textContentType(.oneTimeCode)
+                            .autocorrectionDisabled(true)
+                            .textInputAutocapitalization(.never)
+                        } else {
+                            SecureField("Confirm Password", text: Binding(
+                                get: { confirmPassword },
+                                set: { newValue in
+                                    confirmPassword = newValue
+                                    isPasswordValid = passwordsMatch() && isValidPassword(password)
+                                }
+                            ))
+                            .textContentType(.oneTimeCode)
+                            .autocorrectionDisabled(true)
+                            .textInputAutocapitalization(.never)
                         }
-                    ))
+                        
+                        Button(action: { showConfirmPassword.toggle() }) {
+                            Image(systemName: showConfirmPassword ? "eye.slash.fill" : "eye.fill")
+                                .foregroundColor(.gray)
+                        }
+                    }
                     .padding(12)
                     .background(Color(.systemGray5))
                     .cornerRadius(8)
@@ -483,6 +539,7 @@ struct PersonalInformationSection: View {
             }
         }
     }
+
     
     private func formatPhoneNumber(_ newValue: String) -> String {
         let filtered = newValue.filter { $0.isNumber }
@@ -546,11 +603,7 @@ struct ExperienceSetupSection: View {
                     selectedOption: $selectedIndustryInterest
                 )
                 
-                Text("*You Will Get Your Password Upon Approval")
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(.white)
-                    .multilineTextAlignment(.center)
-                    .padding(.top, 5)
+            
             }
         }
     }

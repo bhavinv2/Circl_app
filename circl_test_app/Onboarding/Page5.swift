@@ -160,44 +160,39 @@ struct Page5: View {
                                 .frame(maxWidth: 300)
                             }
                             .sheet(isPresented: $showDatePicker) {
-                                NavigationView {
-                                    VStack(spacing: 20) {
-                                        Text("Select Your Birthday")
-                                            .font(.title2)
-                                            .fontWeight(.semibold)
-                                            .padding(.top, 20)
-                                        
-                                        DatePicker("Birthday",
-                                                 selection: $selectedBirthdate,
-                                                 in: dateRange,
-                                                 displayedComponents: .date)
-                                            .datePickerStyle(GraphicalDatePickerStyle())
-                                            .padding(.horizontal, 20)
-                                        
-                                        Spacer()
-                                        
-                                        Button("Done") {
-                                            updateBirthdayFromDate()
-                                            validateAge()
-                                            showDatePicker = false
-                                        }
-                                        .font(.system(size: 18, weight: .semibold))
-                                        .foregroundColor(.white)
-                                        .frame(maxWidth: .infinity)
-                                        .padding(.vertical, 15)
-                                        .background(Color(hex: "004aad"))
-                                        .cornerRadius(10)
-                                        .padding(.horizontal, 20)
-                                        .padding(.bottom, 30)
-                                    }
-                                    .navigationBarTitleDisplayMode(.inline)
-                                    .navigationBarItems(
-                                        trailing: Button("Cancel") {
-                                            showDatePicker = false
-                                        }
+                                VStack(spacing: 20) {
+                                    Text("Select Your Birthday")
+                                        .font(.title2)
+                                        .fontWeight(.semibold)
+                                        .padding(.top, 20)
+
+                                    DatePicker(
+                                        "Birthday",
+                                        selection: $selectedBirthdate,
+                                        in: dateRange,
+                                        displayedComponents: .date
                                     )
+                                    .datePickerStyle(GraphicalDatePickerStyle())
+                                    .padding(.horizontal, 20)
+
+                                    Spacer()
+
+                                    Button("Done") {
+                                        updateBirthdayFromDate()
+                                        validateAge()
+                                        showDatePicker = false
+                                    }
+                                    .font(.system(size: 18, weight: .semibold))
+                                    .foregroundColor(.white)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 15)
+                                    .background(Color(hex: "004aad"))
+                                    .cornerRadius(10)
+                                    .padding(.horizontal, 20)
+                                    .padding(.bottom, 30)
                                 }
                             }
+
                         }
                         .alert("You must be 18 years or older to sign up.", isPresented: $isUnderage) {
                             Button("OK", role: .cancel) { }
