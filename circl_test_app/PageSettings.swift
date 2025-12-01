@@ -14,7 +14,8 @@ struct PageSettings: View {
     @State private var showLogoutAlert = false
     @State private var isLogoutConfirmed = false
     @State private var isAnimating = false
-    
+    @EnvironmentObject var appState: AppState
+
     // Easter egg variables
     @State private var settingsClickCount = 0
     @State private var showEasterEggVideo = false
@@ -439,15 +440,17 @@ struct PageSettings: View {
 
     // MARK: - Logout Functionality
     func logoutUser() {
+        print("🔓 Logging out user…")
+
+        // Clear stored session data
         UserDefaults.standard.removeObject(forKey: "user_id")
+        UserDefaults.standard.removeObject(forKey: "auth_token")
         UserDefaults.standard.set(false, forKey: "isLoggedIn")
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            if let window = UIApplication.shared.windows.first {
-                window.rootViewController = UIHostingController(rootView: Page1()) // Redirect to login page
-                window.makeKeyAndVisible()
-            }
-        }
+
+        // 🔥 Tell the entire app to switch to Page1
+        appState.isLoggedIn = false
     }
+
 
 
     // MARK: - Circle Button (Optional, unused)

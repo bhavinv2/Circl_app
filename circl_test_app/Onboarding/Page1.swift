@@ -2,6 +2,8 @@ import SwiftUI
 import UIKit
 
 struct Page1: View {
+    @EnvironmentObject var appState: AppState
+
     @State private var email: String = ""
     @State private var password: String = ""
     @State private var loginMessage: String = ""
@@ -275,10 +277,16 @@ struct Page1: View {
                                     print("✅ user_email (fallback from login field) saved manually:", self.email)
 
                                     UserDefaults.standard.set(true, forKey: "isLoggedIn")
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                        isLoggedIn = UserDefaults.standard.bool(forKey: "isLoggedIn")
-                                    }
+                                    appState.isLoggedIn = true
+
                                 }
+                                // 🔥 Handle pending deep link join AFTER login
+                                if let pendingId = pendingDeepLinkCircleId {
+                                    print("🔥 Processing pending deep link after login:", pendingId)
+                                    pendingDeepLinkCircleId = nil
+                                    Task { await joinCircleFromDeepLink(pendingId) }
+                                }
+
                             }
                         } catch {
                             showInvalidCredentialsAlert = true
