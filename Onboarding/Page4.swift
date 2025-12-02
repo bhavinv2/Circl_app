@@ -157,6 +157,10 @@ struct Page4: View {
                             
                             // Next Button - uploads photo if selected, then navigates
                             Button(action: {
+                                // Haptic feedback
+                                let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                                impactFeedback.impactOccurred()
+                                
                                 if let _ = selectedImage, !isUploading {
                                     // Upload image first, then navigate on success
                                     uploadProfileImageAndNavigate()

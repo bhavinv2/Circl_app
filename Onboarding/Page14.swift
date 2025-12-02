@@ -257,6 +257,10 @@ struct Page14: View {
                             .padding(.bottom, 20)
                     })
                     .disabled(!(agreedToTerms && agreedToPrivacyPolicy))
+                    .simultaneousGesture(TapGesture().onEnded {
+                        let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                        impactFeedback.impactOccurred()
+                    })
 
                 Spacer()
             }

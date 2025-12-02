@@ -609,6 +609,10 @@ struct NextButton: View {
     var body: some View {
         Button(action: {
             if !isSubmitting {
+                // Haptic feedback
+                let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                impactFeedback.impactOccurred()
+                
                 action()
             }
         }) {

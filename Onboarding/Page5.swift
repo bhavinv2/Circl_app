@@ -332,6 +332,10 @@ struct Page5: View {
                     Spacer()
                     
                     Button(action: {
+                        // Haptic feedback
+                        let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                        impactFeedback.impactOccurred()
+                        
                         if isFormComplete() && isValidLocation {
                             isSubmitting = true
                             submitPersonalDetails { success in

@@ -57,6 +57,10 @@ struct Page1: View {
                     VStack(spacing: 25) {
                         // Join Circl Button with subtle styling
                         Button(action: {
+                            // Haptic feedback
+                            let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                            impactFeedback.impactOccurred()
+                            
                             isNavigatingToSignup = true
                         }) {
                             Text("Join Circl")
@@ -84,14 +88,6 @@ struct Page1: View {
                                         .stroke(Color.white.opacity(0.3), lineWidth: 1)
                                 )
                                 .shadow(color: .black.opacity(0.05), radius: 3, x: 0, y: 2)
-                                .toolbar {
-                                    ToolbarItemGroup(placement: .keyboard) {
-                                        Spacer()
-                                        Button("Done") {
-                                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                                        }
-                                    }
-                                }
                             
                             // Password Field with improved styling
                             SecureField("Password", text: $password)
@@ -104,14 +100,6 @@ struct Page1: View {
                                         .stroke(Color.white.opacity(0.3), lineWidth: 1)
                                 )
                                 .shadow(color: .black.opacity(0.05), radius: 3, x: 0, y: 2)
-                                .toolbar {
-                                    ToolbarItemGroup(placement: .keyboard) {
-                                        Spacer()
-                                        Button("Done") {
-                                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                                        }
-                                    }
-                                }
                             
                             // Login Button with enhanced styling
                             Button(action: loginUser) {
@@ -170,14 +158,6 @@ struct Page1: View {
                         .keyboardType(.emailAddress)
                         .autocapitalization(.none)
                         .padding(.horizontal)
-                        .toolbar {
-                            ToolbarItemGroup(placement: .keyboard) {
-                                Spacer()
-                                Button("Done") {
-                                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                                }
-                            }
-                        }
 
                     Button("Submit") {
                         submitForgotPasswordRequest()

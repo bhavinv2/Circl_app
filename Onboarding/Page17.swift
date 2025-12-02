@@ -137,6 +137,10 @@ struct Page17: View {
                         .padding(.horizontal, 50)
                         .padding(.bottom, 40)
                 }
+                .simultaneousGesture(TapGesture().onEnded {
+                    let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                    impactFeedback.impactOccurred()
+                })
                 
                 Spacer()
             }

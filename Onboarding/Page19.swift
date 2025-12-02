@@ -167,6 +167,10 @@ struct Page19: View {
                     // Buttons Section
                     VStack(spacing: 20) {
                         Button(action: {
+                            // Haptic feedback
+                            let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                            impactFeedback.impactOccurred()
+                            
                             triggerTutorialAndNavigate()
                         }) {
                             Text("Continue to Circl")
