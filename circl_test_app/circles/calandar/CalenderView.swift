@@ -299,16 +299,22 @@ struct CalendarView: View {
                     let decodedEvents = try JSONDecoder().decode([CalendarEvent].self, from: data)
 
                     // Filter events to match selectedDate (ignoring time)
+                    // Filter events to match selectedDate (ignoring time)
                     let calendar = Calendar.current
-                    let isoParser = ISO8601DateFormatter()
+
+                    let df = DateFormatter()
+                    df.dateFormat = "yyyy-MM-dd"
 
                     let filtered = decodedEvents.filter { event in
                         guard let eventDateString = event.date,
-                              let eventDate = isoParser.date(from: eventDateString) else {
+                              let eventDate = df.date(from: eventDateString) else {
                             return false
                         }
                         return calendar.isDate(eventDate, inSameDayAs: selectedDate)
                     }
+
+                    self.allEvents = decodedEvents
+                    self.events = filtered
 
 
 
@@ -331,9 +337,10 @@ struct CalendarView: View {
         }
 
         // Correct date format for Django DateField
-        let isoFormatter = ISO8601DateFormatter()
-        isoFormatter.formatOptions = [.withInternetDateTime]
-        let dateString = isoFormatter.string(from: selectedEventDate)
+        let df = DateFormatter()
+        df.dateFormat = "yyyy-MM-dd"
+        let dateString = df.string(from: selectedEventDate)
+
 
 
         // Correct time format
