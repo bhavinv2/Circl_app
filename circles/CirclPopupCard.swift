@@ -4,6 +4,7 @@ import Foundation
 struct CirclPopupCard: View {
     @State private var showMediaPicker = false
     @State private var selectedImage: UIImage?
+    @State private var showInviteCopiedToast = false
 
     @State var circle: CircleData
 
@@ -181,5 +182,38 @@ struct CirclPopupCard: View {
         .cornerRadius(20)
         .shadow(radius: 8)
         .padding()
+        // Toast overlay for invite copy confirmation
+        .overlay(
+            Group {
+                if showInviteCopiedToast {
+                    VStack {
+                        Spacer()
+                        HStack(alignment: .center, spacing: 12) {
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.system(size: 20))
+                                .foregroundColor(.blue)
+
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Invite Link Copied to Your Clipboard!")
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.primary)
+                                Text("Paste it into your Messages to invite your network!")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        .padding()
+                        .background(Color(.systemBackground))
+                        .cornerRadius(12)
+                        .shadow(color: Color.black.opacity(0.12), radius: 10, x: 0, y: 4)
+                        .padding(.horizontal)
+                        .padding(.bottom, 16)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                    }
+                }
+            },
+            alignment: .bottom
+        )
     }
 }
