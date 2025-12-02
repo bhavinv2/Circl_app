@@ -199,84 +199,89 @@ struct PageCircles: View {
                     .ignoresSafeArea(edges: .top)
                     
                     .sheet(isPresented: $showCreateCircleSheet) {
-                        VStack(spacing: 16) {
-                            Text("Create a Circl")
-                                .font(.title2)
-                                .bold()
+                        ScrollView {
+                            VStack(spacing: 16) {
+                                Text("Create a Circl")
+                                    .font(.title2)
+                                    .bold()
 
-                            TextField("Circle Name", text: $circleName)
-                                .padding()
-                                .background(Color(.systemGray6))
-                                .cornerRadius(10)
-
-                            TextField("Industry", text: $circleIndustry)
-                                .padding()
-                                .background(Color(.systemGray6))
-                                .cornerRadius(10)
-
-                            // ✅ NEW: Optional category field
-                            TextField("Category (optional)", text: $circleCategory)
-                                .padding()
-                                .background(Color(.systemGray6))
-                                .cornerRadius(10)
-
-                            TextEditor(text: $circleDescription)
-                                .frame(height: 80)
-                                .padding()
-                                .background(Color(.systemGray6))
-                                .cornerRadius(10)
-
-                            Toggle(isOn: $isPrivateCircle) {
-                                Text("Make Circle Private")
-                                    .font(.headline)
-                            }
-                            .padding(.top)
-
-                            if isPrivateCircle {
-                                TextField("Access Code", text: $privateAccessCode)
+                                TextField("Circle Name", text: $circleName)
                                     .padding()
                                     .background(Color(.systemGray6))
                                     .cornerRadius(10)
-                            }
 
-                            Divider()
-
-                            Text("Select Channels")
-                                .font(.headline)
-
-                            ForEach(allChannelOptions, id: \.self) { channel in
-                                if channel == "#Welcome" {
-                                    Toggle(channel, isOn: .constant(true))
-                                        .disabled(true)
-                                        .foregroundColor(.gray)
-                                } else {
-                                    Toggle(channel, isOn: Binding(
-                                        get: { selectedChannels.contains(channel) },
-                                        set: { isSelected in
-                                            if isSelected {
-                                                selectedChannels.append(channel)
-                                            } else {
-                                                selectedChannels.removeAll { $0 == channel }
-                                            }
-                                        }
-                                    ))
-                                }
-                            }
-
-                            Spacer()
-
-                            Button(action: {
-                                createCircle()
-                            }) {
-                                Text("Create Circl")
-                                    .frame(maxWidth: .infinity)
+                                TextField("Industry", text: $circleIndustry)
                                     .padding()
-                                    .background(Color.green)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(12)
+                                    .background(Color(.systemGray6))
+                                    .cornerRadius(10)
+
+                                // ✅ NEW: Optional category field
+                                TextField("Category (optional)", text: $circleCategory)
+                                    .padding()
+                                    .background(Color(.systemGray6))
+                                    .cornerRadius(10)
+
+                                TextField("Circle Description", text: $circleDescription, axis: .vertical)
+                                    .frame(minHeight: 80, alignment: .topLeading)
+                                    .padding()
+                                    .background(Color(.systemGray6))
+                                    .cornerRadius(10)
+                                    .foregroundColor(.primary)
+
+                                Toggle(isOn: $isPrivateCircle) {
+                                    Text("Make Circle Private")
+                                        .font(.headline)
+                                }
+                                .padding(.top)
+
+                                if isPrivateCircle {
+                                    TextField("Access Code", text: $privateAccessCode)
+                                        .padding()
+                                        .background(Color(.systemGray6))
+                                        .cornerRadius(10)
+                                }
+
+                                Divider()
+
+                                Text("Select Channels")
+                                    .font(.headline)
+
+                                ForEach(allChannelOptions, id: \.self) { channel in
+                                    if channel == "#Welcome" {
+                                        Toggle(channel, isOn: .constant(true))
+                                            .disabled(true)
+                                            .foregroundColor(.gray)
+                                    } else {
+                                        Toggle(channel, isOn: Binding(
+                                            get: { selectedChannels.contains(channel) },
+                                            set: { isSelected in
+                                                if isSelected {
+                                                    selectedChannels.append(channel)
+                                                } else {
+                                                    selectedChannels.removeAll { $0 == channel }
+                                                }
+                                            }
+                                        ))
+                                    }
+                                }
+
+                                Button(action: {
+                                    createCircle()
+                                }) {
+                                    Text("Create Circl")
+                                        .frame(maxWidth: .infinity)
+                                        .padding()
+                                        .background(Color.green)
+                                        .foregroundColor(.white)
+                                        .cornerRadius(12)
+                                }
+                                .padding(.top, 20)
                             }
+                            .padding()
                         }
-                        .padding()
+                        .onTapGesture {
+                            hideKeyboard()
+                        }
                     }
 
                     // MARK: Enhanced Search Section
@@ -1470,4 +1475,11 @@ struct PageCircles: View {
         }
     }
     
+}
+
+// MARK: - Keyboard Extension
+extension View {
+    func hideKeyboard() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+    }
 }
