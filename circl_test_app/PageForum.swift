@@ -642,330 +642,121 @@ struct PageForum: View {
 
     @State private var animateArrow = false
     @State private var currentUserProfile: FullProfile?
+    
+    // MARK: - Adaptive Layout Properties
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @AppStorage("sidebarCollapsed") private var isSidebarCollapsed: Bool = false
+    
+    // Computed properties for adaptive layout
+    private var isCompactLayout: Bool {
+        horizontalSizeClass == .compact
+    }
+    
+    private var shouldUse2ColumnLayout: Bool {
+        horizontalSizeClass == .regular
+    }
+    
+    private var shouldShowSidebar: Bool {
+        horizontalSizeClass == .regular
+    }
 
     var body: some View {
-        NavigationView {
-            ZStack {
-                ForumMainContent(
-                    selectedFilter: $selectedFilter,
-                    visualSelectedTab: $visualSelectedTab,
-                    selectedCategory: $selectedCategory,
-                    posts: $posts,
-                    isLoading: $isLoading,
-                    isTabSwitchLoading: $isTabSwitchLoading,
-                    userFirstName: $userFirstName,
-                    userProfileImageURL: $userProfileImageURL,
-                    unreadMessageCount: $unreadMessageCount,
-                    postContent: $postContent,
-                    selectedPrivacy: $selectedPrivacy,
-                    selectedPostIdForComments: $selectedPostIdForComments,
-                    loggedInUserFullName: $loggedInUserFullName,
-                    showCategoryAlert: $showCategoryAlert,
-                    onPost: submitPost,
-                    fetcher: fetchPostsWithParameters,
-                    likeToggler: { post in toggleLike(post) },
-                    submitPost: submitPost,
-                    toggleLike: { post in toggleLike(post) },
-                    deletePost: deletePost,
-                    fetchUserProfile: fetchUserProfile,
-                    selectedProfile: selectedProfile,
-                    showProfileSheet: { profile in
-                        selectedProfile = profile
-                        showProfileSheet = true
-                    }
-                )
-
-            
-            // MARK: - Twitter/X Style Bottom Navigation
-            VStack {
-                Spacer()
-                
+        Group {
+            if shouldShowSidebar {
+                // iPad/Mac Layout with Sidebar
                 HStack(spacing: 0) {
-                    // Forum / Home (Current page - highlighted)
-                    VStack(spacing: 4) {
-                        Image(systemName: "house.fill")
-                            .font(.system(size: 22, weight: .medium))
-                            .foregroundColor(Color(hex: "004aad"))
-                        Text("Home")
-                            .font(.system(size: 10, weight: .medium))
-                            .foregroundColor(Color(hex: "004aad"))
-                    }
-                    .frame(maxWidth: .infinity)
-                    
-                    // Connect and Network
-                    NavigationLink(destination: PageUnifiedNetworking().navigationBarBackButtonHidden(true)) {
-                        VStack(spacing: 4) {
-                            Image(systemName: "person.2")
-                                .font(.system(size: 22, weight: .medium))
-                                .foregroundColor(Color(UIColor.label).opacity(0.6))
-                            Text("Network")
-                                .font(.system(size: 10, weight: .medium))
-                                .foregroundColor(Color(UIColor.label).opacity(0.6))
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
-                    .transaction { transaction in
-                        transaction.disablesAnimations = true
+                    // Collapsible Sidebar
+                    if !isSidebarCollapsed {
+                        AdaptiveSidebar(
+                            isCollapsed: $isSidebarCollapsed,
+                            visualSelectedTab: $visualSelectedTab,
+                            selectedFilter: $selectedFilter,
+                            selectedCategory: $selectedCategory,
+                            selectedPrivacy: $selectedPrivacy,
+                            unreadMessageCount: unreadMessageCount,
+                            fetcher: fetchPostsWithParameters
+                        )
+                        .frame(width: 280)
+                        .transition(.move(edge: .leading))
                     }
                     
-                    // Circles
-                    NavigationLink(destination: PageCircles().navigationBarBackButtonHidden(true)) {
-                        VStack(spacing: 4) {
-                            Image(systemName: "circle.grid.2x2")
-                                .font(.system(size: 22, weight: .medium))
-                                .foregroundColor(Color(UIColor.label).opacity(0.6))
-                            Text("Circles")
-                                .font(.system(size: 10, weight: .medium))
-                                .foregroundColor(Color(UIColor.label).opacity(0.6))
+                    // Main Content Area
+                    AdaptiveMainContent(
+                        selectedFilter: $selectedFilter,
+                        visualSelectedTab: $visualSelectedTab,
+                        selectedCategory: $selectedCategory,
+                        posts: $posts,
+                        isLoading: $isLoading,
+                        isTabSwitchLoading: $isTabSwitchLoading,
+                        userFirstName: $userFirstName,
+                        userProfileImageURL: $userProfileImageURL,
+                        unreadMessageCount: $unreadMessageCount,
+                        postContent: $postContent,
+                        selectedPrivacy: $selectedPrivacy,
+                        selectedPostIdForComments: $selectedPostIdForComments,
+                        loggedInUserFullName: $loggedInUserFullName,
+                        showCategoryAlert: $showCategoryAlert,
+                        shouldShowSidebar: shouldShowSidebar,
+                        shouldUse2ColumnLayout: shouldUse2ColumnLayout,
+                        isSidebarCollapsed: $isSidebarCollapsed,
+                        onPost: submitPost,
+                        fetcher: fetchPostsWithParameters,
+                        likeToggler: { post in toggleLike(post) },
+                        submitPost: submitPost,
+                        toggleLike: { post in toggleLike(post) },
+                        deletePost: deletePost,
+                        fetchUserProfile: fetchUserProfile,
+                        selectedProfile: selectedProfile,
+                        showProfileSheet: { profile in
+                            selectedProfile = profile
+                            showProfileSheet = true
                         }
-                        .frame(maxWidth: .infinity)
-                    }
-                    .transaction { transaction in
-                        transaction.disablesAnimations = true
-                    }
-                    
-                    // Growth Hub
-                    NavigationLink(destination: PageSkillSellingPlaceholder().navigationBarBackButtonHidden(true)) {
-                        VStack(spacing: 4) {
-                            Image(systemName: "dollarsign.circle")
-                                .font(.system(size: 22, weight: .medium))
-                                .foregroundColor(Color(UIColor.label).opacity(0.6))
-                            Text("Growth Hub")
-                                .font(.system(size: 10, weight: .medium))
-                                .foregroundColor(Color(UIColor.label).opacity(0.6))
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
-                    .transaction { transaction in
-                        transaction.disablesAnimations = true
-                    }
-                    
-                    // More / Additional Resources
-                    Button(action: {
-                        withAnimation(.easeInOut(duration: 0.3)) {
-                            showMoreMenu.toggle()
-                        }
-                    }) {
-                        VStack(spacing: 4) {
-                            Image(systemName: "ellipsis")
-                                .font(.system(size: 22, weight: .medium))
-                                .foregroundColor(Color(UIColor.label).opacity(0.6))
-                            Text("More")
-                                .font(.system(size: 10, weight: .medium))
-                                .foregroundColor(Color(UIColor.label).opacity(0.6))
-                        }
-                        .frame(maxWidth: .infinity)
+                    )
+                }
+                .animation(.easeInOut(duration: 0.3), value: isSidebarCollapsed)
+            } else {
+                // iPhone Layout (existing)
+                NavigationView {
+                    ZStack {
+                        ForumMainContent(
+                            selectedFilter: $selectedFilter,
+                            visualSelectedTab: $visualSelectedTab,
+                            selectedCategory: $selectedCategory,
+                            posts: $posts,
+                            isLoading: $isLoading,
+                            isTabSwitchLoading: $isTabSwitchLoading,
+                            userFirstName: $userFirstName,
+                            userProfileImageURL: $userProfileImageURL,
+                            unreadMessageCount: $unreadMessageCount,
+                            postContent: $postContent,
+                            selectedPrivacy: $selectedPrivacy,
+                            selectedPostIdForComments: $selectedPostIdForComments,
+                            loggedInUserFullName: $loggedInUserFullName,
+                            showCategoryAlert: $showCategoryAlert,
+                            onPost: submitPost,
+                            fetcher: fetchPostsWithParameters,
+                            likeToggler: { post in toggleLike(post) },
+                            submitPost: submitPost,
+                            toggleLike: { post in toggleLike(post) },
+                            deletePost: deletePost,
+                            fetchUserProfile: fetchUserProfile,
+                            selectedProfile: selectedProfile,
+                            showProfileSheet: { profile in
+                                selectedProfile = profile
+                                showProfileSheet = true
+                            }
+                        )
+
+                        // Bottom Navigation for iPhone
+                        BottomNavigationView(
+                            unreadMessageCount: unreadMessageCount,
+                            showMoreMenu: $showMoreMenu
+                        )
                     }
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 20)
-                .padding(.bottom, 8)
-                .background(
-                    Rectangle()
-                        .fill(Color(UIColor.systemBackground))
-                        .shadow(color: .black.opacity(0.1), radius: 1, x: 0, y: -1)
-                        .ignoresSafeArea(edges: .bottom)
-                )
-                .overlay(
-                    Rectangle()
-                        .frame(height: 0.5)
-                        .foregroundColor(Color(UIColor.separator))
-                        .padding(.horizontal, 16),
-                    alignment: .top
-                )
-            }
-            .ignoresSafeArea(edges: .bottom)
-            .zIndex(1)
-
-            // MARK: - More Menu Popup
-            if showMoreMenu {
-                VStack {
-                    Spacer()
-                    
-                    VStack(alignment: .leading, spacing: 0) {
-                        Text("More Options")
-                            .font(.headline)
-                            .fontWeight(.bold)
-                            .padding(.horizontal, 20)
-                            .padding(.top, 20)
-                            .padding(.bottom, 10)
-                            .foregroundColor(.primary)
-                        
-                        Divider()
-                            .padding(.horizontal, 16)
-                        
-                        VStack(spacing: 0) {
-                            // Professional Services
-                            NavigationLink(destination: PageEntrepreneurResources().navigationBarBackButtonHidden(true)) {
-                                HStack(spacing: 16) {
-                                    Image(systemName: "briefcase.fill")
-                                        .font(.system(size: 20))
-                                        .foregroundColor(Color(hex: "004aad"))
-                                        .frame(width: 24)
-                                    
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text("Professional Services")
-                                            .font(.system(size: 16, weight: .medium))
-                                            .foregroundColor(.primary)
-                                        Text("Find business services and experts")
-                                            .font(.system(size: 12))
-                                            .foregroundColor(.secondary)
-                                    }
-                                    
-                                    Spacer()
-                                    
-                                    Image(systemName: "chevron.right")
-                                        .font(.system(size: 12, weight: .medium))
-                                        .foregroundColor(.secondary)
-                                }
-                                .padding(.horizontal, 20)
-                                .padding(.vertical, 16)
-                            }
-                            .tutorialHighlight(id: "professional_services")
-                            .transaction { transaction in
-                                transaction.disablesAnimations = true
-                            }
-                            
-                            Divider()
-                                .padding(.horizontal, 16)
-                            
-                            // News & Knowledge
-                            NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
-                                HStack(spacing: 16) {
-                                    Image(systemName: "newspaper.fill")
-                                        .font(.system(size: 20))
-                                        .foregroundColor(Color(hex: "004aad"))
-                                        .frame(width: 24)
-                                    
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text("News & Knowledge")
-                                            .font(.system(size: 16, weight: .medium))
-                                            .foregroundColor(.primary)
-                                        Text("Stay updated with industry insights")
-                                            .font(.system(size: 12))
-                                            .foregroundColor(.secondary)
-                                    }
-                                    
-                                    Spacer()
-                                    
-                                    Image(systemName: "chevron.right")
-                                        .font(.system(size: 12, weight: .medium))
-                                        .foregroundColor(.secondary)
-                                }
-                                .padding(.horizontal, 20)
-                                .padding(.vertical, 16)
-                            }
-                            .transaction { transaction in
-                                transaction.disablesAnimations = true
-                            }
-                            
-                            Divider()
-                                .padding(.horizontal, 16)
-                            
-                            // Circl Exchange
-                            NavigationLink(destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true)) {
-                                HStack(spacing: 16) {
-                                    Image(systemName: "dollarsign.circle.fill")
-                                        .font(.system(size: 20))
-                                        .foregroundColor(Color(hex: "004aad"))
-                                        .frame(width: 24)
-                                    
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text("The Circl Exchange")
-                                            .font(.system(size: 16, weight: .medium))
-                                            .foregroundColor(.primary)
-                                        Text("Buy and sell skills and services")
-                                            .font(.system(size: 12))
-                                            .foregroundColor(.secondary)
-                                    }
-                                    
-                                    Spacer()
-                                    
-                                    Image(systemName: "chevron.right")
-                                        .font(.system(size: 12, weight: .medium))
-                                        .foregroundColor(.secondary)
-                                }
-                                .padding(.horizontal, 20)
-                                .padding(.vertical, 16)
-                            }
-                            .transaction { transaction in
-                                transaction.disablesAnimations = true
-                            }
-                            
-                            Divider()
-                                .padding(.horizontal, 16)
-                            
-                            // Settings
-                            NavigationLink(destination: PageSettings().navigationBarBackButtonHidden(true)) {
-                                HStack(spacing: 16) {
-                                    Image(systemName: "gear.circle.fill")
-                                        .font(.system(size: 20))
-                                        .foregroundColor(Color(hex: "004aad"))
-                                        .frame(width: 24)
-                                    
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text("Settings")
-                                            .font(.system(size: 16, weight: .medium))
-                                            .foregroundColor(.primary)
-                                        Text("Manage your account and preferences")
-                                            .font(.system(size: 12))
-                                            .foregroundColor(.secondary)
-                                    }
-                                    
-                                    Spacer()
-                                    
-                                    Image(systemName: "chevron.right")
-                                        .font(.system(size: 12, weight: .medium))
-                                        .foregroundColor(.secondary)
-                                }
-                                .padding(.horizontal, 20)
-                                .padding(.vertical, 16)
-                            }
-                            .transaction { transaction in
-                                transaction.disablesAnimations = true
-                            }
-                        }
-                        
-                        // Close button
-                        Button(action: {
-                            withAnimation(.easeInOut(duration: 0.3)) {
-                                showMoreMenu = false
-                            }
-                        }) {
-                            Text("Close")
-                                .font(.system(size: 16, weight: .medium))
-                                .foregroundColor(Color(hex: "004aad"))
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 16)
-                        }
-                        .background(Color(UIColor.systemGray6))
-                    }
-                    .background(Color(UIColor.systemBackground))
-                    .cornerRadius(16)
-                    .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: -5)
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 100) // Leave space for bottom navigation
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
-                }
-                .zIndex(2)
-            }
-
-            // Tap-out-to-dismiss layer
-            if showMoreMenu {
-                Color.black.opacity(0.001)
-                    .ignoresSafeArea()
-                    .onTapGesture {
-                        withAnimation(.easeInOut(duration: 0.3)) {
-                            showMoreMenu = false
-                        }
-                    }
-                    .zIndex(1)
-            }
-            
-
+                .navigationBarHidden(true)
             }
         }
-        .navigationBarHidden(true)
 
         .sheet(item: $selectedPostIdForComments) { selectedPost in
             CommentSheet(
@@ -1316,7 +1107,195 @@ struct PageForum: View {
     }
 }
 
-// MARK: - Message Functions for Notification Badge
+// MARK: - Adaptive Components
+
+struct AdaptiveMainContent: View {
+    @Binding var selectedFilter: String
+    @Binding var visualSelectedTab: String
+    @Binding var selectedCategory: String
+    @Binding var posts: [ForumPostModel]
+    @Binding var isLoading: Bool
+    @Binding var isTabSwitchLoading: Bool
+    @Binding var userFirstName: String
+    @Binding var userProfileImageURL: String
+    @Binding var unreadMessageCount: Int
+    @Binding var postContent: String
+    @Binding var selectedPrivacy: String
+    @Binding var selectedPostIdForComments: ForumPostModel?
+    @Binding var loggedInUserFullName: String
+    @Binding var showCategoryAlert: Bool
+    let shouldShowSidebar: Bool
+    let shouldUse2ColumnLayout: Bool
+    @Binding var isSidebarCollapsed: Bool
+    
+    let onPost: () -> Void
+    let fetcher: (String, String) -> Void
+    let likeToggler: (ForumPostModel) -> Void
+    let submitPost: () -> Void
+    let toggleLike: (ForumPostModel) -> Void
+    let deletePost: (Int) -> Void
+    let fetchUserProfile: (Int, @escaping (FullProfile?) -> Void) -> Void
+    let selectedProfile: FullProfile?
+    let showProfileSheet: (FullProfile) -> Void
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            // Adaptive Header
+            if shouldShowSidebar {
+                AdaptiveHeaderView(
+                    userProfileImageURL: userProfileImageURL,
+                    unreadMessageCount: unreadMessageCount,
+                    isSidebarCollapsed: $isSidebarCollapsed,
+                    visualSelectedTab: $visualSelectedTab,
+                    selectedFilter: $selectedFilter,
+                    selectedCategory: $selectedCategory,
+                    selectedPrivacy: $selectedPrivacy,
+                    fetcher: fetcher
+                )
+            }
+            
+            // Compose Area (adapted for larger screens)
+            AdaptiveComposeArea(
+                userProfileImageURL: userProfileImageURL,
+                postContent: $postContent,
+                selectedCategory: $selectedCategory,
+                selectedPrivacy: $selectedPrivacy,
+                showCategoryAlert: $showCategoryAlert,
+                submitPost: submitPost,
+                shouldShowSidebar: shouldShowSidebar
+            )
+            
+            // Content Feed
+            if isLoading || isTabSwitchLoading {
+                VStack {
+                    Spacer()
+                    ProgressView("Loading...")
+                        .font(.system(size: 16))
+                        .padding()
+                    Spacer()
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(Color(.systemBackground))
+            } else {
+                ScrollView {
+                    if shouldUse2ColumnLayout {
+                        // 2-Column Layout for iPad/Mac
+                        LazyVGrid(
+                            columns: [
+                                GridItem(.flexible(), spacing: 16),
+                                GridItem(.flexible(), spacing: 16)
+                            ],
+                            spacing: 16
+                        ) {
+                            ForEach(posts) { post in
+                                AdaptiveForumPost(
+                                    post: post,
+                                    loggedInUserFullName: loggedInUserFullName,
+                                    onComment: { selectedPostIdForComments = post },
+                                    toggleLike: { toggleLike(post) },
+                                    deletePost: { deletePost(post.id) },
+                                    onTapProfile: {
+                                        fetchUserProfile(post.user_id) { profile in
+                                            if let profile = profile {
+                                                showProfileSheet(profile)
+                                            }
+                                        }
+                                    },
+                                    isCompact: false
+                                )
+                            }
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 20)
+                    } else {
+                        // Single Column Layout
+                        LazyVStack(spacing: 0) {
+                            ForEach(posts) { post in
+                                ForumPost(
+                                    content: post.content,
+                                    author: post.user,
+                                    timestamp: post.created_at,
+                                    category: post.category,
+                                    profileImageName: post.profileImage ?? "",
+                                    company: "Circl",
+                                    postID: post.id,
+                                    onComment: { selectedPostIdForComments = post },
+                                    commentCount: post.comment_count ?? 0,
+                                    likeCount: post.like_count,
+                                    likedByUser: post.liked_by_user,
+                                    toggleLike: { toggleLike(post) },
+                                    isCurrentUser: post.user == loggedInUserFullName,
+                                    onDelete: { deletePost(post.id) },
+                                    onTapProfile: {
+                                        fetchUserProfile(post.user_id) { profile in
+                                            if let profile = profile {
+                                                showProfileSheet(profile)
+                                            }
+                                        }
+                                    },
+                                    isMentor: post.isMentor ?? false
+                                )
+                            }
+                        }
+                        .padding(.bottom, shouldShowSidebar ? 20 : 80)
+                    }
+                }
+                .tutorialHighlight(id: "home_feed_content")
+                .background(Color(.systemBackground))
+                .dismissKeyboardOnScroll()
+            }
+        }
+        .background(Color(.systemBackground))
+    }
+}
+
+struct SidebarNavigationItem: View {
+    let icon: String
+    let title: String
+    let badgeCount: Int?
+    let isActive: Bool
+    
+    init(icon: String, title: String, badgeCount: Int? = nil, isActive: Bool) {
+        self.icon = icon
+        self.title = title
+        self.badgeCount = badgeCount
+        self.isActive = isActive
+    }
+    
+    var body: some View {
+        HStack(spacing: 16) {
+            ZStack {
+                Image(systemName: icon)
+                    .font(.system(size: 20, weight: .medium))
+                    .foregroundColor(isActive ? .white : Color(hex: "004aad"))
+                    .frame(width: 24, height: 24)
+                
+                if let count = badgeCount, count > 0 {
+                    Text(count > 99 ? "99+" : "\(count)")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(.white)
+                        .padding(4)
+                        .background(Color.red)
+                        .clipShape(Circle())
+                        .offset(x: 12, y: -12)
+                }
+            }
+            
+            Text(title)
+                .font(.system(size: 16, weight: .medium))
+                .foregroundColor(isActive ? .white : .primary)
+            
+            Spacer()
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(isActive ? Color(hex: "004aad") : Color.clear)
+        )
+        .contentShape(Rectangle())
+    }
+}
 
 extension PageForum {
     func fetchMessagesForNotification() {
@@ -1577,3 +1556,735 @@ struct CommentSheet: View {
         }.resume()
     }
 }
+
+// MARK: - Adaptive Components
+
+struct AdaptiveSidebar: View {
+    @Binding var isCollapsed: Bool
+    @Binding var visualSelectedTab: String
+    @Binding var selectedFilter: String
+    @Binding var selectedCategory: String
+    @Binding var selectedPrivacy: String
+    let unreadMessageCount: Int
+    let fetcher: (String, String) -> Void
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            // Header
+            HStack {
+                Text("Circl.")
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundColor(.white)
+                
+                Spacer()
+                
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        isCollapsed.toggle()
+                    }
+                }) {
+                    Image(systemName: "sidebar.right")
+                        .font(.system(size: 20, weight: .medium))
+                        .foregroundColor(.white)
+                        .padding(8)
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 16)
+            
+            Divider()
+                .background(Color.white.opacity(0.3))
+            
+            // Navigation Items
+            VStack(spacing: 8) {
+                // Home / Forum
+                SidebarMenuItem(
+                    icon: "house.fill",
+                    title: "Home",
+                    isSelected: true
+                )
+                
+                // Network
+                NavigationLink(destination: PageUnifiedNetworking().navigationBarBackButtonHidden(true)) {
+                    SidebarMenuItem(
+                        icon: "person.2",
+                        title: "Network",
+                        isSelected: false
+                    )
+                }
+                
+                // Circles
+                NavigationLink(destination: PageCircles().navigationBarBackButtonHidden(true)) {
+                    SidebarMenuItem(
+                        icon: "circle.grid.2x2",
+                        title: "Circles",
+                        isSelected: false
+                    )
+                }
+                
+                // Growth Hub
+                NavigationLink(destination: PageSkillSellingPlaceholder().navigationBarBackButtonHidden(true)) {
+                    SidebarMenuItem(
+                        icon: "dollarsign.circle",
+                        title: "Growth Hub",
+                        isSelected: false
+                    )
+                }
+                
+                // Messages
+                NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
+                    SidebarMenuItem(
+                        icon: "envelope",
+                        title: "Messages",
+                        isSelected: false,
+                        badge: unreadMessageCount > 0 ? "\(unreadMessageCount)" : nil
+                    )
+                }
+                
+                // Settings
+                NavigationLink(destination: PageSettings().navigationBarBackButtonHidden(true)) {
+                    SidebarMenuItem(
+                        icon: "gear",
+                        title: "Settings",
+                        isSelected: false
+                    )
+                }
+            }
+            .padding(.top, 16)
+            
+            Spacer()
+        }
+        .frame(width: 280)
+        .background(Color(hex: "004aad"))
+    }
+}
+
+struct SidebarMenuItem: View {
+    let icon: String
+    let title: String
+    let isSelected: Bool
+    let badge: String?
+    
+    init(icon: String, title: String, isSelected: Bool, badge: String? = nil) {
+        self.icon = icon
+        self.title = title
+        self.isSelected = isSelected
+        self.badge = badge
+    }
+    
+    var body: some View {
+        HStack(spacing: 16) {
+            ZStack {
+                Image(systemName: icon)
+                    .font(.system(size: 20, weight: .medium))
+                    .foregroundColor(.white)
+                    .frame(width: 24)
+                
+                if let badge = badge {
+                    Text(badge)
+                        .font(.system(size: 8, weight: .bold))
+                        .foregroundColor(.white)
+                        .padding(3)
+                        .background(Color.red)
+                        .clipShape(Circle())
+                        .offset(x: 12, y: -8)
+                }
+            }
+            
+            Text(title)
+                .font(.system(size: 16, weight: isSelected ? .semibold : .medium))
+                .foregroundColor(.white)
+            
+            Spacer()
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
+        .background(
+            isSelected ? Color.white.opacity(0.2) : Color.clear
+        )
+        .cornerRadius(8)
+        .padding(.horizontal, 16)
+    }
+}
+
+struct AdaptiveHeaderView: View {
+    let userProfileImageURL: String
+    let unreadMessageCount: Int
+    @Binding var isSidebarCollapsed: Bool
+    @Binding var visualSelectedTab: String
+    @Binding var selectedFilter: String
+    @Binding var selectedCategory: String
+    @Binding var selectedPrivacy: String
+    let fetcher: (String, String) -> Void
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack {
+                // Sidebar toggle (only show if collapsed)
+                if isSidebarCollapsed {
+                    Button(action: {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            isSidebarCollapsed.toggle()
+                        }
+                    }) {
+                        Image(systemName: "sidebar.left")
+                            .font(.system(size: 20, weight: .medium))
+                            .foregroundColor(.white)
+                            .padding(8)
+                    }
+                    
+                    Text("Circl.")
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(.white)
+                } else {
+                    Spacer()
+                }
+                
+                Spacer()
+                
+                // Profile and Messages
+                HStack(spacing: 16) {
+                    NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
+                        ZStack {
+                            Image(systemName: "envelope")
+                                .font(.system(size: 20))
+                                .foregroundColor(.white)
+                            
+                            if unreadMessageCount > 0 {
+                                Text(unreadMessageCount > 99 ? "99+" : "\(unreadMessageCount)")
+                                    .font(.system(size: 8, weight: .bold))
+                                    .foregroundColor(.white)
+                                    .padding(3)
+                                    .background(Color.red)
+                                    .clipShape(Circle())
+                                    .offset(x: 8, y: -8)
+                            }
+                        }
+                    }
+                    
+                    NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
+                        AsyncImage(url: URL(string: userProfileImageURL)) { phase in
+                            switch phase {
+                            case .success(let image):
+                                image
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 28, height: 28)
+                                    .clipShape(Circle())
+                            default:
+                                Image(systemName: "person.circle.fill")
+                                    .font(.system(size: 28))
+                                    .foregroundColor(.white)
+                            }
+                        }
+                    }
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 16)
+            .padding(.top, 8)
+            
+            // Tab Buttons Row for larger screens
+            HStack(spacing: 0) {
+                Spacer()
+                
+                // For You Tab
+                Button(action: {
+                    visualSelectedTab = "public"
+                    selectedFilter = "public"
+                    selectedPrivacy = "Public"
+                    fetcher("public", selectedCategory)
+                }) {
+                    VStack(spacing: 6) {
+                        Text("For you")
+                            .font(.system(size: 15, weight: visualSelectedTab == "public" ? .semibold : .regular))
+                            .foregroundColor(.white)
+                        
+                        Rectangle()
+                            .fill(visualSelectedTab == "public" ? Color.white : Color.clear)
+                            .frame(height: 3)
+                            .animation(.easeInOut(duration: 0.2), value: visualSelectedTab)
+                    }
+                    .frame(width: 80)
+                }
+                
+                Spacer()
+                
+                // Following Tab
+                Button(action: {
+                    visualSelectedTab = "my_network"
+                    selectedFilter = "my_network"
+                    selectedPrivacy = "My Network"
+                    fetcher("my_network", selectedCategory)
+                }) {
+                    VStack(spacing: 6) {
+                        Text("Following")
+                            .font(.system(size: 15, weight: visualSelectedTab == "my_network" ? .semibold : .regular))
+                            .foregroundColor(.white)
+                        
+                        Rectangle()
+                            .fill(visualSelectedTab == "my_network" ? Color.white : Color.clear)
+                            .frame(height: 3)
+                            .animation(.easeInOut(duration: 0.2), value: visualSelectedTab)
+                    }
+                    .frame(width: 90)
+                }
+                
+                Spacer()
+            }
+            .padding(.bottom, 8)
+        }
+        .background(Color(hex: "004aad"))
+    }
+}
+
+struct AdaptiveComposeArea: View {
+    let userProfileImageURL: String
+    @Binding var postContent: String
+    @Binding var selectedCategory: String
+    @Binding var selectedPrivacy: String
+    @Binding var showCategoryAlert: Bool
+    let submitPost: () -> Void
+    let shouldShowSidebar: Bool
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack(alignment: .top, spacing: 12) {
+                // Profile Image
+                AsyncImage(url: URL(string: userProfileImageURL)) { phase in
+                    if let image = phase.image {
+                        image.resizable().aspectRatio(contentMode: .fill)
+                    } else {
+                        Image(systemName: "person.circle.fill")
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .foregroundColor(.gray.opacity(0.5))
+                    }
+                }
+                .frame(width: 40, height: 40)
+                .clipShape(Circle())
+                
+                VStack(alignment: .leading, spacing: 8) {
+                    // Main text input area
+                    TextField("", text: $postContent, axis: .vertical)
+                        .font(.system(size: shouldShowSidebar ? 16 : 18, weight: .regular))
+                        .lineLimit(1...5)
+                        .textFieldStyle(PlainTextFieldStyle())
+                        .placeholder(when: postContent.isEmpty) {
+                            Text("What's happening?")
+                                .font(.system(size: shouldShowSidebar ? 16 : 18, weight: .regular))
+                                .foregroundColor(.gray.opacity(0.5))
+                        }
+                        .frame(minHeight: 22)
+                    
+                    // Action row
+                    HStack(spacing: 0) {
+                        HStack(spacing: 12) {
+                            // Category button
+                            Button(action: { showCategoryAlert = true }) {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "tag")
+                                        .font(.system(size: 14, weight: .medium))
+                                    Text(selectedCategory == "Category" ? "Tags" : selectedCategory)
+                                        .font(.system(size: 13, weight: .medium))
+                                        .lineLimit(1)
+                                        .minimumScaleFactor(0.8)
+                                }
+                                .foregroundColor(Color(hex: "004aad"))
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(selectedCategory == "Category" ? Color(hex: "e8f2ff") : Color(hex: "004aad").opacity(0.1))
+                                .cornerRadius(16)
+                            }
+                            
+                            // Privacy button
+                            Menu {
+                                Button("Public", action: { selectedPrivacy = "Public" })
+                                Button("My Network", action: { selectedPrivacy = "My Network" })
+                            } label: {
+                                HStack(spacing: 4) {
+                                    Image(systemName: selectedPrivacy == "Public" ? "globe" : "lock")
+                                        .font(.system(size: 14, weight: .medium))
+                                    Text(selectedPrivacy)
+                                        .font(.system(size: 13, weight: .medium))
+                                }
+                                .foregroundColor(Color(hex: "004aad"))
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(Color(hex: "e8f2ff"))
+                                .cornerRadius(16)
+                            }
+                        }
+                        
+                        Spacer()
+                        
+                        // Post button
+                        Button(action: submitPost) {
+                            Text("Post")
+                                .font(.system(size: 15, weight: .bold))
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 8)
+                                .background(
+                                    postContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                                    ? Color.gray.opacity(0.4)
+                                    : Color(hex: "004aad")
+                                )
+                                .clipShape(Capsule())
+                        }
+                        .disabled(postContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    }
+                }
+            }
+            .padding(.horizontal, shouldShowSidebar ? 20 : 16)
+            .padding(.vertical, 16)
+            
+            Divider()
+                .background(Color.gray.opacity(0.2))
+        }
+        .background(Color(.systemBackground))
+        .shadow(color: Color.black.opacity(0.03), radius: 1, x: 0, y: 1)
+    }
+}
+
+struct AdaptiveForumPost: View {
+    let post: ForumPostModel
+    let loggedInUserFullName: String
+    let onComment: () -> Void
+    let toggleLike: () -> Void
+    let deletePost: () -> Void
+    let onTapProfile: () -> Void
+    let isCompact: Bool
+    
+    @State private var showDeleteConfirmation = false
+    @State private var showReportSheet = false
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            VStack(alignment: .leading, spacing: 12) {
+                // Header with profile and menu
+                HStack(alignment: .top, spacing: 12) {
+                    Button(action: onTapProfile) {
+                        AsyncImage(url: URL(string: post.profileImage ?? "")) { phase in
+                            if let image = phase.image {
+                                image.resizable().aspectRatio(contentMode: .fill)
+                            } else {
+                                Image("default_image").resizable().aspectRatio(contentMode: .fill)
+                            }
+                        }
+                        .frame(width: isCompact ? 32 : 36, height: isCompact ? 32 : 36)
+                        .clipShape(Circle())
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack(spacing: 4) {
+                            Text(post.user)
+                                .font(.system(size: isCompact ? 14 : 15, weight: .semibold))
+                                .foregroundColor(.primary)
+                            
+                            if post.isMentor ?? false {
+                                Image(systemName: "checkmark.seal.fill")
+                                    .foregroundColor(Color(hex: "004aad"))
+                                    .font(.system(size: isCompact ? 12 : 14))
+                            }
+                            
+                            Text("·")
+                                .foregroundColor(.secondary)
+                                .font(.system(size: isCompact ? 14 : 15))
+                            
+                            Text(timeAgo(from: post.created_at))
+                                .font(.system(size: isCompact ? 14 : 15))
+                                .foregroundColor(.secondary)
+                            
+                            Spacer()
+                            
+                            Menu {
+                                if post.user == loggedInUserFullName {
+                                    Button("Delete Post", role: .destructive) {
+                                        showDeleteConfirmation = true
+                                    }
+                                } else {
+                                    Button("Report Post", role: .destructive) {
+                                        showReportSheet = true
+                                    }
+                                }
+                            } label: {
+                                Image(systemName: "ellipsis")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(.secondary)
+                                    .padding(4)
+                            }
+                        }
+                    }
+                }
+                
+                // Content
+                Text(post.content)
+                    .font(.system(size: isCompact ? 14 : 15))
+                    .lineSpacing(2)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .foregroundColor(.primary)
+                
+                // Category Tag
+                if !post.category.trimmingCharacters(in: .whitespaces).isEmpty && post.category != "Category" {
+                    Text(post.category)
+                        .font(.system(size: 11, weight: .medium))
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color(hex: "004aad").opacity(0.1))
+                        .foregroundColor(Color(hex: "004aad"))
+                        .clipShape(Capsule())
+                }
+                
+                // Action Buttons
+                HStack(spacing: 0) {
+                    Button(action: onComment) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "bubble.left")
+                                .font(.system(size: isCompact ? 14 : 16))
+                            Text("\(post.comment_count ?? 0)")
+                                .font(.system(size: isCompact ? 12 : 13))
+                        }
+                        .foregroundColor(.secondary)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 6)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    
+                    Spacer()
+                    
+                    Button(action: toggleLike) {
+                        HStack(spacing: 4) {
+                            Image(systemName: post.liked_by_user ? "heart.fill" : "heart")
+                                .font(.system(size: isCompact ? 14 : 16))
+                            Text("\(post.like_count)")
+                                .font(.system(size: isCompact ? 12 : 13))
+                        }
+                        .foregroundColor(post.liked_by_user ? .red : .secondary)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 6)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    
+                    Spacer()
+                }
+            }
+            .padding(16)
+        }
+        .background(Color(.systemBackground))
+        .cornerRadius(12)
+        .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
+        .alert("Delete Post?", isPresented: $showDeleteConfirmation) {
+            Button("Delete", role: .destructive, action: deletePost)
+        }
+        .sheet(isPresented: $showReportSheet) {
+            ReportPostView(postID: post.id, isPresented: $showReportSheet)
+        }
+    }
+}
+
+struct BottomNavigationView: View {
+    let unreadMessageCount: Int
+    @Binding var showMoreMenu: Bool
+    
+    var body: some View {
+        ZStack {
+            // Bottom Navigation
+            VStack {
+                Spacer()
+                
+                HStack(spacing: 0) {
+                    // Forum / Home (Current page - highlighted)
+                    VStack(spacing: 4) {
+                        Image(systemName: "house.fill")
+                            .font(.system(size: 22, weight: .medium))
+                            .foregroundColor(Color(hex: "004aad"))
+                        Text("Home")
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundColor(Color(hex: "004aad"))
+                    }
+                    .frame(maxWidth: .infinity)
+                    
+                    // Connect and Network
+                    NavigationLink(destination: PageUnifiedNetworking().navigationBarBackButtonHidden(true)) {
+                        VStack(spacing: 4) {
+                            Image(systemName: "person.2")
+                                .font(.system(size: 22, weight: .medium))
+                                .foregroundColor(Color(UIColor.label).opacity(0.6))
+                            Text("Network")
+                                .font(.system(size: 10, weight: .medium))
+                                .foregroundColor(Color(UIColor.label).opacity(0.6))
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                    
+                    // Circles
+                    NavigationLink(destination: PageCircles().navigationBarBackButtonHidden(true)) {
+                        VStack(spacing: 4) {
+                            Image(systemName: "circle.grid.2x2")
+                                .font(.system(size: 22, weight: .medium))
+                                .foregroundColor(Color(UIColor.label).opacity(0.6))
+                            Text("Circles")
+                                .font(.system(size: 10, weight: .medium))
+                                .foregroundColor(Color(UIColor.label).opacity(0.6))
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                    
+                    // Growth Hub
+                    NavigationLink(destination: PageSkillSellingPlaceholder().navigationBarBackButtonHidden(true)) {
+                        VStack(spacing: 4) {
+                            Image(systemName: "dollarsign.circle")
+                                .font(.system(size: 22, weight: .medium))
+                                .foregroundColor(Color(UIColor.label).opacity(0.6))
+                            Text("Growth Hub")
+                                .font(.system(size: 10, weight: .medium))
+                                .foregroundColor(Color(UIColor.label).opacity(0.6))
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                    
+                    // More
+                    Button(action: {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            showMoreMenu.toggle()
+                        }
+                    }) {
+                        VStack(spacing: 4) {
+                            Image(systemName: "ellipsis")
+                                .font(.system(size: 22, weight: .medium))
+                                .foregroundColor(Color(UIColor.label).opacity(0.6))
+                            Text("More")
+                                .font(.system(size: 10, weight: .medium))
+                                .foregroundColor(Color(UIColor.label).opacity(0.6))
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 20)
+                .padding(.bottom, 8)
+                .background(
+                    Rectangle()
+                        .fill(Color(UIColor.systemBackground))
+                        .shadow(color: .black.opacity(0.1), radius: 1, x: 0, y: -1)
+                        .ignoresSafeArea(edges: .bottom)
+                )
+            }
+            .ignoresSafeArea(edges: .bottom)
+            .zIndex(1)
+            
+            // More Menu Popup for iPhone
+            if showMoreMenu {
+                VStack {
+                    Spacer()
+                    
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text("More Options")
+                            .font(.headline)
+                            .fontWeight(.bold)
+                            .padding(.horizontal, 20)
+                            .padding(.top, 20)
+                            .padding(.bottom, 10)
+                            .foregroundColor(.primary)
+                        
+                        Divider()
+                            .padding(.horizontal, 16)
+                        
+                        VStack(spacing: 0) {
+                            NavigationLink(destination: PageEntrepreneurResources().navigationBarBackButtonHidden(true)) {
+                                MoreMenuItem(icon: "briefcase.fill", title: "Professional Services", subtitle: "Find business services and experts")
+                            }
+                            
+                            Divider().padding(.horizontal, 16)
+                            
+                            NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
+                                MoreMenuItem(icon: "newspaper.fill", title: "News & Knowledge", subtitle: "Stay updated with industry insights")
+                            }
+                            
+                            Divider().padding(.horizontal, 16)
+                            
+                            NavigationLink(destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true)) {
+                                MoreMenuItem(icon: "dollarsign.circle.fill", title: "The Circl Exchange", subtitle: "Buy and sell skills and services")
+                            }
+                            
+                            Divider().padding(.horizontal, 16)
+                            
+                            NavigationLink(destination: PageSettings().navigationBarBackButtonHidden(true)) {
+                                MoreMenuItem(icon: "gear.circle.fill", title: "Settings", subtitle: "Manage your account and preferences")
+                            }
+                        }
+                        
+                        Button(action: {
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                showMoreMenu = false
+                            }
+                        }) {
+                            Text("Close")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(Color(hex: "004aad"))
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 16)
+                        }
+                        .background(Color(UIColor.systemGray6))
+                    }
+                    .background(Color(UIColor.systemBackground))
+                    .cornerRadius(16)
+                    .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: -5)
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 100)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+                .zIndex(2)
+            }
+            
+            // Tap-out-to-dismiss layer
+            if showMoreMenu {
+                Color.black.opacity(0.001)
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            showMoreMenu = false
+                        }
+                    }
+                    .zIndex(1)
+            }
+        }
+    }
+}
+
+struct MoreMenuItem: View {
+    let icon: String
+    let title: String
+    let subtitle: String
+    
+    var body: some View {
+        HStack(spacing: 16) {
+            Image(systemName: icon)
+                .font(.system(size: 20))
+                .foregroundColor(Color(hex: "004aad"))
+                .frame(width: 24)
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.primary)
+                Text(subtitle)
+                    .font(.system(size: 12))
+                    .foregroundColor(.secondary)
+            }
+            
+            Spacer()
+            
+            Image(systemName: "chevron.right")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(.secondary)
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 16)
+    }
+}
+
+// MARK: - Extensions
+
+
