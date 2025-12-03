@@ -58,7 +58,7 @@ struct PageCircles: View {
     }
     
     var body: some View {
-        NavigationView {
+        AdaptivePage(title: "Circles") {
             ZStack {
                 // Clean background
                 Color(.systemBackground)

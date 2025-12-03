@@ -642,120 +642,37 @@ struct PageForum: View {
 
     @State private var animateArrow = false
     @State private var currentUserProfile: FullProfile?
-    
-    // MARK: - Adaptive Layout Properties
-    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
-    @AppStorage("sidebarCollapsed") private var isSidebarCollapsed: Bool = false
-    
-    // Computed properties for adaptive layout
-    private var isCompactLayout: Bool {
-        horizontalSizeClass == .compact
-    }
-    
-    private var shouldUse2ColumnLayout: Bool {
-        horizontalSizeClass == .regular
-    }
-    
-    private var shouldShowSidebar: Bool {
-        horizontalSizeClass == .regular
-    }
 
     var body: some View {
-        Group {
-            if shouldShowSidebar {
-                // iPad/Mac Layout with Sidebar
-                HStack(spacing: 0) {
-                    // Collapsible Sidebar
-                    if !isSidebarCollapsed {
-                        AdaptiveSidebar(
-                            isCollapsed: $isSidebarCollapsed,
-                            visualSelectedTab: $visualSelectedTab,
-                            selectedFilter: $selectedFilter,
-                            selectedCategory: $selectedCategory,
-                            selectedPrivacy: $selectedPrivacy,
-                            unreadMessageCount: unreadMessageCount,
-                            fetcher: fetchPostsWithParameters
-                        )
-                        .frame(width: 280)
-                        .transition(.move(edge: .leading))
-                    }
-                    
-                    // Main Content Area
-                    AdaptiveMainContent(
-                        selectedFilter: $selectedFilter,
-                        visualSelectedTab: $visualSelectedTab,
-                        selectedCategory: $selectedCategory,
-                        posts: $posts,
-                        isLoading: $isLoading,
-                        isTabSwitchLoading: $isTabSwitchLoading,
-                        userFirstName: $userFirstName,
-                        userProfileImageURL: $userProfileImageURL,
-                        unreadMessageCount: $unreadMessageCount,
-                        postContent: $postContent,
-                        selectedPrivacy: $selectedPrivacy,
-                        selectedPostIdForComments: $selectedPostIdForComments,
-                        loggedInUserFullName: $loggedInUserFullName,
-                        showCategoryAlert: $showCategoryAlert,
-                        shouldShowSidebar: shouldShowSidebar,
-                        shouldUse2ColumnLayout: shouldUse2ColumnLayout,
-                        isSidebarCollapsed: $isSidebarCollapsed,
-                        onPost: submitPost,
-                        fetcher: fetchPostsWithParameters,
-                        likeToggler: { post in toggleLike(post) },
-                        submitPost: submitPost,
-                        toggleLike: { post in toggleLike(post) },
-                        deletePost: deletePost,
-                        fetchUserProfile: fetchUserProfile,
-                        selectedProfile: selectedProfile,
-                        showProfileSheet: { profile in
-                            selectedProfile = profile
-                            showProfileSheet = true
-                        }
-                    )
+        AdaptivePage(title: "Home") {
+            ForumMainContent(
+                selectedFilter: $selectedFilter,
+                visualSelectedTab: $visualSelectedTab,
+                selectedCategory: $selectedCategory,
+                posts: $posts,
+                isLoading: $isLoading,
+                isTabSwitchLoading: $isTabSwitchLoading,
+                userFirstName: $userFirstName,
+                userProfileImageURL: $userProfileImageURL,
+                unreadMessageCount: $unreadMessageCount,
+                postContent: $postContent,
+                selectedPrivacy: $selectedPrivacy,
+                selectedPostIdForComments: $selectedPostIdForComments,
+                loggedInUserFullName: $loggedInUserFullName,
+                showCategoryAlert: $showCategoryAlert,
+                onPost: submitPost,
+                fetcher: fetchPostsWithParameters,
+                likeToggler: { post in toggleLike(post) },
+                submitPost: submitPost,
+                toggleLike: { post in toggleLike(post) },
+                deletePost: deletePost,
+                fetchUserProfile: fetchUserProfile,
+                selectedProfile: selectedProfile,
+                showProfileSheet: { profile in
+                    selectedProfile = profile
+                    showProfileSheet = true
                 }
-                .animation(.easeInOut(duration: 0.3), value: isSidebarCollapsed)
-            } else {
-                // iPhone Layout (existing)
-                NavigationView {
-                    ZStack {
-                        ForumMainContent(
-                            selectedFilter: $selectedFilter,
-                            visualSelectedTab: $visualSelectedTab,
-                            selectedCategory: $selectedCategory,
-                            posts: $posts,
-                            isLoading: $isLoading,
-                            isTabSwitchLoading: $isTabSwitchLoading,
-                            userFirstName: $userFirstName,
-                            userProfileImageURL: $userProfileImageURL,
-                            unreadMessageCount: $unreadMessageCount,
-                            postContent: $postContent,
-                            selectedPrivacy: $selectedPrivacy,
-                            selectedPostIdForComments: $selectedPostIdForComments,
-                            loggedInUserFullName: $loggedInUserFullName,
-                            showCategoryAlert: $showCategoryAlert,
-                            onPost: submitPost,
-                            fetcher: fetchPostsWithParameters,
-                            likeToggler: { post in toggleLike(post) },
-                            submitPost: submitPost,
-                            toggleLike: { post in toggleLike(post) },
-                            deletePost: deletePost,
-                            fetchUserProfile: fetchUserProfile,
-                            selectedProfile: selectedProfile,
-                            showProfileSheet: { profile in
-                                selectedProfile = profile
-                                showProfileSheet = true
-                            }
-                        )
-
-                        // Bottom Navigation for iPhone
-                        BottomNavigationView(
-                            unreadMessageCount: unreadMessageCount,
-                            showMoreMenu: $showMoreMenu
-                        )
-                    }
-                }
-                .navigationBarHidden(true)
-            }
+            )
         }
 
         .sheet(item: $selectedPostIdForComments) { selectedPost in

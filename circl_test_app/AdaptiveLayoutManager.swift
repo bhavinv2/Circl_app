@@ -113,38 +113,38 @@ extension AdaptivePageConfiguration {
             NavigationItem(
                 icon: "house.fill",
                 title: "Home",
-                destination: Text("Home Page - Forum"),
+                destination: PageForum().navigationBarBackButtonHidden(true),
                 isCurrentPage: currentPageTitle == "Home"
             ),
             NavigationItem(
                 icon: "person.2",
                 title: "Network",
-                destination: Text("Network Page"),
+                destination: PageUnifiedNetworking().navigationBarBackButtonHidden(true),
                 isCurrentPage: currentPageTitle == "Network"
             ),
             NavigationItem(
                 icon: "circle.grid.2x2",
                 title: "Circles",
-                destination: Text("Circles Page"),
+                destination: PageCircles().navigationBarBackButtonHidden(true),
                 isCurrentPage: currentPageTitle == "Circles"
             ),
             NavigationItem(
                 icon: "dollarsign.circle",
                 title: "Growth Hub",
-                destination: Text("Growth Hub Page"),
+                destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true),
                 isCurrentPage: currentPageTitle == "Growth Hub"
             ),
             NavigationItem(
                 icon: "envelope",
                 title: "Messages",
-                destination: Text("Messages Page"),
+                destination: PageMessages().navigationBarBackButtonHidden(true),
                 badge: unreadMessageCount > 0 ? "\(unreadMessageCount)" : nil,
                 isCurrentPage: currentPageTitle == "Messages"
             ),
             NavigationItem(
                 icon: "gear",
                 title: "Settings",
-                destination: Text("Settings Page"),
+                destination: PageSettings().navigationBarBackButtonHidden(true),
                 isCurrentPage: currentPageTitle == "Settings"
             )
         ]

@@ -88,7 +88,7 @@ struct PageUnifiedNetworking: View {
     }
 
     var body: some View {
-        NavigationView {
+        AdaptivePage(title: "Network") {
             ZStack {
                 // Enhanced background gradient inspired by PageGroupchats
                 LinearGradient(
@@ -107,14 +107,6 @@ struct PageUnifiedNetworking: View {
                     scrollableContent
                     // Remove Spacer() to prevent layout issues
                 }
-                
-                // Bottom navigation as overlay
-                VStack {
-                    Spacer()
-                    bottomNavigationBar
-                }
-                .ignoresSafeArea(edges: .bottom)
-                .zIndex(1)
                 
                 // MARK: - More Menu Popup (EXACT copy from Forum page)
                 if showBottomMoreMenu {

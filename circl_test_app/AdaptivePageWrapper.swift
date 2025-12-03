@@ -42,6 +42,7 @@ struct AdaptivePageWrapper<Content: View>: View {
                 content
             }
         }
+        .navigationViewStyle(StackNavigationViewStyle())
         .navigationBarHidden(true)
     }
 }
