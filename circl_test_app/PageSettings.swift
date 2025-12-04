@@ -100,66 +100,42 @@ struct PageSettings: View {
     }
 
     var body: some View {
-        NavigationView {
-            VStack(spacing: 0) {
-            // Header - matching home page style exactly
-            VStack(spacing: 0) {
-                HStack {
-                    // Left side - Back Button
-                    Button(action: {
-                        presentationMode.wrappedValue.dismiss()
-                    }) {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 24))
-                            .foregroundColor(.white)
-                    }
-                    
-                    Spacer()
-                    
-                    // Center - Settings Title (Easter Egg!)
-                    Text("Settings")
-                        .font(.system(size: 24, weight: .bold))
-                        .foregroundColor(.white)
-                        .onTapGesture {
-                            settingsClickCount += 1
-                            
-                            // Add haptic feedback for fun
-                            let impactFeedback = UIImpactFeedbackGenerator(style: .light)
-                            impactFeedback.impactOccurred()
-                            
-                            // Reset counter after 5 seconds of no clicking
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
-                                if settingsClickCount < 10 {
-                                    settingsClickCount = 0
+        AdaptivePage(title: "Settings") {
+            ZStack {
+                // Subtle animated background
+                animatedBackground
+                    .opacity(0.1)
+                    .edgesIgnoringSafeArea(.all)
+                
+                // White base background
+                Color.white
+                    .edgesIgnoringSafeArea(.all)
+                
+                // Content with modern cards
+                ScrollView {
+                    LazyVStack(spacing: 16) {
+                        // Account Settings Section (Easter Egg!)
+                        VStack(spacing: 12) {
+                            sectionHeader(title: "Account Settings", icon: "person.circle.fill")
+                                .onTapGesture {
+                                    settingsClickCount += 1
+                                    
+                                    // Add haptic feedback for fun
+                                    let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                                    impactFeedback.impactOccurred()
+                                    
+                                    // Reset counter after 5 seconds of no clicking
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+                                        if settingsClickCount < 10 {
+                                            settingsClickCount = 0
+                                        }
+                                    }
+                                    
+                                    // Activate easter egg after 10 clicks
+                                    if settingsClickCount >= 10 {
+                                        triggerEasterEgg()
+                                    }
                                 }
-                            }
-                            
-                            // Activate easter egg after 10 clicks
-                            if settingsClickCount >= 10 {
-                                triggerEasterEgg()
-                            }
-                        }
-                    
-                    Spacer()
-                    
-                    // Right side - Empty spacer to center the title
-                    Spacer()
-                        .frame(width: 24) // Match the width of the back button
-                }
-                .padding(.horizontal, 16)
-                .padding(.bottom, 16)
-                .padding(.top, 8)
-            }
-            .padding(.top, 50) // Add safe area padding for status bar and notch
-            .background(Color(hex: "004aad"))
-            .ignoresSafeArea(edges: .top)
-
-            // Content with modern cards
-            ScrollView {
-                LazyVStack(spacing: 16) {
-                    // Account Settings Section
-                    VStack(spacing: 12) {
-                        sectionHeader(title: "Account Settings", icon: "person.circle.fill")
                         
                         VStack(spacing: 8) {
                             settingsOption(title: "Become a Mentor", iconName: "graduationcap.fill", destination: BecomeMentorPage())
@@ -255,14 +231,12 @@ struct PageSettings: View {
                     .padding(.top, 8)
                     .padding(.horizontal, 20)
                     .shadow(color: .red.opacity(0.3), radius: 8, x: 0, y: 4)
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 16)
                 }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 16)
             }
-            .background(Color(UIColor.systemGray6))
         }
-        .ignoresSafeArea(edges: .top)
-        .navigationBarHidden(true)
         .alert(isPresented: $showLogoutAlert) {
             Alert(
                 title: Text("Log out of your account?"),
@@ -272,7 +246,6 @@ struct PageSettings: View {
                 },
                 secondaryButton: .cancel()
             )
-        }
         }
         .fullScreenCover(isPresented: $showEasterEggVideo) {
             EasterEggVideoPlayer(player: player)

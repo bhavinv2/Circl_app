@@ -19,15 +19,13 @@ struct PageMessages: View {
     @State private var timer: Timer?
     @State private var selectedProfile: FullProfile? = nil
     @State private var userProfileImageURL: String? = nil
-    @State private var showMoreMenu = false
-    @State private var rotationAngle: Double = 0
     @State private var unreadMessageCount: Int = 0
     @State private var userFirstName: String = ""
 
     @State private var myNetwork: [NetworkUser] = [] // ✅ Correct type
     
     var body: some View {
-        NavigationView {
+        AdaptivePage(title: "Messages", unreadMessageCount: unreadMessageCount) {
             ZStack {
                 // Enhanced background gradient
                 let backgroundColors = [
@@ -44,297 +42,44 @@ struct PageMessages: View {
                 .ignoresSafeArea()
                 
                 VStack(spacing: 0) {
-                    headerSection
                     searchBarSection
                     scrollableSection
                 }
                 
-                // Bottom navigation as overlay
-                VStack {
-                    Spacer()
-                    bottomNavigationBar
-                }
-                .ignoresSafeArea(edges: .bottom)
-                .zIndex(1)
-                
-                // More Menu Popup
-                if showMoreMenu {
-                    VStack {
-                        Spacer()
-                        
-                        VStack(alignment: .leading, spacing: 0) {
-                            Text("More Options")
-                                .font(.headline)
-                                .fontWeight(.bold)
-                                .padding(.horizontal, 20)
-                                .padding(.top, 20)
-                                .padding(.bottom, 10)
-                                .foregroundColor(.primary)
-                            
-                            Divider()
-                                .padding(.horizontal, 16)
-                            
-                            VStack(spacing: 0) {
-                                // Messages (current page)
-                                HStack(spacing: 16) {
-                                    Image(systemName: "envelope.fill")
-                                        .font(.system(size: 20))
-                                        .foregroundColor(Color(hex: "004aad"))
-                                        .frame(width: 24)
-                                    
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text("Messages")
-                                            .font(.system(size: 16, weight: .medium))
-                                            .foregroundColor(.primary)
-                                        Text("Current page")
-                                            .font(.system(size: 12))
-                                            .foregroundColor(.secondary)
-                                    }
-                                    
-                                    Spacer()
-                                    
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .font(.system(size: 16))
-                                        .foregroundColor(.green)
-                                }
-                                .padding(.horizontal, 20)
-                                .padding(.vertical, 16)
-                                
-                                Divider()
-                                    .padding(.horizontal, 16)
-                                
-                                // Network
-                                NavigationLink(destination: PageUnifiedNetworking().navigationBarBackButtonHidden(true)) {
-                                    HStack(spacing: 16) {
-                                        Image(systemName: "person.2.fill")
-                                            .font(.system(size: 20))
-                                            .foregroundColor(Color(hex: "004aad"))
-                                            .frame(width: 24)
-                                        
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text("Network")
-                                                .font(.system(size: 16, weight: .medium))
-                                                .foregroundColor(.primary)
-                                            Text("Connect with entrepreneurs")
-                                                .font(.system(size: 12))
-                                                .foregroundColor(.secondary)
-                                        }
-                                        
-                                        Spacer()
-                                        
-                                        Image(systemName: "chevron.right")
-                                            .font(.system(size: 12, weight: .medium))
-                                            .foregroundColor(.secondary)
-                                    }
-                                    .padding(.horizontal, 20)
-                                    .padding(.vertical, 16)
-                                }
-                                .transaction { transaction in
-                                    transaction.disablesAnimations = true
-                                }
-                                
-                                Divider()
-                                    .padding(.horizontal, 16)
-                                
-                                // Professional Services
-                                NavigationLink(destination: PageEntrepreneurResources().navigationBarBackButtonHidden(true)) {
-                                    HStack(spacing: 16) {
-                                        Image(systemName: "briefcase.fill")
-                                            .font(.system(size: 20))
-                                            .foregroundColor(Color(hex: "004aad"))
-                                            .frame(width: 24)
-                                        
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text("Professional Services")
-                                                .font(.system(size: 16, weight: .medium))
-                                                .foregroundColor(.primary)
-                                            Text("Find business experts")
-                                                .font(.system(size: 12))
-                                                .foregroundColor(.secondary)
-                                        }
-                                        
-                                        Spacer()
-                                        
-                                        Image(systemName: "chevron.right")
-                                            .font(.system(size: 12, weight: .medium))
-                                            .foregroundColor(.secondary)
-                                    }
-                                    .padding(.horizontal, 20)
-                                    .padding(.vertical, 16)
-                                }
-                                .transaction { transaction in
-                                    transaction.disablesAnimations = true
-                                }
-                                
-                                Divider()
-                                    .padding(.horizontal, 16)
-                                
-                                // Settings
-                                NavigationLink(destination: PageSettings().navigationBarBackButtonHidden(true)) {
-                                    HStack(spacing: 16) {
-                                        Image(systemName: "gear.circle.fill")
-                                            .font(.system(size: 20))
-                                            .foregroundColor(Color(hex: "004aad"))
-                                            .frame(width: 24)
-                                        
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text("Settings")
-                                                .font(.system(size: 16, weight: .medium))
-                                                .foregroundColor(.primary)
-                                            Text("Manage preferences")
-                                                .font(.system(size: 12))
-                                                .foregroundColor(.secondary)
-                                        }
-                                        
-                                        Spacer()
-                                        
-                                        Image(systemName: "chevron.right")
-                                            .font(.system(size: 12, weight: .medium))
-                                            .foregroundColor(.secondary)
-                                    }
-                                    .padding(.horizontal, 20)
-                                    .padding(.vertical, 16)
-                                }
-                                .transaction { transaction in
-                                    transaction.disablesAnimations = true
-                                }
-                            }
-                            
-                            // Close button
-                            Button(action: {
-                                withAnimation(.easeInOut(duration: 0.3)) {
-                                    showMoreMenu = false
-                                }
-                            }) {
-                                Text("Close")
-                                    .font(.system(size: 16, weight: .medium))
-                                    .foregroundColor(Color(hex: "004aad"))
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 16)
-                            }
-                            .background(Color(UIColor.systemGray6))
-                        }
-                        .background(Color(UIColor.systemBackground))
-                        .cornerRadius(16)
-                        .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: -5)
-                        .padding(.horizontal, 16)
-                        .padding(.bottom, 100) // Leave space for bottom navigation
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
-                    }
-                    .zIndex(2)
-                }
-                
-                // Tap-out-to-dismiss layer
-                if showMoreMenu {
+                // Tap-out-to-dismiss layer for chat
+                if showChatPopup {
                     Color.black.opacity(0.001)
                         .ignoresSafeArea()
                         .onTapGesture {
                             withAnimation(.easeInOut(duration: 0.3)) {
-                                showMoreMenu = false
+                                showChatPopup = false
                             }
                         }
                         .zIndex(1)
                 }
             }
-            .ignoresSafeArea(.all, edges: [.top, .bottom])
-            .navigationBarBackButtonHidden(true)
-            .onAppear {
-                self.checkUserAuthentication()
-                fetchNetworkUsers()
-                loadUserProfileImage()
-                loadUserData()
-           
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                    fetchMessages()
-                }
+        }
+        .onAppear {
+            self.checkUserAuthentication()
+            fetchNetworkUsers()
+            loadUserProfileImage()
+            loadUserData()
+       
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                fetchMessages()
+            }
+            self.timer?.invalidate()
+            self.timer = Timer.scheduledTimer(withTimeInterval: 45, repeats: true) { _ in
+                fetchMessages()
+            }
+        }
+        .onDisappear {
+            DispatchQueue.main.async {
                 self.timer?.invalidate()
-                self.timer = Timer.scheduledTimer(withTimeInterval: 45, repeats: true) { _ in
-                    fetchMessages()
-                }
-            }
-            .onDisappear {
-                DispatchQueue.main.async {
-                    self.timer?.invalidate()
-                    self.timer = nil
-                }
+                self.timer = nil
             }
         }
-        .withNotifications() // ✅ Enable notification overlay on PageMessages
-        .withTutorialOverlay() // ✅ Enable tutorial overlay on PageMessages
     }
-    
-    // MARK: - Header Section (matching other pages)
-    var headerSection: some View {
-        VStack(spacing: 0) {
-            HStack {
-                // Left side - Profile with shadow
-                NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
-                    ZStack {
-                        AsyncImage(url: URL(string: userProfileImageURL ?? "")) { phase in
-                            switch phase {
-                            case .success(let image):
-                                image
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 36, height: 36)
-                                    .clipShape(Circle())
-                            default:
-                                Image(systemName: "person.circle.fill")
-                                    .font(.system(size: 36))
-                                    .foregroundColor(.white)
-                            }
-                        }
-                        
-                        // Online indicator
-                        Circle()
-                            .fill(Color.green)
-                            .frame(width: 10, height: 10)
-                            .overlay(
-                                Circle()
-                                    .stroke(Color.white, lineWidth: 2)
-                            )
-                            .offset(x: 12, y: -12)
-                    }
-                    .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
-                }
-                
-                Spacer()
-                
-                // Center - Simple Logo
-                Text("Circl.")
-                    .font(.system(size: 28, weight: .bold))
-                    .foregroundColor(.white)
-                
-                Spacer()
-                
-                Spacer().frame(width: 8)
-                
-                // Right side - Home
-                NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
-                    Image(systemName: "house.fill")
-                        .font(.system(size: 24, weight: .medium))
-                        .foregroundColor(.white)
-                        .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
-                }
-            }
-            .padding(.horizontal, 18)
-            .padding(.bottom, 18)
-            .padding(.top, 10)
-        }
-        .padding(.top, 50) // Add safe area padding for status bar and notch
-        .background(
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    Color(hex: "004aad"),
-                    Color(hex: "004aad").opacity(0.95)
-                ]),
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        )
-    }
-    
-    
     
     // MARK: - Enhanced Search Bar Section
     var searchBarSection: some View {
@@ -916,108 +661,6 @@ struct PageMessages: View {
         .refreshable {
             fetchMessages()
         }
-    }
-    
-    // MARK: - Bottom Navigation Bar
-    private var bottomNavigationBar: some View {
-        HStack(spacing: 0) {
-            // Forum / Home
-            NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
-                VStack(spacing: 4) {
-                    Image(systemName: "house")
-                        .font(.system(size: 22, weight: .medium))
-                        .foregroundColor(Color(UIColor.label).opacity(0.6))
-                    Text("Home")
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundColor(Color(UIColor.label).opacity(0.6))
-                }
-                .frame(maxWidth: .infinity)
-            }
-            .transaction { transaction in
-                transaction.disablesAnimations = true
-            }
-            
-            // Network
-            NavigationLink(destination: PageUnifiedNetworking().navigationBarBackButtonHidden(true)) {
-                VStack(spacing: 4) {
-                    Image(systemName: "person.2")
-                        .font(.system(size: 22, weight: .medium))
-                        .foregroundColor(Color(UIColor.label).opacity(0.6))
-                    Text("Network")
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundColor(Color(UIColor.label).opacity(0.6))
-                }
-                .frame(maxWidth: .infinity)
-            }
-            .transaction { transaction in
-                transaction.disablesAnimations = true
-            }
-            
-            // Circles
-            NavigationLink(destination: PageCircles().navigationBarBackButtonHidden(true)) {
-                VStack(spacing: 4) {
-                    Image(systemName: "circle.grid.2x2")
-                        .font(.system(size: 22, weight: .medium))
-                        .foregroundColor(Color(UIColor.label).opacity(0.6))
-                    Text("Circles")
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundColor(Color(UIColor.label).opacity(0.6))
-                }
-                .frame(maxWidth: .infinity)
-            }
-            .transaction { transaction in
-                transaction.disablesAnimations = true
-            }
-            
-            // Growth Hub
-            NavigationLink(destination: PageSkillSellingPlaceholder().navigationBarBackButtonHidden(true)) {
-                VStack(spacing: 4) {
-                    Image(systemName: "dollarsign.circle")
-                        .font(.system(size: 22, weight: .medium))
-                        .foregroundColor(Color(UIColor.label).opacity(0.6))
-                    Text("Growth Hub")
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundColor(Color(UIColor.label).opacity(0.6))
-                }
-                .frame(maxWidth: .infinity)
-            }
-            .transaction { transaction in
-                transaction.disablesAnimations = true
-            }
-            
-            // More Menu
-            Button(action: {
-                withAnimation(.easeInOut(duration: 0.3)) {
-                    showMoreMenu.toggle()
-                }
-            }) {
-                VStack(spacing: 4) {
-                    Image(systemName: "ellipsis")
-                        .font(.system(size: 22, weight: .medium))
-                        .foregroundColor(Color(UIColor.label).opacity(0.6))
-                    Text("More")
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundColor(Color(UIColor.label).opacity(0.6))
-                }
-                .frame(maxWidth: .infinity)
-            }
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 20)
-        .padding(.bottom, 8)
-        .background(
-            Rectangle()
-                .fill(Color(UIColor.systemBackground))
-                .shadow(color: .black.opacity(0.1), radius: 1, x: 0, y: -1)
-                .ignoresSafeArea(edges: .bottom)
-        )
-        .overlay(
-            Rectangle()
-                .frame(height: 0.5)
-                .foregroundColor(Color(UIColor.separator))
-                .padding(.horizontal, 16),
-            alignment: .top
-        )
     }
     
     // MARK: - Helper Functions
