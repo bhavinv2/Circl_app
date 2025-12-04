@@ -279,107 +279,6 @@ struct PageCircles: View {
                         .padding()
                     }
 
-                    // MARK: Enhanced Search Section
-                    VStack(spacing: 12) {
-                        HStack(spacing: 12) {
-                            TextField("Search for a Circle (keywords or name)...", text: $searchText)
-                                .padding(.horizontal, 20)
-                                .padding(.vertical, 14)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 25)
-                                        .fill(Color(.systemGray6))
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 25)
-                                                .stroke(Color(hex: "004aad").opacity(0.1), lineWidth: 1)
-                                        )
-                                        .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
-                                )
-                                .overlay(
-                                    HStack {
-                                        Image(systemName: "magnifyingglass")
-                                            .foregroundColor(.secondary)
-                                            .padding(.leading, -35)
-                                        Spacer()
-                                    }
-                                )
-                                .padding(.leading, 35)
-                            
-                            Button(action: {}) {
-                                Image(systemName: "arrow.right.circle.fill")
-                                    .resizable()
-                                    .frame(width: 32, height: 32)
-                                    .foregroundColor(Color(hex: "004aad"))
-                                    .shadow(color: Color(hex: "004aad").opacity(0.3), radius: 4, x: 0, y: 2)
-                            }
-                        }
-                        // Enhanced suggestions list
-                        if !searchText.isEmpty {
-                            // 1. Filter once
-                            let allCircles = exploreCircles + myCircles
-                            let filtered = allCircles.filter {
-                                $0.name.lowercased().contains(searchText.lowercased())
-                            }
-                            
-                            // 2. Enhanced results display
-                            ScrollView {
-                                VStack(alignment: .leading, spacing: 0) {
-                                    ForEach(filtered) { circle in
-                                        Button {
-                                            selectedCircleToOpen = circle
-                                            searchText = ""
-                                            
-                                            let isMember = myCircles.contains(where: { $0.id == circle.id })
-                                            if isMember {
-                                                triggerOpenGroupChat = true
-                                            } else {
-                                                showAboutPopup = true
-                                            }
-                                        } label: {
-                                            HStack(spacing: 12) {
-                                                Image(systemName: "circle.grid.2x2")
-                                                    .font(.system(size: 16))
-                                                    .foregroundColor(Color(hex: "004aad"))
-                                                    .frame(width: 20)
-                                                
-                                                VStack(alignment: .leading, spacing: 2) {
-                                                    Text(circle.name)
-                                                        .font(.system(size: 15, weight: .medium))
-                                                        .foregroundColor(.primary)
-                                                    
-                                                    Text(circle.industry)
-                                                        .font(.system(size: 13))
-                                                        .foregroundColor(.secondary)
-                                                }
-                                                
-                                                Spacer()
-                                                
-                                                Image(systemName: "chevron.right")
-                                                    .font(.system(size: 12))
-                                                    .foregroundColor(.secondary)
-                                            }
-                                            .padding(.vertical, 12)
-                                            .padding(.horizontal, 16)
-                                        }
-                                        
-                                        if circle.id != filtered.last?.id {
-                                            Divider()
-                                        }
-                                    }
-                                }
-                            }
-                            .frame(maxHeight: 200)
-                            .background(
-                                RoundedRectangle(cornerRadius: 16)
-                                    .fill(Color(.systemBackground))
-                                    .shadow(color: .black.opacity(0.1), radius: 12, x: 0, y: 4)
-                            )
-                            .padding(.horizontal, 4)
-                            .zIndex(1)
-                        }
-                    }
-                    .padding(.horizontal, 18)
-                    .padding(.top, -45)
-                    .padding(.bottom, 10)
                     // MARK: Enhanced Circle List
                     ScrollView {
                         VStack(spacing: 18) {
@@ -411,6 +310,100 @@ struct PageCircles: View {
                                     }
                                 }
                                 .padding(.horizontal, 20)
+                                
+                                // MARK: Enhanced Search Section
+                                VStack(spacing: 12) {
+                                    HStack(spacing: 12) {
+                                        TextField("Search your circles...", text: $searchText)
+                                            .padding(.horizontal, 20)
+                                            .padding(.vertical, 14)
+                                            .background(
+                                                RoundedRectangle(cornerRadius: 25)
+                                                    .fill(Color(.systemGray6))
+                                                    .overlay(
+                                                        RoundedRectangle(cornerRadius: 25)
+                                                            .stroke(Color(hex: "004aad").opacity(0.1), lineWidth: 1)
+                                                    )
+                                                    .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
+                                            )
+                                            .overlay(
+                                                HStack {
+                                                    Image(systemName: "magnifyingglass")
+                                                        .foregroundColor(.secondary)
+                                                        .padding(.leading, -35)
+                                                    Spacer()
+                                                }
+                                            )
+                                            .padding(.leading, 35)
+                                        
+                                        Button(action: {}) {
+                                            Image(systemName: "arrow.right.circle.fill")
+                                                .resizable()
+                                                .frame(width: 32, height: 32)
+                                                .foregroundColor(Color(hex: "004aad"))
+                                                .shadow(color: Color(hex: "004aad").opacity(0.3), radius: 4, x: 0, y: 2)
+                                        }
+                                    }
+                                    // Enhanced suggestions list
+                                    if !searchText.isEmpty {
+                                        // 1. Filter once
+                                        let filtered = myCircles.filter {
+                                            $0.name.lowercased().contains(searchText.lowercased())
+                                        }
+                                        
+                                        // 2. Enhanced results display
+                                        ScrollView {
+                                            VStack(alignment: .leading, spacing: 0) {
+                                                ForEach(filtered) { circle in
+                                                    Button {
+                                                        selectedCircleToOpen = circle
+                                                        searchText = ""
+                                                        triggerOpenGroupChat = true
+                                                    } label: {
+                                                        HStack(spacing: 12) {
+                                                            Image(systemName: "circle.grid.2x2")
+                                                                .font(.system(size: 16))
+                                                                .foregroundColor(Color(hex: "004aad"))
+                                                                .frame(width: 20)
+                                                            
+                                                            VStack(alignment: .leading, spacing: 2) {
+                                                                Text(circle.name)
+                                                                    .font(.system(size: 15, weight: .medium))
+                                                                    .foregroundColor(.primary)
+                                                                
+                                                                Text(circle.industry)
+                                                                    .font(.system(size: 13))
+                                                                    .foregroundColor(.secondary)
+                                                            }
+                                                            
+                                                            Spacer()
+                                                            
+                                                            Image(systemName: "chevron.right")
+                                                                .font(.system(size: 12))
+                                                                .foregroundColor(.secondary)
+                                                        }
+                                                        .padding(.vertical, 12)
+                                                        .padding(.horizontal, 16)
+                                                    }
+                                                    
+                                                    if circle.id != filtered.last?.id {
+                                                        Divider()
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        .frame(maxHeight: 200)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 16)
+                                                .fill(Color(.systemBackground))
+                                                .shadow(color: .black.opacity(0.1), radius: 12, x: 0, y: 4)
+                                        )
+                                        .padding(.horizontal, 4)
+                                        .zIndex(1)
+                                    }
+                                }
+                                .padding(.horizontal, 18)
+                                .padding(.bottom, 16)
                                 
                                 if myCircles.isEmpty {
                                     // Enhanced empty state
@@ -484,6 +477,107 @@ struct PageCircles: View {
                                     .animation(.spring(response: 0.3, dampingFraction: 0.6), value: showCreateCircleSheet)
                                 }
                                 .padding(.horizontal, 20)
+                                
+                                // MARK: Enhanced Search Section
+                                VStack(spacing: 12) {
+                                    HStack(spacing: 12) {
+                                        TextField("Search for a Circle (keywords or name)...", text: $searchText)
+                                            .padding(.horizontal, 20)
+                                            .padding(.vertical, 14)
+                                            .background(
+                                                RoundedRectangle(cornerRadius: 25)
+                                                    .fill(Color(.systemGray6))
+                                                    .overlay(
+                                                        RoundedRectangle(cornerRadius: 25)
+                                                            .stroke(Color(hex: "004aad").opacity(0.1), lineWidth: 1)
+                                                    )
+                                                    .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
+                                            )
+                                            .overlay(
+                                                HStack {
+                                                    Image(systemName: "magnifyingglass")
+                                                        .foregroundColor(.secondary)
+                                                        .padding(.leading, -35)
+                                                    Spacer()
+                                                }
+                                            )
+                                            .padding(.leading, 35)
+                                        
+                                        Button(action: {}) {
+                                            Image(systemName: "arrow.right.circle.fill")
+                                                .resizable()
+                                                .frame(width: 32, height: 32)
+                                                .foregroundColor(Color(hex: "004aad"))
+                                                .shadow(color: Color(hex: "004aad").opacity(0.3), radius: 4, x: 0, y: 2)
+                                        }
+                                    }
+                                    // Enhanced suggestions list
+                                    if !searchText.isEmpty {
+                                        // 1. Filter once
+                                        let allCircles = exploreCircles + myCircles
+                                        let filtered = allCircles.filter {
+                                            $0.name.lowercased().contains(searchText.lowercased())
+                                        }
+                                        
+                                        // 2. Enhanced results display
+                                        ScrollView {
+                                            VStack(alignment: .leading, spacing: 0) {
+                                                ForEach(filtered) { circle in
+                                                    Button {
+                                                        selectedCircleToOpen = circle
+                                                        searchText = ""
+                                                        
+                                                        let isMember = myCircles.contains(where: { $0.id == circle.id })
+                                                        if isMember {
+                                                            triggerOpenGroupChat = true
+                                                        } else {
+                                                            showAboutPopup = true
+                                                        }
+                                                    } label: {
+                                                        HStack(spacing: 12) {
+                                                            Image(systemName: "circle.grid.2x2")
+                                                                .font(.system(size: 16))
+                                                                .foregroundColor(Color(hex: "004aad"))
+                                                                .frame(width: 20)
+                                                            
+                                                            VStack(alignment: .leading, spacing: 2) {
+                                                                Text(circle.name)
+                                                                    .font(.system(size: 15, weight: .medium))
+                                                                    .foregroundColor(.primary)
+                                                                
+                                                                Text(circle.industry)
+                                                                    .font(.system(size: 13))
+                                                                    .foregroundColor(.secondary)
+                                                            }
+                                                            
+                                                            Spacer()
+                                                            
+                                                            Image(systemName: "chevron.right")
+                                                                .font(.system(size: 12))
+                                                                .foregroundColor(.secondary)
+                                                        }
+                                                        .padding(.vertical, 12)
+                                                        .padding(.horizontal, 16)
+                                                    }
+                                                    
+                                                    if circle.id != filtered.last?.id {
+                                                        Divider()
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        .frame(maxHeight: 200)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 16)
+                                                .fill(Color(.systemBackground))
+                                                .shadow(color: .black.opacity(0.1), radius: 12, x: 0, y: 4)
+                                        )
+                                        .padding(.horizontal, 4)
+                                        .zIndex(1)
+                                    }
+                                }
+                                .padding(.horizontal, 18)
+                                .padding(.bottom, 16)
                                 
                                 if exploreCircles.isEmpty {
                                     // Enhanced empty state
