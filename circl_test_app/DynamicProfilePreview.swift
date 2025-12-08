@@ -6,8 +6,10 @@ struct DynamicProfilePreview: View {
     let isInNetwork: Bool
     
     @State private var showRemoveFriendConfirmation = false
-    @Environment(\.dismiss) var dismiss
     @State private var showBlockConfirmation = false
+    @State private var showBlockAndReportConfirmation = false
+    
+    @Environment(\.dismiss) var dismiss
     
     
     let loggedInUserId = UserDefaults.standard.integer(forKey: "user_id")
@@ -81,6 +83,12 @@ struct DynamicProfilePreview: View {
                                                 Label("Block user", systemImage: "hand.raised.fill")
                                             }
                                             
+                                            Button(role: .destructive) {
+                                                showBlockAndReportConfirmation = true
+                                            } label: {
+                                                Label("Block & Report", systemImage: "slash.circle")
+                                            }
+                                            
                                         } label: {
                                             Image(systemName: "ellipsis.circle")
                                                 .resizable()
@@ -100,7 +108,14 @@ struct DynamicProfilePreview: View {
                                     Button("Cancel", role: .cancel) {}
                                 }
                                 .confirmationDialog("Block this user?", isPresented: $showBlockConfirmation) {
-                                    Button("Block user", role: .destructive) {
+                                    Button("Block this user?", role: .destructive) {
+                                        blockUser()
+                                    }
+                                    Button("Cancel", role: .cancel) {}
+                                }
+                                // TODO: Create menu asking reason for report
+                                .confirmationDialog("Block and report this user?", isPresented: $showBlockAndReportConfirmation) {
+                                    Button("Block and report this user?", role: .destructive) {
                                         blockUser()
                                     }
                                     Button("Cancel", role: .cancel) {}
@@ -617,6 +632,10 @@ struct DynamicProfilePreview: View {
             }
         }.resume()
     }
+    
+    func reportUser() {
+        print("🚨 reportUser() called")
+    }
 }
 
 // Helper component matching ProfilePage's ProfileField style
@@ -637,4 +656,13 @@ struct ProfileFieldDisplay: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
+}
+
+extension FullProfile {
+    static let testProfile = FullProfile(user_id: 1, profile_image: nil, first_name: "John", last_name: "Doe", email: "john.doe@test.com", main_usage: nil, industry_interest: "Body Replacement", title: "Replacement Name", bio: "John Doe is a 47-year old caucasian male, body found in forest with gunshot wound, apparent cause of death gunshot wound", birthday: "unknown", education_level: "ged", institution_attended: "School for Performing Arts", certificates: ["Death Certificate"], years_of_experience: 0, personality_type: "ISFJ", locations: ["New York City Morgue"], achievements: ["Best corpse award of 2025"], skillsets: ["unknown"], availability: "Probably never, given that he's dead", clubs: ["Dead Bodies Associated"], hobbies: ["Body Bag Racing"], connections_count: 0, circs: 0, entrepreneurial_history: "Dead on arrival")
+}
+
+#Preview {
+    @Environment(\.dismiss) var dismiss
+    DynamicProfilePreview(profileData: FullProfile.testProfile, isInNetwork: true, dismiss: _dismiss)
 }

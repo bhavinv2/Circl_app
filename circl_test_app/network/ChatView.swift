@@ -775,8 +775,8 @@ struct ChatView: View {
         print("🚨 Report user: \(user.name)")
     }
     
-    private func blockUser() {
-        // TODO: Implement block user functionality  
+    private func blockUser() { // MARK: — Is there a reason for this duplicate?
+        // TODO: Implement block user functionality
         print("🚫 Block user: \(user.name)")
     }
     
