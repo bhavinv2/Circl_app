@@ -103,7 +103,31 @@ struct PageUnifiedNetworking: View {
                 .ignoresSafeArea()
                 
                 VStack(spacing: 0) {
-                    headerSection
+                    // Tab selection moved to top of content
+                    HStack(spacing: 0) {
+                        ForEach(NetworkingTab.allCases, id: \.self) { tab in
+                            VStack(spacing: 6) {
+                                Text(tab.compactTitle)
+                                    .font(.system(size: 14, weight: selectedTab == tab ? .semibold : .regular))
+                                    .foregroundColor(selectedTab == tab ? Color(hex: "004aad") : .secondary)
+                                
+                                Rectangle()
+                                    .fill(selectedTab == tab ? Color(hex: "004aad") : Color.clear)
+                                    .frame(height: 3)
+                                    .frame(width: 40)
+                                    .animation(.easeInOut(duration: 0.2), value: selectedTab)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                selectedTab = tab
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 16)
+                    .background(Color(.systemBackground))
+                    
                     scrollableContent
                     // Remove Spacer() to prevent layout issues
                 }
@@ -362,154 +386,6 @@ struct PageUnifiedNetworking: View {
         .withNotifications() // ✅ Enable notifications on PageUnifiedNetworking
         .withTutorialOverlay() // ✅ Enable tutorial overlay on PageUnifiedNetworking
     }
-    
-    // MARK: - Header Section
-    private var headerSection: some View {
-        VStack(spacing: 0) {
-            HStack {
-                // Left side - Enhanced Profile with shadow
-                NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
-                    ZStack {
-                        if !userProfileImageURL.isEmpty {
-                            AsyncImage(url: URL(string: userProfileImageURL)) { image in
-                                image
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 36, height: 36)
-                                    .clipShape(Circle())
-                            } placeholder: {
-                                Image(systemName: "person.circle.fill")
-                                    .font(.system(size: 36))
-                                    .foregroundColor(.white)
-                            }
-                        } else {
-                            Image(systemName: "person.circle.fill")
-                                .font(.system(size: 36))
-                                .foregroundColor(.white)
-                        }
-                        
-                        // Online indicator
-                        Circle()
-                            .fill(Color.green)
-                            .frame(width: 10, height: 10)
-                            .overlay(
-                                Circle()
-                                    .stroke(Color.white, lineWidth: 2)
-                            )
-                            .offset(x: 12, y: -12)
-                    }
-                    .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
-                }
-                
-                Spacer()
-                
-                // Center - Enhanced Logo with subtle glow
-                VStack(spacing: 2) {
-                    Text("Circl.")
-                        .font(.system(size: 28, weight: .bold))
-                        .foregroundColor(.white)
-                        .shadow(color: .white.opacity(0.3), radius: 8, x: 0, y: 0)
-                }
-                
-                Spacer()
-                
-                // Right side - Enhanced Messages with notification
-                NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
-                    ZStack {
-                        Image(systemName: "envelope.fill")
-                            .font(.system(size: 24, weight: .medium))
-                            .foregroundColor(.white)
-                            .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
-                        
-                        if unreadMessageCount > 0 {
-                            Text(unreadMessageCount > 99 ? "99+" : "\(unreadMessageCount)")
-                                .font(.system(size: 10, weight: .bold))
-                                .foregroundColor(.white)
-                                .padding(4)
-                                .background(
-                                    Circle()
-                                        .fill(Color.red)
-                                        .shadow(color: Color.red.opacity(0.4), radius: 4, x: 0, y: 2)
-                                )
-                                .offset(x: 12, y: -12)
-                        }
-                    }
-                }
-            }
-            .padding(.horizontal, 18)
-            .padding(.bottom, 18)
-            .padding(.top, 10)
-            
-            // Clean tab design matching the example
-            HStack(spacing: 0) {
-                ForEach(NetworkingTab.allCases, id: \.self) { tab in
-                    VStack(spacing: 8) {
-                        Text(tab.compactTitle)
-                            .font(.system(size: 16, weight: selectedTab == tab ? .bold : .medium))
-                            .foregroundColor(.white)
-                            .opacity(selectedTab == tab ? 1.0 : 0.7)
-                        
-                        // Clean underline indicator
-                        Rectangle()
-                            .fill(Color.white)
-                            .frame(height: selectedTab == tab ? 3 : 0)
-                            .animation(.easeInOut(duration: 0.2), value: selectedTab)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            selectedTab = tab
-                        }
-                    }
-                }
-            }
-            .tutorialHighlight(id: "network_search")
-            .padding(.horizontal, 18)
-            .padding(.bottom, 12)
-        }
-        .padding(.top, 50) // Add safe area padding for status bar and notch
-        .background(
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    Color(hex: "004aad"),
-                    Color(hex: "004aad").opacity(0.95)
-                ]),
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        )
-    }
-    
-    // MARK: - Selection Buttons Section (DEPRECATED - now integrated into header)
-    /*
-    private var selectionButtonsSection: some View {
-        HStack(spacing: 10) {
-            ForEach(NetworkingTab.allCases, id: \.self) { tab in
-                Button(action: {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        selectedTab = tab
-                        // Force refresh network data when My Network tab is selected
-                        if tab == .myNetwork {
-                            print("🔄 Switching to My Network tab - forcing refresh")
-                            networkManager.fetchNetworkConnections()
-                        }
-                    }
-                }) {
-                    Text(tab.rawValue)
-                        .font(.system(size: 12))
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(selectedTab == tab ? tab.buttonColor : Color.gray)
-                        .foregroundColor(.black)
-                        .cornerRadius(10)
-                }
-            }
-        }
-        .padding(.horizontal)
-        .padding(.vertical, 10)
-    }
-    */
     
     // MARK: - Scrollable Content
     private var scrollableContent: some View {

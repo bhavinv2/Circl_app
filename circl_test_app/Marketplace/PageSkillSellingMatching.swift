@@ -19,10 +19,7 @@ struct PageSkillSellingMatching: View {
 
     var body: some View {
         AdaptivePage(title: "Growth Hub") {
-            VStack(spacing: 0) {
-                headerSection
-                scrollableContent
-            }
+            scrollableContent
         }
         .sheet(isPresented: $showCreateProjectSheet) {
             CreateProjectSheet(isPresented: $showCreateProjectSheet)
@@ -30,88 +27,77 @@ struct PageSkillSellingMatching: View {
         .sheet(isPresented: $showCreateJobSheet) {
             CreateJobSheet(isPresented: $showCreateJobSheet)
         }
-        .onAppear {
-            loadMarketplaceData()
+        .task {
+            // Load user profile data from API
+            guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else {
+                print("❌ No user_id in UserDefaults")
+                return
+            }
+
+            let urlString = "https://circlapp.online/api/users/profile/\(userId)/"
+            print("🌐 Fetching current user profile from:", urlString)
+
+            guard let url = URL(string: urlString) else {
+                print("❌ Invalid URL")
+                return
+            }
+
+            var request = URLRequest(url: url)
+            request.httpMethod = "GET"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+            if let token = UserDefaults.standard.string(forKey: "auth_token") {
+                request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+            }
+
+            do {
+                let (data, _) = try await URLSession.shared.data(for: request)
+                
+                print("📦 Received current user data:", String(data: data, encoding: .utf8) ?? "No string")
+
+                if let decoded = try? JSONDecoder().decode(FullProfile.self, from: data) {
+                    print("✅ Decoded current user:", decoded.full_name)
+                    
+                    // Update profile image URL
+                    if let profileImage = decoded.profile_image, !profileImage.isEmpty {
+                        userProfileImageURL = profileImage
+                        print("✅ Profile image loaded: \(profileImage)")
+                    } else {
+                        userProfileImageURL = ""
+                        print("❌ No profile image found for current user")
+                    }
+                    
+                    // Update user name info
+                    userFirstName = decoded.first_name
+                } else {
+                    print("❌ Failed to decode current user profile")
+                }
+            } catch {
+                print("❌ Network error:", error)
+            }
         }
     }
 
     
-    // MARK: - Header Section
-    var headerSection: some View {
-        VStack(spacing: 0) {
-            HStack {
-                // Left side - Profile
-                Button(action: {
-                    // Navigate to Profile when available
-                }) {
-                    AsyncImage(url: URL(string: userProfileImageURL)) { phase in
-                        switch phase {
-                        case .success(let image):
-                            image
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 32, height: 32)
-                                .clipShape(Circle())
-                        default:
-                            Image(systemName: "person.circle.fill")
-                                .font(.system(size: 32))
-                                .foregroundColor(.white)
-                        }
-                    }
-                }
-                
-                Spacer()
-                
-                // Center - Logo
-                Text("Circl.")
-                    .font(.system(size: 24, weight: .bold))
-                    .foregroundColor(.white)
-                
-                Spacer()
-                
-                // Right side - Messages
-                Button(action: {
-                    // Navigate to Messages when available
-                }) {
-                    ZStack {
-                        Image(systemName: "envelope")
-                            .font(.system(size: 24))
-                            .foregroundColor(.white)
-                        
-                        if unreadMessageCount > 0 {
-                            Text(unreadMessageCount > 99 ? "99+" : "\(unreadMessageCount)")
-                                .font(.system(size: 10, weight: .bold))
-                                .foregroundColor(.white)
-                                .padding(4)
-                                .background(Color.red)
-                                .clipShape(Circle())
-                                .offset(x: 10, y: -10)
-                        }
-                    }
-                }
-            }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 16)
-            .padding(.top, 8)
-            
-            // Tab Buttons Row - Twitter/X style tabs
+    // MARK: - Scrollable Content
+    var scrollableContent: some View {
+        return VStack(spacing: 0) {
+            // Tab Section at top of content
             HStack(spacing: 0) {
                 Spacer()
                 
                 // Projects Tab
-                HStack {
-                    VStack(spacing: 8) {
-                        Text("Projects")
-                            .font(.system(size: 15, weight: selectedTab == "projects" ? .semibold : .regular))
-                            .foregroundColor(.white)
-                        
-                        Rectangle()
-                            .fill(selectedTab == "projects" ? Color.white : Color.clear)
-                            .frame(height: 3)
-                            .animation(.easeInOut(duration: 0.2), value: selectedTab)
-                    }
-                    .frame(width: 80)
+                VStack(spacing: 8) {
+                    Text("Projects")
+                        .font(.system(size: 16, weight: selectedTab == "projects" ? .semibold : .regular))
+                        .foregroundColor(selectedTab == "projects" ? Color(hex: "004aad") : .secondary)
+                    
+                    Rectangle()
+                        .fill(selectedTab == "projects" ? Color(hex: "004aad") : Color.clear)
+                        .frame(height: 3)
+                        .animation(.easeInOut(duration: 0.2), value: selectedTab)
                 }
+                .frame(width: 80)
                 .contentShape(Rectangle())
                 .onTapGesture {
                     selectedTab = "projects"
@@ -120,19 +106,17 @@ struct PageSkillSellingMatching: View {
                 Spacer()
                 
                 // Job Board Tab
-                HStack {
-                    VStack(spacing: 8) {
-                        Text("Job Board")
-                            .font(.system(size: 15, weight: selectedTab == "jobboard" ? .semibold : .regular))
-                            .foregroundColor(.white)
-                        
-                        Rectangle()
-                            .fill(selectedTab == "jobboard" ? Color.white : Color.clear)
-                            .frame(height: 3)
-                            .animation(.easeInOut(duration: 0.2), value: selectedTab)
-                    }
-                    .frame(width: 90)
+                VStack(spacing: 8) {
+                    Text("Job Board")
+                        .font(.system(size: 16, weight: selectedTab == "jobboard" ? .semibold : .regular))
+                        .foregroundColor(selectedTab == "jobboard" ? Color(hex: "004aad") : .secondary)
+                    
+                    Rectangle()
+                        .fill(selectedTab == "jobboard" ? Color(hex: "004aad") : Color.clear)
+                        .frame(height: 3)
+                        .animation(.easeInOut(duration: 0.2), value: selectedTab)
                 }
+                .frame(width: 90)
                 .contentShape(Rectangle())
                 .onTapGesture {
                     selectedTab = "jobboard"
@@ -140,14 +124,10 @@ struct PageSkillSellingMatching: View {
                 
                 Spacer()
             }
-            .padding(.bottom, 8)
-        }
-        .background(Color(hex: "004aad"))
-    }
-    
-    // MARK: - Scrollable Content
-    var scrollableContent: some View {
-        ScrollView(.vertical, showsIndicators: false) {
+            .padding(.bottom, 16)
+            .background(Color(.systemBackground))
+            
+            ScrollView(.vertical, showsIndicators: false) {
             LazyVStack(spacing: 0) {
                 // Filters Section
                 VStack(spacing: 0) {
@@ -1028,68 +1008,12 @@ struct MockData {
             timePosted: "12h ago"
         )
     ]
-}
+            }
+        }
+    }
     
     // MARK: - Helper Functions
-    private func loadMarketplaceData() {
-        // Load user profile data from API like PageForum does
-        fetchCurrentUserProfile()
-    }
-    
-    private func fetchCurrentUserProfile() {
-        guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else {
-            print("❌ No user_id in UserDefaults")
-            return
-        }
 
-        let urlString = "https://circlapp.online/api/users/profile/\(userId)/"
-        print("🌐 Fetching current user profile from:", urlString)
-
-        guard let url = URL(string: urlString) else {
-            print("❌ Invalid URL")
-            return
-        }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        if let token = UserDefaults.standard.string(forKey: "auth_token") {
-            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
-        }
-
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            if let error = error {
-                print("❌ Network error:", error)
-                return
-            }
-
-            if let data = data {
-                print("📦 Received current user data:", String(data: data, encoding: .utf8) ?? "No string")
-
-                if let decoded = try? JSONDecoder().decode(FullProfile.self, from: data) {
-                    DispatchQueue.main.async {
-                        print("✅ Decoded current user:", decoded.full_name)
-                        
-                        // Update profile image URL
-                        if let profileImage = decoded.profile_image, !profileImage.isEmpty {
-                            self.userProfileImageURL = profileImage
-                            print("✅ Profile image loaded: \(profileImage)")
-                        } else {
-                            self.userProfileImageURL = ""
-                            print("❌ No profile image found for current user")
-                        }
-                        
-                        // Update user name info
-                        self.userFirstName = decoded.first_name
-                    }
-                } else {
-                    print("❌ Failed to decode current user profile")
-                }
-            }
-        }.resume()
-    }
-}
 
 // MARK: - Create Project Sheet
 struct CreateProjectSheet: View {

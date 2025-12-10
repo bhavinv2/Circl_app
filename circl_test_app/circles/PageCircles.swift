@@ -74,129 +74,56 @@ struct PageCircles: View {
                 }
                 
                 VStack(spacing: 0) {
-                    // MARK: Enhanced Header with gradient
-                    VStack(spacing: 0) {
-                        HStack {
-                            // Left side - Enhanced Profile
-                            NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
-                                AsyncImage(url: URL(string: userProfileImageURL)) { phase in
-                                    switch phase {
-                                    case .success(let image):
-                                        image
-                                            .resizable()
-                                            .scaledToFill()
-                                            .frame(width: 34, height: 34)
-                                            .clipShape(Circle())
-                                            .overlay(
-                                                Circle()
-                                                    .stroke(Color.white.opacity(0.3), lineWidth: 2)
-                                            )
-                                            .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
-                                    default:
-                                        Image(systemName: "person.circle.fill")
-                                            .font(.system(size: 34))
-                                            .foregroundColor(.white)
-                                            .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
-                                    }
-                                }
-                            }
-                            
-                            Spacer()
-                            
-                            // Center - Enhanced Logo
-                            Text("Circl.")
-                                .font(.system(size: 26, weight: .bold))
-                                .foregroundColor(.white)
-                                .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
-                            
-                            Spacer()
-                            
-                            // Right side - Enhanced Messages
-                            NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
-                                ZStack {
-                                    Image(systemName: "envelope.fill")
-                                        .font(.system(size: 24))
-                                        .foregroundColor(.white)
-                                        .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
-                                    
-                                    if unreadMessageCount > 0 {
-                                        Text(unreadMessageCount > 99 ? "99+" : "\(unreadMessageCount)")
-                                            .font(.system(size: 10, weight: .bold))
-                                            .foregroundColor(.white)
-                                            .padding(5)
-                                            .background(
-                                                Circle()
-                                                    .fill(Color.red)
-                                                    .shadow(color: .red.opacity(0.3), radius: 4, x: 0, y: 2)
-                                            )
-                                            .offset(x: 12, y: -12)
-                                    }
-                                }
-                            }
-                        }
-                        .padding(.horizontal, 18)
-                        .padding(.bottom, 18)
-                        .padding(.top, 10)
+                    // Tab selection moved to top of content
+                    HStack(spacing: 0) {
+                        Spacer()
                         
-                        // Enhanced Tab Buttons Row with modern styling
-                        HStack(spacing: 0) {
-                            Spacer()
+                        // Explore Tab
+                        VStack(spacing: 6) {
+                            Text("Explore")
+                                .font(.system(size: 16, weight: !showMyCircles ? .bold : .medium))
+                                .foregroundColor(!showMyCircles ? Color(hex: "004aad") : .secondary)
                             
-                            // Explore Tab
-                            HStack {
-                                VStack(spacing: 6) {
-                                    Text("Explore")
-                                        .font(.system(size: 16, weight: !showMyCircles ? .bold : .medium))
-                                        .foregroundColor(.white)
-                                    
-                                    RoundedRectangle(cornerRadius: 2)
-                                        .fill(!showMyCircles ? Color.white : Color.clear)
-                                        .frame(height: 3)
-                                        .frame(width: 40)
-                                        .shadow(color: .white.opacity(0.3), radius: 2, x: 0, y: 1)
-                                        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: showMyCircles)
-                                }
-                                .frame(width: 80)
-                            }
-                            .contentShape(Rectangle())
-                            .onTapGesture {
-                                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                                    showMyCircles = false
-                                }
-                            }
-                            
-                            Spacer()
-                            
-                            // My Circles Tab
-                            HStack {
-                                VStack(spacing: 6) {
-                                    Text("My Circles")
-                                        .font(.system(size: 16, weight: showMyCircles ? .bold : .medium))
-                                        .foregroundColor(.white)
-                                    
-                                    RoundedRectangle(cornerRadius: 2)
-                                        .fill(showMyCircles ? Color.white : Color.clear)
-                                        .frame(height: 3)
-                                        .frame(width: 60)
-                                        .shadow(color: .white.opacity(0.3), radius: 2, x: 0, y: 1)
-                                        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: showMyCircles)
-                                }
-                                .frame(width: 100)
-                            }
-                            .contentShape(Rectangle())
-                            .onTapGesture {
-                                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                                    showMyCircles = true
-                                }
-                            }
-                            
-                            Spacer()
+                            RoundedRectangle(cornerRadius: 2)
+                                .fill(!showMyCircles ? Color(hex: "004aad") : Color.clear)
+                                .frame(height: 3)
+                                .frame(width: 40)
+                                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: showMyCircles)
                         }
-                        .padding(.bottom, 12)
+                        .frame(width: 80)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                showMyCircles = false
+                            }
+                        }
+                        
+                        Spacer()
+                        
+                        // My Circles Tab
+                        VStack(spacing: 6) {
+                            Text("My Circles")
+                                .font(.system(size: 16, weight: showMyCircles ? .bold : .medium))
+                                .foregroundColor(showMyCircles ? Color(hex: "004aad") : .secondary)
+                            
+                            RoundedRectangle(cornerRadius: 2)
+                                .fill(showMyCircles ? Color(hex: "004aad") : Color.clear)
+                                .frame(height: 3)
+                                .frame(width: 60)
+                                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: showMyCircles)
+                        }
+                        .frame(width: 100)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                showMyCircles = true
+                            }
+                        }
+                        
+                        Spacer()
                     }
-                    .padding(.top, 50)
-                    .background(Color(hex: "004aad"))
-                    .ignoresSafeArea(edges: .top)
+                    .padding(.bottom, 16)
+                    .background(Color(.systemBackground))
                     
                     .sheet(isPresented: $showCreateCircleSheet) {
                         VStack(spacing: 16) {
