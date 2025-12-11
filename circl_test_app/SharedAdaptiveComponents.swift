@@ -282,9 +282,10 @@ struct SharedBottomNavigation: View {
 
 // MARK: - Adaptive Content Wrapper
 
-struct AdaptiveContentWrapper<Content: View>: View {
+struct AdaptiveContentWrapper<Content: View, CustomHeader: View>: View {
     let configuration: AdaptivePageConfiguration
     let content: Content
+    let customHeader: CustomHeader?
     @StateObject private var layoutManager = AdaptiveLayoutManager()
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     
@@ -292,9 +293,16 @@ struct AdaptiveContentWrapper<Content: View>: View {
     @State private var userProfileImageURL: String = ""
     @State private var unreadMessageCount: Int = 0
     
-    init(configuration: AdaptivePageConfiguration, @ViewBuilder content: () -> Content) {
+    init(configuration: AdaptivePageConfiguration, @ViewBuilder content: () -> Content) where CustomHeader == EmptyView {
         self.configuration = configuration
         self.content = content()
+        self.customHeader = nil
+    }
+    
+    init(configuration: AdaptivePageConfiguration, @ViewBuilder customHeader: @escaping () -> CustomHeader, @ViewBuilder content: () -> Content) {
+        self.configuration = configuration
+        self.content = content()
+        self.customHeader = customHeader()
     }
     
     var body: some View {
@@ -314,16 +322,21 @@ struct AdaptiveContentWrapper<Content: View>: View {
                     
                     // Main Content
                     VStack(spacing: 0) {
-                        SharedAdaptiveHeader(
-                            configuration: configuration,
-                            userProfileImageURL: userProfileImageURL,
-                            unreadMessageCount: unreadMessageCount,
-                            layoutManager: layoutManager
-                        )
+                        if let customHeader = customHeader {
+                            customHeader
+                        } else {
+                            SharedAdaptiveHeader(
+                                configuration: configuration,
+                                userProfileImageURL: userProfileImageURL,
+                                unreadMessageCount: unreadMessageCount,
+                                layoutManager: layoutManager
+                            )
+                        }
                         
                         content
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
+                    .background(Color(.systemBackground))
                 }
                 .animation(.easeInOut(duration: 0.3), value: layoutManager.isSidebarCollapsed)
             } else {
@@ -332,19 +345,23 @@ struct AdaptiveContentWrapper<Content: View>: View {
                     VStack(spacing: 0) {
                         // Content with top padding for header
                         content
-                            .padding(.top, 100) // Space for header
+                            .padding(.top, customHeader != nil ? 160 : 100) // More space for custom headers
                             .padding(.bottom, 90) // Space for bottom navigation
                     }
                     
                     // Fixed header overlay
                     VStack {
-                        SharedAdaptiveHeader(
-                            configuration: configuration,
-                            userProfileImageURL: userProfileImageURL,
-                            unreadMessageCount: unreadMessageCount,
-                            layoutManager: layoutManager
-                        )
-                        .padding(.top, 50) // Safe area
+                        if let customHeader = customHeader {
+                            customHeader
+                        } else {
+                            SharedAdaptiveHeader(
+                                configuration: configuration,
+                                userProfileImageURL: userProfileImageURL,
+                                unreadMessageCount: unreadMessageCount,
+                                layoutManager: layoutManager
+                            )
+                            .padding(.top, 50) // Safe area
+                        }
                         
                         Spacer()
                     }
