@@ -137,23 +137,24 @@ struct ProfilePage: View {
                     
                     Spacer()
                     
-                    // Business Profile Tab
-                    VStack(spacing: 8) {
-                        Text("Business Profile")
-                            .font(.system(size: 15, weight: currentTab == "business" ? .semibold : .regular))
-                            .foregroundColor(.white)
-                        
-                        Rectangle()
-                            .fill(currentTab == "business" ? Color.white : Color.clear)
-                            .frame(height: 3)
-                            .animation(.easeInOut(duration: 0.2), value: currentTab)
+                    // Business Profile Tab - Navigate to Business Profile
+                    NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true)) {
+                        VStack(spacing: 8) {
+                            Text("Business Profile")
+                                .font(.system(size: 15, weight: currentTab == "business" ? .semibold : .regular))
+                                .foregroundColor(.white)
+                            
+                            Rectangle()
+                                .fill(currentTab == "business" ? Color.white : Color.clear)
+                                .frame(height: 3)
+                                .animation(.easeInOut(duration: 0.2), value: currentTab)
+                        }
+                        .frame(width: 130)
+                        .contentShape(Rectangle())
                     }
-                    .frame(width: 130)
-                    .contentShape(Rectangle())
-                    .onTapGesture {
+                    .simultaneousGesture(TapGesture().onEnded {
                         currentTab = "business"
-                        showingBusinessProfile = true
-                    }
+                    })
                     
                     Spacer()
                 }
@@ -358,9 +359,6 @@ struct ProfilePage: View {
                 fetchProfile()
                 fetchNetwork()
             }
-        }
-        .sheet(isPresented: $showingBusinessProfile) {
-            PageBusinessProfile()
         }
         .sheet(isPresented: $showingSettings) {
             PageSettings()
