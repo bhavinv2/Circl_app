@@ -23,76 +23,59 @@ struct UserProfilePage: View {
         "Current Project": "Building a cross-platform app",
         "Previous Projects": "E-commerce, Fitness Tracking"
     ]
+    @State private var showingMessages = false
+    @State private var isEditing = false
     
     var body: some View {
-        NavigationView {
-            VStack(spacing: 0) {
-                headerSection
+        AdaptivePageWrapper<AnyView>.withHeaderActions(
+            title: "Profile",
+            headerActions: [
+                HeaderAction(icon: "bubble.left.and.bubble.right.fill") {
+                    showingMessages = true
+                },
+                HeaderAction(icon: "square.and.pencil") {
+                    isEditing = true
+                }
+            ]
+        ) {
+            AnyView(
                 scrollableSection
-                footerSection
-            }
-            .edgesIgnoringSafeArea(.bottom)
-            .navigationBarBackButtonHidden(true)
+                    .sheet(isPresented: $showingMessages) {
+                        PageMessages()
+                    }
+                    .sheet(isPresented: $isEditing) {
+                        // TODO: Add edit profile view when available
+                        Text("Edit Profile - Coming Soon")
+                    }
+            )
         }
     }
-    
-    // MARK: - Header Section
-    var headerSection: some View {
-        VStack(spacing: 0) {
-            HStack {
-                // Left side: "Circl." text
-                Text("Circl.")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-                
-                Spacer()
-
-                // Right side: Messages Icon
-                NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
-                    Image(systemName: "bubble.left.and.bubble.right.fill")
-                        .resizable()
-                        .frame(width: 50, height: 40)
-                        .foregroundColor(.white)
-                }
-
-                // Square and Pencil Icon for edit action
-                Button(action: {
-                    // Action for edit
-                }) {
-                    Image(systemName: "square.and.pencil")
-                        .foregroundColor(.white)
-                        .font(.title)
-                        .frame(width: 50, height: 50)
-                }
-            }
-            .padding(.horizontal)
-            .padding(.top, 15)
-            .padding(.bottom, 10)
-            .background(Color(hex: "004aad")) // Blue background for the header
-        }
-    }
-
-
 
     // MARK: - Scrollable Section
     private var scrollableSection: some View {
         ScrollView {
             VStack(spacing: 20) {
+                // Full-width sections
                 profileSection
                 personalSecretSection
-                aboutSection
+                
+                // Adaptive grid sections
+                AdaptiveGrid {
+                    aboutSection
+                    achievementsSection
+                    skillsSection
+                    interestsSection
+                    mentorshipPreferencesSection
+                    referencesSection
+                    valuesVisionMissionSection
+                    portfolioSection
+                    socialProofSection
+                    contactSection
+                }
+                
+                // Full-width long-form sections
                 entrepreneurialHistorySection
-                achievementsSection
-                skillsSection
-                interestsSection
-                mentorshipPreferencesSection
-                referencesSection
                 collaborationsSection
-                valuesVisionMissionSection
-                portfolioSection
-                socialProofSection
-                contactSection
             }
             .padding()
             .background(Color(.systemGray4))
@@ -691,47 +674,6 @@ struct UserProfilePage: View {
             Text(value)
                 .font(.body)
                 .foregroundColor(.primary)
-        }
-    }
-    
-    // MARK: - Footer Section
-    private var footerSection: some View {
-        HStack(spacing: 15) {
-            NavigationLink(destination: PageEntrepreneurMatching().navigationBarBackButtonHidden(true)) {
-                CustomCircleButton(iconName: "figure.stand.line.dotted.figure.stand")
-            }
-            NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
-                CustomCircleButton(iconName: "briefcase.fill")
-            }
-            NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
-                CustomCircleButton(iconName: "captions.bubble.fill")
-            }
-            NavigationLink(destination: PageEntrepreneurResources().navigationBarBackButtonHidden(true)) {
-                CustomCircleButton(iconName: "building.columns.fill")
-            }
-            NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
-                CustomCircleButton(iconName: "newspaper")
-            }
-        }
-        .padding(.vertical, 10)
-        .background(Color.white)
-    }
-    
-    // Custom Circle Button
-    struct CustomCircleButton: View {
-        let iconName: String
-        
-        var body: some View {
-            ZStack {
-                Circle()
-                    .fill(Color(hex: "004aad"))
-                    .frame(width: 60, height: 60)
-                Image(systemName: iconName)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 30, height: 30)
-                    .foregroundColor(.white)
-            }
         }
     }
 }

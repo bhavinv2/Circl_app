@@ -50,7 +50,7 @@ struct EditBusinessProfileView: View {
     @State private var saveFailedMessage: String? = nil
 
     var body: some View {
-        NavigationView {
+        AdaptivePage(title: "Edit Business Profile") {
             ScrollView {
                 VStack(spacing: 16) {
                     SectionHeader(title: "Business Basics")
@@ -130,15 +130,13 @@ struct EditBusinessProfileView: View {
                 }
                 .padding(16)
             }
-            .navigationTitle("Edit Business Profile")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                }
-            }
-            .onAppear { loadFromViewModel() }
         }
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Cancel") { dismiss() }
+            }
+        }
+        .onAppear { loadFromViewModel() }
     }
 
     private func loadFromViewModel() {
