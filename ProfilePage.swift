@@ -16,6 +16,11 @@ struct ProfilePage: View {
     // Animation states
     @State private var cardOffset: CGFloat = 50
     @State private var cardOpacity: Double = 0
+    
+    // Tab and navigation states
+    @State private var currentTab: String = "profile" // "profile" or "business"
+    @State private var showingBusinessProfile = false
+    @State private var showingSettings = false
 
     @State private var isEditing = false
     @State private var updatedBio = ""
@@ -30,9 +35,6 @@ struct ProfilePage: View {
     @State private var updatedHobbies = ""
     @State private var updatedBirthday = ""  // Add this to your @State variables
     @State private var updatedEntrepreneurialHistory: String = ""
-
-
-
 
     // Animated background for header (DEPRECATED - now using solid color)
     /*
@@ -92,66 +94,71 @@ struct ProfilePage: View {
     */
 
     var body: some View {
-        ZStack {
-            VStack(spacing: 0) {
-                // HEADER SECTION
-                VStack(spacing: 0) {
-                    ZStack {
-                        // Center - Circl Logo (positioned in center of entire header)
-                        NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
-                            Text("Circl.")
-                                .font(.system(size: 24, weight: .bold))
-                                .foregroundColor(.white)
-                        }
-                        
-                        // Left and Right content overlaid on top
-                        HStack {
-                            // Left side - Back button
-                            Button(action: {
-                                dismiss()
-                            }) {
-                                Image(systemName: "chevron.left")
-                                    .font(.system(size: 20, weight: .semibold))
-                                    .foregroundColor(.white)
-                            }
-                            
-                            Spacer()
-                            
-                            // Right side - Edit + Settings aligned horizontally
-                            HStack(spacing: 20) {
-                                Button(action: {
-                                    if isEditing {
-                                        saveAllProfileUpdates()
-                                        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                                            fetchProfile()
-                                        }
-                                    }
-                                    withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
-                                        isEditing.toggle()
-                                    }
-                                }) {
-                                    Image(systemName: isEditing ? "checkmark.circle.fill" : "pencil")
-                                        .font(.system(size: 24))
-                                        .foregroundColor(.white)
-                                        .scaleEffect(isEditing ? 1.1 : 1.0)
-                                        .animation(.spring(response: 0.4, dampingFraction: 0.6), value: isEditing)
-                                }
-
-                                NavigationLink(destination: PageSettings().navigationBarBackButtonHidden(true)) {
-                                    Image(systemName: "gearshape.fill")
-                                        .font(.system(size: 24))
-                                        .foregroundColor(.white)
-                                }
-                            }
+        AdaptivePageWrapper(
+            title: "Profile",
+            customHeaderActions: [
+                HeaderAction(icon: isEditing ? "checkmark.circle.fill" : "pencil") {
+                    if isEditing {
+                        saveAllProfileUpdates()
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                            fetchProfile()
                         }
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 16)
-                    .padding(.top, 8)
+                    withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                        isEditing.toggle()
+                    }
+                },
+                HeaderAction(icon: "gearshape.fill") {
+                    showingSettings = true
                 }
-                .padding(.top, 50)
+            ]
+        ) {
+            VStack(spacing: 0) {
+                // Tab Buttons Row - PageForum style tabs (for header)
+                HStack(spacing: 0) {
+                    Spacer()
+                    
+                    // Your Profile Tab
+                    VStack(spacing: 8) {
+                        Text("Your Profile")
+                            .font(.system(size: 15, weight: currentTab == "profile" ? .semibold : .regular))
+                            .foregroundColor(.white)
+                        
+                        Rectangle()
+                            .fill(currentTab == "profile" ? Color.white : Color.clear)
+                            .frame(height: 3)
+                            .animation(.easeInOut(duration: 0.2), value: currentTab)
+                    }
+                    .frame(width: 100)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        currentTab = "profile"
+                    }
+                    
+                    Spacer()
+                    
+                    // Business Profile Tab
+                    VStack(spacing: 8) {
+                        Text("Business Profile")
+                            .font(.system(size: 15, weight: currentTab == "business" ? .semibold : .regular))
+                            .foregroundColor(.white)
+                        
+                        Rectangle()
+                            .fill(currentTab == "business" ? Color.white : Color.clear)
+                            .frame(height: 3)
+                            .animation(.easeInOut(duration: 0.2), value: currentTab)
+                    }
+                    .frame(width: 130)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        currentTab = "business"
+                        showingBusinessProfile = true
+                    }
+                    
+                    Spacer()
+                }
+                .padding(.vertical, 12)
                 .background(Color(hex: "004aad"))
-                .clipped()
 
                 // MAIN CONTENT
                 ScrollView {
@@ -338,109 +345,7 @@ struct ProfilePage: View {
                 )
                 .dismissKeyboardOnScroll()
             }
-            .ignoresSafeArea(edges: .top)
-            
-            // MARK: - Twitter/X Style Bottom Navigation
-            VStack {
-                Spacer()
-                
-                HStack(spacing: 0) {
-                    // Forum / Home
-                    NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
-                        VStack(spacing: 4) {
-                            Image(systemName: "house")
-                                .font(.system(size: 22, weight: .medium))
-                                .foregroundColor(Color(UIColor.label).opacity(0.6))
-                            Text("Home")
-                                .font(.system(size: 10, weight: .medium))
-                                .foregroundColor(Color(UIColor.label).opacity(0.6))
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
-                    .transaction { transaction in
-                        transaction.disablesAnimations = true
-                    }
-                    
-                    // Connect and Network
-                    NavigationLink(destination: PageMyNetwork().navigationBarBackButtonHidden(true)) {
-                        VStack(spacing: 4) {
-                            Image(systemName: "person.2")
-                                .font(.system(size: 22, weight: .medium))
-                                .foregroundColor(Color(UIColor.label).opacity(0.6))
-                            Text("Network")
-                                .font(.system(size: 10, weight: .medium))
-                                .foregroundColor(Color(UIColor.label).opacity(0.6))
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
-                    .transaction { transaction in
-                        transaction.disablesAnimations = true
-                    }
-                    
-                    // Circles
-                    NavigationLink(destination: PageCircles().navigationBarBackButtonHidden(true)) {
-                        VStack(spacing: 4) {
-                            Image(systemName: "circle.grid.2x2")
-                                .font(.system(size: 22, weight: .medium))
-                                .foregroundColor(Color(UIColor.label).opacity(0.6))
-                            Text("Circles")
-                                .font(.system(size: 10, weight: .medium))
-                                .foregroundColor(Color(UIColor.label).opacity(0.6))
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
-                    .transaction { transaction in
-                        transaction.disablesAnimations = true
-                    }
-                    
-                    // Business Profile
-                    NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true)) {
-                        VStack(spacing: 4) {
-                            Image(systemName: "building.2")
-                                .font(.system(size: 22, weight: .medium))
-                                .foregroundColor(Color(UIColor.label).opacity(0.6))
-                            Text("Business")
-                                .font(.system(size: 10, weight: .medium))
-                                .foregroundColor(Color(UIColor.label).opacity(0.6))
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
-                    .transaction { transaction in
-                        transaction.disablesAnimations = true
-                    }
-                    
-                    // Profile (Current page - highlighted)
-                    VStack(spacing: 4) {
-                        Image(systemName: "person.circle.fill")
-                            .font(.system(size: 22, weight: .medium))
-                            .foregroundColor(Color(hex: "004aad"))
-                        Text("Profile")
-                            .font(.system(size: 10, weight: .medium))
-                            .foregroundColor(Color(hex: "004aad"))
-                    }
-                    .frame(maxWidth: .infinity)
-                }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 20)
-                .padding(.bottom, 8)
-                .background(
-                    Rectangle()
-                        .fill(Color(UIColor.systemBackground))
-                        .shadow(color: .black.opacity(0.1), radius: 1, x: 0, y: -1)
-                        .ignoresSafeArea(edges: .bottom)
-                )
-                .overlay(
-                    Rectangle()
-                        .frame(height: 0.5)
-                        .foregroundColor(Color(UIColor.separator))
-                        .padding(.horizontal, 16),
-                    alignment: .top
-                )
-            }
-            .ignoresSafeArea(edges: .bottom)
-            .zIndex(1)
         }
-        .edgesIgnoringSafeArea(.bottom)
         .onAppear {
             // Start animations
             withAnimation(.easeOut(duration: 0.8)) {
@@ -454,9 +359,15 @@ struct ProfilePage: View {
                 fetchNetwork()
             }
         }
-        .withNotifications() // ✅ Enable notifications on ProfilePage
-        .withSubscriptionPaywall() // ✅ Enable subscription paywall on ProfilePage
-        .withTutorialOverlay() // ✅ Enable tutorial overlay on ProfilePage
+        .sheet(isPresented: $showingBusinessProfile) {
+            PageBusinessProfile()
+        }
+        .sheet(isPresented: $showingSettings) {
+            PageSettings()
+        }
+        .withNotifications()
+        .withSubscriptionPaywall()
+        .withTutorialOverlay()
     }
 
 // MARK: - Modern UI Components
