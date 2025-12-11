@@ -93,10 +93,12 @@ struct PageBusinessProfile: View {
     @State private var contactPerson: String = "John Doe"
     @StateObject private var viewModel = BusinessProfileViewModel()
 
+    @State private var currentTab: String = "business" // "profile" or "business"
+    
     var body: some View {
-        AdaptivePageWrapper.withHeaderActions(
+        AdaptivePageWrapper(
             title: "Business Profile",
-            headerActions: [
+            customHeaderActions: [
                 HeaderAction(icon: "envelope", badge: unreadMessageCount > 0 ? "\(unreadMessageCount)" : nil) {
                     showingMessages = true
                 },
@@ -108,7 +110,56 @@ struct PageBusinessProfile: View {
                 }
             ]
         ) {
-            scrollableSection
+            VStack(spacing: 0) {
+                // Tab Buttons Row - PageForum style tabs
+                HStack(spacing: 0) {
+                    Spacer()
+                    
+                    // Your Profile Tab - Navigate to Profile Page
+                    NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
+                        VStack(spacing: 8) {
+                            Text("Your Profile")
+                                .font(.system(size: 15, weight: currentTab == "profile" ? .semibold : .regular))
+                                .foregroundColor(.white)
+                            
+                            Rectangle()
+                                .fill(currentTab == "profile" ? Color.white : Color.clear)
+                                .frame(height: 3)
+                                .animation(.easeInOut(duration: 0.2), value: currentTab)
+                        }
+                        .frame(width: 100)
+                        .contentShape(Rectangle())
+                    }
+                    .simultaneousGesture(TapGesture().onEnded {
+                        currentTab = "profile"
+                    })
+                    
+                    Spacer()
+                    
+                    // Business Profile Tab
+                    VStack(spacing: 8) {
+                        Text("Business Profile")
+                            .font(.system(size: 15, weight: currentTab == "business" ? .semibold : .regular))
+                            .foregroundColor(.white)
+                        
+                        Rectangle()
+                            .fill(currentTab == "business" ? Color.white : Color.clear)
+                            .frame(height: 3)
+                            .animation(.easeInOut(duration: 0.2), value: currentTab)
+                    }
+                    .frame(width: 130)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        currentTab = "business"
+                    }
+                    
+                    Spacer()
+                }
+                .padding(.vertical, 12)
+                .background(Color(hex: "004aad"))
+                
+                scrollableSection
+            }
         }
         .sheet(isPresented: $showingMessages) {
             PageMessages()
