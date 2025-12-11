@@ -319,130 +319,74 @@ struct ForumMainContent: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Fixed Header - Twitter/X style layout
-            VStack(spacing: 0) {
-                HStack {
-                    // Left side - Profile
-                    NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
-                        AsyncImage(url: URL(string: userProfileImageURL)) { phase in
-                            switch phase {
-                            case .success(let image):
-                                image
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 32, height: 32)
-                                    .clipShape(Circle())
-                            default:
-                                Image(systemName: "person.circle.fill")
-                                    .font(.system(size: 32))
-                                    .foregroundColor(.white)
-                            }
-                        }
-                    }
-                    
-                    Spacer()
-                    
-                    // Center - Logo
-                    Text("Circl.")
-                        .font(.system(size: 24, weight: .bold))
-                        .foregroundColor(.white)
-                    
-                    Spacer()
-                    
-                    // Right side - Messages
-                    NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
-                        ZStack {
-                            Image(systemName: "envelope")
-                                .font(.system(size: 24))
-                                .foregroundColor(.white)
-                            
-                            if unreadMessageCount > 0 {
-                                Text(unreadMessageCount > 99 ? "99+" : "\(unreadMessageCount)")
-                                    .font(.system(size: 10, weight: .bold))
-                                    .foregroundColor(.white)
-                                    .padding(4)
-                                    .background(Color.red)
-                                    .clipShape(Circle())
-                                    .offset(x: 10, y: -10)
-                            }
-                        }
-                    }
-                }
-                .padding(.horizontal, 16)
-                .padding(.bottom, 16)
-                .padding(.top, 8)
+            // Tab Buttons Row - Twitter/X style tabs
+            HStack(spacing: 0) {
+                Spacer()
                 
-                // Tab Buttons Row - Twitter/X style tabs
-                HStack(spacing: 0) {
-                    Spacer()
-                    
-                    // For You Tab
-                    HStack {
-                        VStack(spacing: 8) {
-                            Text("For you")
-                                .font(.system(size: 15, weight: visualSelectedTab == "public" ? .semibold : .regular))
-                                .foregroundColor(.white)
-                            
-                            Rectangle()
-                                .fill(visualSelectedTab == "public" ? Color.white : Color.clear)
-                                .frame(height: 3)
-                                .animation(.easeInOut(duration: 0.2), value: visualSelectedTab)
-                        }
-                        .frame(width: 70)
+                // For You Tab
+                HStack {
+                    VStack(spacing: 8) {
+                        Text("For you")
+                            .font(.system(size: 15, weight: visualSelectedTab == "public" ? .semibold : .regular))
+                            .foregroundColor(.white)
+                        
+                        Rectangle()
+                            .fill(visualSelectedTab == "public" ? Color.white : Color.clear)
+                            .frame(height: 3)
+                            .animation(.easeInOut(duration: 0.2), value: visualSelectedTab)
                     }
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        print("🔄 For you tab tapped")
-                        // Show loading immediately for better UX
-                        isTabSwitchLoading = true
-                        // Update states immediately without animation wrapper
-                        visualSelectedTab = "public"
-                        selectedFilter = "public"
-                        selectedPrivacy = "Public"
-                        UserDefaults.standard.set("public", forKey: "selectedFilter")
-                        print("✅ visualSelectedTab set to: \(visualSelectedTab)")
-                        // Fetch posts using the fetcher closure
-                        fetcher("public", selectedCategory)
-                    }
-                    
-                    Spacer()
-                    
-                    // Following Tab
-                    HStack {
-                        VStack(spacing: 8) {
-                            Text("Following")
-                                .font(.system(size: 15, weight: visualSelectedTab == "my_network" ? .semibold : .regular))
-                                .foregroundColor(.white)
-                            
-                            Rectangle()
-                                .fill(visualSelectedTab == "my_network" ? Color.white : Color.clear)
-                                .frame(height: 3)
-                                .animation(.easeInOut(duration: 0.2), value: visualSelectedTab)
-                        }
-                        .frame(width: 80)
-                    }
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        print("🔄 Following tab tapped")
-                        // Show loading immediately for better UX
-                        isTabSwitchLoading = true
-                        // Update states immediately without animation wrapper
-                        visualSelectedTab = "my_network"
-                        selectedFilter = "my_network"
-                        selectedPrivacy = "My Network"
-                        UserDefaults.standard.set("my_network", forKey: "selectedFilter")
-                        print("✅ visualSelectedTab set to: \(visualSelectedTab)")
-                        // Fetch posts using the fetcher closure
-                        fetcher("my_network", selectedCategory)
-                    }
-                    
-                    Spacer()
+                    .frame(width: 70)
                 }
-                .padding(.bottom, 8)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    print("🔄 For you tab tapped")
+                    // Show loading immediately for better UX
+                    isTabSwitchLoading = true
+                    // Update states immediately without animation wrapper
+                    visualSelectedTab = "public"
+                    selectedFilter = "public"
+                    selectedPrivacy = "Public"
+                    UserDefaults.standard.set("public", forKey: "selectedFilter")
+                    print("✅ visualSelectedTab set to: \(visualSelectedTab)")
+                    // Fetch posts using the fetcher closure
+                    fetcher("public", selectedCategory)
+                }
+                
+                Spacer()
+                
+                // Following Tab
+                HStack {
+                    VStack(spacing: 8) {
+                        Text("Following")
+                            .font(.system(size: 15, weight: visualSelectedTab == "my_network" ? .semibold : .regular))
+                            .foregroundColor(.white)
+                        
+                        Rectangle()
+                            .fill(visualSelectedTab == "my_network" ? Color.white : Color.clear)
+                            .frame(height: 3)
+                            .animation(.easeInOut(duration: 0.2), value: visualSelectedTab)
+                    }
+                    .frame(width: 80)
+                }
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    print("🔄 Following tab tapped")
+                    // Show loading immediately for better UX
+                    isTabSwitchLoading = true
+                    // Update states immediately without animation wrapper
+                    visualSelectedTab = "my_network"
+                    selectedFilter = "my_network"
+                    selectedPrivacy = "My Network"
+                    UserDefaults.standard.set("my_network", forKey: "selectedFilter")
+                    print("✅ visualSelectedTab set to: \(visualSelectedTab)")
+                    // Fetch posts using the fetcher closure
+                    fetcher("my_network", selectedCategory)
+                }
+                
+                Spacer()
             }
-            .padding(.top, 50) // Add safe area padding for status bar and notch
+            .padding(.vertical, 12)
             .background(Color(hex: "004aad"))
-            .ignoresSafeArea(edges: .top)
             
             // Fixed Compose Area - Twitter/X style
             VStack(spacing: 0) {
