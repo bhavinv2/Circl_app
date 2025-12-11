@@ -101,6 +101,7 @@ struct SharedSidebarMenuItem: View {
 struct SharedAdaptiveHeader: View {
     let configuration: AdaptivePageConfiguration
     let userProfileImageURL: String
+    let unreadMessageCount: Int
     @ObservedObject var layoutManager: AdaptiveLayoutManager
     
     var body: some View {
@@ -153,9 +154,27 @@ struct SharedAdaptiveHeader: View {
                         }
                     }
                     
-                    Button(action: {
-                        // Navigate to profile
-                    }) {
+                    // Messages icon with badge
+                    NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
+                        ZStack {
+                            Image(systemName: "envelope.fill")
+                                .font(.system(size: 24))
+                                .foregroundColor(.white)
+                            
+                            if unreadMessageCount > 0 {
+                                Text(unreadMessageCount > 99 ? "99+" : "\(unreadMessageCount)")
+                                    .font(.system(size: 10, weight: .bold))
+                                    .foregroundColor(.white)
+                                    .padding(4)
+                                    .background(Color.red)
+                                    .clipShape(Circle())
+                                    .offset(x: 10, y: -10)
+                            }
+                        }
+                    }
+                    
+                    // Profile picture
+                    NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
                         AsyncImage(url: URL(string: userProfileImageURL)) { phase in
                             switch phase {
                             case .success(let image):
@@ -298,6 +317,7 @@ struct AdaptiveContentWrapper<Content: View>: View {
                         SharedAdaptiveHeader(
                             configuration: configuration,
                             userProfileImageURL: userProfileImageURL,
+                            unreadMessageCount: unreadMessageCount,
                             layoutManager: layoutManager
                         )
                         
@@ -321,6 +341,7 @@ struct AdaptiveContentWrapper<Content: View>: View {
                         SharedAdaptiveHeader(
                             configuration: configuration,
                             userProfileImageURL: userProfileImageURL,
+                            unreadMessageCount: unreadMessageCount,
                             layoutManager: layoutManager
                         )
                         .padding(.top, 50) // Safe area
@@ -350,12 +371,62 @@ struct AdaptiveContentWrapper<Content: View>: View {
     }
     
     private func fetchUserData() {
-        // Fetch user profile image and unread message count
-        // This could be moved to a shared service
-        DispatchQueue.main.async {
-            self.userProfileImageURL = UserDefaults.standard.string(forKey: "user_profile_image") ?? ""
-            // Add logic to fetch unread message count from your API
-            // self.unreadMessageCount = MessageService.getUnreadCount()
+        // Fetch user profile image
+        if let userId = UserDefaults.standard.value(forKey: "user_id") as? Int {
+            fetchCurrentUserProfile(userId: userId)
         }
+        
+        // Fetch unread message count
+        fetchUnreadMessageCount()
+    }
+    
+    private func fetchCurrentUserProfile(userId: Int) {
+        let urlString = "https://circlapp.online/api/users/profile/\(userId)/"
+        guard let url = URL(string: urlString) else { return }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            guard let data = data, error == nil else { return }
+            
+            if let decoded = try? JSONDecoder().decode(FullProfile.self, from: data) {
+                DispatchQueue.main.async {
+                    if let profileImage = decoded.profile_image, !profileImage.isEmpty {
+                        self.userProfileImageURL = profileImage
+                    }
+                }
+            }
+        }.resume()
+    }
+    
+    private func fetchUnreadMessageCount() {
+        guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else { return }
+        let urlString = "https://circlapp.online/api/messages/"
+        guard let url = URL(string: urlString) else { return }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            guard let data = data, error == nil else { return }
+            
+            if let messages = try? JSONDecoder().decode([MessageModel].self, from: data) {
+                let unreadMessages = messages.filter { $0.receiver_id == userId && !$0.is_read }
+                DispatchQueue.main.async {
+                    self.unreadMessageCount = unreadMessages.count
+                }
+            }
+        }.resume()
     }
 }
