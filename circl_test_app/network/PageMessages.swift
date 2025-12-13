@@ -26,6 +26,77 @@ struct PageMessages: View {
     
     var body: some View {
         AdaptivePage(title: "Messages", unreadMessageCount: unreadMessageCount) {
+            VStack(spacing: 0) {
+                // Header - blue header with profile, logo, and home
+                VStack(spacing: 0) {
+                    HStack {
+                        // Left side - Profile with shadow
+                        NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
+                            ZStack {
+                                AsyncImage(url: URL(string: userProfileImageURL ?? "")) { phase in
+                                    switch phase {
+                                    case .success(let image):
+                                        image
+                                            .resizable()
+                                            .scaledToFill()
+                                            .frame(width: 36, height: 36)
+                                            .clipShape(Circle())
+                                    default:
+                                        Image(systemName: "person.circle.fill")
+                                            .font(.system(size: 36))
+                                            .foregroundColor(.white)
+                                    }
+                                }
+                                
+                                // Online indicator
+                                Circle()
+                                    .fill(Color.green)
+                                    .frame(width: 10, height: 10)
+                                    .overlay(
+                                        Circle()
+                                            .stroke(Color.white, lineWidth: 2)
+                                    )
+                                    .offset(x: 12, y: -12)
+                            }
+                            .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+                        }
+                        
+                        Spacer()
+                        
+                        // Center - Simple Logo
+                        Text("Circl.")
+                            .font(.system(size: 28, weight: .bold))
+                            .foregroundColor(.white)
+                        
+                        Spacer()
+                        
+                        Spacer().frame(width: 8)
+                        
+                        // Right side - Home
+                        NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
+                            Image(systemName: "house.fill")
+                                .font(.system(size: 24, weight: .medium))
+                                .foregroundColor(.white)
+                                .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+                        }
+                    }
+                    .padding(.horizontal, 18)
+                    .padding(.bottom, 18)
+                    .padding(.top, 10)
+                }
+                .padding(.top, 50) // Add safe area padding for status bar and notch
+                .background(
+                    LinearGradient(
+                        gradient: Gradient(colors: [
+                            Color(hex: "004aad"),
+                            Color(hex: "004aad").opacity(0.95)
+                        ]),
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+                .ignoresSafeArea(edges: .top)
+                
             ZStack {
                 // Enhanced background gradient
                 let backgroundColors = [
@@ -57,6 +128,7 @@ struct PageMessages: View {
                         }
                         .zIndex(1)
                 }
+            }
             }
         }
         .onAppear {

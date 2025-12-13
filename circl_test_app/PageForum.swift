@@ -319,16 +319,69 @@ struct ForumMainContent: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Tab Buttons Row - Twitter/X style tabs
-            HStack(spacing: 0) {
-                Spacer()
-                
-                // For You Tab
+            // Fixed Header - iPhone blue header with profile, logo, and messages
+            VStack(spacing: 0) {
                 HStack {
-                    VStack(spacing: 8) {
-                        Text("For you")
-                            .font(.system(size: 15, weight: visualSelectedTab == "public" ? .semibold : .regular))
-                            .foregroundColor(.white)
+                    // Left side - Profile
+                    NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
+                        AsyncImage(url: URL(string: userProfileImageURL)) { phase in
+                            switch phase {
+                            case .success(let image):
+                                image
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 32, height: 32)
+                                    .clipShape(Circle())
+                            default:
+                                Image(systemName: "person.circle.fill")
+                                    .font(.system(size: 32))
+                                    .foregroundColor(.white)
+                            }
+                        }
+                    }
+                    
+                    Spacer()
+                    
+                    // Center - Logo
+                    Text("Circl.")
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(.white)
+                    
+                    Spacer()
+                    
+                    // Right side - Messages
+                    NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
+                        ZStack {
+                            Image(systemName: "envelope")
+                                .font(.system(size: 24))
+                                .foregroundColor(.white)
+                            
+                            if unreadMessageCount > 0 {
+                                Text(unreadMessageCount > 99 ? "99+" : "\(unreadMessageCount)")
+                                    .font(.system(size: 10, weight: .bold))
+                                    .foregroundColor(.white)
+                                    .padding(4)
+                                    .background(Color.red)
+                                    .clipShape(Circle())
+                                    .offset(x: 10, y: -10)
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.bottom, 16)
+                .padding(.top, 8)
+                
+                // Tab Buttons Row - Twitter/X style tabs
+                HStack(spacing: 0) {
+                    Spacer()
+                    
+                    // For You Tab
+                    HStack {
+                        VStack(spacing: 8) {
+                            Text("For you")
+                                .font(.system(size: 15, weight: visualSelectedTab == "public" ? .semibold : .regular))
+                                .foregroundColor(.white)
                         
                         Rectangle()
                             .fill(visualSelectedTab == "public" ? Color.white : Color.clear)
@@ -385,8 +438,11 @@ struct ForumMainContent: View {
                 
                 Spacer()
             }
-            .padding(.vertical, 12)
+            .padding(.bottom, 8)
+            }
+            .padding(.top, 50) // Add safe area padding for status bar and notch
             .background(Color(hex: "004aad"))
+            .ignoresSafeArea(edges: .top)
             
             // Fixed Compose Area - Twitter/X style
             VStack(spacing: 0) {

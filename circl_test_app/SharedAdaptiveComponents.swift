@@ -208,75 +208,104 @@ struct SharedBottomNavigation: View {
     @State private var showMoreMenu = false
     
     var body: some View {
-        VStack(spacing: 0) {
-            // Separator line
-            Rectangle()
-                .fill(Color.gray.opacity(0.3))
-                .frame(height: 1)
-            
-            HStack(spacing: 0) {
-                // Main navigation items (first 4)
-                ForEach(Array(configuration.navigationItems.prefix(4).enumerated()), id: \.element.id) { index, item in
-                    NavigationLink(destination: item.destination) {
-                        VStack(spacing: 4) {
-                            ZStack {
-                                Image(systemName: item.icon)
-                                    .font(.system(size: 22))
-                                    .foregroundColor(item.isCurrentPage ? Color(hex: "004aad") : .gray)
-                                
-                                if let badge = item.badge, !badge.isEmpty {
-                                    Text(badge)
-                                        .font(.system(size: 10, weight: .bold))
-                                        .foregroundColor(.white)
-                                        .padding(4)
-                                        .background(Color.red)
-                                        .clipShape(Circle())
-                                        .offset(x: 12, y: -12)
-                                }
-                            }
-                            
-                            Text(item.title)
-                                .font(.system(size: 10, weight: .medium))
-                                .foregroundColor(item.isCurrentPage ? Color(hex: "004aad") : .gray)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 8)
-                    }
-                    .buttonStyle(PlainButtonStyle())
+        HStack(spacing: 0) {
+            // Forum / Home
+            NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
+                VStack(spacing: 6) {
+                    Image(systemName: configuration.title == "Home" ? "house.fill" : "house")
+                        .font(.system(size: 26))
+                        .foregroundColor(configuration.title == "Home" ? Color(hex: "004aad") : Color(UIColor.label).opacity(0.6))
+                    Text("Home")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(configuration.title == "Home" ? Color(hex: "004aad") : Color(UIColor.label).opacity(0.6))
                 }
-                
-                // More menu for remaining items
-                if configuration.navigationItems.count > 4 {
-                    Button(action: { showMoreMenu = true }) {
-                        VStack(spacing: 4) {
-                            Image(systemName: "ellipsis")
-                                .font(.system(size: 22))
-                                .foregroundColor(.gray)
-                            
-                            Text("More")
-                                .font(.system(size: 10, weight: .medium))
-                                .foregroundColor(.gray)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 8)
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                }
+                .frame(maxWidth: .infinity)
             }
-            .background(Color.white)
-            .padding(.bottom, 34) // Safe area padding for home indicator
+            .transaction { transaction in
+                transaction.disablesAnimations = true
+            }
+            
+            // Network
+            NavigationLink(destination: PageUnifiedNetworking().navigationBarBackButtonHidden(true)) {
+                VStack(spacing: 6) {
+                    Image(systemName: "person.2")
+                        .font(.system(size: 26))
+                        .foregroundColor(Color(UIColor.label).opacity(0.6))
+                    Text("Network")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(Color(UIColor.label).opacity(0.6))
+                }
+                .frame(maxWidth: .infinity)
+            }
+            .transaction { transaction in
+                transaction.disablesAnimations = true
+            }
+            
+            // Circles
+            NavigationLink(destination: PageCircles().navigationBarBackButtonHidden(true)) {
+                VStack(spacing: 6) {
+                    Image(systemName: "circle.grid.2x2")
+                        .font(.system(size: 26))
+                        .foregroundColor(Color(UIColor.label).opacity(0.6))
+                    Text("Circles")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(Color(UIColor.label).opacity(0.6))
+                }
+                .frame(maxWidth: .infinity)
+            }
+            .transaction { transaction in
+                transaction.disablesAnimations = true
+            }
+            
+            // Business Profile
+            NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true)) {
+                VStack(spacing: 6) {
+                    Image(systemName: "building.2")
+                        .font(.system(size: 26))
+                        .foregroundColor(Color(UIColor.label).opacity(0.6))
+                    Text("Business")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(Color(UIColor.label).opacity(0.6))
+                }
+                .frame(maxWidth: .infinity)
+            }
+            .transaction { transaction in
+                transaction.disablesAnimations = true
+            }
+            
+            // More Menu
+            Button(action: {
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    showMoreMenu.toggle()
+                }
+            }) {
+                VStack(spacing: 6) {
+                    Image(systemName: "ellipsis")
+                        .font(.system(size: 26))
+                        .foregroundColor(Color(UIColor.label).opacity(0.6))
+                    Text("More")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(Color(UIColor.label).opacity(0.6))
+                }
+                .frame(maxWidth: .infinity)
+            }
         }
-        .actionSheet(isPresented: $showMoreMenu) {
-            ActionSheet(
-                title: Text("More Options"),
-                buttons: configuration.navigationItems.dropFirst(4).map { item in
-                    .default(Text(item.title)) {
-                        // Navigate to the item destination
-                        // Note: This is simplified - you might want to use a proper navigation mechanism
-                    }
-                } + [.cancel()]
-            )
-        }
+        .padding(.horizontal, 16)
+        .padding(.top, 12)
+        .padding(.bottom, 20)
+        .background(
+            Rectangle()
+                .fill(Color(UIColor.systemBackground))
+                .shadow(color: .black.opacity(0.1), radius: 1, x: 0, y: -1)
+                .ignoresSafeArea(edges: .bottom)
+        )
+        .overlay(
+            Rectangle()
+                .frame(height: 0.5)
+                .foregroundColor(Color(UIColor.separator))
+                .padding(.horizontal, 16),
+            alignment: .top
+        )
     }
 }
 
@@ -340,41 +369,28 @@ struct AdaptiveContentWrapper<Content: View>: View {
                 }
                 .animation(.easeInOut(duration: 0.3), value: layoutManager.isSidebarCollapsed)
             } else {
-                // iPhone Layout
+                // iPhone Layout with bottom navigation
                 ZStack {
-                    VStack(spacing: 0) {
-                        // Content with top padding for header
-                        content
-                            .padding(.top, customHeader != nil ? 160 : 100) // More space for custom headers
-                            .padding(.bottom, 90) // Space for bottom navigation
-                    }
-                    
-                    // Fixed header overlay
-                    VStack {
-                        if let customHeader = customHeader {
+                    if let customHeader = customHeader {
+                        // Pages with custom headers: render header + content
+                        VStack(spacing: 0) {
                             customHeader(layoutManager)
-                        } else {
-                            SharedAdaptiveHeader(
-                                configuration: configuration,
-                                userProfileImageURL: userProfileImageURL,
-                                unreadMessageCount: unreadMessageCount,
-                                layoutManager: layoutManager
-                            )
-                            .padding(.top, 50) // Safe area
+                            content
                         }
-                        
-                        Spacer()
+                    } else {
+                        // Pages without custom headers: just render content
+                        content
                     }
                     
-                    // Fixed bottom navigation
+                    // Bottom Navigation Overlay for iPhone
                     VStack {
                         Spacer()
-                        
                         SharedBottomNavigation(
                             configuration: configuration,
                             unreadMessageCount: unreadMessageCount
                         )
                     }
+                    .zIndex(1)
                 }
             }
         }
