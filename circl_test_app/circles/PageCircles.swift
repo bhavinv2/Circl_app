@@ -66,9 +66,19 @@ struct PageCircles: View {
                     supportsTabs: true,
                     customHeaderActions: []
                 ),
-                customHeader: {
+                customHeader: { layoutManager in
                     VStack(spacing: 0) {
                         HStack {
+                            // Sidebar toggle button (iPad only, when sidebar is collapsed)
+                            if UIDevice.current.userInterfaceIdiom == .pad && layoutManager.isSidebarCollapsed {
+                                Button(action: layoutManager.toggleSidebar) {
+                                    Image(systemName: "sidebar.left")
+                                        .font(.system(size: 20, weight: .medium))
+                                        .foregroundColor(.white)
+                                        .padding(8)
+                                }
+                            }
+                            
                             // Left side - Enhanced Profile
                             NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
                                 AsyncImage(url: URL(string: userProfileImageURL)) { phase in

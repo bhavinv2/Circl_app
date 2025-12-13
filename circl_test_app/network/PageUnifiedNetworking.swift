@@ -93,8 +93,8 @@ struct PageUnifiedNetworking: View {
                 title: "Network",
                 navigationItems: AdaptivePageConfiguration.defaultNavigation(currentPageTitle: "Network", unreadMessageCount: unreadMessageCount)
             ),
-            customHeader: {
-                headerSection
+            customHeader: { layoutManager in
+                headerSection(layoutManager: layoutManager)
             }
         ) {
             scrollableContent
@@ -168,9 +168,19 @@ struct PageUnifiedNetworking: View {
     }
     
     // MARK: - Header Section
-    private var headerSection: some View {
+    private func headerSection(layoutManager: AdaptiveLayoutManager) -> some View {
         VStack(spacing: 0) {
             HStack {
+                // Sidebar toggle button (iPad only, when sidebar is collapsed)
+                if UIDevice.current.userInterfaceIdiom == .pad && layoutManager.isSidebarCollapsed {
+                    Button(action: layoutManager.toggleSidebar) {
+                        Image(systemName: "sidebar.left")
+                            .font(.system(size: 20, weight: .medium))
+                            .foregroundColor(.white)
+                            .padding(8)
+                    }
+                }
+                
                 // Left side - Enhanced Profile with shadow
                 NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
                     ZStack {

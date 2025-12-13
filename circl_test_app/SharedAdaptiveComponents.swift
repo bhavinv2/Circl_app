@@ -282,10 +282,10 @@ struct SharedBottomNavigation: View {
 
 // MARK: - Adaptive Content Wrapper
 
-struct AdaptiveContentWrapper<Content: View, CustomHeader: View>: View {
+struct AdaptiveContentWrapper<Content: View>: View {
     let configuration: AdaptivePageConfiguration
     let content: Content
-    let customHeader: CustomHeader?
+    let customHeader: ((AdaptiveLayoutManager) -> AnyView)?
     @StateObject private var layoutManager = AdaptiveLayoutManager()
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     
@@ -293,16 +293,16 @@ struct AdaptiveContentWrapper<Content: View, CustomHeader: View>: View {
     @State private var userProfileImageURL: String = ""
     @State private var unreadMessageCount: Int = 0
     
-    init(configuration: AdaptivePageConfiguration, @ViewBuilder content: () -> Content) where CustomHeader == EmptyView {
+    init(configuration: AdaptivePageConfiguration, @ViewBuilder content: () -> Content) {
         self.configuration = configuration
         self.content = content()
         self.customHeader = nil
     }
     
-    init(configuration: AdaptivePageConfiguration, @ViewBuilder customHeader: @escaping () -> CustomHeader, @ViewBuilder content: () -> Content) {
+    init<CustomHeader: View>(configuration: AdaptivePageConfiguration, @ViewBuilder customHeader: @escaping (AdaptiveLayoutManager) -> CustomHeader, @ViewBuilder content: () -> Content) {
         self.configuration = configuration
         self.content = content()
-        self.customHeader = customHeader()
+        self.customHeader = { manager in AnyView(customHeader(manager)) }
     }
     
     var body: some View {
@@ -323,7 +323,7 @@ struct AdaptiveContentWrapper<Content: View, CustomHeader: View>: View {
                     // Main Content
                     VStack(spacing: 0) {
                         if let customHeader = customHeader {
-                            customHeader
+                            customHeader(layoutManager)
                         } else {
                             SharedAdaptiveHeader(
                                 configuration: configuration,
@@ -352,7 +352,7 @@ struct AdaptiveContentWrapper<Content: View, CustomHeader: View>: View {
                     // Fixed header overlay
                     VStack {
                         if let customHeader = customHeader {
-                            customHeader
+                            customHeader(layoutManager)
                         } else {
                             SharedAdaptiveHeader(
                                 configuration: configuration,
