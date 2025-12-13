@@ -208,104 +208,104 @@ struct SharedBottomNavigation: View {
     @State private var showMoreMenu = false
     
     var body: some View {
-        HStack(spacing: 0) {
-            // Forum / Home
-            NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
-                VStack(spacing: 6) {
-                    Image(systemName: configuration.title == "Home" ? "house.fill" : "house")
-                        .font(.system(size: 26))
-                        .foregroundColor(configuration.title == "Home" ? Color(hex: "004aad") : Color(UIColor.label).opacity(0.6))
-                    Text("Home")
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundColor(configuration.title == "Home" ? Color(hex: "004aad") : Color(UIColor.label).opacity(0.6))
+        VStack(spacing: 0) {
+            // MARK: - Twitter/X Style Bottom Navigation (copied exactly)
+            HStack(spacing: 0) {
+                // Forum / Home (Current page - highlighted)
+                NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
+                    VStack(spacing: 4) {
+                        Image(systemName: configuration.title == "Home" ? "house.fill" : "house")
+                            .font(.system(size: 22, weight: .medium))
+                            .foregroundColor(configuration.title == "Home" ? Color(hex: "004aad") : Color(UIColor.label).opacity(0.6))
+                            .padding(.top, 4)
+                        Text("Home")
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundColor(configuration.title == "Home" ? Color(hex: "004aad") : Color(UIColor.label).opacity(0.6))
+                    }
+                    .frame(maxWidth: .infinity)
                 }
-                .frame(maxWidth: .infinity)
-            }
-            .transaction { transaction in
-                transaction.disablesAnimations = true
-            }
-            
-            // Network
-            NavigationLink(destination: PageUnifiedNetworking().navigationBarBackButtonHidden(true)) {
-                VStack(spacing: 6) {
-                    Image(systemName: "person.2")
-                        .font(.system(size: 26))
-                        .foregroundColor(Color(UIColor.label).opacity(0.6))
-                    Text("Network")
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundColor(Color(UIColor.label).opacity(0.6))
+                .transaction { transaction in transaction.disablesAnimations = true }
+
+                // Connect and Network
+                NavigationLink(destination: PageUnifiedNetworking().navigationBarBackButtonHidden(true)) {
+                    VStack(spacing: 4) {
+                        Image(systemName: "person.2")
+                            .font(.system(size: 22, weight: .medium))
+                            .foregroundColor(Color(UIColor.label).opacity(0.6))
+                            .padding(.top, 4)
+                        Text("Network")
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundColor(Color(UIColor.label).opacity(0.6))
+                    }
+                    .frame(maxWidth: .infinity)
                 }
-                .frame(maxWidth: .infinity)
-            }
-            .transaction { transaction in
-                transaction.disablesAnimations = true
-            }
-            
-            // Circles
-            NavigationLink(destination: PageCircles().navigationBarBackButtonHidden(true)) {
-                VStack(spacing: 6) {
-                    Image(systemName: "circle.grid.2x2")
-                        .font(.system(size: 26))
-                        .foregroundColor(Color(UIColor.label).opacity(0.6))
-                    Text("Circles")
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundColor(Color(UIColor.label).opacity(0.6))
+                .transaction { transaction in transaction.disablesAnimations = true }
+
+                // Circles
+                NavigationLink(destination: PageCircles().navigationBarBackButtonHidden(true)) {
+                    VStack(spacing: 4) {
+                        Image(systemName: "circle.grid.2x2")
+                            .font(.system(size: 22, weight: .medium))
+                            .foregroundColor(Color(UIColor.label).opacity(0.6))
+                            .padding(.top, 4)
+                        Text("Circles")
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundColor(Color(UIColor.label).opacity(0.6))
+                    }
+                    .frame(maxWidth: .infinity)
                 }
-                .frame(maxWidth: .infinity)
-            }
-            .transaction { transaction in
-                transaction.disablesAnimations = true
-            }
-            
-            // Business Profile
-            NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true)) {
-                VStack(spacing: 6) {
-                    Image(systemName: "building.2")
-                        .font(.system(size: 26))
-                        .foregroundColor(Color(UIColor.label).opacity(0.6))
-                    Text("Business")
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundColor(Color(UIColor.label).opacity(0.6))
+                .transaction { transaction in transaction.disablesAnimations = true }
+
+                // Business Profile
+                NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true)) {
+                    VStack(spacing: 4) {
+                        Image(systemName: "building.2")
+                            .font(.system(size: 22, weight: .medium))
+                            .foregroundColor(Color(UIColor.label).opacity(0.6))
+                            .padding(.top, 4)
+                        Text("Business")
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundColor(Color(UIColor.label).opacity(0.6))
+                    }
+                    .frame(maxWidth: .infinity)
                 }
-                .frame(maxWidth: .infinity)
-            }
-            .transaction { transaction in
-                transaction.disablesAnimations = true
-            }
-            
-            // More Menu
-            Button(action: {
-                withAnimation(.easeInOut(duration: 0.3)) {
-                    showMoreMenu.toggle()
+                .transaction { transaction in transaction.disablesAnimations = true }
+
+                // More / Additional Resources
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        showMoreMenu.toggle()
+                    }
+                }) {
+                    VStack(spacing: 4) {
+                        Image(systemName: "ellipsis")
+                            .font(.system(size: 22, weight: .medium))
+                            .foregroundColor(Color(UIColor.label).opacity(0.6))
+                            .padding(.top, 4)
+                        Text("More")
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundColor(Color(UIColor.label).opacity(0.6))
+                    }
+                    .frame(maxWidth: .infinity)
                 }
-            }) {
-                VStack(spacing: 6) {
-                    Image(systemName: "ellipsis")
-                        .font(.system(size: 26))
-                        .foregroundColor(Color(UIColor.label).opacity(0.6))
-                    Text("More")
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundColor(Color(UIColor.label).opacity(0.6))
-                }
-                .frame(maxWidth: .infinity)
             }
+            .padding(.horizontal, 16)
+            .padding(.top, 8)
+            .padding(.bottom, -2)
+            .background(
+                Rectangle()
+                    .fill(Color(UIColor.systemBackground))
+                    .shadow(color: .black.opacity(0.1), radius: 1, x: 0, y: -1)
+                    .ignoresSafeArea(edges: .bottom)
+            )
+            .overlay(
+                Rectangle()
+                    .frame(height: 0.5)
+                    .foregroundColor(Color(UIColor.separator))
+                    .padding(.horizontal, 16),
+                alignment: .top
+            )
         }
-        .padding(.horizontal, 16)
-        .padding(.top, 12)
-        .padding(.bottom, 20)
-        .background(
-            Rectangle()
-                .fill(Color(UIColor.systemBackground))
-                .shadow(color: .black.opacity(0.1), radius: 1, x: 0, y: -1)
-                .ignoresSafeArea(edges: .bottom)
-        )
-        .overlay(
-            Rectangle()
-                .frame(height: 0.5)
-                .foregroundColor(Color(UIColor.separator))
-                .padding(.horizontal, 16),
-            alignment: .top
-        )
     }
 }
 
