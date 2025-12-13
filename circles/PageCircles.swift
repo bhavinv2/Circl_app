@@ -144,23 +144,22 @@ struct PageCircles: View {
                             
                             // Explore Tab
                             HStack {
-                                VStack(spacing: 6) {
+                                VStack(spacing: 8) {
                                     Text("Explore")
                                         .font(.system(size: 16, weight: !showMyCircles ? .bold : .medium))
                                         .foregroundColor(.white)
+                                        .opacity(!showMyCircles ? 1.0 : 0.7)
                                     
-                                    RoundedRectangle(cornerRadius: 2)
+                                    Rectangle()
                                         .fill(!showMyCircles ? Color.white : Color.clear)
-                                        .frame(height: 3)
-                                        .frame(width: 40)
-                                        .shadow(color: .white.opacity(0.3), radius: 2, x: 0, y: 1)
-                                        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: showMyCircles)
+                                        .frame(height: !showMyCircles ? 3 : 0)
+                                        .animation(.easeInOut(duration: 0.2), value: showMyCircles)
                                 }
-                                .frame(width: 80)
                             }
+                            .frame(maxWidth: .infinity)
                             .contentShape(Rectangle())
                             .onTapGesture {
-                                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                withAnimation(.easeInOut(duration: 0.2)) {
                                     showMyCircles = false
                                 }
                             }
@@ -169,121 +168,35 @@ struct PageCircles: View {
                             
                             // My Circles Tab
                             HStack {
-                                VStack(spacing: 6) {
+                                VStack(spacing: 8) {
                                     Text("My Circles")
                                         .font(.system(size: 16, weight: showMyCircles ? .bold : .medium))
                                         .foregroundColor(.white)
+                                        .opacity(showMyCircles ? 1.0 : 0.7)
                                     
-                                    RoundedRectangle(cornerRadius: 2)
+                                    Rectangle()
                                         .fill(showMyCircles ? Color.white : Color.clear)
-                                        .frame(height: 3)
-                                        .frame(width: 60)
-                                        .shadow(color: .white.opacity(0.3), radius: 2, x: 0, y: 1)
-                                        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: showMyCircles)
+                                        .frame(height: showMyCircles ? 3 : 0)
+                                        .animation(.easeInOut(duration: 0.2), value: showMyCircles)
                                 }
-                                .frame(width: 100)
                             }
+                            .frame(maxWidth: .infinity)
                             .contentShape(Rectangle())
                             .onTapGesture {
-                                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                withAnimation(.easeInOut(duration: 0.2)) {
                                     showMyCircles = true
                                 }
                             }
                             
                             Spacer()
                         }
+                        .padding(.horizontal, 18)
                         .padding(.bottom, 12)
                     }
                     .padding(.top, 50)
                     .background(Color(hex: "004aad"))
                     .ignoresSafeArea(edges: .top)
                     
-                    .sheet(isPresented: $showCreateCircleSheet) {
-                        ScrollView {
-                            VStack(spacing: 16) {
-                                Text("Create a Circl")
-                                    .font(.title2)
-                                    .bold()
-
-                                TextField("Circle Name", text: $circleName)
-                                    .padding()
-                                    .background(Color(.systemGray6))
-                                    .cornerRadius(10)
-
-                                TextField("Industry", text: $circleIndustry)
-                                    .padding()
-                                    .background(Color(.systemGray6))
-                                    .cornerRadius(10)
-
-                                // ✅ NEW: Optional category field
-                                TextField("Category (optional)", text: $circleCategory)
-                                    .padding()
-                                    .background(Color(.systemGray6))
-                                    .cornerRadius(10)
-
-                                TextField("Circle Description", text: $circleDescription, axis: .vertical)
-                                    .frame(minHeight: 80, alignment: .topLeading)
-                                    .padding()
-                                    .background(Color(.systemGray6))
-                                    .cornerRadius(10)
-                                    .foregroundColor(.primary)
-
-                                Toggle(isOn: $isPrivateCircle) {
-                                    Text("Make Circle Private")
-                                        .font(.headline)
-                                }
-                                .padding(.top)
-
-                                if isPrivateCircle {
-                                    TextField("Access Code", text: $privateAccessCode)
-                                        .padding()
-                                        .background(Color(.systemGray6))
-                                        .cornerRadius(10)
-                                }
-
-                                Divider()
-
-                                Text("Select Channels")
-                                    .font(.headline)
-
-                                ForEach(allChannelOptions, id: \.self) { channel in
-                                    if channel == "#Welcome" {
-                                        Toggle(channel, isOn: .constant(true))
-                                            .disabled(true)
-                                            .foregroundColor(.gray)
-                                    } else {
-                                        Toggle(channel, isOn: Binding(
-                                            get: { selectedChannels.contains(channel) },
-                                            set: { isSelected in
-                                                if isSelected {
-                                                    selectedChannels.append(channel)
-                                                } else {
-                                                    selectedChannels.removeAll { $0 == channel }
-                                                }
-                                            }
-                                        ))
-                                    }
-                                }
-
-                                Button(action: {
-                                    createCircle()
-                                }) {
-                                    Text("Create Circl")
-                                        .frame(maxWidth: .infinity)
-                                        .padding()
-                                        .background(Color.green)
-                                        .foregroundColor(.white)
-                                        .cornerRadius(12)
-                                }
-                                .padding(.top, 20)
-                            }
-                            .padding()
-                        }
-                        .onTapGesture {
-                            hideKeyboard()
-                        }
-                    }
-
                     // MARK: Enhanced Search Section
                     VStack(spacing: 12) {
                         HStack(spacing: 12) {
@@ -843,6 +756,90 @@ struct PageCircles: View {
                }, message: {
                    Text("This circle is private. Ask a moderator for the access code.")
                })
+        .sheet(isPresented: $showCreateCircleSheet) {
+            ScrollView {
+                VStack(spacing: 16) {
+                    Text("Create a Circl")
+                        .font(.title2)
+                        .bold()
+
+                    TextField("Circle Name", text: $circleName)
+                        .padding()
+                        .background(Color(.systemGray6))
+                        .cornerRadius(10)
+
+                    TextField("Industry", text: $circleIndustry)
+                        .padding()
+                        .background(Color(.systemGray6))
+                        .cornerRadius(10)
+
+                    TextField("Category (optional)", text: $circleCategory)
+                        .padding()
+                        .background(Color(.systemGray6))
+                        .cornerRadius(10)
+
+                    TextField("Circle Description", text: $circleDescription, axis: .vertical)
+                        .frame(minHeight: 80, alignment: .topLeading)
+                        .padding()
+                        .background(Color(.systemGray6))
+                        .cornerRadius(10)
+                        .foregroundColor(.primary)
+
+                    Toggle(isOn: $isPrivateCircle) {
+                        Text("Make Circle Private")
+                            .font(.headline)
+                    }
+                    .padding(.top)
+
+                    if isPrivateCircle {
+                        TextField("Access Code", text: $privateAccessCode)
+                            .padding()
+                            .background(Color(.systemGray6))
+                            .cornerRadius(10)
+                    }
+
+                    Divider()
+
+                    Text("Select Channels")
+                        .font(.headline)
+
+                    ForEach(allChannelOptions, id: \.self) { channel in
+                        if channel == "#Welcome" {
+                            Toggle(channel, isOn: .constant(true))
+                                .disabled(true)
+                                .foregroundColor(.gray)
+                        } else {
+                            Toggle(channel, isOn: Binding(
+                                get: { selectedChannels.contains(channel) },
+                                set: { isSelected in
+                                    if isSelected {
+                                        selectedChannels.append(channel)
+                                    } else {
+                                        selectedChannels.removeAll { $0 == channel }
+                                    }
+                                }
+                            ))
+                        }
+                    }
+
+                    Button(action: {
+                        createCircle()
+                    }) {
+                        Text("Create Circl")
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.green)
+                            .foregroundColor(.white)
+                            .cornerRadius(12)
+                    }
+                    .padding(.top, 20)
+                }
+                .padding()
+            }
+            .onTapGesture {
+                hideKeyboard()
+            }
+        }
         .navigationBarHidden(true)
         .onAppear {
             loadCircles()

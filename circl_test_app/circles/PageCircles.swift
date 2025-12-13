@@ -58,8 +58,139 @@ struct PageCircles: View {
     }
     
     var body: some View {
-        AdaptivePage(title: "Circles") {
-            ZStack {
+        AdaptiveContentWrapper(
+                configuration: AdaptivePageConfiguration(
+                    title: "Circles",
+                    navigationItems: AdaptivePageConfiguration.defaultNavigation(currentPageTitle: "Circles"),
+                    supportsCompose: false,
+                    supportsTabs: true,
+                    customHeaderActions: []
+                ),
+                customHeader: {
+                    VStack(spacing: 0) {
+                        HStack {
+                            // Left side - Enhanced Profile
+                            NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
+                                AsyncImage(url: URL(string: userProfileImageURL)) { phase in
+                                    switch phase {
+                                    case .success(let image):
+                                        image
+                                            .resizable()
+                                            .scaledToFill()
+                                            .frame(width: 34, height: 34)
+                                            .clipShape(Circle())
+                                            .overlay(
+                                                Circle()
+                                                    .stroke(Color.white.opacity(0.3), lineWidth: 2)
+                                            )
+                                            .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
+                                    default:
+                                        Image(systemName: "person.circle.fill")
+                                            .font(.system(size: 34))
+                                            .foregroundColor(.white)
+                                            .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
+                                    }
+                                }
+                            }
+                            
+                            Spacer()
+                            
+                            // Center - Enhanced Logo
+                            Text("Circl.")
+                                .font(.system(size: 26, weight: .bold))
+                                .foregroundColor(.white)
+                                .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
+                            
+                            Spacer()
+                            
+                            // Right side - Enhanced Messages
+                            NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
+                                ZStack {
+                                    Image(systemName: "envelope.fill")
+                                        .font(.system(size: 24))
+                                        .foregroundColor(.white)
+                                        .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
+                                    
+                                    if unreadMessageCount > 0 {
+                                        Text(unreadMessageCount > 99 ? "99+" : "\(unreadMessageCount)")
+                                            .font(.system(size: 10, weight: .bold))
+                                            .foregroundColor(.white)
+                                            .padding(5)
+                                            .background(
+                                                Circle()
+                                                    .fill(Color.red)
+                                                    .shadow(color: .red.opacity(0.3), radius: 4, x: 0, y: 2)
+                                            )
+                                            .offset(x: 12, y: -12)
+                                    }
+                                }
+                            }
+                        }
+                        .padding(.horizontal, 18)
+                        .padding(.bottom, 18)
+                        .padding(.top, 10)
+                        
+                        // Enhanced Tab Buttons Row with modern styling
+                        HStack(spacing: 0) {
+                            Spacer()
+                            
+                            // Explore Tab
+                            HStack {
+                                VStack(spacing: 8) {
+                                    Text("Explore")
+                                        .font(.system(size: 16, weight: !showMyCircles ? .bold : .medium))
+                                        .foregroundColor(.white)
+                                        .opacity(!showMyCircles ? 1.0 : 0.7)
+                                    
+                                    Rectangle()
+                                        .fill(!showMyCircles ? Color.white : Color.clear)
+                                        .frame(height: !showMyCircles ? 3 : 0)
+                                        .animation(.easeInOut(duration: 0.2), value: showMyCircles)
+                                }
+                            }
+                            .frame(maxWidth: .infinity)
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                withAnimation(.easeInOut(duration: 0.2)) {
+                                    showMyCircles = false
+                                }
+                            }
+                            
+                            Spacer()
+                            
+                            // My Circles Tab
+                            HStack {
+                                VStack(spacing: 8) {
+                                    Text("My Circles")
+                                        .font(.system(size: 16, weight: showMyCircles ? .bold : .medium))
+                                        .foregroundColor(.white)
+                                        .opacity(showMyCircles ? 1.0 : 0.7)
+                                    
+                                    Rectangle()
+                                        .fill(showMyCircles ? Color.white : Color.clear)
+                                        .frame(height: showMyCircles ? 3 : 0)
+                                        .animation(.easeInOut(duration: 0.2), value: showMyCircles)
+                                }
+                            }
+                            .frame(maxWidth: .infinity)
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                withAnimation(.easeInOut(duration: 0.2)) {
+                                    showMyCircles = true
+                                }
+                            }
+                            
+                            Spacer()
+                        }
+                        .padding(.horizontal, 18)
+                        .padding(.bottom, 12)
+                    }
+                    .padding(.top, 50)
+                    .background(Color(hex: "004aad"))
+                    .ignoresSafeArea(edges: .top)
+                },
+                content: {
+                    ZStack {
                 // Clean background
                 Color(.systemBackground)
                     .ignoresSafeArea()
@@ -74,138 +205,6 @@ struct PageCircles: View {
                 }
                 
                 VStack(spacing: 0) {
-                    // Tab selection moved to top of content
-                    HStack(spacing: 0) {
-                        Spacer()
-                        
-                        // Explore Tab
-                        VStack(spacing: 6) {
-                            Text("Explore")
-                                .font(.system(size: 16, weight: !showMyCircles ? .bold : .medium))
-                                .foregroundColor(!showMyCircles ? Color(hex: "004aad") : .secondary)
-                            
-                            RoundedRectangle(cornerRadius: 2)
-                                .fill(!showMyCircles ? Color(hex: "004aad") : Color.clear)
-                                .frame(height: 3)
-                                .frame(width: 40)
-                                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: showMyCircles)
-                        }
-                        .frame(width: 80)
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                                showMyCircles = false
-                            }
-                        }
-                        
-                        Spacer()
-                        
-                        // My Circles Tab
-                        VStack(spacing: 6) {
-                            Text("My Circles")
-                                .font(.system(size: 16, weight: showMyCircles ? .bold : .medium))
-                                .foregroundColor(showMyCircles ? Color(hex: "004aad") : .secondary)
-                            
-                            RoundedRectangle(cornerRadius: 2)
-                                .fill(showMyCircles ? Color(hex: "004aad") : Color.clear)
-                                .frame(height: 3)
-                                .frame(width: 60)
-                                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: showMyCircles)
-                        }
-                        .frame(width: 100)
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                                showMyCircles = true
-                            }
-                        }
-                        
-                        Spacer()
-                    }
-                    .padding(.bottom, 16)
-                    .background(Color(.systemBackground))
-                    
-                    .sheet(isPresented: $showCreateCircleSheet) {
-                        VStack(spacing: 16) {
-                            Text("Create a Circl")
-                                .font(.title2)
-                                .bold()
-
-                            TextField("Circle Name", text: $circleName)
-                                .padding()
-                                .background(Color(.systemGray6))
-                                .cornerRadius(10)
-
-                            TextField("Industry", text: $circleIndustry)
-                                .padding()
-                                .background(Color(.systemGray6))
-                                .cornerRadius(10)
-
-                            // ✅ NEW: Optional category field
-                            TextField("Category (optional)", text: $circleCategory)
-                                .padding()
-                                .background(Color(.systemGray6))
-                                .cornerRadius(10)
-
-                            TextEditor(text: $circleDescription)
-                                .frame(height: 80)
-                                .padding()
-                                .background(Color(.systemGray6))
-                                .cornerRadius(10)
-
-                            Toggle(isOn: $isPrivateCircle) {
-                                Text("Make Circle Private")
-                                    .font(.headline)
-                            }
-                            .padding(.top)
-
-                            if isPrivateCircle {
-                                TextField("Access Code", text: $privateAccessCode)
-                                    .padding()
-                                    .background(Color(.systemGray6))
-                                    .cornerRadius(10)
-                            }
-
-                            Divider()
-
-                            Text("Select Channels")
-                                .font(.headline)
-
-                            ForEach(allChannelOptions, id: \.self) { channel in
-                                if channel == "#Welcome" {
-                                    Toggle(channel, isOn: .constant(true))
-                                        .disabled(true)
-                                        .foregroundColor(.gray)
-                                } else {
-                                    Toggle(channel, isOn: Binding(
-                                        get: { selectedChannels.contains(channel) },
-                                        set: { isSelected in
-                                            if isSelected {
-                                                selectedChannels.append(channel)
-                                            } else {
-                                                selectedChannels.removeAll { $0 == channel }
-                                            }
-                                        }
-                                    ))
-                                }
-                            }
-
-                            Spacer()
-
-                            Button(action: {
-                                createCircle()
-                            }) {
-                                Text("Create Circl")
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(Color.green)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(12)
-                            }
-                        }
-                        .padding()
-                    }
-
                     // MARK: Enhanced Circle List
                     ScrollView {
                         VStack(spacing: 18) {
@@ -541,15 +540,12 @@ struct PageCircles: View {
                                         onJoinPressed: {
                                             let isPrivate = circle.isPrivate
 
-
                                             if isPrivate {
                                                 promptForAccessCode(circle: circle)
                                             } else {
                                                 joinCircle(circleId: circle.id)
                                             }
-                                        }
-
-,
+                                        },
                                         showButtons: true,
                                         isMember: myCircles.contains(where: { $0.id == circle.id })
                                     )
@@ -832,9 +828,8 @@ struct PageCircles: View {
                 .transition(.move(edge: .bottom).combined(with: .opacity))
             }
             .zIndex(2)
-                    
         }
-               
+                    
         // Tap-out-to-dismiss layer
         if showMoreMenu {
             Color.black.opacity(0.001)
@@ -846,20 +841,117 @@ struct PageCircles: View {
                 }
                 .zIndex(1)
         }
+                } // ZStack
+            } // content closure
+        ) // AdaptiveContentWrapper
+        .background(
+            Group {
+                NavigationLink(
+                    destination: GroupChatWrapper(circle: selectedCircleToOpen),
+                    isActive: $triggerOpenGroupChat
+                ) {
+                    EmptyView()
+                }
                 
+                NavigationLink(
+                    destination: GroupChatWrapper(circle: selectedCircleToOpen),
+                    isActive: $triggerOpenGroupChat
+                ) {
+                    EmptyView()
+                }
+            }
+        )
+        .alert("Enter Access Code", isPresented: $showAccessCodePrompt, actions: {
+            TextField("Code", text: $accessCodeInput)
+            Button("Join") {
+                if let circle = circlePendingJoin {
+                    joinCircleWithCode(circle: circle, code: accessCodeInput)
+                }
+            }
+            Button("Cancel", role: .cancel) { }
+        }, message: {
+            Text("This circle is private. Ask a moderator for the access code.")
+        })
+        .sheet(isPresented: $showCreateCircleSheet) {
+            VStack(spacing: 16) {
+                Text("Create a Circl")
+                    .font(.title2)
+                    .bold()
+
+                TextField("Circle Name", text: $circleName)
+                    .padding()
+                    .background(Color(.systemGray6))
+                    .cornerRadius(10)
+
+                TextField("Industry", text: $circleIndustry)
+                    .padding()
+                    .background(Color(.systemGray6))
+                    .cornerRadius(10)
+
+                // ✅ NEW: Optional category field
+                TextField("Category (optional)", text: $circleCategory)
+                    .padding()
+                    .background(Color(.systemGray6))
+                    .cornerRadius(10)
+
+                TextEditor(text: $circleDescription)
+                    .frame(height: 80)
+                    .padding()
+                    .background(Color(.systemGray6))
+                    .cornerRadius(10)
+
+                Toggle(isOn: $isPrivateCircle) {
+                    Text("Make Circle Private")
+                        .font(.headline)
+                }
+                .padding(.top)
+
+                if isPrivateCircle {
+                    TextField("Access Code", text: $privateAccessCode)
+                        .padding()
+                        .background(Color(.systemGray6))
+                        .cornerRadius(10)
+                }
+
+                Divider()
+
+                Text("Select Channels")
+                    .font(.headline)
+
+                ForEach(allChannelOptions, id: \.self) { channel in
+                    if channel == "#Welcome" {
+                        Toggle(channel, isOn: .constant(true))
+                            .disabled(true)
+                            .foregroundColor(.gray)
+                    } else {
+                        Toggle(channel, isOn: Binding(
+                            get: { selectedChannels.contains(channel) },
+                            set: { isSelected in
+                                if isSelected {
+                                    selectedChannels.append(channel)
+                                } else {
+                                    selectedChannels.removeAll { $0 == channel }
+                                }
+                            }
+                        ))
+                    }
+                }
+
+                Spacer()
+
+                Button(action: {
+                    createCircle()
+                }) {
+                    Text("Create Circl")
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.green)
+                        .foregroundColor(.white)
+                        .cornerRadius(12)
+                }
+            }
+            .padding()
         }
-            .alert("Enter Access Code", isPresented: $showAccessCodePrompt, actions: {
-                   TextField("Code", text: $accessCodeInput)
-                   Button("Join") {
-                       if let circle = circlePendingJoin {
-                           joinCircleWithCode(circle: circle, code: accessCodeInput)
-                       }
-                   }
-                   Button("Cancel", role: .cancel) { }
-               }, message: {
-                   Text("This circle is private. Ask a moderator for the access code.")
-               })
-        .navigationBarHidden(true)
         .onAppear {
             loadCircles()
             loadUserData()
@@ -870,21 +962,6 @@ struct PageCircles: View {
         }
         .withNotifications() // ✅ Enable notifications on PageCircles
         .withTutorialOverlay() // ✅ Enable tutorial overlay on PageCircles
-        }
-        
-        NavigationLink(
-            destination: GroupChatWrapper(circle: selectedCircleToOpen),
-            isActive: $triggerOpenGroupChat
-        ) {
-            EmptyView()
-        }
-        
-        NavigationLink(
-            destination: GroupChatWrapper(circle: selectedCircleToOpen),
-            isActive: $triggerOpenGroupChat
-        ) {
-            EmptyView()
-        }
         .sheet(isPresented: $showAboutPopup) {
             if let circle = selectedCircleToOpen {
                 NavigationView {
@@ -1202,7 +1279,7 @@ struct PageCircles: View {
                         
                         for i in self.myCircles.indices {
                             let circleId = self.myCircles[i].id
-                            self.fetchMembers(for: circleId) { count in
+                            self.fetchMemberCount(for: circleId) { count in
                                 DispatchQueue.main.async {
                                     self.myCircles[i].memberCount = count
                                 }
@@ -1234,7 +1311,7 @@ struct PageCircles: View {
                         self.exploreCircles = convert(decoded)
                         for i in self.exploreCircles.indices {
                             let circleId = self.exploreCircles[i].id
-                            self.fetchMembers(for: circleId) { count in
+                            self.fetchMemberCount(for: circleId) { count in
                                 DispatchQueue.main.async {
                                     self.exploreCircles[i].memberCount = count
                                 }
@@ -1250,7 +1327,7 @@ struct PageCircles: View {
         }.resume()
         
     }
-    func fetchMembers(for circleId: Int, completion: @escaping (Int) -> Void) {
+    func fetchMemberCount(for circleId: Int, completion: @escaping (Int) -> Void) {
         
         struct Member: Identifiable, Decodable, Hashable {
             let id: Int
@@ -1482,13 +1559,11 @@ struct PageCircles: View {
             }
         }
     }
-    
-    
-    // MARK: - Preview
-    struct PageCircles_Previews: PreviewProvider {
-        static var previews: some View {
-            PageCircles()
-        }
+}
+
+// MARK: - Preview
+struct PageCircles_Previews: PreviewProvider {
+    static var previews: some View {
+        PageCircles()
     }
-    
 }
