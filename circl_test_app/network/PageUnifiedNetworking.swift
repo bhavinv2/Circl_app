@@ -217,12 +217,11 @@ struct PageUnifiedNetworking: View {
                 
                 Spacer()
                 
-                // Center - Enhanced Logo with subtle glow
+                // Center - Logo
                 VStack(spacing: 2) {
                     Text("Circl.")
                         .font(.system(size: 28, weight: .bold))
                         .foregroundColor(.white)
-                        .shadow(color: .white.opacity(0.3), radius: 8, x: 0, y: 0)
                 }
                 
                 Spacer()
@@ -251,8 +250,8 @@ struct PageUnifiedNetworking: View {
                 }
             }
             .padding(.horizontal, 18)
-            .padding(.bottom, 18)
-            .padding(.top, 10)
+            .padding(.bottom, 16)
+            .padding(.top, 8)
             
             // Clean tab design matching the example
             HStack(spacing: 0) {
@@ -280,9 +279,8 @@ struct PageUnifiedNetworking: View {
             }
             .tutorialHighlight(id: "network_search")
             .padding(.horizontal, 18)
-            .padding(.bottom, 12)
+            .padding(.bottom, 10)
         }
-        .padding(.top, 50) // Add safe area padding for status bar and notch
         .background(
             LinearGradient(
                 gradient: Gradient(colors: [
