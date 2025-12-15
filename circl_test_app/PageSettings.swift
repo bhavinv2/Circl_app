@@ -102,57 +102,57 @@ struct PageSettings: View {
     var body: some View {
         AdaptivePage(title: "Settings") {
             VStack(spacing: 0) {
-                // Header - matching home page style exactly
-                VStack(spacing: 0) {
-                    HStack {
-                        // Left side - Back Button
-                        Button(action: {
-                            presentationMode.wrappedValue.dismiss()
-                        }) {
-                            Image(systemName: "chevron.left")
-                                .font(.system(size: 24))
+                // Header - matching home page style exactly (iPhone only)
+                if UIDevice.current.userInterfaceIdiom != .pad {
+                    VStack(spacing: 0) {
+                        HStack {
+                            // Left side - Back Button
+                            Button(action: {
+                                presentationMode.wrappedValue.dismiss()
+                            }) {
+                                Image(systemName: "chevron.left")
+                                    .font(.system(size: 24))
+                                    .foregroundColor(.white)
+                            }
+                            
+                            Spacer()
+                            
+                            // Center - Settings Title (Easter Egg!)
+                            Text("Settings")
+                                .font(.system(size: 24, weight: .bold))
                                 .foregroundColor(.white)
-                        }
-                        
-                        Spacer()
-                        
-                        // Center - Settings Title (Easter Egg!)
-                        Text("Settings")
-                            .font(.system(size: 24, weight: .bold))
-                            .foregroundColor(.white)
-                            .onTapGesture {
-                                settingsClickCount += 1
-                                
-                                // Add haptic feedback for fun
-                                let impactFeedback = UIImpactFeedbackGenerator(style: .light)
-                                impactFeedback.impactOccurred()
-                                
-                                // Reset counter after 5 seconds of no clicking
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
-                                    if settingsClickCount < 10 {
-                                        settingsClickCount = 0
+                                .onTapGesture {
+                                    settingsClickCount += 1
+                                    
+                                    // Add haptic feedback for fun
+                                    let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                                    impactFeedback.impactOccurred()
+                                    
+                                    // Reset counter after 5 seconds of no clicking
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+                                        if settingsClickCount < 10 {
+                                            settingsClickCount = 0
+                                        }
+                                    }
+                                    
+                                    // Activate easter egg after 10 clicks
+                                    if settingsClickCount >= 10 {
+                                        triggerEasterEgg()
                                     }
                                 }
-                                
-                                // Activate easter egg after 10 clicks
-                                if settingsClickCount >= 10 {
-                                    triggerEasterEgg()
-                                }
-                            }
-                        
-                        Spacer()
-                        
-                        // Right side - Empty spacer to center the title
-                        Spacer()
-                            .frame(width: 24) // Match the width of the back button
+                            
+                            Spacer()
+                            
+                            // Right side - Empty spacer to center the title
+                            Spacer()
+                                .frame(width: 24) // Match the width of the back button
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.bottom, 16)
+                        .padding(.top, 8)
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 16)
-                    .padding(.top, 8)
+                    .background(Color(hex: "004aad"))
                 }
-                .padding(.top, 50) // Add safe area padding for status bar and notch
-                .background(Color(hex: "004aad"))
-                .ignoresSafeArea(edges: .top)
                 
             ZStack {
                 // Subtle animated background

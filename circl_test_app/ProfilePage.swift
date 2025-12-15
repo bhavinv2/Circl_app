@@ -147,9 +147,7 @@ struct ProfilePage: View {
                     }
                     
                     // Settings button
-                    Button(action: {
-                        showingSettings = true
-                    }) {
+                    NavigationLink(destination: PageSettings().navigationBarBackButtonHidden(true)) {
                         Image(systemName: "gearshape.fill")
                             .font(.system(size: 24))
                             .foregroundColor(.white)
@@ -434,9 +432,6 @@ struct ProfilePage: View {
                 fetchProfile()
                 fetchNetwork()
             }
-        }
-        .sheet(isPresented: $showingSettings) {
-            PageSettings()
         }
         .withNotifications()
         .withSubscriptionPaywall()
