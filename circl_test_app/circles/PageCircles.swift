@@ -157,8 +157,8 @@ struct PageCircles: View {
                                         .frame(height: !showMyCircles ? 3 : 0)
                                         .animation(.easeInOut(duration: 0.2), value: showMyCircles)
                                 }
+                                .frame(width: 70)
                             }
-                            .frame(maxWidth: .infinity)
                             .contentShape(Rectangle())
                             .onTapGesture {
                                 withAnimation(.easeInOut(duration: 0.2)) {
@@ -181,8 +181,8 @@ struct PageCircles: View {
                                         .frame(height: showMyCircles ? 3 : 0)
                                         .animation(.easeInOut(duration: 0.2), value: showMyCircles)
                                 }
+                                .frame(width: 90)
                             }
-                            .frame(maxWidth: .infinity)
                             .contentShape(Rectangle())
                             .onTapGesture {
                                 withAnimation(.easeInOut(duration: 0.2)) {
