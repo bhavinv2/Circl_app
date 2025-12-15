@@ -217,7 +217,7 @@ struct PageCircles: View {
                 VStack(spacing: 0) {
                     // MARK: Enhanced Circle List
                     ScrollView {
-                        VStack(spacing: 18) {
+                        VStack(spacing: 0) {
                             if showMyCircles {
                                 // Enhanced My Circles Header
                                 HStack {
@@ -246,6 +246,8 @@ struct PageCircles: View {
                                     }
                                 }
                                 .padding(.horizontal, 20)
+                                .padding(.top, 16)
+                                .padding(.bottom, 12)
                                 
                                 // MARK: Enhanced Search Section
                                 VStack(spacing: 12) {
@@ -413,6 +415,8 @@ struct PageCircles: View {
                                     .animation(.spring(response: 0.3, dampingFraction: 0.6), value: showCreateCircleSheet)
                                 }
                                 .padding(.horizontal, 20)
+                                .padding(.top, 16)
+                                .padding(.bottom, 12)
                                 
                                 // MARK: Enhanced Search Section
                                 VStack(spacing: 12) {
@@ -563,6 +567,7 @@ struct PageCircles: View {
                                 }
                             }
                         }
+                        .padding(.top, -50)
                         .padding(.bottom, 100) // Space for bottom navigation
                     }
                 }
