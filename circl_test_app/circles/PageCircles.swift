@@ -193,7 +193,7 @@ struct PageCircles: View {
                             Spacer()
                         }
                         .padding(.horizontal, 18)
-                        .padding(.bottom, 12)
+                        .padding(.bottom, 16)
                     }
                     .padding(.top, 50)
                     .background(Color(hex: "004aad"))
@@ -215,38 +215,39 @@ struct PageCircles: View {
                 }
                 
                 VStack(spacing: 0) {
-                    // MARK: Search Bar (Below Blue Header in White Space)
-                    HStack(spacing: 12) {
-                        TextField(showMyCircles ? "Search your circles..." : "Search for a Circle (keywords or name)...", text: $searchText)
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 14)
-                            .background(
-                                RoundedRectangle(cornerRadius: 25)
-                                    .fill(Color(.systemGray6))
-                                    .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 2)
-                            )
-                            .overlay(
-                                HStack {
-                                    Image(systemName: "magnifyingglass")
-                                        .foregroundColor(.secondary)
-                                        .padding(.leading, -35)
-                                    Spacer()
-                                }
-                            )
-                            .padding(.leading, 35)
-                        
-                        Button(action: {}) {
-                            Image(systemName: "arrow.right.circle.fill")
-                                .resizable()
-                                .frame(width: 32, height: 32)
-                                .foregroundColor(Color(hex: "004aad"))
-                                .shadow(color: Color(hex: "004aad").opacity(0.3), radius: 4, x: 0, y: 2)
+                    // MARK: Enhanced Search Section
+                    VStack(spacing: 12) {
+                        HStack(spacing: 12) {
+                            TextField(showMyCircles ? "Search your circles..." : "Search for a Circle (keywords or name)...", text: $searchText)
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 14)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 25)
+                                        .fill(Color(.systemGray6))
+                                        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 2)
+                                )
+                                .overlay(
+                                    HStack {
+                                        Image(systemName: "magnifyingglass")
+                                            .foregroundColor(.secondary)
+                                            .padding(.leading, -35)
+                                        Spacer()
+                                    }
+                                )
+                                .padding(.leading, 35)
+                            
+                            Button(action: {}) {
+                                Image(systemName: "arrow.right.circle.fill")
+                                    .resizable()
+                                    .frame(width: 32, height: 32)
+                                    .foregroundColor(Color(hex: "004aad"))
+                                    .shadow(color: Color(hex: "004aad").opacity(0.3), radius: 4, x: 0, y: 2)
+                            }
                         }
+                        .padding(.horizontal, 18)
                     }
-                    .padding(.horizontal, 18)
-                    .padding(.top, 16)
-                    .padding(.bottom, 12)
-                    .background(Color(.systemBackground))
+                    .padding(.top, 12)
+                    .padding(.bottom, 10)
                     
                     // MARK: Enhanced Circle List
                     ScrollView {
@@ -406,6 +407,7 @@ struct PageCircles: View {
                         .padding(.bottom, 100) // Space for bottom navigation
                     }
                 }
+                .padding(.top, -45) // NEGATIVE padding to pull content up into header space!
                 
                 // MARK: - Twitter/X Style Bottom Navigation (iPhone only)
                 if UIDevice.current.userInterfaceIdiom == .phone {
