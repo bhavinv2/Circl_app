@@ -95,20 +95,86 @@ struct PageBusinessProfile: View {
 
     @State private var currentTab: String = "business" // "profile" or "business"
     
-    var body: some View {
-        AdaptivePageWrapper(
-            title: "Business Profile",
-            customHeaderActions: [
-                HeaderAction(icon: "envelope", badge: unreadMessageCount > 0 ? "\(unreadMessageCount)" : nil) {
-                    showingMessages = true
-                },
-                HeaderAction(icon: isEditing ? "checkmark" : "square.and.pencil") {
-                    if isEditing {
-                        saveChanges()
+    // MARK: - Business Profile Header Section
+    private func businessHeaderSection(layoutManager: AdaptiveLayoutManager) -> some View {
+        VStack(spacing: 0) {
+            HStack {
+                // Back button (iPhone only)
+                if UIDevice.current.userInterfaceIdiom != .pad {
+                    NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 20, weight: .medium))
+                            .foregroundColor(.white)
+                            .padding(8)
                     }
-                    withAnimation { isEditing.toggle() }
                 }
-            ]
+                // Sidebar toggle (iPad only when collapsed)
+                else if layoutManager.isSidebarCollapsed {
+                    Button(action: layoutManager.toggleSidebar) {
+                        Image(systemName: "sidebar.left")
+                            .font(.system(size: 20, weight: .medium))
+                            .foregroundColor(.white)
+                            .padding(8)
+                    }
+                }
+                
+                Spacer()
+                
+                // "Circl." logo in center
+                Text("Circl.")
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundColor(.white)
+                
+                Spacer()
+                
+                // Right side actions
+                HStack(spacing: 16) {
+                    // Edit/Save button
+                    Button(action: {
+                        if isEditing {
+                            saveChanges()
+                        }
+                        withAnimation { isEditing.toggle() }
+                    }) {
+                        Image(systemName: isEditing ? "checkmark" : "square.and.pencil")
+                            .font(.system(size: 24))
+                            .foregroundColor(.white)
+                    }
+                    
+                    // Settings button (match ProfilePage for uniformity)
+                    NavigationLink(destination: PageSettings().navigationBarBackButtonHidden(true)) {
+                        Image(systemName: "gearshape.fill")
+                            .font(.system(size: 24))
+                            .foregroundColor(.white)
+                    }
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
+            .background(Color(hex: "004aad"))
+        }
+    }
+    
+    var body: some View {
+        AdaptiveContentWrapper(
+            configuration: AdaptivePageConfiguration(
+                title: "Business Profile",
+                navigationItems: AdaptivePageConfiguration.defaultNavigation(currentPageTitle: "Business Profile"),
+                customHeaderActions: [
+                    HeaderAction(icon: "envelope", badge: unreadMessageCount > 0 ? "\(unreadMessageCount)" : nil) {
+                        showingMessages = true
+                    },
+                    HeaderAction(icon: isEditing ? "checkmark" : "square.and.pencil") {
+                        if isEditing {
+                            saveChanges()
+                        }
+                        withAnimation { isEditing.toggle() }
+                    }
+                ]
+            ),
+            customHeader: { layoutManager in
+                businessHeaderSection(layoutManager: layoutManager)
+            }
         ) {
             VStack(spacing: 0) {
                 // Tab Buttons Row - PageForum style tabs

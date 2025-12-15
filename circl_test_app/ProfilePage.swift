@@ -93,25 +93,100 @@ struct ProfilePage: View {
     }
     */
 
-    var body: some View {
-        AdaptivePageWrapper(
-            title: "Profile",
-            customHeaderActions: [
-                HeaderAction(icon: isEditing ? "checkmark.circle.fill" : "pencil") {
-                    if isEditing {
-                        saveAllProfileUpdates()
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                            fetchProfile()
-                        }
+    // MARK: - Profile Header Section
+    private func profileHeaderSection(layoutManager: AdaptiveLayoutManager) -> some View {
+        VStack(spacing: 0) {
+            HStack {
+                // Back button (iPhone only)
+                if UIDevice.current.userInterfaceIdiom != .pad {
+                    Button(action: {
+                        dismiss()
+                    }) {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 20, weight: .medium))
+                            .foregroundColor(.white)
+                            .padding(8)
                     }
-                    withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
-                        isEditing.toggle()
-                    }
-                },
-                HeaderAction(icon: "gearshape.fill") {
-                    showingSettings = true
                 }
-            ]
+                // Sidebar toggle (iPad only when collapsed)
+                else if layoutManager.isSidebarCollapsed {
+                    Button(action: layoutManager.toggleSidebar) {
+                        Image(systemName: "sidebar.left")
+                            .font(.system(size: 20, weight: .medium))
+                            .foregroundColor(.white)
+                            .padding(8)
+                    }
+                }
+                
+                Spacer()
+                
+                // "Circl." logo in center
+                Text("Circl.")
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundColor(.white)
+                
+                Spacer()
+                
+                // Right side actions
+                HStack(spacing: 16) {
+                    // Edit/Save button
+                    Button(action: {
+                        if isEditing {
+                            saveAllProfileUpdates()
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                                fetchProfile()
+                            }
+                        }
+                        withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                            isEditing.toggle()
+                        }
+                    }) {
+                        Image(systemName: isEditing ? "checkmark" : "square.and.pencil")
+                            .font(.system(size: 24))
+                            .foregroundColor(.white)
+                    }
+                    
+                    // Settings button
+                    Button(action: {
+                        showingSettings = true
+                    }) {
+                        Image(systemName: "gearshape.fill")
+                            .font(.system(size: 24))
+                            .foregroundColor(.white)
+                    }
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
+            .background(Color(hex: "004aad"))
+        }
+    }
+
+    var body: some View {
+        AdaptiveContentWrapper(
+            configuration: AdaptivePageConfiguration(
+                title: "Profile",
+                navigationItems: AdaptivePageConfiguration.defaultNavigation(currentPageTitle: "Profile"),
+                customHeaderActions: [
+                    HeaderAction(icon: isEditing ? "checkmark" : "square.and.pencil") {
+                        if isEditing {
+                            saveAllProfileUpdates()
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                                fetchProfile()
+                            }
+                        }
+                        withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                            isEditing.toggle()
+                        }
+                    },
+                    HeaderAction(icon: "gearshape.fill") {
+                        showingSettings = true
+                    }
+                ]
+            ),
+            customHeader: { layoutManager in
+                profileHeaderSection(layoutManager: layoutManager)
+            }
         ) {
             VStack(spacing: 0) {
                 // Tab Buttons Row - PageForum style tabs (for header)
