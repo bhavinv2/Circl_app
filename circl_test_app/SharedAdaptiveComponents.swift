@@ -229,13 +229,13 @@ struct SharedBottomNavigation: View {
                 // Connect and Network
                 NavigationLink(destination: PageUnifiedNetworking().navigationBarBackButtonHidden(true)) {
                     VStack(spacing: 4) {
-                        Image(systemName: "person.2")
+                        Image(systemName: configuration.title == "Network" ? "person.2.fill" : "person.2")
                             .font(.system(size: 22, weight: .medium))
-                            .foregroundColor(Color(UIColor.label).opacity(0.6))
+                            .foregroundColor(configuration.title == "Network" ? Color(hex: "004aad") : Color(UIColor.label).opacity(0.6))
                             .padding(.top, 4)
                         Text("Network")
                             .font(.system(size: 10, weight: .medium))
-                            .foregroundColor(Color(UIColor.label).opacity(0.6))
+                            .foregroundColor(configuration.title == "Network" ? Color(hex: "004aad") : Color(UIColor.label).opacity(0.6))
                     }
                     .frame(maxWidth: .infinity)
                 }
@@ -244,13 +244,13 @@ struct SharedBottomNavigation: View {
                 // Circles
                 NavigationLink(destination: PageCircles().navigationBarBackButtonHidden(true)) {
                     VStack(spacing: 4) {
-                        Image(systemName: "circle.grid.2x2")
+                        Image(systemName: configuration.title == "Circles" ? "circle.grid.2x2.fill" : "circle.grid.2x2")
                             .font(.system(size: 22, weight: .medium))
-                            .foregroundColor(Color(UIColor.label).opacity(0.6))
+                            .foregroundColor(configuration.title == "Circles" ? Color(hex: "004aad") : Color(UIColor.label).opacity(0.6))
                             .padding(.top, 4)
                         Text("Circles")
                             .font(.system(size: 10, weight: .medium))
-                            .foregroundColor(Color(UIColor.label).opacity(0.6))
+                            .foregroundColor(configuration.title == "Circles" ? Color(hex: "004aad") : Color(UIColor.label).opacity(0.6))
                     }
                     .frame(maxWidth: .infinity)
                 }
@@ -259,13 +259,13 @@ struct SharedBottomNavigation: View {
                 // Growth Hub Profile
                 NavigationLink(destination: PageSkillSellingPlaceholder().navigationBarBackButtonHidden(true)) {
                     VStack(spacing: 4) {
-                        Image(systemName: "dollarsign.circle")
+                        Image(systemName: configuration.title == "Growth Hub" ? "dollarsign.circle.fill" : "dollarsign.circle")
                             .font(.system(size: 22, weight: .medium))
-                            .foregroundColor(Color(UIColor.label).opacity(0.6))
+                            .foregroundColor(configuration.title == "Growth Hub" ? Color(hex: "004aad") : Color(UIColor.label).opacity(0.6))
                             .padding(.top, 4)
                         Text("Growth Hub")
                             .font(.system(size: 10, weight: .medium))
-                            .foregroundColor(Color(UIColor.label).opacity(0.6))
+                            .foregroundColor(configuration.title == "Growth Hub" ? Color(hex: "004aad") : Color(UIColor.label).opacity(0.6))
                     }
                     .frame(maxWidth: .infinity)
                 }
