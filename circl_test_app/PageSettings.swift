@@ -148,10 +148,12 @@ struct PageSettings: View {
                                 .frame(width: 24) // Match the width of the back button
                         }
                         .padding(.horizontal, 16)
-                        .padding(.bottom, 16)
-                        .padding(.top, 8)
+                        .padding(.bottom, 12)
+                        .padding(.top, 4)
                     }
+                    .padding(.top, 50)
                     .background(Color(hex: "004aad"))
+                    .ignoresSafeArea(edges: .top)
                 }
                 
             ZStack {
