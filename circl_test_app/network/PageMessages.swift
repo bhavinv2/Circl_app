@@ -25,9 +25,13 @@ struct PageMessages: View {
     @State private var myNetwork: [NetworkUser] = [] // ✅ Correct type
     
     var body: some View {
-        AdaptivePage(title: "Messages", unreadMessageCount: unreadMessageCount) {
-            VStack(spacing: 0) {
-                // Header - blue header with profile, logo, and home
+        AdaptiveContentWrapper(
+            configuration: AdaptivePageConfiguration(
+                title: "Messages",
+                navigationItems: AdaptivePageConfiguration.defaultNavigation(currentPageTitle: "Messages", unreadMessageCount: unreadMessageCount)
+            ),
+            customHeader: { layoutManager in
+                // Custom header for PageMessages
                 VStack(spacing: 0) {
                     HStack {
                         // Left side - Profile
@@ -83,7 +87,9 @@ struct PageMessages: View {
                     )
                 )
                 .ignoresSafeArea(edges: .top)
-                
+            }
+        ) {
+            // Content section
             ZStack {
                 // Enhanced background gradient
                 let backgroundColors = [
@@ -115,7 +121,6 @@ struct PageMessages: View {
                         }
                         .zIndex(1)
                 }
-            }
             }
         }
         .onAppear {
