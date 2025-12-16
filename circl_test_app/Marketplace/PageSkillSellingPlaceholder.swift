@@ -4,7 +4,6 @@ import UIKit
 
 struct PageSkillSellingPlaceholder: View {
     // MARK: - State Management
-    @State private var showMoreMenu = false
     @State private var userFirstName: String = ""
     @State private var userProfileImageURL: String = ""
     @State private var unreadMessageCount: Int = 0
@@ -83,22 +82,19 @@ struct PageSkillSellingPlaceholder: View {
                         }
                         .frame(maxWidth: .infinity)
                         
-                        // More / Additional Resources
-                        Button(action: {
-                            withAnimation(.easeInOut(duration: 0.3)) {
-                                showMoreMenu.toggle()
-                            }
-                        }) {
+                        // Settings
+                        NavigationLink(destination: PageSettings().navigationBarBackButtonHidden(true)) {
                             VStack(spacing: 4) {
-                                Image(systemName: "ellipsis")
+                                Image(systemName: "gearshape")
                                     .font(.system(size: 22, weight: .medium))
                                     .foregroundColor(Color(UIColor.label).opacity(0.6))
-                                Text("More")
+                                Text("Settings")
                                     .font(.system(size: 10, weight: .medium))
                                     .foregroundColor(Color(UIColor.label).opacity(0.6))
                             }
                             .frame(maxWidth: .infinity)
                         }
+                        .transaction { transaction in transaction.disablesAnimations = true }
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 20)
@@ -119,68 +115,6 @@ struct PageSkillSellingPlaceholder: View {
                 }
                 .ignoresSafeArea(edges: .bottom)
                 .zIndex(1)
-
-                // MARK: - More Menu Overlay
-                if showMoreMenu {
-                    ZStack {
-                        // Tap-to-dismiss background
-                        Color.black.opacity(0.3)
-                            .ignoresSafeArea()
-                            .onTapGesture {
-                                withAnimation {
-                                    showMoreMenu = false
-                                }
-                            }
-                        
-                        // Menu content - positioned at bottom right
-                        VStack {
-                            Spacer()
-                            HStack {
-                                Spacer()
-                                VStack(alignment: .leading, spacing: 0) {
-                                    Text("More Options")
-                                        .font(.headline)
-                                        .padding()
-                                        .frame(maxWidth: .infinity, alignment: .leading)
-                                        .background(.regularMaterial)
-
-                                    Button(action: {}) {
-                                        HStack {
-                                            Image(systemName: "ellipsis.circle.fill")
-                                                .foregroundColor(Color(hex: "004aad"))
-                                                .frame(width: 24)
-                                            Text("More Options")
-                                                .foregroundColor(.primary)
-                                            Spacer()
-                                        }
-                                        .padding(.horizontal)
-                                        .padding(.vertical, 12)
-                                    }
-                                    Button(action: {}) {
-                                        HStack {
-                                            Image(systemName: "gearshape.fill")
-                                                .foregroundColor(Color(hex: "004aad"))
-                                                .frame(width: 24)
-                                            Text("Settings")
-                                                .foregroundColor(.primary)
-                                            Spacer()
-                                        }
-                                        .padding(.horizontal)
-                                        .padding(.vertical, 12)
-                                    }
-                                }
-                                .background(.thickMaterial)
-                                .cornerRadius(12)
-                                .shadow(radius: 5)
-                                .frame(width: 200)
-                                .padding(.trailing, 16)
-                                .padding(.bottom, 100) // Position above bottom nav
-                            }
-                        }
-                    }
-                    .transition(.opacity)
-                    .zIndex(10)
-                }
             }
         }
         .navigationBarHidden(true)
