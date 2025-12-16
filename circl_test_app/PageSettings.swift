@@ -290,7 +290,9 @@ struct PageSettings: View {
                     .padding(.horizontal, 20)
                     .padding(.vertical, 16)
                 }
+                .padding(.top, -20)
             }
+            .offset(y: -42)
             }
         }
         .alert(isPresented: $showLogoutAlert) {
