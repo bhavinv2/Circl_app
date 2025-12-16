@@ -3,6 +3,12 @@ import Foundation
 import UIKit
 
 struct PageSkillSellingPlaceholder: View {
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass
+    
+    var isCompact: Bool {
+        horizontalSizeClass == .compact
+    }
+    
     var body: some View {
         AdaptivePage(title: "Growth Hub") {
             placeholderContent
@@ -47,42 +53,87 @@ struct PageSkillSellingPlaceholder: View {
                         .font(.system(size: 22, weight: .semibold))
                         .foregroundColor(.primary)
                     
-                    VStack(spacing: 16) {
-                        FeaturePreviewCard(
-                            icon: "dollarsign.circle.fill",
-                            title: "Earn Extra Income",
-                            description: "Turn your skills into cash flow. Set your rates, work on your schedule, and get paid securely through our escrow system."
-                        )
-                        
-                        FeaturePreviewCard(
-                            icon: "person.2.crop.square.stack.fill",
-                            title: "Build or Hire Your Team",
-                            description: "From finding your next co-founder to building your marketing team — everything you need to scale your venture. Connect with the right people and turn your vision into reality."
-                        )
-                        
-                        FeaturePreviewCard(
-                            icon: "shield.checkered",
-                            title: "Work With Confidence",
-                            description: "No more payment worries. Our secure escrow system protects both parties until projects are completed to satisfaction."
-                        )
-                        
-                        FeaturePreviewCard(
-                            icon: "network",
-                            title: "Access Hidden Opportunities",
-                            description: "Discover exclusive projects and collaborations that aren't posted anywhere else - from fellow entrepreneurs who get it."
-                        )
-                        
-                        FeaturePreviewCard(
-                            icon: "hammer.fill",
-                            title: "Collaborate on Projects",
-                            description: "Build your résumé and gain hands-on experience by working closely with real companies. Prove your skills, grow your network, and maybe even land your next job."
-                        )
-                        
-                        FeaturePreviewCard(
-                            icon: "building.2.fill",
-                            title: "Join Companies & Startups",
-                            description: "Step into the action — join emerging startups or established teams looking for talent like you. Turn your ambition into opportunity and build the career you've been working for."
-                        )
+                    if isCompact {
+                        // iPhone: Single column
+                        VStack(spacing: 16) {
+                            FeaturePreviewCard(
+                                icon: "dollarsign.circle.fill",
+                                title: "Earn Extra Income",
+                                description: "Turn your skills into cash flow. Set your rates, work on your schedule, and get paid securely through our escrow system."
+                            )
+                            
+                            FeaturePreviewCard(
+                                icon: "person.2.crop.square.stack.fill",
+                                title: "Build or Hire Your Team",
+                                description: "From finding your next co-founder to building your marketing team — everything you need to scale your venture. Connect with the right people and turn your vision into reality."
+                            )
+                            
+                            FeaturePreviewCard(
+                                icon: "shield.checkered",
+                                title: "Work With Confidence",
+                                description: "No more payment worries. Our secure escrow system protects both parties until projects are completed to satisfaction."
+                            )
+                            
+                            FeaturePreviewCard(
+                                icon: "network",
+                                title: "Access Hidden Opportunities",
+                                description: "Discover exclusive projects and collaborations that aren't posted anywhere else - from fellow entrepreneurs who get it."
+                            )
+                            
+                            FeaturePreviewCard(
+                                icon: "hammer.fill",
+                                title: "Collaborate on Projects",
+                                description: "Build your résumé and gain hands-on experience by working closely with real companies. Prove your skills, grow your network, and maybe even land your next job."
+                            )
+                            
+                            FeaturePreviewCard(
+                                icon: "building.2.fill",
+                                title: "Join Companies & Startups",
+                                description: "Step into the action — join emerging startups or established teams looking for talent like you. Turn your ambition into opportunity and build the career you've been working for."
+                            )
+                        }
+                    } else {
+                        // iPad: Two columns
+                        LazyVGrid(columns: [
+                            GridItem(.flexible(), spacing: 16),
+                            GridItem(.flexible(), spacing: 16)
+                        ], spacing: 16) {
+                            FeaturePreviewCard(
+                                icon: "dollarsign.circle.fill",
+                                title: "Earn Extra Income",
+                                description: "Turn your skills into cash flow. Set your rates, work on your schedule, and get paid securely through our escrow system."
+                            )
+                            
+                            FeaturePreviewCard(
+                                icon: "person.2.crop.square.stack.fill",
+                                title: "Build or Hire Your Team",
+                                description: "From finding your next co-founder to building your marketing team — everything you need to scale your venture. Connect with the right people and turn your vision into reality."
+                            )
+                            
+                            FeaturePreviewCard(
+                                icon: "shield.checkered",
+                                title: "Work With Confidence",
+                                description: "No more payment worries. Our secure escrow system protects both parties until projects are completed to satisfaction."
+                            )
+                            
+                            FeaturePreviewCard(
+                                icon: "network",
+                                title: "Access Hidden Opportunities",
+                                description: "Discover exclusive projects and collaborations that aren't posted anywhere else - from fellow entrepreneurs who get it."
+                            )
+                            
+                            FeaturePreviewCard(
+                                icon: "hammer.fill",
+                                title: "Collaborate on Projects",
+                                description: "Build your résumé and gain hands-on experience by working closely with real companies. Prove your skills, grow your network, and maybe even land your next job."
+                            )
+                            
+                            FeaturePreviewCard(
+                                icon: "building.2.fill",
+                                title: "Join Companies & Startups",
+                                description: "Step into the action — join emerging startups or established teams looking for talent like you. Turn your ambition into opportunity and build the career you've been working for."
+                            )
+                        }
                     }
                 }
                 .padding(.horizontal, 20)
