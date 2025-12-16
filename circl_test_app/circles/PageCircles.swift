@@ -193,7 +193,7 @@ struct PageCircles: View {
                             Spacer()
                         }
                         .padding(.horizontal, 18)
-                        .padding(.bottom, 16)
+                        .padding(.bottom, 8)
                     }
                     .padding(.top, 50)
                     .background(Color(hex: "004aad"))
@@ -246,12 +246,12 @@ struct PageCircles: View {
                         }
                         .padding(.horizontal, 18)
                     }
-                    .padding(.top, 12)
-                    .padding(.bottom, 10)
+                    .padding(.top, 8)
+                    .padding(.bottom, 6)
                     
                     // MARK: Enhanced Circle List
                     ScrollView {
-                        VStack(spacing: 18) {
+                        VStack(spacing: 12) {
                             if showMyCircles {
                                 // Enhanced My Circles Header
                                 HStack {
@@ -280,7 +280,7 @@ struct PageCircles: View {
                                     }
                                 }
                                 .padding(.horizontal, 20)
-                                .padding(.top, 18)
+                                .padding(.top, 8)
                                 
                                 if myCircles.isEmpty {
                                     // Enhanced empty state
@@ -354,7 +354,7 @@ struct PageCircles: View {
                                     .animation(.spring(response: 0.3, dampingFraction: 0.6), value: showCreateCircleSheet)
                                 }
                                 .padding(.horizontal, 20)
-                                .padding(.top, 18)
+                                .padding(.top, 8)
                                 
                                 if exploreCircles.isEmpty {
                                     // Enhanced empty state
