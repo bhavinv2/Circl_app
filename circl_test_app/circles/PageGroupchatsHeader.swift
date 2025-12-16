@@ -8,24 +8,33 @@
 import SwiftUI
 
 // MARK: - Group Chat Header Component
-struct GroupChatHeader: View {
+struct PageGroupchatsHeader: View {
 
        let hasDashboard: Bool
     @Binding var selectedTab: GroupTab
     @Environment(\.presentationMode) var presentationMode
+    @State private var navigateToCircles = false
     
     var body: some View {
-        VStack(spacing: 0) {
-            // Top header with back button and logo
-            HStack {
-                // Left side - Back button
-                Button(action: {
-                    presentationMode.wrappedValue.dismiss()
-                }) {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 20, weight: .medium))
-                        .foregroundColor(.white)
-                }
+        ZStack {
+            NavigationLink(
+                destination: PageCircles().navigationBarBackButtonHidden(true),
+                isActive: $navigateToCircles
+            ) {
+                EmptyView()
+            }
+            
+            VStack(spacing: 0) {
+                // Top header with back button and logo
+                HStack {
+                    // Left side - Back button
+                    Button(action: {
+                        navigateToCircles = true
+                    }) {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 20, weight: .medium))
+                            .foregroundColor(.white)
+                    }
                 
                 Spacer()
                 
@@ -93,6 +102,7 @@ struct GroupChatHeader: View {
             }
             .padding(.horizontal, 16)
             .padding(.bottom, 8)
+            }
         }
         .background(Color(hex: "004aad"))
         .safeAreaInset(edge: .top) {

@@ -419,11 +419,11 @@ struct PageGroupchats: View {
     var body: some View {
         AdaptiveContentWrapper(
             configuration: AdaptivePageConfiguration(
-                title: circle.name,
-                navigationItems: AdaptivePageConfiguration.defaultNavigation(currentPageTitle: circle.name, unreadMessageCount: unreadMessageCount)
+                title: "Circles",
+                navigationItems: AdaptivePageConfiguration.defaultNavigation(currentPageTitle: "Circles", unreadMessageCount: unreadMessageCount)
             ),
             customHeader: { layoutManager in
-                GroupChatHeader(hasDashboard: circle.hasDashboard ?? false, selectedTab: $selectedTab)
+                PageGroupchatsHeader(hasDashboard: circle.hasDashboard ?? false, selectedTab: $selectedTab)
             }
         ) {
             ZStack {
