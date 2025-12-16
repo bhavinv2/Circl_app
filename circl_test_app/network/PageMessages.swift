@@ -18,7 +18,7 @@ struct PageMessages: View {
 
     @State private var timer: Timer?
     @State private var selectedProfile: FullProfile? = nil
-    @State private var userProfileImageURL: String? = nil
+    @State private var userProfileImageURL: String = ""
     @State private var unreadMessageCount: Int = 0
     @State private var userFirstName: String = ""
 
@@ -30,35 +30,22 @@ struct PageMessages: View {
                 // Header - blue header with profile, logo, and home
                 VStack(spacing: 0) {
                     HStack {
-                        // Left side - Profile with shadow
+                        // Left side - Profile
                         NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
-                            ZStack {
-                                AsyncImage(url: URL(string: userProfileImageURL ?? "")) { phase in
-                                    switch phase {
-                                    case .success(let image):
-                                        image
-                                            .resizable()
-                                            .scaledToFill()
-                                            .frame(width: 36, height: 36)
-                                            .clipShape(Circle())
-                                    default:
-                                        Image(systemName: "person.circle.fill")
-                                            .font(.system(size: 36))
-                                            .foregroundColor(.white)
-                                    }
+                            AsyncImage(url: URL(string: userProfileImageURL)) { phase in
+                                switch phase {
+                                case .success(let image):
+                                    image
+                                        .resizable()
+                                        .scaledToFill()
+                                        .frame(width: 36, height: 36)
+                                        .clipShape(Circle())
+                                default:
+                                    Image(systemName: "person.circle.fill")
+                                        .font(.system(size: 36))
+                                        .foregroundColor(.white)
                                 }
-                                
-                                // Online indicator
-                                Circle()
-                                    .fill(Color.green)
-                                    .frame(width: 10, height: 10)
-                                    .overlay(
-                                        Circle()
-                                            .stroke(Color.white, lineWidth: 2)
-                                    )
-                                    .offset(x: 12, y: -12)
                             }
-                            .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
                         }
                         
                         Spacer()
@@ -133,9 +120,8 @@ struct PageMessages: View {
         }
         .onAppear {
             self.checkUserAuthentication()
+            fetchCurrentUserProfile()
             fetchNetworkUsers()
-            loadUserProfileImage()
-            loadUserData()
        
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                 fetchMessages()
@@ -736,19 +722,61 @@ struct PageMessages: View {
     }
     
     // MARK: - Helper Functions
-    private func loadUserData() {
-        let fullName = UserDefaults.standard.string(forKey: "user_fullname") ?? ""
-        userFirstName = fullName.components(separatedBy: " ").first ?? "User"
-        userProfileImageURL = UserDefaults.standard.string(forKey: "user_profile_image_url") ?? ""
-    }
     
-    private func loadUserProfileImage() {
-        // This function loads the user profile image URL from UserDefaults
-        // It's already handled in loadUserData(), but keeping this for compatibility
-        userProfileImageURL = UserDefaults.standard.string(forKey: "user_profile_image_url") ?? ""
+    func fetchCurrentUserProfile() {
+        guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else {
+            print("❌ No user_id in UserDefaults")
+            return
+        }
+
+        let urlString = "https://circlapp.online/api/users/profile/\(userId)/"
+        print("🌐 Fetching current user profile from:", urlString)
+
+        guard let url = URL(string: urlString) else {
+            print("❌ Invalid URL")
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+            print("🔑 Authorization header set with token")
+        }
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("❌ Request failed:", error)
+                return
+            }
+
+            if let data = data {
+                print("📦 Received current user data:", String(data: data, encoding: .utf8) ?? "No string")
+
+                if let decoded = try? JSONDecoder().decode(FullProfile.self, from: data) {
+                    DispatchQueue.main.async {
+                        print("✅ Decoded current user:", decoded.full_name)
+                        
+                        // Update profile image URL
+                        if let profileImage = decoded.profile_image, !profileImage.isEmpty {
+                            self.userProfileImageURL = profileImage
+                            print("✅ Profile image loaded:", profileImage)
+                        } else {
+                            self.userProfileImageURL = ""
+                            print("❌ No profile image found for current user")
+                        }
+                        
+                        // Update user name info
+                        self.userFirstName = decoded.first_name
+                    }
+                } else {
+                    print("❌ Failed to decode current user profile")
+                }
+            }
+        }.resume()
     }
-    
-    // MARK: - Helper Functions
     
     private func checkUserAuthentication() {
         guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int,
