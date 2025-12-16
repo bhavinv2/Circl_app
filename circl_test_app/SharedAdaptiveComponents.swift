@@ -107,87 +107,48 @@ struct SharedAdaptiveHeader: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                // Sidebar toggle (only show if collapsed)
-                if layoutManager.isSidebarCollapsed {
-                    Button(action: layoutManager.toggleSidebar) {
-                        Image(systemName: "sidebar.left")
-                            .font(.system(size: 20, weight: .medium))
-                            .foregroundColor(.white)
-                            .padding(8)
+                // Left side: Profile picture
+                NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
+                    AsyncImage(url: URL(string: userProfileImageURL)) { phase in
+                        switch phase {
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 32, height: 32)
+                                .clipShape(Circle())
+                        default:
+                            Image(systemName: "person.circle.fill")
+                                .font(.system(size: 32))
+                                .foregroundColor(.white)
+                        }
                     }
-                    
-                    Text("Circl.")
-                        .font(.system(size: 24, weight: .bold))
-                        .foregroundColor(.white)
-                } else {
-                    Spacer()
                 }
                 
                 Spacer()
                 
-                // Page title
-                Text(configuration.title)
-                    .font(.system(size: 18, weight: .semibold))
+                // Center: Circl. logo
+                Text("Circl.")
+                    .font(.system(size: 24, weight: .bold))
                     .foregroundColor(.white)
                 
                 Spacer()
                 
-                // Header actions and profile
-                HStack(spacing: 16) {
-                    ForEach(configuration.customHeaderActions) { action in
-                        Button(action: action.action) {
-                            ZStack {
-                                Image(systemName: action.icon)
-                                    .font(.system(size: 24))
-                                    .foregroundColor(.white)
-                                
-                                if let badge = action.badge, !badge.isEmpty {
-                                    Text(badge)
-                                        .font(.system(size: 10, weight: .bold))
-                                        .foregroundColor(.white)
-                                        .padding(4)
-                                        .background(Color.red)
-                                        .clipShape(Circle())
-                                        .offset(x: 10, y: -10)
-                                }
-                            }
-                        }
-                    }
-                    
-                    // Messages icon with badge
-                    NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
-                        ZStack {
-                            Image(systemName: "envelope.fill")
-                                .font(.system(size: 24))
+                // Right side: Messages icon with badge
+                NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
+                    ZStack {
+                        Image(systemName: "envelope.fill")
+                            .font(.system(size: 24))
+                            .foregroundColor(.white)
+                        
+                        if unreadMessageCount > 0 {
+                            Text(unreadMessageCount > 99 ? "99+" : "\(unreadMessageCount)")
+                                .font(.system(size: 10, weight: .bold))
                                 .foregroundColor(.white)
-                            
-                            if unreadMessageCount > 0 {
-                                Text(unreadMessageCount > 99 ? "99+" : "\(unreadMessageCount)")
-                                    .font(.system(size: 10, weight: .bold))
-                                    .foregroundColor(.white)
-                                    .padding(4)
-                                    .background(Color.red)
-                                    .clipShape(Circle())
-                                    .offset(x: 10, y: -10)
-                            }
-                        }
-                    }
-                    
-                    // Profile picture
-                    NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
-                        AsyncImage(url: URL(string: userProfileImageURL)) { phase in
-                            switch phase {
-                            case .success(let image):
-                                image
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 32, height: 32)
-                                    .clipShape(Circle())
-                            default:
-                                Image(systemName: "person.circle.fill")
-                                    .font(.system(size: 32))
-                                    .foregroundColor(.white)
-                            }
+                                .padding(4)
+                                .background(Color.red)
+                                .clipShape(Circle())
+                                .offset(x: 10, y: -10)
                         }
                     }
                 }
@@ -369,8 +330,16 @@ struct AdaptiveContentWrapper<Content: View>: View {
                     // iPhone Layout with bottom navigation
                     ZStack {
                         VStack(spacing: 0) {
+                            // Always show header on iPhone
                             if let customHeader = customHeader {
                                 customHeader(layoutManager)
+                            } else {
+                                SharedAdaptiveHeader(
+                                    configuration: configuration,
+                                    userProfileImageURL: userProfileImageURL,
+                                    unreadMessageCount: unreadMessageCount,
+                                    layoutManager: layoutManager
+                                )
                             }
                             
                             content

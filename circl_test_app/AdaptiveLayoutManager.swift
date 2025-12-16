@@ -131,7 +131,7 @@ extension AdaptivePageConfiguration {
             NavigationItem(
                 icon: "dollarsign.circle",
                 title: "Growth Hub",
-                destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true),
+                destination: PageSkillSellingPlaceholder().navigationBarBackButtonHidden(true),
                 isCurrentPage: currentPageTitle == "Growth Hub"
             ),
             NavigationItem(
