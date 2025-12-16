@@ -297,7 +297,7 @@ struct PageMessages: View {
                 .transition(.asymmetric(insertion: .scale.combined(with: .opacity), removal: .opacity))
             }
         }
-        .padding(.top, 20)
+        .padding(.top, -45)
         .padding(.bottom, 8)
     }
 
