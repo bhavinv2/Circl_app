@@ -115,6 +115,6 @@ struct PageGroupchatsHeader: View {
 // MARK: - Preview
 struct GroupChatHeader_Previews: PreviewProvider {
     static var previews: some View {
-        GroupChatHeader(hasDashboard: true, selectedTab: .constant(.home))
+        PageGroupchatsHeader(hasDashboard: true, selectedTab: .constant(.home))
     }
 }
