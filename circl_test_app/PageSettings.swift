@@ -292,7 +292,7 @@ struct PageSettings: View {
                 }
                 .padding(.top, -20)
             }
-            .offset(y: -42)
+            .offset(y: UIDevice.current.userInterfaceIdiom == .pad ? 6 : -42)
             }
         }
         .alert(isPresented: $showLogoutAlert) {

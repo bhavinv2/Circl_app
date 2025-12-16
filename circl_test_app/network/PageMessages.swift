@@ -283,7 +283,7 @@ struct PageMessages: View {
                 .transition(.asymmetric(insertion: .scale.combined(with: .opacity), removal: .opacity))
             }
         }
-        .padding(.top, -45)
+        .padding(.top, UIDevice.current.userInterfaceIdiom == .pad ? 8 : -45)
         .padding(.bottom, 8)
     }
 

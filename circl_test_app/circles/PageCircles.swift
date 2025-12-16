@@ -246,7 +246,7 @@ struct PageCircles: View {
                         }
                         .padding(.horizontal, 18)
                     }
-                    .padding(.top, 8)
+                    .padding(.top, UIDevice.current.userInterfaceIdiom == .pad ? 16 : 8)
                     .padding(.bottom, 6)
                     
                     // MARK: Enhanced Circle List
