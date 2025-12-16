@@ -319,130 +319,6 @@ struct ForumMainContent: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Fixed Header - iPhone blue header with profile, logo, and messages
-            VStack(spacing: 0) {
-                HStack {
-                    // Left side - Profile
-                    NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
-                        AsyncImage(url: URL(string: userProfileImageURL)) { phase in
-                            switch phase {
-                            case .success(let image):
-                                image
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 32, height: 32)
-                                    .clipShape(Circle())
-                            default:
-                                Image(systemName: "person.circle.fill")
-                                    .font(.system(size: 32))
-                                    .foregroundColor(.white)
-                            }
-                        }
-                    }
-                    
-                    Spacer()
-                    
-                    // Center - Logo
-                    Text("Circl.")
-                        .font(.system(size: 24, weight: .bold))
-                        .foregroundColor(.white)
-                    
-                    Spacer()
-                    
-                    // Right side - Messages
-                    NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
-                        ZStack {
-                            Image(systemName: "envelope")
-                                .font(.system(size: 24))
-                                .foregroundColor(.white)
-                            
-                            if unreadMessageCount > 0 {
-                                Text(unreadMessageCount > 99 ? "99+" : "\(unreadMessageCount)")
-                                    .font(.system(size: 10, weight: .bold))
-                                    .foregroundColor(.white)
-                                    .padding(4)
-                                    .background(Color.red)
-                                    .clipShape(Circle())
-                                    .offset(x: 10, y: -10)
-                            }
-                        }
-                    }
-                }
-                .padding(.horizontal, 16)
-                .padding(.bottom, 16)
-                .padding(.top, 8)
-                
-                // Tab Buttons Row - Twitter/X style tabs
-                HStack(spacing: 0) {
-                    Spacer()
-                    
-                    // For You Tab
-                    HStack {
-                        VStack(spacing: 8) {
-                            Text("For you")
-                                .font(.system(size: 15, weight: visualSelectedTab == "public" ? .semibold : .regular))
-                                .foregroundColor(.white)
-                        
-                        Rectangle()
-                            .fill(visualSelectedTab == "public" ? Color.white : Color.clear)
-                            .frame(height: 3)
-                            .animation(.easeInOut(duration: 0.2), value: visualSelectedTab)
-                    }
-                    .frame(width: 70)
-                }
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    print("🔄 For you tab tapped")
-                    // Show loading immediately for better UX
-                    isTabSwitchLoading = true
-                    // Update states immediately without animation wrapper
-                    visualSelectedTab = "public"
-                    selectedFilter = "public"
-                    selectedPrivacy = "Public"
-                    UserDefaults.standard.set("public", forKey: "selectedFilter")
-                    print("✅ visualSelectedTab set to: \(visualSelectedTab)")
-                    // Fetch posts using the fetcher closure
-                    fetcher("public", selectedCategory)
-                }
-                
-                Spacer()
-                
-                // Following Tab
-                HStack {
-                    VStack(spacing: 8) {
-                        Text("Following")
-                            .font(.system(size: 15, weight: visualSelectedTab == "my_network" ? .semibold : .regular))
-                            .foregroundColor(.white)
-                        
-                        Rectangle()
-                            .fill(visualSelectedTab == "my_network" ? Color.white : Color.clear)
-                            .frame(height: 3)
-                            .animation(.easeInOut(duration: 0.2), value: visualSelectedTab)
-                    }
-                    .frame(width: 80)
-                }
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    print("🔄 Following tab tapped")
-                    // Show loading immediately for better UX
-                    isTabSwitchLoading = true
-                    // Update states immediately without animation wrapper
-                    visualSelectedTab = "my_network"
-                    selectedFilter = "my_network"
-                    selectedPrivacy = "My Network"
-                    UserDefaults.standard.set("my_network", forKey: "selectedFilter")
-                    print("✅ visualSelectedTab set to: \(visualSelectedTab)")
-                    // Fetch posts using the fetcher closure
-                    fetcher("my_network", selectedCategory)
-                }
-                
-                Spacer()
-            }
-            .padding(.bottom, 8)
-            }
-            .padding(.top, 50) // Add safe area padding for status bar and notch
-            .background(Color(hex: "004aad"))
-            .ignoresSafeArea(edges: .top)
             
             // Fixed Compose Area - Twitter/X style
             VStack(spacing: 0) {
@@ -644,35 +520,16 @@ struct PageForum: View {
     @State private var currentUserProfile: FullProfile?
 
     var body: some View {
-        AdaptivePage(title: "Home") {
-            ForumMainContent(
-                selectedFilter: $selectedFilter,
-                visualSelectedTab: $visualSelectedTab,
-                selectedCategory: $selectedCategory,
-                posts: $posts,
-                isLoading: $isLoading,
-                isTabSwitchLoading: $isTabSwitchLoading,
-                userFirstName: $userFirstName,
-                userProfileImageURL: $userProfileImageURL,
-                unreadMessageCount: $unreadMessageCount,
-                postContent: $postContent,
-                selectedPrivacy: $selectedPrivacy,
-                selectedPostIdForComments: $selectedPostIdForComments,
-                loggedInUserFullName: $loggedInUserFullName,
-                showCategoryAlert: $showCategoryAlert,
-                onPost: submitPost,
-                fetcher: fetchPostsWithParameters,
-                likeToggler: { post in toggleLike(post) },
-                submitPost: submitPost,
-                toggleLike: { post in toggleLike(post) },
-                deletePost: deletePost,
-                fetchUserProfile: fetchUserProfile,
-                selectedProfile: selectedProfile,
-                showProfileSheet: { profile in
-                    selectedProfile = profile
-                    showProfileSheet = true
-                }
-            )
+        AdaptiveContentWrapper(
+            configuration: AdaptivePageConfiguration(
+                title: "Home",
+                navigationItems: AdaptivePageConfiguration.defaultNavigation(currentPageTitle: "Home", unreadMessageCount: unreadMessageCount)
+            ),
+            customHeader: { layoutManager in
+                headerSection(layoutManager: layoutManager)
+            }
+        ) {
+            contentSection
         }
 
         .sheet(item: $selectedPostIdForComments) { selectedPost in
@@ -752,6 +609,169 @@ struct PageForum: View {
         } message: {
             Text("Choose a category that best describes your post")
         }
+    }
+    
+    // MARK: - Header Section for iPad
+    
+    private func headerSection(layoutManager: AdaptiveLayoutManager) -> some View {
+        VStack(spacing: 0) {
+            HStack {
+                // Sidebar toggle button (iPad only, when sidebar is collapsed)
+                if UIDevice.current.userInterfaceIdiom == .pad && layoutManager.isSidebarCollapsed {
+                    Button(action: layoutManager.toggleSidebar) {
+                        Image(systemName: "sidebar.left")
+                            .font(.system(size: 20, weight: .medium))
+                            .foregroundColor(.white)
+                            .padding(8)
+                    }
+                }
+                
+                // Left side - Enhanced Profile
+                NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
+                    ZStack {
+                        if !userProfileImageURL.isEmpty {
+                            AsyncImage(url: URL(string: userProfileImageURL)) { image in
+                                image
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 36, height: 36)
+                                    .clipShape(Circle())
+                            } placeholder: {
+                                Image(systemName: "person.circle.fill")
+                                    .font(.system(size: 36))
+                                    .foregroundColor(.white)
+                            }
+                        } else {
+                            Image(systemName: "person.circle.fill")
+                                .font(.system(size: 36))
+                                .foregroundColor(.white)
+                        }
+                        
+                        // Online indicator
+                        Circle()
+                            .fill(Color.green)
+                            .frame(width: 10, height: 10)
+                            .overlay(
+                                Circle()
+                                    .stroke(Color.white, lineWidth: 2)
+                            )
+                            .offset(x: 12, y: -12)
+                    }
+                    .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+                }
+                
+                Spacer()
+                
+                // Center - Logo
+                VStack(spacing: 2) {
+                    Text("Circl.")
+                        .font(.system(size: 28, weight: .bold))
+                        .foregroundColor(.white)
+                }
+                
+                Spacer()
+                
+                // Right side - Enhanced Messages
+                NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
+                    ZStack {
+                        Image(systemName: "envelope.fill")
+                            .font(.system(size: 24, weight: .medium))
+                            .foregroundColor(.white)
+                            .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+                        
+                        if unreadMessageCount > 0 {
+                            Text(unreadMessageCount > 99 ? "99+" : "\(unreadMessageCount)")
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundColor(.white)
+                                .padding(4)
+                                .background(
+                                    Circle()
+                                        .fill(Color.red)
+                                        .shadow(color: Color.red.opacity(0.4), radius: 4, x: 0, y: 2)
+                                )
+                                .offset(x: 12, y: -12)
+                        }
+                    }
+                }
+            }
+            .padding(.horizontal, 18)
+            .padding(.bottom, 16)
+            .padding(.top, 8)
+            
+            // Clean tab design
+            HStack(spacing: 0) {
+                ForEach(["public", "my_network"], id: \.self) { tab in
+                    VStack(spacing: 8) {
+                        Text(tab == "public" ? "For you" : "Following")
+                            .font(.system(size: 16, weight: visualSelectedTab == tab ? .bold : .medium))
+                            .foregroundColor(.white)
+                            .opacity(visualSelectedTab == tab ? 1.0 : 0.7)
+                        
+                        Rectangle()
+                            .fill(Color.white)
+                            .frame(width: tab == "public" ? 60 : 80, height: visualSelectedTab == tab ? 3 : 0)
+                            .animation(.easeInOut(duration: 0.2), value: visualSelectedTab)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            isTabSwitchLoading = true
+                            visualSelectedTab = tab
+                            selectedFilter = tab
+                            selectedPrivacy = tab == "public" ? "Public" : "My Network"
+                            UserDefaults.standard.set(tab, forKey: "selectedFilter")
+                            fetchPostsWithParameters(tab, selectedCategory)
+                        }
+                    }
+                }
+            }
+            .padding(.horizontal, 18)
+            .padding(.bottom, 10)
+        }
+        .background(
+            LinearGradient(
+                gradient: Gradient(colors: [
+                    Color(hex: "004aad"),
+                    Color(hex: "004aad").opacity(0.95)
+                ]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        )
+    }
+    
+    // MARK: - Content Section
+    
+    private var contentSection: some View {
+        ForumMainContent(
+            selectedFilter: $selectedFilter,
+            visualSelectedTab: $visualSelectedTab,
+            selectedCategory: $selectedCategory,
+            posts: $posts,
+            isLoading: $isLoading,
+            isTabSwitchLoading: $isTabSwitchLoading,
+            userFirstName: $userFirstName,
+            userProfileImageURL: $userProfileImageURL,
+            unreadMessageCount: $unreadMessageCount,
+            postContent: $postContent,
+            selectedPrivacy: $selectedPrivacy,
+            selectedPostIdForComments: $selectedPostIdForComments,
+            loggedInUserFullName: $loggedInUserFullName,
+            showCategoryAlert: $showCategoryAlert,
+            onPost: submitPost,
+            fetcher: fetchPostsWithParameters,
+            likeToggler: { post in toggleLike(post) },
+            submitPost: submitPost,
+            toggleLike: { post in toggleLike(post) },
+            deletePost: deletePost,
+            fetchUserProfile: fetchUserProfile,
+            selectedProfile: selectedProfile,
+            showProfileSheet: { profile in
+                selectedProfile = profile
+                showProfileSheet = true
+            }
+        )
     }
     
     // MARK: - Fetch Posts Functions

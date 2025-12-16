@@ -331,65 +331,68 @@ struct AdaptiveContentWrapper<Content: View>: View {
     }
     
     var body: some View {
-        Group {
-            if layoutManager.shouldUseSidebar {
-                // iPad/Mac Layout
-                HStack(spacing: 0) {
-                    // Sidebar
-                    if !layoutManager.isSidebarCollapsed {
-                        SharedAdaptiveSidebar(
-                            configuration: configuration,
-                            unreadMessageCount: unreadMessageCount,
-                            layoutManager: layoutManager
-                        )
-                        .transition(.move(edge: .leading))
-                    }
-                    
-                    // Main Content
-                    VStack(spacing: 0) {
-                        if let customHeader = customHeader {
-                            customHeader(layoutManager)
-                        } else {
-                            SharedAdaptiveHeader(
+        NavigationView {
+            Group {
+                if layoutManager.shouldUseSidebar {
+                    // iPad/Mac Layout
+                    HStack(spacing: 0) {
+                        // Sidebar
+                        if !layoutManager.isSidebarCollapsed {
+                            SharedAdaptiveSidebar(
                                 configuration: configuration,
-                                userProfileImageURL: userProfileImageURL,
                                 unreadMessageCount: unreadMessageCount,
                                 layoutManager: layoutManager
                             )
+                            .transition(.move(edge: .leading))
                         }
                         
-                        content
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    }
-                    .background(Color(.systemBackground))
-                }
-                .animation(.easeInOut(duration: 0.3), value: layoutManager.isSidebarCollapsed)
-            } else {
-                // iPhone Layout with bottom navigation
-                ZStack {
-                    if let customHeader = customHeader {
-                        // Pages with custom headers: render header + content
+                        // Main Content
                         VStack(spacing: 0) {
-                            customHeader(layoutManager)
+                            if let customHeader = customHeader {
+                                customHeader(layoutManager)
+                            } else {
+                                SharedAdaptiveHeader(
+                                    configuration: configuration,
+                                    userProfileImageURL: userProfileImageURL,
+                                    unreadMessageCount: unreadMessageCount,
+                                    layoutManager: layoutManager
+                                )
+                            }
+                            
                             content
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
                         }
-                    } else {
-                        // Pages without custom headers: just render content
-                        content
+                        .background(Color(.systemBackground))
                     }
-                    
-                    // Bottom Navigation Overlay for iPhone
-                    VStack {
-                        Spacer()
-                        SharedBottomNavigation(
-                            configuration: configuration,
-                            unreadMessageCount: unreadMessageCount
-                        )
+                    .animation(.easeInOut(duration: 0.3), value: layoutManager.isSidebarCollapsed)
+                } else {
+                    // iPhone Layout with bottom navigation
+                    ZStack {
+                        VStack(spacing: 0) {
+                            if let customHeader = customHeader {
+                                customHeader(layoutManager)
+                            }
+                            
+                            content
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        }
+                        
+                        // Bottom Navigation Overlay for iPhone
+                        VStack {
+                            Spacer()
+                            SharedBottomNavigation(
+                                configuration: configuration,
+                                unreadMessageCount: unreadMessageCount
+                            )
+                        }
+                        .zIndex(999)
                     }
-                    .zIndex(1)
                 }
             }
+            .navigationBarHidden(true)
+            .navigationBarTitleDisplayMode(.inline)
         }
+        .navigationViewStyle(.stack)
         .onAppear {
             layoutManager.updateSizeClass(horizontalSizeClass)
             fetchUserData()
