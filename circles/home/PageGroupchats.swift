@@ -493,8 +493,8 @@ struct PageGroupchats: View {
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
+                .padding(.bottom, isCompact ? 85 : 0)
             }
-            .padding(.bottom, isCompact ? 80 : 0)
             
             NavigationLink(
                                        destination: PageDues(circle: circle).navigationBarBackButtonHidden(true),
