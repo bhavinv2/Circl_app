@@ -417,7 +417,15 @@ struct PageGroupchats: View {
 
 
     var body: some View {
-        AdaptivePage(title: circle.name) {
+        AdaptiveContentWrapper(
+            configuration: AdaptivePageConfiguration(
+                title: circle.name,
+                navigationItems: AdaptivePageConfiguration.defaultNavigation(currentPageTitle: circle.name, unreadMessageCount: unreadMessageCount)
+            ),
+            customHeader: { layoutManager in
+                GroupChatHeader(hasDashboard: circle.hasDashboard ?? false, selectedTab: $selectedTab)
+            }
+        ) {
             ZStack {
                 // Enhanced background gradient
                 LinearGradient(
@@ -431,8 +439,6 @@ struct PageGroupchats: View {
                 .ignoresSafeArea()
                 
                 VStack(spacing: 0) {
-                    GroupChatHeader(hasDashboard: circle.hasDashboard ?? false, selectedTab: $selectedTab)
-
                     Group {
                         if selectedTab == .dashboard {
                             DashboardView(circle: circle)
