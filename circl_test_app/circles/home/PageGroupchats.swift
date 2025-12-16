@@ -29,9 +29,14 @@ struct PageGroupchats: View {
     @State private var myCircles: [CircleData] = []
 
     @Environment(\.presentationMode) var presentationMode
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @AppStorage("user_id") private var userId: Int = 0
     @State private var loading = true
     @AppStorage("last_circle_id") private var lastCircleId: Int = 0
+    
+    private var isCompact: Bool {
+        horizontalSizeClass == .compact
+    }
 
     @State private var circles: [CircleData] = []
     @State private var channels: [Channel] = []
@@ -61,25 +66,28 @@ struct PageGroupchats: View {
 
 
     var body: some View {
-        ZStack {
-            // Enhanced background gradient
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    Color(.systemBackground),
-                    Color(hex: "004aad").opacity(0.02)
-                ]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
-            
-            VStack(spacing: 0) {
-                GroupChatHeader(hasDashboard: circle.hasDashboard ?? false, selectedTab: $selectedTab)
+        AdaptivePage(title: circle.name) {
+            ZStack {
+                // Enhanced background gradient
+                LinearGradient(
+                    gradient: Gradient(colors: [
+                        Color(.systemBackground),
+                        Color(hex: "004aad").opacity(0.02)
+                    ]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
+                
+                VStack(spacing: 0) {
+                    GroupChatHeader(hasDashboard: circle.hasDashboard ?? false, selectedTab: $selectedTab)
 
-                if selectedTab == .dashboard {
+                    if selectedTab == .dashboard {
                     DashboardView(circle: circle)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else if selectedTab == .calendar {
                     CalendarView(circle: circle)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     // 🏠 HOME TAB — all of this goes inside here 👇
                     ScrollView(.vertical, showsIndicators: false) {
@@ -358,7 +366,6 @@ struct PageGroupchats: View {
                                 .padding(.vertical, 8)
                             
                             // Enhanced Channels Section
-                        ScrollView {
                             VStack(alignment: .leading, spacing: 18) {
                                 HStack {
                                     VStack(alignment: .leading, spacing: 2) {
@@ -439,11 +446,6 @@ struct PageGroupchats: View {
                                 }
                             }
                             .padding(.top, 6)
-                            .padding(.bottom, 100)
-                        }
-
-                            Spacer()
-                        }
                         .sheet(isPresented: $showCreateThreadPopup) {
                             VStack(spacing: 16) {
                                 Text("New Thread")
@@ -487,10 +489,11 @@ struct PageGroupchats: View {
                         
                         }
                     }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
+            }
+            .padding(.bottom, isCompact ? 80 : 0)
             
-            
-
             NavigationLink(
                                        destination: PageDues(circle: circle).navigationBarBackButtonHidden(true),
                                        isActive: $navigateToDues
@@ -657,7 +660,8 @@ struct PageGroupchats: View {
             }
             
             
-                // MARK: - Twitter/X Style Bottom Navigation
+                // MARK: - Twitter/X Style Bottom Navigation (iPhone only)
+                if isCompact {
                 VStack {
                     Spacer()
                     
@@ -756,14 +760,15 @@ struct PageGroupchats: View {
                 }
                 .ignoresSafeArea(edges: .bottom)
                 .zIndex(1)
+                }
+            
+            NavigationLink(
+                destination: MemberListPage(circleName: circle.name, circleId: circle.id),
+                isActive: $navigateToMembers
+            ) {
+                EmptyView()
             }
-        
-        NavigationLink(
-            destination: MemberListPage(circleName: circle.name, circleId: circle.id),
-            isActive: $navigateToMembers
-        ) {
-            EmptyView()
-        }
+        } // Close ZStack
         .alert("Leave Circle?", isPresented: $showLeaveConfirmation) {
             Button("Leave", role: .destructive) {
                 leaveCircle()
@@ -812,7 +817,8 @@ struct PageGroupchats: View {
             fetchAnnouncements(for: circle.id)
             fetchLatestCircleDetails()
         }
-    }
+        } // Close AdaptivePage
+    } // Close body
 
     func fetchCategoriesAndChannels(for circleId: Int) {
         guard let url = URL(string: "\(baseURL)circles/get_categories/\(circleId)/?user_id=\(userId)") else {

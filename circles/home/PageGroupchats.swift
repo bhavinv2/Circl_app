@@ -30,9 +30,14 @@ struct PageGroupchats: View {
     @State private var myCircles: [CircleData] = []
 
     @Environment(\.presentationMode) var presentationMode
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @AppStorage("user_id") private var userId: Int = 0
     @State private var loading = true
     @AppStorage("last_circle_id") private var lastCircleId: Int = 0
+    
+    private var isCompact: Bool {
+        horizontalSizeClass == .compact
+    }
 
     @State private var circles: [CircleData] = []
     @State private var channels: [Channel] = []
@@ -62,7 +67,8 @@ struct PageGroupchats: View {
 
 
     var body: some View {
-        ZStack {
+        AdaptivePage(title: circle.name) {
+            ZStack {
             // Enhanced background gradient
             LinearGradient(
                 gradient: Gradient(colors: [
@@ -78,9 +84,11 @@ struct PageGroupchats: View {
                 GroupChatHeader(hasDashboard: circle.hasDashboard ?? false, selectedTab: $selectedTab)
 
                 if selectedTab == .dashboard {
-                    DashboardView(circle: circle)
-                } else if selectedTab == .calendar {
-                    CalendarView(circle: circle)
+                DashboardView(circle: circle)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if selectedTab == .calendar {
+                CalendarView(circle: circle)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     // 🏠 HOME TAB — all of this goes inside here 👇
                     ScrollView(.vertical, showsIndicators: false) {
@@ -359,7 +367,6 @@ struct PageGroupchats: View {
                                 .padding(.vertical, 8)
                             
                             // Enhanced Channels Section
-                        ScrollView {
                             VStack(alignment: .leading, spacing: 18) {
                                 HStack {
                                     VStack(alignment: .leading, spacing: 2) {
@@ -440,10 +447,6 @@ struct PageGroupchats: View {
                                 }
                             }
                             .padding(.top, 6)
-                            .padding(.bottom, 100)
-                        }
-
-                            Spacer()
                         }
                         .sheet(isPresented: $showCreateThreadPopup) {
                             VStack(spacing: 16) {
@@ -488,10 +491,11 @@ struct PageGroupchats: View {
                         
                         }
                     }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
+            }
+            .padding(.bottom, isCompact ? 80 : 0)
             
-            
-
             NavigationLink(
                                        destination: PageDues(circle: circle).navigationBarBackButtonHidden(true),
                                        isActive: $navigateToDues
