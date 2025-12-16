@@ -374,31 +374,35 @@ struct PageUnifiedNetworking: View {
     
     // MARK: - Tab Content Views
     private var entrepreneursContent: some View {
-        LazyVStack(spacing: 20) {
-            if isLoading {
-                VStack(spacing: 20) {
-                    ProgressView()
-                        .scaleEffect(1.2)
-                        .tint(Color(hex: "004aad"))
-                    
-                    Text("Discovering entrepreneurs...")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(.secondary)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 60)
-                .background(
-                    RoundedRectangle(cornerRadius: 20)
-                        .fill(Color(.systemBackground))
-                        .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 4)
-                )
-            } else {
-                ForEach(entrepreneurs.filter { !declinedEmails.contains($0.email) }, id: \.user_id) { entrepreneur in
-                    enhancedEntrepreneurCard(for: entrepreneur)
-                        .transition(.asymmetric(
-                            insertion: .scale.combined(with: .opacity),
-                            removal: .scale.combined(with: .opacity)
-                        ))
+        Group {
+            if UIDevice.current.userInterfaceIdiom == .pad {
+                LazyVGrid(columns: [GridItem(.flexible(), spacing: 16), GridItem(.flexible(), spacing: 16)], spacing: 20) {
+                    if isLoading {
+                        VStack(spacing: 20) {
+                            ProgressView()
+                                .scaleEffect(1.2)
+                                .tint(Color(hex: "004aad"))
+                            
+                            Text("Discovering entrepreneurs...")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(.secondary)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 60)
+                        .background(
+                            RoundedRectangle(cornerRadius: 20)
+                                .fill(Color(.systemBackground))
+                                .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 4)
+                        )
+                        .gridCellColumns(2)
+                    } else {
+                        ForEach(entrepreneurs.filter { !declinedEmails.contains($0.email) }, id: \.user_id) { entrepreneur in
+                            enhancedEntrepreneurCard(for: entrepreneur)
+                                .transition(.asymmetric(
+                                    insertion: .scale.combined(with: .opacity),
+                                    removal: .scale.combined(with: .opacity)
+                                ))
+                        }
                 }
                 
                 if entrepreneurs.isEmpty {
@@ -441,19 +445,92 @@ struct PageUnifiedNetworking: View {
                             .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 4)
                     )
                 }
+                    }
+                } else {
+                    LazyVStack(spacing: 20) {
+                        if isLoading {
+                            VStack(spacing: 20) {
+                                ProgressView()
+                                    .scaleEffect(1.2)
+                                    .tint(Color(hex: "004aad"))
+                                
+                                Text("Discovering entrepreneurs...")
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundColor(.secondary)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 60)
+                            .background(
+                                RoundedRectangle(cornerRadius: 20)
+                                    .fill(Color(.systemBackground))
+                                    .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 4)
+                            )
+                        } else {
+                            ForEach(entrepreneurs.filter { !declinedEmails.contains($0.email) }, id: \.user_id) { entrepreneur in
+                                enhancedEntrepreneurCard(for: entrepreneur)
+                                    .transition(.asymmetric(
+                                        insertion: .scale.combined(with: .opacity),
+                                        removal: .scale.combined(with: .opacity)
+                                    ))
+                            }
+                            
+                            if entrepreneurs.isEmpty {
+                                VStack(spacing: 20) {
+                                    ZStack {
+                                        Circle()
+                                            .fill(
+                                                LinearGradient(
+                                                    gradient: Gradient(colors: [
+                                                        Color(hex: "004aad").opacity(0.1),
+                                                        Color(hex: "004aad").opacity(0.05)
+                                                    ]),
+                                                    startPoint: .topLeading,
+                                                    endPoint: .bottomTrailing
+                                                )
+                                            )
+                                            .frame(width: 80, height: 80)
+                                        
+                                        Image(systemName: "person.2.fill")
+                                            .font(.system(size: 32, weight: .medium))
+                                            .foregroundColor(Color(hex: "004aad").opacity(0.6))
+                                    }
+                                    
+                                    VStack(spacing: 8) {
+                                        Text("No entrepreneurs found")
+                                            .font(.system(size: 20, weight: .bold))
+                                            .foregroundColor(.primary)
+                                        
+                                        Text("Check back later for new connections and growth partners")
+                                            .font(.system(size: 15, weight: .medium))
+                                            .foregroundColor(.secondary)
+                                            .multilineTextAlignment(.center)
+                                    }
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 60)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .fill(Color(.systemBackground))
+                                        .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 4)
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
-    }
     
     private var mentorsContent: some View {
-        LazyVStack(spacing: 20) {
-            if isLoading {
-                VStack(spacing: 20) {
-                    ProgressView()
-                        .scaleEffect(1.2)
-                        .tint(.orange)
-                    
-                    Text("Finding expert mentors...")
+        Group {
+            if UIDevice.current.userInterfaceIdiom == .pad {
+                LazyVGrid(columns: [GridItem(.flexible(), spacing: 16), GridItem(.flexible(), spacing: 16)], spacing: 20) {
+                    if isLoading {
+                        VStack(spacing: 20) {
+                            ProgressView()
+                                .scaleEffect(1.2)
+                                .tint(.orange)
+                            
+                            Text("Finding expert mentors...")
                         .font(.system(size: 16, weight: .medium))
                         .foregroundColor(.secondary)
                 }
@@ -512,6 +589,78 @@ struct PageUnifiedNetworking: View {
                             .fill(Color(.systemBackground))
                             .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 4)
                     )
+                }
+            }
+                }
+            } else {
+                LazyVStack(spacing: 20) {
+                    if isLoading {
+                        VStack(spacing: 20) {
+                            ProgressView()
+                                .scaleEffect(1.2)
+                                .tint(.orange)
+                            
+                            Text("Finding expert mentors...")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(.secondary)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 60)
+                        .background(
+                            RoundedRectangle(cornerRadius: 20)
+                                .fill(Color(.systemBackground))
+                                .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 4)
+                        )
+                    } else {
+                        ForEach(mentors.filter { !declinedEmails.contains($0.email) }, id: \.user_id) { mentor in
+                            enhancedMentorCard(for: mentor)
+                                .transition(.asymmetric(
+                                    insertion: .scale.combined(with: .opacity),
+                                    removal: .scale.combined(with: .opacity)
+                                ))
+                        }
+                        
+                        if mentors.isEmpty {
+                            VStack(spacing: 20) {
+                                ZStack {
+                                    Circle()
+                                        .fill(
+                                            LinearGradient(
+                                                gradient: Gradient(colors: [
+                                                    Color.orange.opacity(0.1),
+                                                    Color.orange.opacity(0.05)
+                                                ]),
+                                                startPoint: .topLeading,
+                                                endPoint: .bottomTrailing
+                                            )
+                                        )
+                                        .frame(width: 80, height: 80)
+                                    
+                                    Image(systemName: "graduationcap.fill")
+                                        .font(.system(size: 32, weight: .medium))
+                                        .foregroundColor(.orange.opacity(0.6))
+                                }
+                                
+                                VStack(spacing: 8) {
+                                    Text("No mentors available")
+                                        .font(.system(size: 20, weight: .bold))
+                                        .foregroundColor(.primary)
+                                    
+                                    Text("Expert mentors will appear here when available to guide your journey")
+                                        .font(.system(size: 15, weight: .medium))
+                                        .foregroundColor(.secondary)
+                                        .multilineTextAlignment(.center)
+                                }
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 60)
+                            .background(
+                                RoundedRectangle(cornerRadius: 20)
+                                    .fill(Color(.systemBackground))
+                                    .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 4)
+                            )
+                        }
+                    }
                 }
             }
         }
