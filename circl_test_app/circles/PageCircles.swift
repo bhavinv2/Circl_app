@@ -246,7 +246,11 @@ struct PageCircles: View {
                         }
                         .padding(.horizontal, 18)
                     }
+                    #if targetEnvironment(macCatalyst)
+                    .padding(.top, 20)
+                    #else
                     .padding(.top, UIDevice.current.userInterfaceIdiom == .pad ? 16 : 8)
+                    #endif
                     .padding(.bottom, 6)
                     
                     // MARK: Enhanced Circle List
