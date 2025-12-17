@@ -155,7 +155,11 @@ struct SharedAdaptiveHeader: View {
             }
             .padding(.horizontal, 20)
             .padding(.bottom, 16)
-            .padding(.top, 8)
+            #if targetEnvironment(macCatalyst)
+            .padding(.top, 8) // Mac: Reduced padding for shorter header
+            #else
+            .padding(.top, 40) // iOS: Reduced by 10px from 50 for shorter header
+            #endif
         }
         .background(Color(hex: "004aad"))
     }

@@ -407,7 +407,11 @@ struct PageCircles: View {
                         .padding(.bottom, 100) // Space for bottom navigation
                     }
                 }
-                .padding(.top, -45) // NEGATIVE padding to pull content up into header space!
+                #if targetEnvironment(macCatalyst)
+                .padding(.top, -40) // Mac: Less negative padding to prevent search bar overlap
+                #else
+                .padding(.top, -45) // iOS: NEGATIVE padding to pull content up into header space!
+                #endif
                 
                 // MARK: - Twitter/X Style Bottom Navigation (iPhone only)
                 if UIDevice.current.userInterfaceIdiom == .phone {
