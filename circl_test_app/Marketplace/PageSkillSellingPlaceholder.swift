@@ -5,12 +5,24 @@ import UIKit
 struct PageSkillSellingPlaceholder: View {
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
     
+    // User data for header
+    @State private var userProfileImageURL: String = ""
+    @State private var unreadMessageCount: Int = 0
+    
     var isCompact: Bool {
         horizontalSizeClass == .compact
     }
     
     var body: some View {
-        AdaptivePage(title: "Growth Hub") {
+        AdaptiveContentWrapper(
+            configuration: AdaptivePageConfiguration(
+                title: "Growth Hub",
+                navigationItems: AdaptivePageConfiguration.defaultNavigation(currentPageTitle: "Growth Hub", unreadMessageCount: unreadMessageCount)
+            ),
+            customHeader: { layoutManager in
+                growthHubHeader(layoutManager: layoutManager)
+            }
+        ) {
             placeholderContent
         }
     }
@@ -142,6 +154,123 @@ struct PageSkillSellingPlaceholder: View {
             }
         }
         .background(Color(.systemGray6))
+    }
+    
+    // MARK: - Custom Header
+    private func growthHubHeader(layoutManager: AdaptiveLayoutManager) -> some View {
+        VStack(spacing: 0) {
+            HStack {
+                // Left side: Profile picture
+                NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
+                    AsyncImage(url: URL(string: userProfileImageURL)) { phase in
+                        switch phase {
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 32, height: 32)
+                                .clipShape(Circle())
+                        default:
+                            Image(systemName: "person.circle.fill")
+                                .font(.system(size: 32))
+                                .foregroundColor(.white)
+                        }
+                    }
+                }
+                
+                Spacer()
+                
+                // Center: Circl. logo
+                Text("Circl.")
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundColor(.white)
+                
+                Spacer()
+                
+                // Right side: Messages icon with badge
+                NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
+                    ZStack {
+                        Image(systemName: "envelope.fill")
+                            .font(.system(size: 24))
+                            .foregroundColor(.white)
+                        
+                        if unreadMessageCount > 0 {
+                            Text(unreadMessageCount > 99 ? "99+" : "\(unreadMessageCount)")
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundColor(.white)
+                                .padding(4)
+                                .background(Color.red)
+                                .clipShape(Circle())
+                                .offset(x: 10, y: -10)
+                        }
+                    }
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
+        }
+        .background(Color(hex: "004aad"))
+        .onAppear {
+            fetchUserData()
+        }
+    }
+    
+    // MARK: - Data Fetching
+    private func fetchUserData() {
+        if let userId = UserDefaults.standard.value(forKey: "user_id") as? Int {
+            fetchCurrentUserProfile(userId: userId)
+        }
+        fetchUnreadMessageCount()
+    }
+    
+    private func fetchCurrentUserProfile(userId: Int) {
+        let urlString = "https://circlapp.online/api/users/profile/\(userId)/"
+        guard let url = URL(string: urlString) else { return }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            guard let data = data, error == nil else { return }
+            
+            if let decoded = try? JSONDecoder().decode(FullProfile.self, from: data) {
+                DispatchQueue.main.async {
+                    if let profileImage = decoded.profile_image, !profileImage.isEmpty {
+                        self.userProfileImageURL = profileImage
+                    }
+                }
+            }
+        }.resume()
+    }
+    
+    private func fetchUnreadMessageCount() {
+        guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else { return }
+        let urlString = "https://circlapp.online/api/messages/"
+        guard let url = URL(string: urlString) else { return }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            guard let data = data, error == nil else { return }
+            
+            if let messages = try? JSONDecoder().decode([MessageModel].self, from: data) {
+                let unreadMessages = messages.filter { $0.receiver_id == userId && !$0.is_read }
+                DispatchQueue.main.async {
+                    self.unreadMessageCount = unreadMessages.count
+                }
+            }
+        }.resume()
     }
 }
 
