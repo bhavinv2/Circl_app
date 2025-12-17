@@ -137,8 +137,8 @@ struct PageCircles: View {
                             }
                         }
                         .padding(.horizontal, 18)
-                        .padding(.bottom, 18)
-                        .padding(.top, 10)
+                        .padding(.bottom, 16)
+                        .padding(.top, 8)
                         
                         // Enhanced Tab Buttons Row with modern styling
                         HStack(spacing: 0) {
@@ -193,9 +193,9 @@ struct PageCircles: View {
                             Spacer()
                         }
                         .padding(.horizontal, 18)
-                        .padding(.bottom, 8)
+                        .padding(.bottom, 10)
                     }
-                    .padding(.top, 50)
+                    .padding(.top, 44)
                     .background(Color(hex: "004aad"))
                     .ignoresSafeArea(edges: .top)
                 },
@@ -246,8 +246,7 @@ struct PageCircles: View {
                         }
                         .padding(.horizontal, 18)
                     }
-                    .padding(.top, UIDevice.current.userInterfaceIdiom == .pad ? 16 : 8)
-                    .padding(.bottom, 6)
+                    .padding(.bottom, 8)
                     
                     // MARK: Enhanced Circle List
                     ScrollView {
@@ -407,11 +406,7 @@ struct PageCircles: View {
                         .padding(.bottom, 100) // Space for bottom navigation
                     }
                 }
-                #if targetEnvironment(macCatalyst)
-                .padding(.top, -40) // Mac: Less negative padding to prevent search bar overlap
-                #else
-                .padding(.top, -45) // iOS: NEGATIVE padding to pull content up into header space!
-                #endif
+                .padding(.top, -25)
                 
                 // MARK: - Twitter/X Style Bottom Navigation (iPhone only)
                 if UIDevice.current.userInterfaceIdiom == .phone {
