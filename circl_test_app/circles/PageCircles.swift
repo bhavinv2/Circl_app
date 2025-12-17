@@ -195,9 +195,12 @@ struct PageCircles: View {
                         .padding(.horizontal, 18)
                         .padding(.bottom, 10)
                     }
+                    #if targetEnvironment(macCatalyst)
+                    .padding(.top, 8)
+                    #else
                     .padding(.top, 44)
+                    #endif
                     .background(Color(hex: "004aad"))
-                    .ignoresSafeArea(edges: .top)
                 },
                 content: {
                     ZStack {
@@ -406,7 +409,11 @@ struct PageCircles: View {
                         .padding(.bottom, 100) // Space for bottom navigation
                     }
                 }
+                #if targetEnvironment(macCatalyst)
+                .padding(.top, 0)
+                #else
                 .padding(.top, -25)
+                #endif
                 
                 // MARK: - Twitter/X Style Bottom Navigation (iPhone only)
                 if UIDevice.current.userInterfaceIdiom == .phone {
