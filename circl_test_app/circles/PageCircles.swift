@@ -81,35 +81,46 @@ struct PageCircles: View {
                             
                             // Left side - Enhanced Profile
                             NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
-                                AsyncImage(url: URL(string: userProfileImageURL)) { phase in
-                                    switch phase {
-                                    case .success(let image):
-                                        image
-                                            .resizable()
-                                            .scaledToFill()
-                                            .frame(width: 34, height: 34)
-                                            .clipShape(Circle())
-                                            .overlay(
-                                                Circle()
-                                                    .stroke(Color.white.opacity(0.3), lineWidth: 2)
-                                            )
-                                            .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
-                                    default:
+                                ZStack {
+                                    if !userProfileImageURL.isEmpty {
+                                        AsyncImage(url: URL(string: userProfileImageURL)) { image in
+                                            image
+                                                .resizable()
+                                                .scaledToFill()
+                                                .frame(width: 36, height: 36)
+                                                .clipShape(Circle())
+                                        } placeholder: {
+                                            Image(systemName: "person.circle.fill")
+                                                .font(.system(size: 36))
+                                                .foregroundColor(.white)
+                                        }
+                                    } else {
                                         Image(systemName: "person.circle.fill")
-                                            .font(.system(size: 34))
+                                            .font(.system(size: 36))
                                             .foregroundColor(.white)
-                                            .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
                                     }
+                                    
+                                    // Online indicator
+                                    Circle()
+                                        .fill(Color.green)
+                                        .frame(width: 10, height: 10)
+                                        .overlay(
+                                            Circle()
+                                                .stroke(Color.white, lineWidth: 2)
+                                        )
+                                        .offset(x: 12, y: -12)
                                 }
+                                .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
                             }
                             
                             Spacer()
                             
-                            // Center - Enhanced Logo
-                            Text("Circl.")
-                                .font(.system(size: 26, weight: .bold))
-                                .foregroundColor(.white)
-                                .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
+                            // Center - Logo
+                            VStack(spacing: 2) {
+                                Text("Circl.")
+                                    .font(.system(size: 28, weight: .bold))
+                                    .foregroundColor(.white)
+                            }
                             
                             Spacer()
                             
@@ -117,19 +128,19 @@ struct PageCircles: View {
                             NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
                                 ZStack {
                                     Image(systemName: "envelope.fill")
-                                        .font(.system(size: 24))
+                                        .font(.system(size: 24, weight: .medium))
                                         .foregroundColor(.white)
-                                        .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
+                                        .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
                                     
                                     if unreadMessageCount > 0 {
                                         Text(unreadMessageCount > 99 ? "99+" : "\(unreadMessageCount)")
                                             .font(.system(size: 10, weight: .bold))
                                             .foregroundColor(.white)
-                                            .padding(5)
+                                            .padding(4)
                                             .background(
                                                 Circle()
                                                     .fill(Color.red)
-                                                    .shadow(color: .red.opacity(0.3), radius: 4, x: 0, y: 2)
+                                                    .shadow(color: Color.red.opacity(0.4), radius: 4, x: 0, y: 2)
                                             )
                                             .offset(x: 12, y: -12)
                                     }
@@ -140,67 +151,42 @@ struct PageCircles: View {
                         .padding(.bottom, 16)
                         .padding(.top, 8)
                         
-                        // Enhanced Tab Buttons Row with modern styling
+                        // Clean tab design
                         HStack(spacing: 0) {
-                            Spacer()
-                            
-                            // Explore Tab
-                            HStack {
+                            ForEach([false, true], id: \.self) { isMyCirclesTab in
                                 VStack(spacing: 8) {
-                                    Text("Explore")
-                                        .font(.system(size: 16, weight: !showMyCircles ? .bold : .medium))
+                                    Text(isMyCirclesTab ? "My Circles" : "Explore")
+                                        .font(.system(size: 16, weight: showMyCircles == isMyCirclesTab ? .bold : .medium))
                                         .foregroundColor(.white)
-                                        .opacity(!showMyCircles ? 1.0 : 0.7)
+                                        .opacity(showMyCircles == isMyCirclesTab ? 1.0 : 0.7)
                                     
                                     Rectangle()
-                                        .fill(!showMyCircles ? Color.white : Color.clear)
-                                        .frame(height: !showMyCircles ? 3 : 0)
+                                        .fill(Color.white)
+                                        .frame(width: isMyCirclesTab ? 85 : 65, height: showMyCircles == isMyCirclesTab ? 3 : 0)
                                         .animation(.easeInOut(duration: 0.2), value: showMyCircles)
                                 }
-                                .frame(width: 70)
-                            }
-                            .contentShape(Rectangle())
-                            .onTapGesture {
-                                withAnimation(.easeInOut(duration: 0.2)) {
-                                    showMyCircles = false
+                                .frame(maxWidth: .infinity)
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    withAnimation(.easeInOut(duration: 0.2)) {
+                                        showMyCircles = isMyCirclesTab
+                                    }
                                 }
                             }
-                            
-                            Spacer()
-                            
-                            // My Circles Tab
-                            HStack {
-                                VStack(spacing: 8) {
-                                    Text("My Circles")
-                                        .font(.system(size: 16, weight: showMyCircles ? .bold : .medium))
-                                        .foregroundColor(.white)
-                                        .opacity(showMyCircles ? 1.0 : 0.7)
-                                    
-                                    Rectangle()
-                                        .fill(showMyCircles ? Color.white : Color.clear)
-                                        .frame(height: showMyCircles ? 3 : 0)
-                                        .animation(.easeInOut(duration: 0.2), value: showMyCircles)
-                                }
-                                .frame(width: 90)
-                            }
-                            .contentShape(Rectangle())
-                            .onTapGesture {
-                                withAnimation(.easeInOut(duration: 0.2)) {
-                                    showMyCircles = true
-                                }
-                            }
-                            
-                            Spacer()
                         }
                         .padding(.horizontal, 18)
                         .padding(.bottom, 10)
                     }
-                    #if targetEnvironment(macCatalyst)
-                    .padding(.top, 8)
-                    #else
-                    .padding(.top, 44)
-                    #endif
-                    .background(Color(hex: "004aad"))
+                    .background(
+                        LinearGradient(
+                            gradient: Gradient(colors: [
+                                Color(hex: "004aad"),
+                                Color(hex: "004aad").opacity(0.95)
+                            ]),
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
                 },
                 content: {
                     ZStack {
@@ -249,6 +235,7 @@ struct PageCircles: View {
                         }
                         .padding(.horizontal, 18)
                     }
+                    .padding(.top, 12)
                     .padding(.bottom, 8)
                     
                     // MARK: Enhanced Circle List
@@ -409,11 +396,6 @@ struct PageCircles: View {
                         .padding(.bottom, 100) // Space for bottom navigation
                     }
                 }
-                #if targetEnvironment(macCatalyst)
-                .padding(.top, 0)
-                #else
-                .padding(.top, -25)
-                #endif
                 
                 // MARK: - Twitter/X Style Bottom Navigation (iPhone only)
                 if UIDevice.current.userInterfaceIdiom == .phone {
