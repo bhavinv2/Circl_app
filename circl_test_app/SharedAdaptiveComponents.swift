@@ -155,13 +155,11 @@ struct SharedAdaptiveHeader: View {
             }
             .padding(.horizontal, 20)
             .padding(.bottom, 16)
-            #if targetEnvironment(macCatalyst)
-            .padding(.top, 8) // Mac: Reduced padding for shorter header
-            #else
-            .padding(.top, 40) // iOS: Reduced by 10px from 50 for shorter header
-            #endif
+            .padding(.top, 8)
         }
+        .padding(.top, 50)
         .background(Color(hex: "004aad"))
+        .ignoresSafeArea(edges: .top)
     }
 }
 
