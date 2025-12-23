@@ -7,7 +7,6 @@ struct PageGroupchats: View {
     @State private var showSettingsMenu = false
     @State private var showLeaveConfirmation = false
     @State private var navigateToMembers = false
-    @State private var showMoreMenu = false
     @State private var userProfileImageURL: String = ""
     @State private var unreadMessageCount: Int = 0
     @State private var categories: [ChannelCategory] = []
@@ -30,9 +29,102 @@ struct PageGroupchats: View {
     @State private var myCircles: [CircleData] = []
 
     @Environment(\.presentationMode) var presentationMode
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @AppStorage("user_id") private var userId: Int = 0
     @State private var loading = true
     @AppStorage("last_circle_id") private var lastCircleId: Int = 0
+    
+    private var isCompact: Bool {
+        horizontalSizeClass == .compact
+    }
+    
+    private var circleSwitcherLabel: some View {
+        HStack(spacing: 12) {
+            ZStack {
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            gradient: Gradient(colors: [
+                                Color(hex: "004aad"),
+                                Color(hex: "0066ff")
+                            ]),
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 32, height: 32)
+                
+                Text(String(circle.name.prefix(1)).uppercased())
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundColor(.white)
+            }
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(circle.name)
+                    .foregroundColor(.primary)
+                    .font(.system(size: 18, weight: .semibold))
+                
+                Text("Tap to switch circles")
+                    .foregroundColor(.secondary)
+                    .font(.system(size: 12, weight: .medium))
+            }
+            
+            Spacer()
+            
+            Image(systemName: "chevron.down")
+                .foregroundColor(Color(hex: "004aad"))
+                .font(.system(size: 14, weight: .medium))
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 16)
+        .frame(minWidth: 0, maxWidth: .infinity)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.white)
+                .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 2)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(Color(hex: "004aad").opacity(0.1), lineWidth: 1)
+        )
+    }
+    
+    private var circleSwitcherButton: some View {
+        Menu {
+            if myCircles.isEmpty {
+                Text("Loading your circles...")
+                    .foregroundColor(.secondary)
+                    .italic()
+            } else {
+                ForEach(myCircles, id: \.id) { circl in
+                    Button(action: {
+                        switchToCircle(circl)
+                    }) {
+                        HStack {
+                            Circle()
+                                .fill(circl.id == circle.id ? Color(hex: "004aad") : Color.gray.opacity(0.3))
+                                .frame(width: 8, height: 8)
+                            
+                            Text(circl.name)
+                                .foregroundColor(circl.id == circle.id ? Color(hex: "004aad") : .primary)
+                                .fontWeight(circl.id == circle.id ? .semibold : .regular)
+                            
+                            Spacer()
+                            
+                            if circl.id == circle.id {
+                                Image(systemName: "checkmark")
+                                    .foregroundColor(Color(hex: "004aad"))
+                                    .font(.system(size: 12, weight: .semibold))
+                            }
+                        }
+                    }
+                }
+            }
+        } label: {
+            circleSwitcherLabel
+        }
+        .frame(maxWidth: UIScreen.main.bounds.width * 0.72)
+    }
 
     @State private var circles: [CircleData] = []
     @State private var channels: [Channel] = []
@@ -60,438 +152,308 @@ struct PageGroupchats: View {
     @State private var showCreateThreadPopup = false
     @State private var newThreadContent: String = ""
 
-
-    var body: some View {
-        ZStack {
-            // Enhanced background gradient
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    Color(.systemBackground),
-                    Color(hex: "004aad").opacity(0.02)
-                ]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
-            
+    private var homeTabContent: some View {
+        ScrollView(.vertical, showsIndicators: false) {
             VStack(spacing: 0) {
-                GroupChatHeader(hasDashboard: circle.hasDashboard ?? false, selectedTab: $selectedTab)
+                // Circle Switcher
+                VStack(alignment: .center, spacing: 12) {
+                    HStack(spacing: 16) {
+                        circleSwitcherButton
 
-                if selectedTab == .dashboard {
-                    DashboardView(circle: circle)
-                } else if selectedTab == .calendar {
-                    CalendarView(circle: circle)
-                } else {
-                    // 🏠 HOME TAB — all of this goes inside here 👇
-                    ScrollView(.vertical, showsIndicators: false) {
-                        VStack(spacing: 0) {
-                            
-
-                            // Circle Switcher
-                            VStack(alignment: .center, spacing: 12) {
-                                HStack(spacing: 16) {
-                                    // Enhanced Circle Switcher Button
-                                    Menu {
-                                        if myCircles.isEmpty {
-                                            Text("Loading your circles...")
-                                                .foregroundColor(.secondary)
-                                                .italic()
-                                        }
-
-                                        ForEach(myCircles, id: \.id) { circl in
-                                            Button(action: {
-                                                // Switch to selected circle
-                                                circle = circl
-                                                selectedGroup = circl.name
-                                                isDashboardEnabled = circl.hasDashboard ?? false
-                                                isDashboardPrivate = !(circl.isDashboardPublic ?? false) // Invert the logic
-                                                lastCircleId = circl.id
-                                                // Refresh the current view with new circle data
-                                                fetchCategoriesAndChannels(for: circl.id)
-                                            }) {
-                                                HStack {
-                                                    // Circle indicator
-                                                    Circle()
-                                                        .fill(circl.id == circle.id ? Color(hex: "004aad") : Color.gray.opacity(0.3))
-                                                        .frame(width: 8, height: 8)
-                                                    
-                                                    Text(circl.name)
-                                                        .foregroundColor(circl.id == circle.id ? Color(hex: "004aad") : .primary)
-                                                        .fontWeight(circl.id == circle.id ? .semibold : .regular)
-                                                    
-                                                    Spacer()
-                                                    
-                                                    if circl.id == circle.id {
-                                                        Image(systemName: "checkmark")
-                                                            .foregroundColor(Color(hex: "004aad"))
-                                                            .font(.system(size: 12, weight: .semibold))
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    } label: {
-                                        HStack(spacing: 12) {
-                                            // Circle icon
-                                            ZStack {
-                                                Circle()
-                                                    .fill(
-                                                        LinearGradient(
-                                                            gradient: Gradient(colors: [
-                                                                Color(hex: "004aad"),
-                                                                Color(hex: "0066ff")
-                                                            ]),
-                                                            startPoint: .topLeading,
-                                                            endPoint: .bottomTrailing
-                                                        )
-                                                    )
-                                                    .frame(width: 32, height: 32)
-                                                
-                                                Text(String(circle.name.prefix(1)).uppercased())
-                                                    .font(.system(size: 14, weight: .bold))
-                                                    .foregroundColor(.white)
-                                            }
-                                            
-                                            VStack(alignment: .leading, spacing: 2) {
-                                                Text(circle.name)
-                                                    .foregroundColor(.primary)
-                                                    .font(.system(size: 18, weight: .semibold))
-                                                
-                                                Text("Tap to switch circles")
-                                                    .foregroundColor(.secondary)
-                                                    .font(.system(size: 12, weight: .medium))
-                                            }
-                                            
-                                            Spacer()
-
-                                            Image(systemName: "chevron.down")
-                                                .foregroundColor(Color(hex: "004aad"))
-                                                .font(.system(size: 14, weight: .medium))
-                                        }
-                                        .padding(.horizontal, 20)
-                                        .padding(.vertical, 16)
-                                        .frame(minWidth: 0, maxWidth: .infinity)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 16)
-                                                .fill(Color.white)
-                                                .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 2)
-                                        )
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 16)
-                                                .stroke(Color(hex: "004aad").opacity(0.1), lineWidth: 1)
-                                        )
-                                    }
-                                    .frame(maxWidth: UIScreen.main.bounds.width * 0.72)
-
-                                    // Enhanced Gear icon with modern styling
-                                    Button(action: {
-                                        withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
-                                            showSettingsMenu.toggle()
-                                        }
-                                    }) {
-                                        Image(systemName: "gearshape.fill")
-                                            .font(.system(size: 18, weight: .medium))
-                                            .foregroundColor(Color(hex: "004aad"))
-                                            .frame(width: 48, height: 48)
-                                            .background(
-                                                Circle()
-                                                    .fill(Color.white)
-                                                    .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 2)
-                                            )
-                                            .overlay(
-                                                Circle()
-                                                    .stroke(Color(hex: "004aad").opacity(0.1), lineWidth: 1)
-                                            )
-                                    }
-                                    .scaleEffect(showSettingsMenu ? 1.1 : 1.0)
-                                    .animation(.spring(response: 0.3, dampingFraction: 0.6), value: showSettingsMenu)
-                                }
-                                .padding(.horizontal, 20)
-                                .padding(.top, 16)
-
-                                // Enhanced Moderator label with modern badge styling
-                                if circle.isModerator {
-
-                                    HStack(spacing: 6) {
-                                        Image(systemName: "crown.fill")
-                                            .font(.system(size: 12, weight: .medium))
-                                            .foregroundColor(Color(hex: "004aad"))
-                                        
-                                        Text("Circle Moderator")
-                                            .font(.system(size: 13, weight: .medium))
-                                            .foregroundColor(Color(hex: "004aad"))
-                                    }
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 6)
-                                    .background(
-                                        Capsule()
-                                            .fill(Color(hex: "004aad").opacity(0.1))
-                                    )
-                                    .overlay(
-                                        Capsule()
-                                            .stroke(Color(hex: "004aad").opacity(0.2), lineWidth: 1)
-                                    )
-                                    .padding(.top, 8)
-                                }
+                        // Enhanced Gear icon with modern styling
+                        Button(action: {
+                            withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                                showSettingsMenu.toggle()
                             }
-                            .padding(.bottom, 16)
-                            // 📢 Announcements Section
-                            AnnouncementsSection(
-                                announcements: announcements,
-                                showCreateAnnouncementPopup: $showCreateAnnouncementPopup,
-                                userId: userId,
-                                circle: circle,
-                                onRefresh: {
-                                    fetchAnnouncements(for: circle.id)   // ✅ this is your existing PageGroupchats fetch
-                                }
-                            )
-                            .padding(.bottom, 8)
-
-
-
-
-
-        //                    Announcement Banner
-        //                    Text("Announcements: Group Call Tonight 8:00 PM")
-        //                        .font(.subheadline)
-        //                        .foregroundColor(.white)
-        //                        .padding(8)
-        //                        .frame(maxWidth: .infinity)
-        //                       .background(Color.fromHex("004aad"))
-        //                        .cornerRadius(10)
-        //                        .padding(.horizontal)
-        //                        .padding(.vertical, 5)
-                        
-                        //Enhanced Circle Threads Section
-                            VStack(alignment: .leading, spacing: 12) {
-                                HStack {
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text("Circle Threads")
-                                            .font(.system(size: 20, weight: .bold))
-                                            .foregroundColor(.primary)
-                                        
-                                        Text("Share ideas and discussions")
-                                            .font(.system(size: 13, weight: .medium))
-                                            .foregroundColor(.secondary)
-                                    }
-
-                                    Spacer()
-
-                                    Button(action: {
-                                        showCreateThreadPopup = true
-                                    }) {
-                                        HStack(spacing: 6) {
-                                            Image(systemName: "plus")
-                                                .font(.system(size: 14, weight: .semibold))
-                                            Text("New")
-                                                .font(.system(size: 14, weight: .semibold))
-                                        }
-                                        .foregroundColor(.white)
-                                        .padding(.horizontal, 14)
-                                        .padding(.vertical, 8)
-                                        .background(
-                                            Capsule()
-                                                .fill(
-                                                    LinearGradient(
-                                                        gradient: Gradient(colors: [Color(hex: "004aad"), Color(hex: "0066dd")]),
-                                                        startPoint: .leading,
-                                                        endPoint: .trailing
-                                                    )
-                                                )
-                                                .shadow(color: Color(hex: "004aad").opacity(0.3), radius: 6, x: 0, y: 3)
-                                        )
-                                    }
-                                    .scaleEffect(showCreateThreadPopup ? 0.95 : 1.0)
-                                    .animation(.spring(response: 0.3, dampingFraction: 0.6), value: showCreateThreadPopup)
-                                }
-                                .padding(.horizontal, 20)
-                                
-                                ScrollView(.horizontal, showsIndicators: false) {
-                                    HStack(spacing: 12) {
-                                        ForEach(threads) { thread in
-                                            ThreadCard(thread: thread)
-                                                .frame(width: 300)
-                                        }
-                                        
-                                        // Empty state card when no threads
-                                        if threads.isEmpty {
-                                            VStack(spacing: 8) {
-                                                Image(systemName: "bubble.left.and.bubble.right")
-                                                    .font(.system(size: 28))
-                                                    .foregroundColor(Color(hex: "004aad").opacity(0.4))
-                                                
-                                                Text("No threads yet")
-                                                    .font(.system(size: 15, weight: .medium))
-                                                    .foregroundColor(.secondary)
-                                                
-                                                Text("Be the first to start a discussion!")
-                                                    .font(.system(size: 13))
-                                                    .foregroundColor(.secondary)
-                                                    .multilineTextAlignment(.center)
-                                            }
-                                            .frame(width: 260, height: 120)
-                                            .background(
-                                                RoundedRectangle(cornerRadius: 16)
-                                                    .fill(Color(hex: "004aad").opacity(0.05))
-                                                    .overlay(
-                                                        RoundedRectangle(cornerRadius: 16)
-                                                            .strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [8, 4]))
-                                                            .foregroundColor(Color(hex: "004aad").opacity(0.1))
-                                                    )
-                                            )
-                                        }
-                                    }
-                                    .padding(.horizontal, 20)
-                                }
-                            }
-                            .padding(.vertical, 6)
-
-                            // Enhanced Divider
-                            Rectangle()
-                                .fill(
-                                    LinearGradient(
-                                        gradient: Gradient(colors: [Color.clear, Color(hex: "004aad").opacity(0.2), Color.clear]),
-                                        startPoint: .leading,
-                                        endPoint: .trailing
-                                    )
+                        }) {
+                            Image(systemName: "gearshape.fill")
+                                .font(.system(size: 18, weight: .medium))
+                                .foregroundColor(Color(hex: "004aad"))
+                                .frame(width: 48, height: 48)
+                                .background(
+                                    Circle()
+                                        .fill(Color.white)
+                                        .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 2)
                                 )
-                                .frame(height: 1)
-                                .padding(.horizontal, 20)
-                                .padding(.vertical, 8)
+                                .overlay(
+                                    Circle()
+                                        .stroke(Color(hex: "004aad").opacity(0.1), lineWidth: 1)
+                                )
+                        }
+                        .scaleEffect(showSettingsMenu ? 1.1 : 1.0)
+                        .animation(.spring(response: 0.3, dampingFraction: 0.6), value: showSettingsMenu)
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 16)
+
+                    // Enhanced Moderator label with modern badge styling
+                    if circle.isModerator {
+                        HStack(spacing: 6) {
+                            Image(systemName: "crown.fill")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(Color(hex: "004aad"))
                             
-                            // Enhanced Channels Section
-                        ScrollView {
-                            VStack(alignment: .leading, spacing: 18) {
-                                HStack {
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text("Channels")
-                                            .font(.system(size: 20, weight: .bold))
-                                            .foregroundColor(.primary)
-                                        Text("Join conversations by topic")
-                                            .font(.system(size: 13, weight: .medium))
-                                            .foregroundColor(.secondary)
-                                    }
-
-                                    Spacer()
-
-                                    Text("\(channels.count) channels")
-                                        .font(.system(size: 12, weight: .medium))
-                                        .foregroundColor(Color(hex: "004aad"))
-                                        .padding(.horizontal, 10)
-                                        .padding(.vertical, 4)
-                                        .background(Capsule().fill(Color(hex: "004aad").opacity(0.1)))
-                                }
-                                .padding(.horizontal, 20)
-
-                                if categories.isEmpty {
-                                    Text("No channels created yet.")
-                                        .foregroundColor(.secondary)
-                                        .padding(.horizontal, 20)
-                                } else {
-                                    ForEach(categories) { category in
-                                        VStack(alignment: .leading, spacing: 8) {
-                                            Text(category.name)
-                                                .font(.system(size: 16, weight: .semibold))
-                                                .foregroundColor(.primary)
-                                                .padding(.horizontal, 20)
-
-                                            // Break out the filter to ease the type-checker
-                                            ForEach(channelsForDisplay(category)) { channel in
-                                                NavigationLink(destination: PageCircleMessages(channel: channel, circleName: circle.name)) {
-                                                    HStack(spacing: 10) {
-                                                        Image(systemName: "number")
-                                                            .font(.system(size: 14, weight: .medium))
-                                                            .foregroundColor(Color(hex: "004aad"))
-                                                            .frame(width: 28, height: 28)
-                                                            .background(Circle().fill(Color(hex: "004aad").opacity(0.1)))
-
-                                                        VStack(alignment: .leading, spacing: 2) {
-                                                            Text(channel.name)
-                                                                .font(.system(size: 15, weight: .medium))
-                                                                .foregroundColor(.primary)
-
-                                                            Text("Tap to join conversation")
-                                                                .font(.system(size: 12))
-                                                                .foregroundColor(.secondary)
-                                                        }
-
-                                                        Spacer()
-
-                                                        Image(systemName: "chevron.right")
-                                                            .font(.system(size: 11, weight: .medium))
-                                                            .foregroundColor(.secondary)
-                                                    }
-                                                    .padding(.horizontal, 16)
-                                                    .padding(.vertical, 12)
-                                                    .background(
-                                                        RoundedRectangle(cornerRadius: 10)
-                                                            .fill(Color.white)
-                                                            .shadow(color: Color.black.opacity(0.04), radius: 4, x: 0, y: 1)
-                                                    )
-                                                    .overlay(
-                                                        RoundedRectangle(cornerRadius: 10)
-                                                            .stroke(Color(hex: "004aad").opacity(0.08), lineWidth: 1)
-                                                    )
-                                                    .padding(.horizontal, 16)
-                                                }
-                                                .buttonStyle(PlainButtonStyle())
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            .padding(.top, 6)
-                            .padding(.bottom, 100)
+                            Text("Circle Moderator")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(Color(hex: "004aad"))
                         }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(
+                            Capsule()
+                                .fill(Color(hex: "004aad").opacity(0.1))
+                        )
+                        .overlay(
+                            Capsule()
+                                .stroke(Color(hex: "004aad").opacity(0.2), lineWidth: 1)
+                        )
+                        .padding(.top, 8)
+                    }
+                }
+                .padding(.bottom, 16)
+                
+                AnnouncementsSection(
+                    announcements: announcements,
+                    showCreateAnnouncementPopup: $showCreateAnnouncementPopup,
+                    userId: userId,
+                    circle: circle,
+                    onRefresh: {
+                        fetchAnnouncements(for: circle.id)
+                    }
+                )
+                .padding(.bottom, 8)
 
-                            Spacer()
+                threadsSection
+                channelsSection
+                
+                // Bottom spacing for footer on iPhone
+                if isCompact {
+                    Color.clear
+                        .frame(height: 85)
+                }
+            }
+        }
+    }
+    
+    private var threadsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Circle Threads")
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundColor(.primary)
+                    
+                    Text("Share ideas and discussions")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(.secondary)
+                }
+
+                Spacer()
+
+                Button(action: {
+                    showCreateThreadPopup = true
+                }) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "plus")
+                            .font(.system(size: 14, weight: .semibold))
+                        Text("New")
+                            .font(.system(size: 14, weight: .semibold))
+                    }
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(
+                        Capsule()
+                            .fill(
+                                LinearGradient(
+                                    gradient: Gradient(colors: [Color(hex: "004aad"), Color(hex: "0066dd")]),
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .shadow(color: Color(hex: "004aad").opacity(0.3), radius: 6, x: 0, y: 3)
+                    )
+                }
+            }
+            .padding(.horizontal, 20)
+            
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    ForEach(threads) { thread in
+                        ThreadCard(thread: thread)
+                            .frame(width: 300)
+                    }
+                    
+                    if threads.isEmpty {
+                        VStack(spacing: 8) {
+                            Image(systemName: "bubble.left.and.bubble.right")
+                                .font(.system(size: 28))
+                                .foregroundColor(Color(hex: "004aad").opacity(0.4))
+                            
+                            Text("No threads yet")
+                                .font(.system(size: 15, weight: .medium))
+                                .foregroundColor(.secondary)
+                            
+                            Text("Be the first to start a discussion!")
+                                .font(.system(size: 13))
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.center)
                         }
-                        .sheet(isPresented: $showCreateThreadPopup) {
-                            VStack(spacing: 16) {
-                                Text("New Thread")
-                                    .font(.headline)
-                                TextEditor(text: $newThreadContent)
-                                    .frame(height: 120)
-                                    .padding()
-                                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.gray))
+                        .frame(width: 260, height: 120)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(Color(hex: "004aad").opacity(0.05))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [8, 4]))
+                                        .foregroundColor(Color(hex: "004aad").opacity(0.1))
+                                )
+                        )
+                    }
+                }
+                .padding(.horizontal, 20)
+            }
+        }
+        .padding(.vertical, 6)
+    }
+    
+    private var channelsSection: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            Rectangle()
+                .fill(
+                    LinearGradient(
+                        gradient: Gradient(colors: [Color.clear, Color(hex: "004aad").opacity(0.2), Color.clear]),
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .frame(height: 1)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 8)
+            
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Channels")
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundColor(.primary)
+                    Text("Join conversations by topic")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(.secondary)
+                }
 
-                                Button("Post") {
-                                    postNewThread()
-                                    showCreateThreadPopup = false
-                                }
-                                .padding()
-                                .background(Color.blue)
-                                .foregroundColor(.white)
-                                .cornerRadius(10)
+                Spacer()
 
-                                Spacer()
-                            }
-                            .padding()
-                        }
-                        .sheet(isPresented: $showCircleAboutPopup) {
-                            CirclPopupCard(circle: circle, isMember: true)
-                        }
-                        .sheet(isPresented: $showManageChannels) {
-                            ManageChannelsView(circleId: circle.id, channels: $channels)
-                                .onDisappear {
-                                    // Refresh channels when returning from manage view
-                                    fetchCategoriesAndChannels(for: circle.id)
+                Text("\(channels.count) channels")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(Color(hex: "004aad"))
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 4)
+                    .background(Capsule().fill(Color(hex: "004aad").opacity(0.1)))
+            }
+            .padding(.horizontal, 20)
 
-                                }
-                        }
-                        .sheet(isPresented: $showCreateAnnouncementPopup) {
-                            CreateAnnouncementPopup(circleId: circle.id, userId: userId) {
-                                fetchAnnouncements(for: circle.id)
-                            }
-                        }
+            if categories.isEmpty {
+                Text("No channels created yet.")
+                    .foregroundColor(.secondary)
+                    .padding(.horizontal, 20)
+            } else {
+                ForEach(categories) { category in
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(category.name)
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.primary)
+                            .padding(.horizontal, 20)
 
-
-                        
+                        ForEach(channelsForDisplay(category)) { channel in
+                            channelRow(channel)
                         }
                     }
                 }
-            
-            
+            }
+        }
+        .padding(.top, 6)
+    }
+    
+    private func channelRow(_ channel: Channel) -> some View {
+        NavigationLink(destination: PageCircleMessages(channel: channel, circleName: circle.name)) {
+            HStack(spacing: 10) {
+                Image(systemName: "number")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(Color(hex: "004aad"))
+                    .frame(width: 28, height: 28)
+                    .background(Circle().fill(Color(hex: "004aad").opacity(0.1)))
 
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(channel.name)
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundColor(.primary)
+
+                    Text("Tap to join conversation")
+                        .font(.system(size: 12))
+                        .foregroundColor(.secondary)
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(.secondary)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.white)
+                    .shadow(color: Color.black.opacity(0.04), radius: 4, x: 0, y: 1)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(Color(hex: "004aad").opacity(0.08), lineWidth: 1)
+            )
+            .padding(.horizontal, 16)
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+
+
+    var body: some View {
+        AdaptiveContentWrapper(
+            configuration: AdaptivePageConfiguration(
+                title: "Circles",
+                navigationItems: AdaptivePageConfiguration.defaultNavigation(currentPageTitle: "Circles", unreadMessageCount: unreadMessageCount)
+            ),
+            customHeader: { layoutManager in
+                PageGroupchatsHeader(hasDashboard: circle.hasDashboard ?? false, selectedTab: $selectedTab)
+            }
+        ) {
+            ZStack {
+                // Enhanced background gradient
+                LinearGradient(
+                    gradient: Gradient(colors: [
+                        Color(.systemBackground),
+                        Color(hex: "004aad").opacity(0.02)
+                    ]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
+                
+                VStack(spacing: 0) {
+                    Group {
+                        if selectedTab == .dashboard {
+                            DashboardView(circle: circle)
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        } else if selectedTab == .calendar {
+                            CalendarView(circle: circle)
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        } else {
+                            homeTabContent
+                        }
+                    }
+                    .frame(maxHeight: .infinity)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            
             NavigationLink(
                                        destination: PageDues(circle: circle).navigationBarBackButtonHidden(true),
                                        isActive: $navigateToDues
@@ -657,280 +619,48 @@ struct PageGroupchats: View {
                 .zIndex(999)
             }
             
-            
-                // MARK: - Twitter/X Style Bottom Navigation
-                VStack {
-                    Spacer()
-                    
-                    HStack(spacing: 0) {
-                        // Forum / Home
-                        NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
-                            VStack(spacing: 4) {
-                                Image(systemName: "house")
-                                    .font(.system(size: 22, weight: .medium))
-                                    .foregroundColor(Color(UIColor.label).opacity(0.6))
-                                Text("Home")
-                                    .font(.system(size: 10, weight: .medium))
-                                    .foregroundColor(Color(UIColor.label).opacity(0.6))
-                            }
-                            .frame(maxWidth: .infinity)
-                        }
-                        .transaction { transaction in
-                            transaction.disablesAnimations = true
-                        }
-                        
-                        // Connect and Network
-                        NavigationLink(destination: PageMyNetwork().navigationBarBackButtonHidden(true)) {
-                            VStack(spacing: 4) {
-                                Image(systemName: "person.2")
-                                    .font(.system(size: 22, weight: .medium))
-                                    .foregroundColor(Color(UIColor.label).opacity(0.6))
-                                Text("Network")
-                                    .font(.system(size: 10, weight: .medium))
-                                    .foregroundColor(Color(UIColor.label).opacity(0.6))
-                            }
-                            .frame(maxWidth: .infinity)
-                        }
-                        .transaction { transaction in
-                            transaction.disablesAnimations = true
-                        }
-                        
-                        // Circles (Current page - highlighted)
-                        VStack(spacing: 4) {
-                            Image(systemName: "circle.grid.2x2.fill")
-                                .font(.system(size: 22, weight: .medium))
-                                .foregroundColor(Color(hex: "004aad"))
-                            Text("Circles")
-                                .font(.system(size: 10, weight: .medium))
-                                .foregroundColor(Color(hex: "004aad"))
-                        }
-                        .frame(maxWidth: .infinity)
-                        
-                        // Business Profile
-                        NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true)) {
-                            VStack(spacing: 4) {
-                                Image(systemName: "building.2")
-                                    .font(.system(size: 22, weight: .medium))
-                                    .foregroundColor(Color(UIColor.label).opacity(0.6))
-                                Text("Business")
-                                    .font(.system(size: 10, weight: .medium))
-                                    .foregroundColor(Color(UIColor.label).opacity(0.6))
-                            }
-                            .frame(maxWidth: .infinity)
-                        }
-                        .transaction { transaction in
-                            transaction.disablesAnimations = true
-                        }
-                        
-                        // More / Additional Resources
-                        Button(action: {
-                            withAnimation(.easeInOut(duration: 0.3)) {
-                                showMoreMenu.toggle()
-                            }
-                        }) {
-                            VStack(spacing: 4) {
-                                Image(systemName: "ellipsis")
-                                    .font(.system(size: 22, weight: .medium))
-                                    .foregroundColor(Color(UIColor.label).opacity(0.6))
-                                Text("More")
-                                    .font(.system(size: 10, weight: .medium))
-                                    .foregroundColor(Color(UIColor.label).opacity(0.6))
-                            }
-                            .frame(maxWidth: .infinity)
-                        }
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 16)
-                    .padding(.bottom, 6)
-                    .background(
-                        Rectangle()
-                            .fill(Color(UIColor.systemBackground))
-                            .shadow(color: .black.opacity(0.1), radius: 1, x: 0, y: -1)
-                            .ignoresSafeArea(edges: .bottom)
-                    )
-                    .overlay(
-                        Rectangle()
-                            .frame(height: 0.5)
-                            .foregroundColor(Color(UIColor.separator))
-                            .padding(.horizontal, 16),
-                        alignment: .top
-                    )
-                }
-                .ignoresSafeArea(edges: .bottom)
-                .zIndex(1)
-                
-                // MARK: - More Menu Popup
-                if showMoreMenu {
-                    VStack {
-                        Spacer()
-                        
-                        VStack(alignment: .leading, spacing: 0) {
-                            Text("More Options")
-                                .font(.headline)
-                                .fontWeight(.bold)
-                                .padding(.horizontal, 20)
-                                .padding(.top, 20)
-                                .padding(.bottom, 10)
-                                .foregroundColor(.primary)
-                            
-                            Divider()
-                                .padding(.horizontal, 16)
-                            
-                            VStack(spacing: 0) {
-                                // Professional Services
-                                NavigationLink(destination: PageEntrepreneurResources().navigationBarBackButtonHidden(true)) {
-                                    HStack(spacing: 16) {
-                                        Image(systemName: "briefcase.fill")
-                                            .font(.system(size: 20))
-                                            .foregroundColor(Color(hex: "004aad"))
-                                            .frame(width: 24)
-                                        
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text("Professional Services")
-                                                .font(.system(size: 16, weight: .medium))
-                                                .foregroundColor(.primary)
-                                            Text("Find business services and experts")
-                                                .font(.system(size: 12))
-                                                .foregroundColor(.secondary)
-                                        }
-                                        
-                                        Spacer()
-                                        
-                                        Image(systemName: "chevron.right")
-                                            .font(.system(size: 12, weight: .medium))
-                                            .foregroundColor(.secondary)
-                                    }
-                                    .padding(.horizontal, 20)
-                                    .padding(.vertical, 16)
-                                }
-                                .transaction { transaction in
-                                    transaction.disablesAnimations = true
-                                }
-                                
-                                Divider()
-                                    .padding(.horizontal, 16)
-                                
-                                // News & Knowledge
-                                NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
-                                    HStack(spacing: 16) {
-                                        Image(systemName: "newspaper.fill")
-                                            .font(.system(size: 20))
-                                            .foregroundColor(Color(hex: "004aad"))
-                                            .frame(width: 24)
-                                        
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text("News & Knowledge")
-                                                .font(.system(size: 16, weight: .medium))
-                                                .foregroundColor(.primary)
-                                            Text("Stay updated with industry insights")
-                                                .font(.system(size: 12))
-                                                .foregroundColor(.secondary)
-                                        }
-                                        
-                                        Spacer()
-                                        
-                                        Image(systemName: "chevron.right")
-                                            .font(.system(size: 12, weight: .medium))
-                                            .foregroundColor(.secondary)
-                                    }
-                                    .padding(.horizontal, 20)
-                                    .padding(.vertical, 16)
-                                }
-                                .transaction { transaction in
-                                    transaction.disablesAnimations = true
-                                }
-                                
-                                Divider()
-                                    .padding(.horizontal, 16)
-                                
-                                // The Circl Exchange
-                                NavigationLink(destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true)) {
-                                    HStack(spacing: 16) {
-                                        Image(systemName: "dollarsign.circle.fill")
-                                            .font(.system(size: 20))
-                                            .foregroundColor(Color(hex: "004aad"))
-                                            .frame(width: 24)
-                                        
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text("The Circl Exchange")
-                                                .font(.system(size: 16, weight: .medium))
-                                                .foregroundColor(.primary)
-                                            Text("Buy and sell skills and services")
-                                                .font(.system(size: 12))
-                                                .foregroundColor(.secondary)
-                                        }
-                                        
-                                        Spacer()
-                                        
-                                        Image(systemName: "chevron.right")
-                                            .font(.system(size: 12, weight: .medium))
-                                            .foregroundColor(.secondary)
-                                    }
-                                    .padding(.horizontal, 20)
-                                    .padding(.vertical, 16)
-                                }
-                                .transaction { transaction in
-                                    transaction.disablesAnimations = true
-                                }
-                                
-                                Divider()
-                                    .padding(.horizontal, 16)
-                                
-                                // Settings
-                                NavigationLink(destination: PageSettings().navigationBarBackButtonHidden(true)) {
-                                    HStack(spacing: 16) {
-                                        Image(systemName: "gearshape.fill")
-                                            .font(.system(size: 20))
-                                            .foregroundColor(Color(hex: "004aad"))
-                                            .frame(width: 24)
-                                        
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text("Settings")
-                                                .font(.system(size: 16, weight: .medium))
-                                                .foregroundColor(.primary)
-                                            Text("Manage your account settings")
-                                                .font(.system(size: 12))
-                                                .foregroundColor(.secondary)
-                                        }
-                                        
-                                        Spacer()
-                                        
-                                        Image(systemName: "chevron.right")
-                                            .font(.system(size: 12, weight: .medium))
-                                            .foregroundColor(.secondary)
-                                    }
-                                    .padding(.horizontal, 20)
-                                    .padding(.vertical, 16)
-                                }
-                                .transaction { transaction in
-                                    transaction.disablesAnimations = true
-                                }
-                            }
-                        }
-                        .background(Color(UIColor.systemBackground))
-                        .cornerRadius(16)
-                        .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: -5)
-                        .padding(.horizontal, 16)
-                        .padding(.bottom, 20)
-                    }
-                    .background(
-                        Color.black.opacity(0.4)
-                            .ignoresSafeArea()
-                            .onTapGesture {
-                                withAnimation(.easeInOut(duration: 0.3)) {
-                                    showMoreMenu = false
-                                }
-                            }
-                    )
-                    .zIndex(2)
-                }
+            NavigationLink(
+                destination: MemberListPage(circleName: circle.name, circleId: circle.id),
+                isActive: $navigateToMembers
+            ) {
+                EmptyView()
             }
-        
-        NavigationLink(
-            destination: MemberListPage(circleName: circle.name, circleId: circle.id),
-            isActive: $navigateToMembers
-        ) {
-            EmptyView()
+        } // Close ZStack
+        .sheet(isPresented: $showCreateThreadPopup) {
+            VStack(spacing: 16) {
+                Text("New Thread")
+                    .font(.headline)
+                TextEditor(text: $newThreadContent)
+                    .frame(height: 120)
+                    .padding()
+                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.gray))
+
+                Button("Post") {
+                    postNewThread()
+                    showCreateThreadPopup = false
+                }
+                .padding()
+                .background(Color.blue)
+                .foregroundColor(.white)
+                .cornerRadius(10)
+
+                Spacer()
+            }
+            .padding()
+        }
+        .sheet(isPresented: $showCircleAboutPopup) {
+            CirclPopupCard(circle: circle, isMember: true)
+        }
+        .sheet(isPresented: $showManageChannels) {
+            ManageChannelsView(circleId: circle.id, channels: $channels)
+                .onDisappear {
+                    fetchCategoriesAndChannels(for: circle.id)
+                }
+        }
+        .sheet(isPresented: $showCreateAnnouncementPopup) {
+            CreateAnnouncementPopup(circleId: circle.id, userId: userId) {
+                fetchAnnouncements(for: circle.id)
+            }
         }
         .alert("Leave Circle?", isPresented: $showLeaveConfirmation) {
             Button("Leave", role: .destructive) {
@@ -980,6 +710,16 @@ struct PageGroupchats: View {
             fetchAnnouncements(for: circle.id)
             fetchLatestCircleDetails()
         }
+        } // Close AdaptivePage
+    } // Close body
+
+    private func switchToCircle(_ circl: CircleData) {
+        circle = circl
+        selectedGroup = circl.name
+        isDashboardEnabled = circl.hasDashboard ?? false
+        isDashboardPrivate = !(circl.isDashboardPublic ?? false)
+        lastCircleId = circl.id
+        fetchCategoriesAndChannels(for: circl.id)
     }
 
     func fetchCategoriesAndChannels(for circleId: Int) {

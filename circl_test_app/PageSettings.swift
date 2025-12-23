@@ -14,11 +14,16 @@ struct PageSettings: View {
     @State private var showLogoutAlert = false
     @State private var isLogoutConfirmed = false
     @State private var isAnimating = false
-    
+    @EnvironmentObject var appState: AppState
+
     // Easter egg variables
     @State private var settingsClickCount = 0
     @State private var showEasterEggVideo = false
     @State private var player: AVPlayer?
+    
+    // User data for header
+    @State private var userProfileImageURL: String = ""
+    @State private var unreadMessageCount: Int = 0
 
     private var animatedBackground: some View {
         ZStack {
@@ -99,66 +104,50 @@ struct PageSettings: View {
     }
 
     var body: some View {
-        NavigationView {
-            VStack(spacing: 0) {
-            // Header - matching home page style exactly
-            VStack(spacing: 0) {
-                HStack {
-                    // Left side - Back Button
-                    Button(action: {
-                        presentationMode.wrappedValue.dismiss()
-                    }) {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 24))
-                            .foregroundColor(.white)
-                    }
-                    
-                    Spacer()
-                    
-                    // Center - Settings Title (Easter Egg!)
-                    Text("Settings")
-                        .font(.system(size: 24, weight: .bold))
-                        .foregroundColor(.white)
-                        .onTapGesture {
-                            settingsClickCount += 1
-                            
-                            // Add haptic feedback for fun
-                            let impactFeedback = UIImpactFeedbackGenerator(style: .light)
-                            impactFeedback.impactOccurred()
-                            
-                            // Reset counter after 5 seconds of no clicking
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
-                                if settingsClickCount < 10 {
-                                    settingsClickCount = 0
-                                }
-                            }
-                            
-                            // Activate easter egg after 10 clicks
-                            if settingsClickCount >= 10 {
-                                triggerEasterEgg()
-                            }
-                        }
-                    
-                    Spacer()
-                    
-                    // Right side - Empty spacer to center the title
-                    Spacer()
-                        .frame(width: 24) // Match the width of the back button
-                }
-                .padding(.horizontal, 16)
-                .padding(.bottom, 16)
-                .padding(.top, 8)
+        AdaptiveContentWrapper(
+            configuration: AdaptivePageConfiguration(
+                title: "Settings",
+                navigationItems: AdaptivePageConfiguration.defaultNavigation(currentPageTitle: "Settings", unreadMessageCount: unreadMessageCount)
+            ),
+            customHeader: { layoutManager in
+                settingsHeader(layoutManager: layoutManager)
             }
-            .padding(.top, 50) // Add safe area padding for status bar and notch
-            .background(Color(hex: "004aad"))
-            .ignoresSafeArea(edges: .top)
-
-            // Content with modern cards
-            ScrollView {
-                LazyVStack(spacing: 16) {
-                    // Account Settings Section
-                    VStack(spacing: 12) {
-                        sectionHeader(title: "Account Settings", icon: "person.circle.fill")
+        ) {
+            ZStack {
+                // Subtle animated background
+                animatedBackground
+                    .opacity(0.1)
+                    .edgesIgnoringSafeArea(.all)
+                
+                // White base background
+                Color.white
+                    .edgesIgnoringSafeArea(.all)
+                
+                // Content with modern cards
+                ScrollView {
+                    LazyVStack(spacing: 16) {
+                        // Account Settings Section (Easter Egg!)
+                        VStack(spacing: 12) {
+                            sectionHeader(title: "Account Settings", icon: "person.circle.fill")
+                                .onTapGesture {
+                                    settingsClickCount += 1
+                                    
+                                    // Add haptic feedback for fun
+                                    let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                                    impactFeedback.impactOccurred()
+                                    
+                                    // Reset counter after 5 seconds of no clicking
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+                                        if settingsClickCount < 10 {
+                                            settingsClickCount = 0
+                                        }
+                                    }
+                                    
+                                    // Activate easter egg after 10 clicks
+                                    if settingsClickCount >= 10 {
+                                        triggerEasterEgg()
+                                    }
+                                }
                         
                         VStack(spacing: 8) {
                             settingsOption(title: "Become a Mentor", iconName: "graduationcap.fill", destination: BecomeMentorPage())
@@ -194,6 +183,19 @@ struct PageSettings: View {
                             settingsOption(title: "Terms of Service", iconName: "doc.text.fill", destination: TermsOfServicePage())
                             settingsOption(title: "Privacy Policy", iconName: "hand.raised.fill", destination: PrivacyPolicyPage())
                             settingsOption(title: "Community Guidelines", iconName: "person.2.fill", destination: CommunityGuidelinesPage())
+                        }
+                    }
+                    .padding(20)
+                    .background(Color.white)
+                    .cornerRadius(16)
+                    .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 2)
+
+                    // Tutorial & Help Section
+                    VStack(spacing: 12) {
+                        sectionHeader(title: "Tutorial & Help", icon: "questionmark.circle.fill")
+                        
+                        VStack(spacing: 8) {
+                            TutorialSettingsView()
                         }
                     }
                     .padding(20)
@@ -241,14 +243,13 @@ struct PageSettings: View {
                     .padding(.top, 8)
                     .padding(.horizontal, 20)
                     .shadow(color: .red.opacity(0.3), radius: 8, x: 0, y: 4)
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 16)
                 }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 16)
+                .padding(.top, 16)
             }
-            .background(Color(UIColor.systemGray6))
         }
-        .ignoresSafeArea(edges: .top)
-        .navigationBarHidden(true)
         .alert(isPresented: $showLogoutAlert) {
             Alert(
                 title: Text("Log out of your account?"),
@@ -258,7 +259,6 @@ struct PageSettings: View {
                 },
                 secondaryButton: .cancel()
             )
-        }
         }
         .fullScreenCover(isPresented: $showEasterEggVideo) {
             EasterEggVideoPlayer(player: player)
@@ -356,6 +356,123 @@ struct PageSettings: View {
         }
     }
 
+    // MARK: - Custom Header
+    private func settingsHeader(layoutManager: AdaptiveLayoutManager) -> some View {
+        VStack(spacing: 0) {
+            HStack {
+                // Left side: Profile picture
+                NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
+                    AsyncImage(url: URL(string: userProfileImageURL)) { phase in
+                        switch phase {
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 32, height: 32)
+                                .clipShape(Circle())
+                        default:
+                            Image(systemName: "person.circle.fill")
+                                .font(.system(size: 32))
+                                .foregroundColor(.white)
+                        }
+                    }
+                }
+                
+                Spacer()
+                
+                // Center: Circl. logo
+                Text("Circl.")
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundColor(.white)
+                
+                Spacer()
+                
+                // Right side: Messages icon with badge
+                NavigationLink(destination: PageMessages().navigationBarBackButtonHidden(true)) {
+                    ZStack {
+                        Image(systemName: "envelope.fill")
+                            .font(.system(size: 24))
+                            .foregroundColor(.white)
+                        
+                        if unreadMessageCount > 0 {
+                            Text(unreadMessageCount > 99 ? "99+" : "\(unreadMessageCount)")
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundColor(.white)
+                                .padding(4)
+                                .background(Color.red)
+                                .clipShape(Circle())
+                                .offset(x: 10, y: -10)
+                        }
+                    }
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
+        }
+        .background(Color(hex: "004aad"))
+        .onAppear {
+            fetchUserData()
+        }
+    }
+    
+    // MARK: - Data Fetching
+    private func fetchUserData() {
+        if let userId = UserDefaults.standard.value(forKey: "user_id") as? Int {
+            fetchCurrentUserProfile(userId: userId)
+        }
+        fetchUnreadMessageCount()
+    }
+    
+    private func fetchCurrentUserProfile(userId: Int) {
+        let urlString = "https://circlapp.online/api/users/profile/\(userId)/"
+        guard let url = URL(string: urlString) else { return }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            guard let data = data, error == nil else { return }
+            
+            if let decoded = try? JSONDecoder().decode(FullProfile.self, from: data) {
+                DispatchQueue.main.async {
+                    if let profileImage = decoded.profile_image, !profileImage.isEmpty {
+                        self.userProfileImageURL = profileImage
+                    }
+                }
+            }
+        }.resume()
+    }
+    
+    private func fetchUnreadMessageCount() {
+        guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else { return }
+        let urlString = "https://circlapp.online/api/messages/"
+        guard let url = URL(string: urlString) else { return }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            guard let data = data, error == nil else { return }
+            
+            if let messages = try? JSONDecoder().decode([MessageModel].self, from: data) {
+                let unreadMessages = messages.filter { $0.receiver_id == userId && !$0.is_read }
+                DispatchQueue.main.async {
+                    self.unreadMessageCount = unreadMessages.count
+                }
+            }
+        }.resume()
+    }
+
     // MARK: - Section Header
     private func sectionHeader(title: String, icon: String) -> some View {
         HStack(spacing: 12) {
@@ -426,15 +543,17 @@ struct PageSettings: View {
 
     // MARK: - Logout Functionality
     func logoutUser() {
+        print("🔓 Logging out user…")
+
+        // Clear stored session data
         UserDefaults.standard.removeObject(forKey: "user_id")
+        UserDefaults.standard.removeObject(forKey: "auth_token")
         UserDefaults.standard.set(false, forKey: "isLoggedIn")
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            if let window = UIApplication.shared.windows.first {
-                window.rootViewController = UIHostingController(rootView: Page1()) // Redirect to login page
-                window.makeKeyAndVisible()
-            }
-        }
+
+        // 🔥 Tell the entire app to switch to Page1
+        appState.isLoggedIn = false
     }
+
 
 
     // MARK: - Circle Button (Optional, unused)

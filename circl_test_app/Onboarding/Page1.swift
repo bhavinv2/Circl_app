@@ -2,6 +2,8 @@ import SwiftUI
 import UIKit
 
 struct Page1: View {
+    @EnvironmentObject var appState: AppState
+
     @State private var email: String = ""
     @State private var password: String = ""
     @State private var loginMessage: String = ""
@@ -28,6 +30,9 @@ struct Page1: View {
                 .edgesIgnoringSafeArea(.all)
                 .navigationBarBackButtonHidden(true)
                 .navigationBarHidden(true)
+                .onTapGesture {
+                    hideKeyboard()
+                }
                 
                 VStack(spacing: 0) {
                     Spacer(minLength: 50)
@@ -84,14 +89,6 @@ struct Page1: View {
                                         .stroke(Color.white.opacity(0.3), lineWidth: 1)
                                 )
                                 .shadow(color: .black.opacity(0.05), radius: 3, x: 0, y: 2)
-                                .toolbar {
-                                    ToolbarItemGroup(placement: .keyboard) {
-                                        Spacer()
-                                        Button("Done") {
-                                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                                        }
-                                    }
-                                }
                             
                             // Password Field with improved styling
                             SecureField("Password", text: $password)
@@ -104,14 +101,6 @@ struct Page1: View {
                                         .stroke(Color.white.opacity(0.3), lineWidth: 1)
                                 )
                                 .shadow(color: .black.opacity(0.05), radius: 3, x: 0, y: 2)
-                                .toolbar {
-                                    ToolbarItemGroup(placement: .keyboard) {
-                                        Spacer()
-                                        Button("Done") {
-                                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                                        }
-                                    }
-                                }
                             
                             // Login Button with enhanced styling
                             Button(action: loginUser) {
@@ -149,9 +138,6 @@ struct Page1: View {
                     
                     Spacer(minLength: 50)
                 }
-                .onTapGesture {
-                    hideKeyboard()
-                }
             }
             .sheet(isPresented: $isShowingForgotPasswordPopup) {
                 VStack(spacing: 20) {
@@ -170,14 +156,6 @@ struct Page1: View {
                         .keyboardType(.emailAddress)
                         .autocapitalization(.none)
                         .padding(.horizontal)
-                        .toolbar {
-                            ToolbarItemGroup(placement: .keyboard) {
-                                Spacer()
-                                Button("Done") {
-                                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                                }
-                            }
-                        }
 
                     Button("Submit") {
                         submitForgotPasswordRequest()
@@ -192,6 +170,9 @@ struct Page1: View {
                     Spacer()
                 }
                 .padding()
+                .onTapGesture {
+                    hideKeyboard()
+                }
             }
             .alert("Password Reset", isPresented: $forgotPasswordConfirmationShown) {
                 Button("OK", role: .cancel) { }
@@ -208,7 +189,7 @@ struct Page1: View {
                     .navigationBarBackButtonHidden(true)
             }
             .navigationDestination(isPresented: $isNavigatingToSignup) {
-                Page2() // Navigate to signup page
+                Page14() // Navigate to Page14
             }
             .onAppear {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { // Small delay to ensure consistency
@@ -296,10 +277,16 @@ struct Page1: View {
                                     print("✅ user_email (fallback from login field) saved manually:", self.email)
 
                                     UserDefaults.standard.set(true, forKey: "isLoggedIn")
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                        isLoggedIn = UserDefaults.standard.bool(forKey: "isLoggedIn")
-                                    }
+                                    appState.isLoggedIn = true
+
                                 }
+                                // 🔥 Handle pending deep link join AFTER login
+                                if let pendingId = pendingDeepLinkCircleId {
+                                    print("🔥 Processing pending deep link after login:", pendingId)
+                                    pendingDeepLinkCircleId = nil
+                                    Task { await joinCircleFromDeepLink(pendingId) }
+                                }
+
                             }
                         } catch {
                             showInvalidCredentialsAlert = true

@@ -52,7 +52,8 @@ struct CalendarView: View {
     @State private var isExpanded: Bool = false
     
 
-    let eventTypes = ["Workshop", "Speaker", "Social", "Meeting", "Conference"]
+    let eventTypes = ["Workshop", "Meeting", "Fundraiser", "Social", "Other", "Speaker"]
+
     var isModerator: Bool {
         return circle.isModerator
     }
@@ -122,13 +123,16 @@ struct CalendarView: View {
                                     } else {
                                         // Filter events for selected date again
                                         let calendar = Calendar.current
+                                        let isoParser = ISO8601DateFormatter()
+
                                         events = allEvents.filter { event in
                                             guard let eventDateString = event.date,
-                                                  let eventDate = ISO8601DateFormatter().date(from: eventDateString) else {
+                                                  let eventDate = isoParser.date(from: eventDateString) else {
                                                 return false
                                             }
                                             return calendar.isDate(eventDate, inSameDayAs: selectedDate)
                                         }
+
                                     }
                                 }) {
                                     Text(showAllEvents ? "Back to Date" : "Show All")
@@ -295,14 +299,24 @@ struct CalendarView: View {
                     let decodedEvents = try JSONDecoder().decode([CalendarEvent].self, from: data)
 
                     // Filter events to match selectedDate (ignoring time)
+                    // Filter events to match selectedDate (ignoring time)
                     let calendar = Calendar.current
+
+                    let df = DateFormatter()
+                    df.dateFormat = "yyyy-MM-dd"
+
                     let filtered = decodedEvents.filter { event in
                         guard let eventDateString = event.date,
-                              let eventDate = ISO8601DateFormatter().date(from: eventDateString) else {
+                              let eventDate = df.date(from: eventDateString) else {
                             return false
                         }
                         return calendar.isDate(eventDate, inSameDayAs: selectedDate)
                     }
+
+                    self.allEvents = decodedEvents
+                    self.events = filtered
+
+
 
                     self.allEvents = decodedEvents
                     self.events = filtered
@@ -321,44 +335,57 @@ struct CalendarView: View {
             print("❌ Invalid URL for createEvent")
             return
         }
-        
-        let formatter = DateFormatter()
-        let isoFormatter = ISO8601DateFormatter()
-        isoFormatter.formatOptions = [.withInternetDateTime]
-        let dateString = isoFormatter.string(from: selectedEventDate)
+
+        // Correct date format for Django DateField
+        let df = DateFormatter()
+        df.dateFormat = "yyyy-MM-dd"
+        let dateString = df.string(from: selectedEventDate)
+
+
+
+        // Correct time format
         let timeFormatter = DateFormatter()
         timeFormatter.dateFormat = "HH:mm:ss"
+
+        // Correct parameters
         let parameters: [String: Any] = [
             "title": newEventName,
             "description": newDescription,
             "event_type": newEventType.lowercased(),
             "points": Int(newEventPoints) ?? 10,
             "revenue": Int(newEventRevenue) ?? 0,
-            "date": dateString,
-            "start_time": timeFormatter.string(from: newStartTime),  // ✅ new
-            "end_time": timeFormatter.string(from: newEndTime),      // ✅ new
-            "circle_id": circle.id
+            "date": dateString,                                        // ✅ FIXED
+            "start_time": timeFormatter.string(from: newStartTime),
+            "end_time": timeFormatter.string(from: newEndTime),
+            "circle_id": circle.id                                     // ✅ FIXED
         ]
 
-        
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
+
         do {
             request.httpBody = try JSONSerialization.data(withJSONObject: parameters)
         } catch {
             print("❌ Failed to serialize event data")
             return
         }
-        
+
         URLSession.shared.dataTask(with: request) { data, response, error in
             DispatchQueue.main.async {
+                if let http = response as? HTTPURLResponse {
+                    print("📡 createEvent() status:", http.statusCode)
+                }
+                if let data = data,
+                   let body = String(data: data, encoding: .utf8) {
+                    print("🧾 createEvent() body:", body)
+                }
+
                 if let error = error {
                     print("❌ Error creating event: \(error.localizedDescription)")
                     return
                 }
-                
+
                 // Reset form
                 newEventName = ""
                 newEventType = "Workshop"
@@ -366,12 +393,13 @@ struct CalendarView: View {
                 newEventRevenue = "0"
                 selectedEventDate = Date()
                 showCreateEvent = false
-                
-                // Refresh events
+
+                // Refresh
                 fetchEvents()
             }
         }.resume()
     }
+
     
     func deleteEvent(_ eventId: Int) {
         guard let url = URL(string: "\(baseURL)circles/delete_event/\(eventId)/?user_id=\(userId)") else {
