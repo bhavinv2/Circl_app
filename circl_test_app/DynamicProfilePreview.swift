@@ -109,6 +109,7 @@ struct DynamicProfilePreview: View {
                                 }
                                 .confirmationDialog("Block this user?", isPresented: $showBlockConfirmation) {
                                     Button("Block this user?", role: .destructive) {
+                                        removeFriend()
                                         blockUser()
                                     }
                                     Button("Cancel", role: .cancel) {}
@@ -116,7 +117,9 @@ struct DynamicProfilePreview: View {
                                 // TODO: Create menu asking reason for report
                                 .confirmationDialog("Block and report this user?", isPresented: $showBlockAndReportConfirmation) {
                                     Button("Block and report this user?", role: .destructive) {
+                                        removeFriend()
                                         blockUser()
+                                        reportUser()
                                     }
                                     Button("Cancel", role: .cancel) {}
                                 }
@@ -188,7 +191,7 @@ struct DynamicProfilePreview: View {
                                 
                                 // User Name with elegant typography
                                 VStack(spacing: 8) {
-                                    Text("\(profileData.first_name ?? "Unknown") \(profileData.last_name ?? "User")")
+                                    Text("\(profileData.first_name) \(profileData.last_name)")
                                         .font(.system(size: 28, weight: .bold, design: .rounded))
                                         .foregroundColor(.white)
                                     
@@ -365,7 +368,7 @@ struct DynamicProfilePreview: View {
                         
                         // About Section - Matching ProfilePage ModernCard style
                         VStack(alignment: .leading, spacing: 16) {
-                            Text("About \(profileData.first_name ?? "") \(profileData.last_name ?? "")")
+                            Text("About \(profileData.first_name) \(profileData.last_name)")
                                 .font(.title3)
                                 .fontWeight(.bold)
                                 .foregroundColor(.primary)
