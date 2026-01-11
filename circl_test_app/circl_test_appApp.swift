@@ -6,12 +6,14 @@ var pendingDeepLinkCircleId: Int?
 struct CirclApp: App {
     @UIApplicationDelegateAdaptor(PushNotificationManager.self) var pushManager
     @StateObject var appState = AppState()
+    @StateObject private var profilePreview = ProfilePreviewCoordinator(fetcher: ProfileService())
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some Scene {
         WindowGroup {
             RootSwitcher()
                 .environmentObject(appState)
+                .environmentObject(profilePreview)
                 .onAppear {
                     MessageNotificationService.shared.startBackgroundMessageChecking()
                 }

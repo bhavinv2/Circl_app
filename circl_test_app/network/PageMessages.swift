@@ -2,6 +2,7 @@ import SwiftUI
 import Foundation
 
 struct PageMessages: View {
+    @EnvironmentObject var profilePreview: ProfilePreviewCoordinator
     
     @State private var messages: [Message] = [] // Messages array
     @State private var newMessageText = "" // For message input
@@ -476,13 +477,7 @@ struct PageMessages: View {
                                 // Premium Profile Avatar with Glow Effects
                                 Button(action: {
                                     if let userIdInt = Int(user.id) {
-                                        fetchUserProfile(userId: userIdInt) { profile in
-                                            if let profile = profile,
-                                               let window = UIApplication.shared.windows.first {
-                                                let profileView = DynamicProfilePreview(profileData: profile, isInNetwork: true)
-                                                window.rootViewController?.present(UIHostingController(rootView: profileView), animated: true)
-                                            }
-                                        }
+                                        profilePreview.present(userId: userIdInt)
                                     }
                                 }) {
                                     ZStack {

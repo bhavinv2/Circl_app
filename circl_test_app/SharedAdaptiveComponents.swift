@@ -170,83 +170,118 @@ struct SharedBottomNavigation: View {
     let unreadMessageCount: Int
     @State private var showMoreMenu = false
     
+    @ObservedObject private var navigationManager = NavigationManager.shared
+    
     var body: some View {
         VStack(spacing: 0) {
-            // MARK: - Twitter/X Style Bottom Navigation (copied exactly)
             HStack(spacing: 0) {
-                // Forum / Home (Current page - highlighted)
-                NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
-                    VStack(spacing: 4) {
-                        Image(systemName: configuration.title == "Home" ? "house.fill" : "house")
-                            .font(.system(size: 22, weight: .medium))
-                            .foregroundColor(configuration.title == "Home" ? Color(hex: "004aad") : Color(UIColor.label).opacity(0.6))
-                            .padding(.top, 4)
-                        Text("Home")
-                            .font(.system(size: 10, weight: .medium))
-                            .foregroundColor(configuration.title == "Home" ? Color(hex: "004aad") : Color(UIColor.label).opacity(0.6))
-                    }
-                    .frame(maxWidth: .infinity)
-                }
-                .transaction { transaction in transaction.disablesAnimations = true }
+                tabButton(
+                    title: "Home",
+                    filledIcon: "house.fill",
+                    outlineIcon: "house",
+                    tabIndex: 0
+                )
 
-                // Connect and Network
-                NavigationLink(destination: PageUnifiedNetworking().navigationBarBackButtonHidden(true)) {
-                    VStack(spacing: 4) {
-                        Image(systemName: configuration.title == "Network" ? "person.2.fill" : "person.2")
-                            .font(.system(size: 22, weight: .medium))
-                            .foregroundColor(configuration.title == "Network" ? Color(hex: "004aad") : Color(UIColor.label).opacity(0.6))
-                            .padding(.top, 4)
-                        Text("Network")
-                            .font(.system(size: 10, weight: .medium))
-                            .foregroundColor(configuration.title == "Network" ? Color(hex: "004aad") : Color(UIColor.label).opacity(0.6))
-                    }
-                    .frame(maxWidth: .infinity)
-                }
-                .transaction { transaction in transaction.disablesAnimations = true }
+                tabButton(
+                    title: "Network",
+                    filledIcon: "person.2.fill",
+                    outlineIcon: "person.2",
+                    tabIndex: 1
+                )
 
-                // Circles
-                NavigationLink(destination: PageCircles().navigationBarBackButtonHidden(true)) {
-                    VStack(spacing: 4) {
-                        Image(systemName: configuration.title == "Circles" ? "circle.grid.2x2.fill" : "circle.grid.2x2")
-                            .font(.system(size: 22, weight: .medium))
-                            .foregroundColor(configuration.title == "Circles" ? Color(hex: "004aad") : Color(UIColor.label).opacity(0.6))
-                            .padding(.top, 4)
-                        Text("Circles")
-                            .font(.system(size: 10, weight: .medium))
-                            .foregroundColor(configuration.title == "Circles" ? Color(hex: "004aad") : Color(UIColor.label).opacity(0.6))
-                    }
-                    .frame(maxWidth: .infinity)
-                }
-                .transaction { transaction in transaction.disablesAnimations = true }
+                tabButton(
+                    title: "Circles",
+                    filledIcon: "circle.grid.2x2.fill",
+                    outlineIcon: "circle.grid.2x2",
+                    tabIndex: 2
+                )
 
-                // Growth Hub Profile
-                NavigationLink(destination: PageSkillSellingPlaceholder().navigationBarBackButtonHidden(true)) {
-                    VStack(spacing: 4) {
-                        Image(systemName: configuration.title == "Growth Hub" ? "dollarsign.circle.fill" : "dollarsign.circle")
-                            .font(.system(size: 22, weight: .medium))
-                            .foregroundColor(configuration.title == "Growth Hub" ? Color(hex: "004aad") : Color(UIColor.label).opacity(0.6))
-                            .padding(.top, 4)
-                        Text("Growth Hub")
-                            .font(.system(size: 10, weight: .medium))
-                            .foregroundColor(configuration.title == "Growth Hub" ? Color(hex: "004aad") : Color(UIColor.label).opacity(0.6))
-                    }
-                    .frame(maxWidth: .infinity)
-                }
-                .transaction { transaction in transaction.disablesAnimations = true }
+                tabButton(
+                    title: "Growth Hub",
+                    filledIcon: "dollarsign.circle.fill",
+                    outlineIcon: "dollarsign.circle",
+                    tabIndex: 3
+                )
 
-                // Settings
-                NavigationLink(destination: PageSettings().navigationBarBackButtonHidden(true)) {
-                    VStack(spacing: 4) {
-                        Image(systemName: "gearshape")
-                            .font(.system(size: 22, weight: .medium))
-                            .foregroundColor(Color(UIColor.label).opacity(0.6))
-                        Text("Settings")
-                            .font(.system(size: 10, weight: .medium))
-                            .foregroundColor(Color(UIColor.label).opacity(0.6))
-                    }
-                    .frame(maxWidth: .infinity)
-                }
-                .transaction { transaction in transaction.disablesAnimations = true }
+                tabButton(
+                    title: "Settings",
+                    filledIcon: "gearshape.fill",
+                    outlineIcon: "gearshape",
+                    tabIndex: 4
+                )
+//                // Forum / Home (Current page - highlighted)
+//                NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
+//                    VStack(spacing: 4) {
+//                        Image(systemName: configuration.title == "Home" ? "house.fill" : "house")
+//                            .font(.system(size: 22, weight: .medium))
+//                            .foregroundColor(configuration.title == "Home" ? Color(hex: "004aad") : Color(UIColor.label).opacity(0.6))
+//                            .padding(.top, 4)
+//                        Text("Home")
+//                            .font(.system(size: 10, weight: .medium))
+//                            .foregroundColor(configuration.title == "Home" ? Color(hex: "004aad") : Color(UIColor.label).opacity(0.6))
+//                    }
+//                    .frame(maxWidth: .infinity)
+//                }
+//                .transaction { transaction in transaction.disablesAnimations = true }
+//
+//                // Connect and Network
+//                NavigationLink(destination: PageUnifiedNetworking().navigationBarBackButtonHidden(true)) {
+//                    VStack(spacing: 4) {
+//                        Image(systemName: configuration.title == "Network" ? "person.2.fill" : "person.2")
+//                            .font(.system(size: 22, weight: .medium))
+//                            .foregroundColor(configuration.title == "Network" ? Color(hex: "004aad") : Color(UIColor.label).opacity(0.6))
+//                            .padding(.top, 4)
+//                        Text("Network")
+//                            .font(.system(size: 10, weight: .medium))
+//                            .foregroundColor(configuration.title == "Network" ? Color(hex: "004aad") : Color(UIColor.label).opacity(0.6))
+//                    }
+//                    .frame(maxWidth: .infinity)
+//                }
+//                .transaction { transaction in transaction.disablesAnimations = true }
+//
+//                // Circles
+//                NavigationLink(destination: PageCircles().navigationBarBackButtonHidden(true)) {
+//                    VStack(spacing: 4) {
+//                        Image(systemName: configuration.title == "Circles" ? "circle.grid.2x2.fill" : "circle.grid.2x2")
+//                            .font(.system(size: 22, weight: .medium))
+//                            .foregroundColor(configuration.title == "Circles" ? Color(hex: "004aad") : Color(UIColor.label).opacity(0.6))
+//                            .padding(.top, 4)
+//                        Text("Circles")
+//                            .font(.system(size: 10, weight: .medium))
+//                            .foregroundColor(configuration.title == "Circles" ? Color(hex: "004aad") : Color(UIColor.label).opacity(0.6))
+//                    }
+//                    .frame(maxWidth: .infinity)
+//                }
+//                .transaction { transaction in transaction.disablesAnimations = true }
+//
+//                // Growth Hub Profile
+//                NavigationLink(destination: PageSkillSellingPlaceholder().navigationBarBackButtonHidden(true)) {
+//                    VStack(spacing: 4) {
+//                        Image(systemName: configuration.title == "Growth Hub" ? "dollarsign.circle.fill" : "dollarsign.circle")
+//                            .font(.system(size: 22, weight: .medium))
+//                            .foregroundColor(configuration.title == "Growth Hub" ? Color(hex: "004aad") : Color(UIColor.label).opacity(0.6))
+//                            .padding(.top, 4)
+//                        Text("Growth Hub")
+//                            .font(.system(size: 10, weight: .medium))
+//                            .foregroundColor(configuration.title == "Growth Hub" ? Color(hex: "004aad") : Color(UIColor.label).opacity(0.6))
+//                    }
+//                    .frame(maxWidth: .infinity)
+//                }
+//                .transaction { transaction in transaction.disablesAnimations = true }
+//
+//                // Settings
+//                NavigationLink(destination: PageSettings().navigationBarBackButtonHidden(true)) {
+//                    VStack(spacing: 4) {
+//                        Image(systemName: "gearshape")
+//                            .font(.system(size: 22, weight: .medium))
+//                            .foregroundColor(Color(UIColor.label).opacity(0.6))
+//                        Text("Settings")
+//                            .font(.system(size: 10, weight: .medium))
+//                            .foregroundColor(Color(UIColor.label).opacity(0.6))
+//                    }
+//                    .frame(maxWidth: .infinity)
+//                }
+//                .transaction { transaction in transaction.disablesAnimations = true }
             }
             .padding(.horizontal, 16)
             .padding(.top, 8)
@@ -265,6 +300,31 @@ struct SharedBottomNavigation: View {
                 alignment: .top
             )
         }
+    }
+    
+    @ViewBuilder
+    private func tabButton(title: String, filledIcon: String, outlineIcon: String, tabIndex: Int) -> some View {
+        let isSelected = (navigationManager.selectedTab == tabIndex)
+        
+        Button {
+            var t = Transaction()
+//            t.animation = nil
+            withTransaction(t) {
+                navigationManager.forceNavigateTo(tab: tabIndex)
+                showMoreMenu = false
+            }
+        } label: {
+            VStack(spacing: 4) {
+                Image(systemName: isSelected ? filledIcon : outlineIcon)
+                    .font(.system(size: 22, weight: .medium))
+                    .foregroundColor(isSelected ? Color(hex: "004aad") : Color(UIColor.label).opacity(0.6))
+                Text(title)
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundColor(isSelected ? Color(hex: "004aad") : Color(UIColor.label).opacity(0.6))
+            }
+            .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.plain)
     }
 }
 

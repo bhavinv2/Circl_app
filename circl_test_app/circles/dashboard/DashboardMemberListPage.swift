@@ -110,11 +110,13 @@ enum MemberTab: String, CaseIterable {
 }
 
 struct DashboardMemberListPage: View {
+    @EnvironmentObject var profilePreview: ProfilePreviewCoordinator
+    
     let circleName: String
     let circleId: Int
 
     @State private var members: [DashboardMember] = []
-    @State private var selectedMember: DashboardMember? = nil
+//    @State private var selectedMember: DashboardMember? = nil
     @AppStorage("user_id") private var currentUserId: Int = 0
     @State private var paidMembersCount: Int = 0
     @State private var totalRevenue: Double = 0
@@ -226,12 +228,12 @@ struct DashboardMemberListPage: View {
         .navigationTitle("Dashboard Members")
         .navigationBarTitleDisplayMode(.inline)
         .background(Color(.systemGray6))
-        .sheet(item: $selectedMember) { member in
-            DynamicProfilePreview(
-                profileData: convertToFullProfile(from: member),
-                isInNetwork: true
-            )
-        }
+//        .sheet(item: $selectedMember) { member in
+//            DynamicProfilePreview(
+//                profileData: convertToFullProfile(from: member),
+//                isInNetwork: true
+//            )
+//        }
         .onAppear {
             fetchDashboardMembers()
         }
@@ -242,7 +244,8 @@ struct DashboardMemberListPage: View {
         VStack(spacing: 12) {
             ForEach(paidMembers) { member in
                 Button(action: {
-                    selectedMember = member
+//                    selectedMember = member
+                    profilePreview.present(userId: member.user_id)
                 }) {
                     VStack(spacing: 0) {
                         HStack(spacing: 16) {
@@ -301,7 +304,8 @@ struct DashboardMemberListPage: View {
                                     }
                                     
                                     Button("View Profile") {
-                                        selectedMember = member
+//                                        selectedMember = member
+                                        profilePreview.present(userId: member.user_id)
                                     }
                                 } label: {
                                     Image(systemName: "ellipsis")
@@ -330,7 +334,8 @@ struct DashboardMemberListPage: View {
         VStack(spacing: 12) {
             ForEach(freeMembers) { member in
                 Button(action: {
-                    selectedMember = member
+//                    selectedMember = member
+                    profilePreview.present(userId: member.user_id)
                 }) {
                     VStack(spacing: 0) {
                         HStack(spacing: 16) {
@@ -445,34 +450,34 @@ struct DashboardMemberListPage: View {
     }
     
     // Convert DashboardMember to FullProfile for profile preview
-    func convertToFullProfile(from member: DashboardMember) -> FullProfile {
-        return FullProfile(
-            user_id: member.user_id,
-            profile_image: member.profile_image,
-            first_name: member.full_name,
-            last_name: "",
-            email: "",
-            main_usage: "",
-            industry_interest: "",
-            title: "",
-            bio: nil,
-            birthday: nil,
-            education_level: nil,
-            institution_attended: nil,
-            certificates: nil,
-            years_of_experience: nil,
-            personality_type: nil,
-            locations: nil,
-            achievements: [],
-            skillsets: nil,
-            availability: "",
-            clubs: nil,
-            hobbies: nil,
-            connections_count: 0,
-            circs: 0,
-            entrepreneurial_history: nil
-        )
-    }
+//    func convertToFullProfile(from member: DashboardMember) -> FullProfile {
+//        return FullProfile(
+//            user_id: member.user_id,
+//            profile_image: member.profile_image,
+//            first_name: member.full_name,
+//            last_name: "",
+//            email: "",
+//            main_usage: "",
+//            industry_interest: "",
+//            title: "",
+//            bio: nil,
+//            birthday: nil,
+//            education_level: nil,
+//            institution_attended: nil,
+//            certificates: nil,
+//            years_of_experience: nil,
+//            personality_type: nil,
+//            locations: nil,
+//            achievements: [],
+//            skillsets: nil,
+//            availability: "",
+//            clubs: nil,
+//            hobbies: nil,
+//            connections_count: 0,
+//            circs: 0,
+//            entrepreneurial_history: nil
+//        )
+//    }
 
     // Fetch members with payment information (admin-only endpoint)
     func fetchDashboardMembers() {

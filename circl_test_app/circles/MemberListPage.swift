@@ -13,11 +13,13 @@ struct Member: Identifiable, Decodable, Hashable {
 
 
 struct MemberListPage: View {
+    @EnvironmentObject var profilePreview: ProfilePreviewCoordinator
+
     let circleName: String
     let circleId: Int
 
     @State private var members: [Member] = []
-    @State private var selectedMember: Member? = nil
+//    @State private var selectedMember: Member? = nil
     @AppStorage("user_id") private var currentUserId: Int = 0
 
     var body: some View {
@@ -30,7 +32,8 @@ struct MemberListPage: View {
                 VStack(alignment: .leading, spacing: 12) {
                     ForEach(members) { member in
                         Button(action: {
-                            selectedMember = member
+//                            selectedMember = member
+                            profilePreview.present(userId: member.user_id)
                         }) {
                             HStack(spacing: 12) {
                                 AsyncImage(url: URL(string: member.profile_image ?? "")) { image in
@@ -85,45 +88,45 @@ struct MemberListPage: View {
         }
         .navigationTitle("Members")
         .navigationBarTitleDisplayMode(.inline)
-        .sheet(item: $selectedMember) { member in
-            DynamicProfilePreview(
-                profileData: convertToFullProfile(from: member),
-                isInNetwork: true
-            )
-        }
+//        .sheet(item: $selectedMember) { member in
+//            DynamicProfilePreview(
+//                profileData: convertToFullProfile(from: member),
+//                isInNetwork: true
+//            )
+//        }
         .onAppear {
             fetchMembers()
         }
     }
-    func convertToFullProfile(from member: Member) -> FullProfile {
-        return FullProfile(
-            user_id: member.user_id,
-            profile_image: member.profile_image,
-            first_name: member.full_name,
-            last_name: "",
-            email: member.email,
-
-            main_usage: "",
-            industry_interest: "",
-            title: "",
-            bio: nil,
-            birthday: nil,
-            education_level: nil,
-            institution_attended: nil,
-            certificates: nil,
-            years_of_experience: nil,
-            personality_type: nil,
-            locations: nil,
-            achievements: [],
-            skillsets: nil,
-            availability: "",
-            clubs: nil,
-            hobbies: nil,
-            connections_count: 0,
-            circs: 0,
-            entrepreneurial_history: nil
-        )
-    }
+//    func convertToFullProfile(from member: Member) -> FullProfile {
+//        return FullProfile(
+//            user_id: member.user_id,
+//            profile_image: member.profile_image,
+//            first_name: member.full_name,
+//            last_name: "",
+//            email: member.email,
+//
+//            main_usage: "",
+//            industry_interest: "",
+//            title: "",
+//            bio: nil,
+//            birthday: nil,
+//            education_level: nil,
+//            institution_attended: nil,
+//            certificates: nil,
+//            years_of_experience: nil,
+//            personality_type: nil,
+//            locations: nil,
+//            achievements: [],
+//            skillsets: nil,
+//            availability: "",
+//            clubs: nil,
+//            hobbies: nil,
+//            connections_count: 0,
+//            circs: 0,
+//            entrepreneurial_history: nil
+//        )
+//    }
     func promoteToModerator(memberId: Int) {
         guard let url = URL(string: "\(baseURL)circles/make_moderator/") else { return }
 

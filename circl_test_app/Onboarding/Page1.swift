@@ -15,7 +15,7 @@ struct Page1: View {
     @State private var showInvalidCredentialsAlert = false
 
     var body: some View {
-        NavigationStack {
+//        NavigationStack {
             ZStack {
                 // Subtle gradient background
                 LinearGradient(
@@ -199,7 +199,7 @@ struct Page1: View {
                     }
                 }
             }
-        }
+//        }
     }
     
     // 🚀 Function to handle login

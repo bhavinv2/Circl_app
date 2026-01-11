@@ -2,6 +2,8 @@ import SwiftUI
 import Foundation
 
 struct PageUnifiedNetworking: View {
+    @EnvironmentObject var profilePreview: ProfilePreviewCoordinator
+    
     // MARK: - State Management
     @State private var selectedTab: NetworkingTab = .entrepreneurs
     @State private var myNetwork: [InviteProfileData] = []
@@ -155,14 +157,14 @@ struct PageUnifiedNetworking: View {
                     secondaryButton: .cancel()
                 )
             }
-            .sheet(isPresented: $showProfileSheet) {
-                if let profile = selectedProfile {
-                    DynamicProfilePreview(
-                        profileData: profile,
-                        isInNetwork: true // ✅ because these are your connections
-                    )
-                }
-            }
+//            .sheet(isPresented: $showProfileSheet) {
+//                if let profile = selectedProfile {
+//                    DynamicProfilePreview(
+//                        profileData: profile,
+//                        isInNetwork: true // ✅ because these are your connections
+//                    )
+//                }
+//            }
         .withNotifications() // ✅ Enable notifications on PageUnifiedNetworking
         .withTutorialOverlay() // ✅ Enable tutorial overlay on PageUnifiedNetworking
     }
@@ -341,17 +343,17 @@ struct PageUnifiedNetworking: View {
             .padding(.bottom, 120) // Add significant bottom padding to clear the bottom navigation
         }
         .background(Color(.systemGroupedBackground))
-        .sheet(isPresented: $showProfilePreview) {
-            if let profile = selectedFullProfile {
-                DynamicProfilePreview(
-                    profileData: profile,
-                    isInNetwork: false
-                )
-            } else {
-                Text("Loading profile...")
-                    .padding()
-            }
-        }
+//        .sheet(isPresented: $showProfilePreview) {
+//            if let profile = selectedFullProfile {
+//                DynamicProfilePreview(
+//                    profileData: profile,
+//                    isInNetwork: false
+//                )
+//            } else {
+//                Text("Loading profile...")
+//                    .padding()
+//            }
+//        }
         .fullScreenCover(isPresented: $showChatView) {
             if let user = selectedChatUser {
                 ChatView(user: user, messages: selectedChatMessages)
@@ -926,12 +928,13 @@ struct PageUnifiedNetworking: View {
     // MARK: - Card Views
     private func enhancedEntrepreneurCard(for entrepreneur: SharedEntrepreneurProfileData) -> some View {
         Button(action: {
-            fetchUserProfile(userId: entrepreneur.user_id) { profile in
-                if let profile = profile {
-                    selectedFullProfile = profile
-                    showProfilePreview = true
-                }
-            }
+//            fetchUserProfile(userId: entrepreneur.user_id) { profile in
+//                if let profile = profile {
+//                    selectedFullProfile = profile
+//                    showProfilePreview = true
+//                }
+//            }
+            profilePreview.present(userId: entrepreneur.user_id)
         }) {
             VStack(alignment: .leading, spacing: 16) {
                 HStack(spacing: 16) {
@@ -1214,14 +1217,15 @@ struct PageUnifiedNetworking: View {
     
     private func enhancedMentorCard(for mentor: MentorProfileData) -> some View {
         Button(action: {
-            fetchUserProfile(userId: mentor.user_id) { profile in
-                if let profile = profile {
-                    selectedFullProfile = profile
-                    showProfilePreview = true
-                } else {
-                    print("🎯 No profile data available for mentor: \(mentor.name)")
-                }
-            }
+//            fetchUserProfile(userId: mentor.user_id) { profile in
+//                if let profile = profile {
+//                    selectedFullProfile = profile
+//                    showProfilePreview = true
+//                } else {
+//                    print("🎯 No profile data available for mentor: \(mentor.name)")
+//                }
+//            }
+            profilePreview.present(userId: mentor.user_id)
         }) {
             VStack(alignment: .leading, spacing: 16) {
                 HStack(spacing: 16) {
@@ -1529,12 +1533,14 @@ struct PageUnifiedNetworking: View {
     private func enhancedNetworkConnectionCard(for connection: InviteProfileData) -> some View {
         print("🃏 Creating card for: \(connection.name) - \(connection.email)")
         return Button(action: {
-            fetchUserProfile(userId: connection.user_id) { profile in
-                if let profile = profile {
-                    selectedProfile = profile
-                    showProfileSheet = true
-                }
-            }
+//            fetchUserProfile(userId: connection.user_id) { profile in
+//                if let profile = profile {
+//                    selectedProfile = profile
+//                    showProfileSheet = true
+//                }
+//            }
+            profilePreview.present(userId: connection.user_id)
+            profilePreview.present(userId: connection.user_id)
         }) {
 
             VStack(alignment: .leading, spacing: 16) {

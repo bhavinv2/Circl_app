@@ -3,6 +3,8 @@ import UIKit
 import Foundation
 
 struct ChatView: View {
+    @EnvironmentObject var profilePreview: ProfilePreviewCoordinator
+
     let user: NetworkUser
     @State private var messageText = ""
     @State private var messages: [NetworkChatMessage] = []
@@ -13,8 +15,8 @@ struct ChatView: View {
     @State private var showingMediaPicker = false
     @State private var showingOptionsMenu = false
     @State private var showMediaMenu = false
-    @State private var showProfileSheet = false
-    @State private var selectedProfile: FullProfile?
+//    @State private var showProfileSheet = false
+//    @State private var selectedProfile: FullProfile?
     @Environment(\.presentationMode) var presentationMode
     
     // Real messages from PageMessages
@@ -87,14 +89,14 @@ struct ChatView: View {
                 }
             }
         }
-        .sheet(isPresented: $showProfileSheet) {
-            if let profile = selectedProfile {
-                DynamicProfilePreview(
-                    profileData: profile,
-                    isInNetwork: true // Assuming they're in network if they're chatting
-                )
-            }
-        }
+//        .sheet(isPresented: $showProfileSheet) {
+//            if let profile = selectedProfile {
+//                DynamicProfilePreview(
+//                    profileData: profile,
+//                    isInNetwork: true // Assuming they're in network if they're chatting
+//                )
+//            }
+//        }
     }
     
     // MARK: - LinkedIn Header Section
@@ -120,12 +122,13 @@ struct ChatView: View {
                 Button(action: {
                     print("👤 Tapped header profile for: \(user.name)")
                     if let userId = Int(user.id) {
-                        fetchUserProfile(userId: userId) { profile in
-                            if let profile = profile {
-                                selectedProfile = profile
-                                showProfileSheet = true
-                            }
-                        }
+//                        fetchUserProfile(userId: userId) { profile in
+//                            if let profile = profile {
+//                                selectedProfile = profile
+//                                showProfileSheet = true
+//                            }
+//                        }
+                        profilePreview.present(userId: userId)
                     }
                 }) {
                     AsyncImage(url: URL(string: user.profile_image ?? "")) { phase in
@@ -153,12 +156,7 @@ struct ChatView: View {
                 Button(action: {
                     print("👤 Tapped header user info for: \(user.name)")
                     if let userId = Int(user.id) {
-                        fetchUserProfile(userId: userId) { profile in
-                            if let profile = profile {
-                                selectedProfile = profile
-                                showProfileSheet = true
-                            }
-                        }
+                        profilePreview.present(userId: userId)
                     }
                 }) {
                     VStack(alignment: .leading, spacing: 1) {
@@ -305,12 +303,13 @@ struct ChatView: View {
                                     print("👤 Tapped profile for: \(user.name)")
                                     // Convert String id back to Int for API call
                                     if let userId = Int(user.id) {
-                                        fetchUserProfile(userId: userId) { profile in
-                                            if let profile = profile {
-                                                selectedProfile = profile
-                                                showProfileSheet = true
-                                            }
-                                        }
+//                                        fetchUserProfile(userId: userId) { profile in
+//                                            if let profile = profile {
+//                                                selectedProfile = profile
+//                                                showProfileSheet = true
+//                                            }
+//                                        }
+                                        profilePreview.present(userId: userId)
                                     }
                                 }
                             )
@@ -931,39 +930,39 @@ struct ChatView: View {
         print("🚫 Block user: \(user.name)")
     }
     
-    private func fetchUserProfile(userId: Int, completion: @escaping (FullProfile?) -> Void) {
-        guard let url = URL(string: "https://circlapp.online/api/users/profile/\(userId)/") else {
-            completion(nil)
-            return
-        }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        if let token = UserDefaults.standard.string(forKey: "auth_token") {
-            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
-        }
-
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            guard let data = data else {
-                completion(nil)
-                return
-            }
-
-            do {
-                let profile = try JSONDecoder().decode(FullProfile.self, from: data)
-                DispatchQueue.main.async {
-                    completion(profile)
-                }
-            } catch {
-                print("Error decoding profile: \(error)")
-                DispatchQueue.main.async {
-                    completion(nil)
-                }
-            }
-        }.resume()
-    }
+//    private func fetchUserProfile(userId: Int, completion: @escaping (FullProfile?) -> Void) {
+//        guard let url = URL(string: "https://circlapp.online/api/users/profile/\(userId)/") else {
+//            completion(nil)
+//            return
+//        }
+//
+//        var request = URLRequest(url: url)
+//        request.httpMethod = "GET"
+//        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+//
+//        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+//            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+//        }
+//
+//        URLSession.shared.dataTask(with: request) { data, response, error in
+//            guard let data = data else {
+//                completion(nil)
+//                return
+//            }
+//
+//            do {
+//                let profile = try JSONDecoder().decode(FullProfile.self, from: data)
+//                DispatchQueue.main.async {
+//                    completion(profile)
+//                }
+//            } catch {
+//                print("Error decoding profile: \(error)")
+//                DispatchQueue.main.async {
+//                    completion(nil)
+//                }
+//            }
+//        }.resume()
+//    }
 
 }
 

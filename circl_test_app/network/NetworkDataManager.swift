@@ -19,6 +19,14 @@ class NetworkDataManager: ObservableObject {
         return entrepreneurs.count + mentors.count
     }
     
+    var userNetworkIds: Set<Int> { 
+        Set(userNetworkRaw.compactMap { dict in
+            (dict["id"] as? Int)
+            ?? (dict["user_id"] as? Int)
+            ?? (dict["friend_id"] as? Int)
+        })
+    }
+    
     private var isNetworkLoading = false
     private var isFriendRequestsLoading = false
     

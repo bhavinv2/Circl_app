@@ -81,11 +81,15 @@ struct MainAppView: View {
                     PageCircles()
                         .onAppear { print("⭕ MainAppView: Showing PageCircles (tab 2)") }
                 case 3:
-                    PageBusinessProfile()
-                        .onAppear { print("🏢 MainAppView: Showing PageBusinessProfile (tab 3)") }
+                    PageSkillSellingPlaceholder()
+                        .onAppear { print("MainAppView: Showing Growth Hub (tab 3)") }
+//                    PageBusinessProfile()
+//                        .onAppear { print("🏢 MainAppView: Showing PageBusinessProfile (tab 3)") }
                 case 4:
-                    ProfilePage()
-                        .onAppear { print("👤 MainAppView: Showing ProfilePage (tab 4)") }
+                    PageSettings()
+                        .onAppear { print("MainAppView: Showing Settings (tab 4)") }
+//                    ProfilePage()
+//                        .onAppear { print("👤 MainAppView: Showing ProfilePage (tab 4)") }
                 default:
                     PageForum()
                         .onAppear { print("🏠 MainAppView: Showing PageForum (default)") }

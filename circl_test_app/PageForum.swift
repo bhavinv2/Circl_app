@@ -292,6 +292,8 @@ struct ReportPostView: View {
 
 
 struct ForumMainContent: View {
+    @EnvironmentObject var profilePreview: ProfilePreviewCoordinator
+    
     @Binding var selectedFilter: String
     @Binding var visualSelectedTab: String
     @Binding var selectedCategory: String
@@ -314,8 +316,8 @@ struct ForumMainContent: View {
     let toggleLike: (ForumPostModel) -> Void
     let deletePost: (Int) -> Void
     let fetchUserProfile: (Int, @escaping (FullProfile?) -> Void) -> Void
-    let selectedProfile: FullProfile?
-    let showProfileSheet: (FullProfile) -> Void
+//    let selectedProfile: FullProfile?
+//    let showProfileSheet: (FullProfile) -> Void
 
     var body: some View {
         VStack(spacing: 0) {
@@ -456,11 +458,7 @@ struct ForumMainContent: View {
                                     deletePost(post.id)
                                 },
                                 onTapProfile: {
-                                    fetchUserProfile(post.user_id) { profile in
-                                        if let profile = profile {
-                                            showProfileSheet(profile)
-                                        }
-                                    }
+                                    profilePreview.present(userId: post.user_id)
                                 },
                                 isMentor: post.isMentor ?? false
                             )
@@ -479,6 +477,8 @@ struct ForumMainContent: View {
 }
 
 struct PageForum: View {
+    @EnvironmentObject var profilePreview: ProfilePreviewCoordinator
+    
     @State private var selectedCategory = "Category"
     @State private var selectedPrivacy = "Public"
     @State private var postContent = ""
@@ -496,12 +496,12 @@ struct PageForum: View {
     @State private var showPostCreationSheet = false
     @State private var selectedFilter: String = "public"
     @State private var visualSelectedTab: String = "public" // Visual state separate from API state
-    @State private var selectedProfile: FullProfile?
-    @State private var showProfileSheet = false
+//    @State private var selectedProfile: FullProfile?
+//    @State private var showProfileSheet = false
     @State private var isLoading = false
     @State private var showPageLoading = true
     @State private var isTabSwitchLoading = false
-    @State private var userNetworkIds: [Int] = []
+//    @State private var userNetworkIds: [Int] = []
 
     @State private var gradientOffset: CGFloat = 0
     @State private var backgroundRotationAngle: Double = 0
@@ -541,14 +541,14 @@ struct PageForum: View {
                 )
             )
         }
-        .sheet(isPresented: $showProfileSheet) {
-            if let profile = selectedProfile {
-                DynamicProfilePreview(
-                    profileData: profile,
-                    isInNetwork: userNetworkIds.contains(profile.user_id)
-                )
-            }
-        }
+//        .sheet(isPresented: $showProfileSheet) {
+//            if let profile = selectedProfile {
+//                DynamicProfilePreview(
+//                    profileData: profile,
+//                    isInNetwork: userNetworkIds.contains(profile.user_id)
+//                )
+//            }
+//        }
 
         .onAppear {
             loggedInUserFullName = UserDefaults.standard.string(forKey: "user_fullname") ?? ""
@@ -567,7 +567,7 @@ struct PageForum: View {
             selectedFilter = UserDefaults.standard.string(forKey: "selectedFilter") ?? "public"
             visualSelectedTab = selectedFilter // Sync visual state with saved preference
             
-            fetchUserNetworkIds()
+//            fetchUserNetworkIds()
             fetchPostsWithLoading()
 
             if !hasSeenTutorial {
@@ -765,12 +765,11 @@ struct PageForum: View {
             submitPost: submitPost,
             toggleLike: { post in toggleLike(post) },
             deletePost: deletePost,
-            fetchUserProfile: fetchUserProfile,
-            selectedProfile: selectedProfile,
-            showProfileSheet: { profile in
-                selectedProfile = profile
-                showProfileSheet = true
-            }
+            fetchUserProfile: fetchUserProfile//,
+//            selectedProfile: selectedProfile,
+//            showProfileSheet: { profile in
+//                selectedProfile = profile
+//            }
         )
     }
     
@@ -968,26 +967,26 @@ struct PageForum: View {
         }.resume()
     }
     
-    func fetchUserNetworkIds() {
-        let userId = UserDefaults.standard.integer(forKey: "user_id")
-        guard let url = URL(string: "https://circlapp.online/api/users/get_network/\(userId)/") else { return }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        if let token = UserDefaults.standard.string(forKey: "auth_token") {
-            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
-        }
-
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            guard let data = data,
-                  let json = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] else { return }
-
-            let ids = json.compactMap { $0["id"] as? Int }
-            DispatchQueue.main.async {
-                userNetworkIds = ids
-            }
-        }.resume()
-    }
+//    func fetchUserNetworkIds() {
+//        let userId = UserDefaults.standard.integer(forKey: "user_id")
+//        guard let url = URL(string: "https://circlapp.online/api/users/get_network/\(userId)/") else { return }
+//
+//        var request = URLRequest(url: url)
+//        request.httpMethod = "GET"
+//        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+//            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+//        }
+//
+//        URLSession.shared.dataTask(with: request) { data, response, error in
+//            guard let data = data,
+//                  let json = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] else { return }
+//
+//            let ids = json.compactMap { $0["id"] as? Int }
+//            DispatchQueue.main.async {
+//                userNetworkIds = ids
+//            }
+//        }.resume()
+//    }
 
 
     func toggleLike(_ post: ForumPostModel) {
@@ -1047,6 +1046,7 @@ struct PageForum: View {
 // MARK: - Adaptive Components
 
 struct AdaptiveMainContent: View {
+    @EnvironmentObject var profilePreview: ProfilePreviewCoordinator
     @Binding var selectedFilter: String
     @Binding var visualSelectedTab: String
     @Binding var selectedCategory: String
@@ -1072,8 +1072,8 @@ struct AdaptiveMainContent: View {
     let toggleLike: (ForumPostModel) -> Void
     let deletePost: (Int) -> Void
     let fetchUserProfile: (Int, @escaping (FullProfile?) -> Void) -> Void
-    let selectedProfile: FullProfile?
-    let showProfileSheet: (FullProfile) -> Void
+//    let selectedProfile: FullProfile?
+//    let showProfileSheet: (FullProfile) -> Void
     
     var body: some View {
         VStack(spacing: 0) {
@@ -1132,11 +1132,7 @@ struct AdaptiveMainContent: View {
                                     toggleLike: { toggleLike(post) },
                                     deletePost: { deletePost(post.id) },
                                     onTapProfile: {
-                                        fetchUserProfile(post.user_id) { profile in
-                                            if let profile = profile {
-                                                showProfileSheet(profile)
-                                            }
-                                        }
+                                        profilePreview.present(userId: post.user_id)
                                     },
                                     isCompact: false
                                 )
@@ -1164,11 +1160,7 @@ struct AdaptiveMainContent: View {
                                     isCurrentUser: post.user == loggedInUserFullName,
                                     onDelete: { deletePost(post.id) },
                                     onTapProfile: {
-                                        fetchUserProfile(post.user_id) { profile in
-                                            if let profile = profile {
-                                                showProfileSheet(profile)
-                                            }
-                                        }
+                                        profilePreview.present(userId: post.user_id)
                                     },
                                     isMentor: post.isMentor ?? false
                                 )
@@ -1312,22 +1304,25 @@ struct PageForum_Previews: PreviewProvider {
 }
 
 struct CommentSheet: View {
+    @EnvironmentObject var profilePreview: ProfilePreviewCoordinator
+    
     let postId: Int
     @Binding var isPresented: Bool
     var onDismiss: () -> Void = {}
     @State private var newComment = ""
     @State private var comments: [CommentModel] = []
+    //var profile
 
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
                 // Header
                 HStack {
-                    Button("Cancel") {
-                        isPresented = false
-                        onDismiss()
-                    }
-                    .foregroundColor(Color(hex: "004aad"))
+//                    Button("Cancel") {
+//                        isPresented = false
+//                        onDismiss()
+//                    }
+//                    .foregroundColor(Color(hex: "004aad"))
                     
                     Spacer()
                     
@@ -1354,28 +1349,32 @@ struct CommentSheet: View {
                             VStack(spacing: 0) {
                                 HStack(alignment: .top, spacing: 12) {
                                     // Profile Image
-                                    if let urlString = comment.profile_image,
-                                       let encoded = urlString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
-                                       let url = URL(string: encoded) {
-                                        AsyncImage(url: url) { phase in
-                                            if let image = phase.image {
-                                                image
-                                                    .resizable()
-                                                    .aspectRatio(contentMode: .fill)
-                                            } else {
-                                                Image("default_image")
-                                                    .resizable()
-                                                    .aspectRatio(contentMode: .fill)
+                                    Button {
+                                        profilePreview.present(userId: comment.id)
+                                    } label: {
+                                        if let urlString = comment.profile_image,
+                                           let encoded = urlString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+                                           let url = URL(string: encoded) {
+                                            AsyncImage(url: url) { phase in
+                                                if let image = phase.image {
+                                                    image
+                                                        .resizable()
+                                                        .aspectRatio(contentMode: .fill)
+                                                } else {
+                                                    Image("image")
+                                                        .resizable()
+                                                        .aspectRatio(contentMode: .fill)
+                                                }
                                             }
-                                        }
-                                        .frame(width: 32, height: 32)
-                                        .clipShape(Circle())
-                                    } else {
-                                        Image("default_image")
-                                            .resizable()
-                                            .aspectRatio(contentMode: .fill)
                                             .frame(width: 32, height: 32)
                                             .clipShape(Circle())
+                                        } else {
+                                            Image("image")
+                                                .resizable()
+                                                .aspectRatio(contentMode: .fill)
+                                                .frame(width: 32, height: 32)
+                                                .clipShape(Circle())
+                                        }
                                     }
 
                                     VStack(alignment: .leading, spacing: 4) {
@@ -2020,175 +2019,6 @@ struct AdaptiveForumPost: View {
     }
 }
 
-struct BottomNavigationView: View {
-    let unreadMessageCount: Int
-    @Binding var showMoreMenu: Bool
-    
-    var body: some View {
-        ZStack {
-            // Bottom Navigation
-            VStack {
-                Spacer()
-                
-                HStack(spacing: 0) {
-                    // Forum / Home (Current page - highlighted)
-                    VStack(spacing: 4) {
-                        Image(systemName: "house.fill")
-                            .font(.system(size: 22, weight: .medium))
-                            .foregroundColor(Color(hex: "004aad"))
-                        Text("Home")
-                            .font(.system(size: 10, weight: .medium))
-                            .foregroundColor(Color(hex: "004aad"))
-                    }
-                    .frame(maxWidth: .infinity)
-                    
-                    // Connect and Network
-                    NavigationLink(destination: PageUnifiedNetworking().navigationBarBackButtonHidden(true)) {
-                        VStack(spacing: 4) {
-                            Image(systemName: "person.2")
-                                .font(.system(size: 22, weight: .medium))
-                                .foregroundColor(Color(UIColor.label).opacity(0.6))
-                            Text("Network")
-                                .font(.system(size: 10, weight: .medium))
-                                .foregroundColor(Color(UIColor.label).opacity(0.6))
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
-                    
-                    // Circles
-                    NavigationLink(destination: PageCircles().navigationBarBackButtonHidden(true)) {
-                        VStack(spacing: 4) {
-                            Image(systemName: "circle.grid.2x2")
-                                .font(.system(size: 22, weight: .medium))
-                                .foregroundColor(Color(UIColor.label).opacity(0.6))
-                            Text("Circles")
-                                .font(.system(size: 10, weight: .medium))
-                                .foregroundColor(Color(UIColor.label).opacity(0.6))
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
-                    
-                    // Growth Hub
-                    NavigationLink(destination: PageSkillSellingPlaceholder().navigationBarBackButtonHidden(true)) {
-                        VStack(spacing: 4) {
-                            Image(systemName: "dollarsign.circle")
-                                .font(.system(size: 22, weight: .medium))
-                                .foregroundColor(Color(UIColor.label).opacity(0.6))
-                            Text("Growth Hub")
-                                .font(.system(size: 10, weight: .medium))
-                                .foregroundColor(Color(UIColor.label).opacity(0.6))
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
-                    
-                    // More
-                    Button(action: {
-                        withAnimation(.easeInOut(duration: 0.3)) {
-                            showMoreMenu.toggle()
-                        }
-                    }) {
-                        VStack(spacing: 4) {
-                            Image(systemName: "ellipsis")
-                                .font(.system(size: 22, weight: .medium))
-                                .foregroundColor(Color(UIColor.label).opacity(0.6))
-                            Text("More")
-                                .font(.system(size: 10, weight: .medium))
-                                .foregroundColor(Color(UIColor.label).opacity(0.6))
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
-                }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 20)
-                .padding(.bottom, 8)
-                .background(
-                    Rectangle()
-                        .fill(Color(UIColor.systemBackground))
-                        .shadow(color: .black.opacity(0.1), radius: 1, x: 0, y: -1)
-                        .ignoresSafeArea(edges: .bottom)
-                )
-            }
-            .ignoresSafeArea(edges: .bottom)
-            .zIndex(1)
-            
-            // More Menu Popup for iPhone
-            if showMoreMenu {
-                VStack {
-                    Spacer()
-                    
-                    VStack(alignment: .leading, spacing: 0) {
-                        Text("More Options")
-                            .font(.headline)
-                            .fontWeight(.bold)
-                            .padding(.horizontal, 20)
-                            .padding(.top, 20)
-                            .padding(.bottom, 10)
-                            .foregroundColor(.primary)
-                        
-                        Divider()
-                            .padding(.horizontal, 16)
-                        
-                        VStack(spacing: 0) {
-                            NavigationLink(destination: PageEntrepreneurResources().navigationBarBackButtonHidden(true)) {
-                                MoreMenuItem(icon: "briefcase.fill", title: "Professional Services", subtitle: "Find business services and experts")
-                            }
-                            
-                            Divider().padding(.horizontal, 16)
-                            
-                            NavigationLink(destination: PageEntrepreneurKnowledge().navigationBarBackButtonHidden(true)) {
-                                MoreMenuItem(icon: "newspaper.fill", title: "News & Knowledge", subtitle: "Stay updated with industry insights")
-                            }
-                            
-                            Divider().padding(.horizontal, 16)
-                            
-                            NavigationLink(destination: PageSkillSellingMatching().navigationBarBackButtonHidden(true)) {
-                                MoreMenuItem(icon: "dollarsign.circle.fill", title: "The Circl Exchange", subtitle: "Buy and sell skills and services")
-                            }
-                            
-                            Divider().padding(.horizontal, 16)
-                            
-                            NavigationLink(destination: PageSettings().navigationBarBackButtonHidden(true)) {
-                                MoreMenuItem(icon: "gear.circle.fill", title: "Settings", subtitle: "Manage your account and preferences")
-                            }
-                        }
-                        
-                        Button(action: {
-                            withAnimation(.easeInOut(duration: 0.3)) {
-                                showMoreMenu = false
-                            }
-                        }) {
-                            Text("Close")
-                                .font(.system(size: 16, weight: .medium))
-                                .foregroundColor(Color(hex: "004aad"))
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 16)
-                        }
-                        .background(Color(UIColor.systemGray6))
-                    }
-                    .background(Color(UIColor.systemBackground))
-                    .cornerRadius(16)
-                    .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: -5)
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 100)
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
-                }
-                .zIndex(2)
-            }
-            
-            // Tap-out-to-dismiss layer
-            if showMoreMenu {
-                Color.black.opacity(0.001)
-                    .ignoresSafeArea()
-                    .onTapGesture {
-                        withAnimation(.easeInOut(duration: 0.3)) {
-                            showMoreMenu = false
-                        }
-                    }
-                    .zIndex(1)
-            }
-        }
-    }
-}
 
 struct MoreMenuItem: View {
     let icon: String
