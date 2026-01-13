@@ -2,6 +2,8 @@ import SwiftUI
 import Foundation
 
 struct PageMessages: View {
+    @Environment(\.dismiss) private var dismiss
+    
     @EnvironmentObject var profilePreview: ProfilePreviewCoordinator
     
     @State private var messages: [Message] = [] // Messages array
@@ -29,48 +31,41 @@ struct PageMessages: View {
         AdaptiveContentWrapper(
             configuration: AdaptivePageConfiguration(
                 title: "Messages",
-                navigationItems: AdaptivePageConfiguration.defaultNavigation(currentPageTitle: "Messages", unreadMessageCount: unreadMessageCount)
+                navigationItems: AdaptivePageConfiguration.defaultNavigation(currentPageTitle: "Messages", unreadMessageCount: unreadMessageCount),
+                showsBottomNavigation: false
             ),
             customHeader: { layoutManager in
                 // Custom header for PageMessages
                 VStack(spacing: 0) {
                     HStack {
                         // Left side - Profile
-                        NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
-                            AsyncImage(url: URL(string: userProfileImageURL)) { phase in
-                                switch phase {
-                                case .success(let image):
-                                    image
-                                        .resizable()
-                                        .scaledToFill()
-                                        .frame(width: 36, height: 36)
-                                        .clipShape(Circle())
-                                default:
-                                    Image(systemName: "person.circle.fill")
-                                        .font(.system(size: 36))
-                                        .foregroundColor(.white)
-                                }
-                            }
+                        Button(action: {
+                            dismiss()
+                        }) {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 20, weight: .medium))
+                                .foregroundColor(.white)
+                                .padding(8)
                         }
                         
                         Spacer()
                         
                         // Center - Simple Logo
-                        Text("Circl.")
+                        Text("Messages")
                             .font(.system(size: 28, weight: .bold))
                             .foregroundColor(.white)
                         
                         Spacer()
                         
-                        Spacer().frame(width: 8)
+                        Spacer().frame(width: 31)
                         
                         // Right side - Home
-                        NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
-                            Image(systemName: "house.fill")
-                                .font(.system(size: 24, weight: .medium))
-                                .foregroundColor(.white)
-                                .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
-                        }
+//                        NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
+//                            Image(systemName: "house.fill")
+//                                .font(.system(size: 24, weight: .medium))
+//                                .foregroundColor(.white)
+//                                .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+//                        }
                     }
                     .padding(.horizontal, 18)
                     .padding(.bottom, 18)
@@ -416,25 +411,25 @@ struct PageMessages: View {
                             }
                             
                             // Discover People Button
-                            NavigationLink(destination: PageUnifiedNetworking().navigationBarBackButtonHidden(true)) {
-                                HStack(spacing: 12) {
-                                    Image(systemName: "person.2.fill")
-                                        .font(.system(size: 16, weight: .medium))
-                                    Text("Discover People")
-                                        .font(.system(size: 16, weight: .medium))
-                                }
-                                .foregroundColor(Color(hex: "004aad"))
-                                .padding(.horizontal, 24)
-                                .padding(.vertical, 14)
-                    .background(
-                                    RoundedRectangle(cornerRadius: 14)
-                                        .fill(.ultraThinMaterial)
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 14)
-                                                .stroke(Color(hex: "004aad").opacity(0.3), lineWidth: 1)
-                                        )
-                                )
-                            }
+//                            NavigationLink(destination: PageUnifiedNetworking().navigationBarBackButtonHidden(true)) {
+//                                HStack(spacing: 12) {
+//                                    Image(systemName: "person.2.fill")
+//                                        .font(.system(size: 16, weight: .medium))
+//                                    Text("Discover People")
+//                                        .font(.system(size: 16, weight: .medium))
+//                                }
+//                                .foregroundColor(Color(hex: "004aad"))
+//                                .padding(.horizontal, 24)
+//                                .padding(.vertical, 14)
+//                    .background(
+//                                    RoundedRectangle(cornerRadius: 14)
+//                                        .fill(.ultraThinMaterial)
+//                                        .overlay(
+//                                            RoundedRectangle(cornerRadius: 14)
+//                                                .stroke(Color(hex: "004aad").opacity(0.3), lineWidth: 1)
+//                                        )
+//                                )
+//                            }
                         }
                         
                         Spacer()

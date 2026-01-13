@@ -320,13 +320,13 @@ struct TutorialTooltip: View {
         case "PageCircles":
             PageCircles()
         case "PageBusinessProfile":
-            PageBusinessProfile()
+            ProfileHubPage(initialTab: .business)
         case "PageEntrepreneurResources":
             PageEntrepreneurResources()
         case "PageMessages":
             PageMessages()
         case "ProfilePage":
-            ProfilePage()
+            ProfileHubPage(initialTab: .profile)
         default:
             PageForum() // Default fallback
         }
@@ -351,7 +351,7 @@ struct TutorialTooltip: View {
             print("🎯 Force navigated to PageBusinessProfile (tab 3)")
         case "ProfilePage":
             NavigationManager.shared.forceNavigateTo(tab: 4)
-            print("🎯 Force navigated to ProfilePage (tab 4)")
+            print("🎯 Force navigated to ProfilePage (via ProfileHubTab)")
         case "PageEntrepreneurResources":
             // This page isn't in main TabView - stay on current tab for now
             print("⚠️ Tutorial navigation: PageEntrepreneurResources not in main TabView - staying on tab \(oldTab)")

@@ -619,7 +619,7 @@ struct PageCircleMessages: View {
             NavigationLink(destination: PageEntrepreneurMatching().navigationBarBackButtonHidden(true)) {
                 MenuItem(icon: "person.2.fill", title: "Connect and Network")
             }
-            NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true)) {
+            NavigationLink(destination: ProfileHubPage(initialTab: .business).navigationBarBackButtonHidden(true)) {
                 MenuItem(icon: "person.crop.square.fill", title: "Your Business Profile")
             }
             NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {

@@ -161,7 +161,7 @@ struct PageSkillSellingPlaceholder: View {
         VStack(spacing: 0) {
             HStack {
                 // Left side: Profile picture
-                NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
+                NavigationLink(destination: ProfileHubPage(initialTab: .profile).navigationBarBackButtonHidden(true)) {
                     AsyncImage(url: URL(string: userProfileImageURL)) { phase in
                         switch phase {
                         case .success(let image):

@@ -627,7 +627,7 @@ struct PageForum: View {
                 }
                 
                 // Left side - Enhanced Profile
-                NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
+                NavigationLink(destination: ProfileHubPage(initialTab: .profile).navigationBarBackButtonHidden(true)) {
                     ZStack {
                         if !userProfileImageURL.isEmpty {
                             AsyncImage(url: URL(string: userProfileImageURL)) { image in
@@ -1698,7 +1698,7 @@ struct AdaptiveHeaderView: View {
                         }
                     }
                     
-                    NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
+                    NavigationLink(destination: ProfileHubPage(initialTab: .profile).navigationBarBackButtonHidden(true)) {
                         AsyncImage(url: URL(string: userProfileImageURL)) { phase in
                             switch phase {
                             case .success(let image):

@@ -73,19 +73,22 @@ struct AdaptivePageConfiguration {
     let supportsCompose: Bool
     let supportsTabs: Bool
     let customHeaderActions: [HeaderAction]
+    let showsBottomNavigation: Bool
     
     init(
         title: String,
         navigationItems: [NavigationItem] = [],
         supportsCompose: Bool = false,
         supportsTabs: Bool = false,
-        customHeaderActions: [HeaderAction] = []
+        customHeaderActions: [HeaderAction] = [],
+        showsBottomNavigation: Bool = true
     ) {
         self.title = title
         self.navigationItems = navigationItems
         self.supportsCompose = supportsCompose
         self.supportsTabs = supportsTabs
         self.customHeaderActions = customHeaderActions
+        self.showsBottomNavigation = showsBottomNavigation
     }
 }
 

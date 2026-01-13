@@ -3,6 +3,9 @@ import Foundation
 
 struct ProfilePage: View {
     @Environment(\.dismiss) private var dismiss
+    
+    @AppStorage("user_id") private var userId: Int = 0
+    
     @State private var showError: Bool = false
     @State private var isLoggedIn: Bool = UserDefaults.standard.bool(forKey: "isLoggedIn")
     @State private var isMentor: Bool = UserDefaults.standard.bool(forKey: "isMentor")
@@ -35,63 +38,8 @@ struct ProfilePage: View {
     @State private var updatedHobbies = ""
     @State private var updatedBirthday = ""  // Add this to your @State variables
     @State private var updatedEntrepreneurialHistory: String = ""
-
-    // Animated background for header (DEPRECATED - now using solid color)
-    /*
-    private var animatedBackground: some View {
-        ZStack {
-            LinearGradient(
-                colors: [
-                    Color.customHex("001a3d"),
-                    Color.customHex("004aad"),
-                    Color.customHex("0066ff"),
-                    Color.customHex("003d7a")
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            
-            // Flowing wave-like gradient overlay
-            LinearGradient(
-                colors: [
-                    Color.clear,
-                    Color.customHex("0066ff").opacity(0.3),
-                    Color.customHex("004aad").opacity(0.2),
-                    Color.clear,
-                    Color.customHex("002d5a").opacity(0.25),
-                    Color.clear
-                ],
-                startPoint: UnitPoint(
-                    x: isAnimating ? -0.3 : 1.3,
-                    y: 0.0
-                ),
-                endPoint: UnitPoint(
-                    x: isAnimating ? 1.0 : 0.0,
-                    y: 1.0
-                )
-            )
-            
-            // Subtle radial gradient for depth
-            RadialGradient(
-                colors: [
-                    Color.customHex("0066ff").opacity(isAnimating ? 0.15 : 0.05),
-                    Color.clear
-                ],
-                center: UnitPoint(
-                    x: isAnimating ? 0.8 : 0.2,
-                    y: isAnimating ? 0.3 : 0.7
-                ),
-                startRadius: 50,
-                endRadius: 300
-            )
-        }
-        .onAppear {
-            withAnimation(Animation.easeInOut(duration: 12).repeatForever(autoreverses: true)) {
-                isAnimating = true
-            }
-        }
-    }
-    */
+    
+    var hubTab: Binding<ProfileHubTab>? = nil
 
     // MARK: - Profile Header Section
     private func profileHeaderSection(layoutManager: AdaptiveLayoutManager) -> some View {
@@ -118,7 +66,7 @@ struct ProfilePage: View {
                     }
                 }
                 
-                Spacer()
+                Spacer(minLength: 120)
                 
                 // "Circl." logo in center
                 Text("Circl.")
@@ -147,7 +95,7 @@ struct ProfilePage: View {
                     }
                     
                     // Settings button
-                    NavigationLink(destination: PageSettings().navigationBarBackButtonHidden(true)) {
+                    NavigationLink(destination: OpenableSettings().navigationBarBackButtonHidden(true)) {
                         Image(systemName: "gearshape.fill")
                             .font(.system(size: 24))
                             .foregroundColor(.white)
@@ -180,7 +128,8 @@ struct ProfilePage: View {
                     HeaderAction(icon: "gearshape.fill") {
                         showingSettings = true
                     }
-                ]
+                ],
+                showsBottomNavigation: false
             ),
             customHeader: { layoutManager in
                 profileHeaderSection(layoutManager: layoutManager)
@@ -189,16 +138,16 @@ struct ProfilePage: View {
             VStack(spacing: 0) {
                 // Tab Buttons Row - PageForum style tabs (for header)
                 HStack(spacing: 0) {
-                    Spacer()
+                    Spacer(minLength: 71)
                     
                     // Your Profile Tab
                     VStack(spacing: 8) {
                         Text("Your Profile")
-                            .font(.system(size: 15, weight: currentTab == "profile" ? .semibold : .regular))
+                            .font(.system(size: 15, weight: hubTab?.wrappedValue == .profile ? .semibold : .regular))
                             .foregroundColor(.white)
                         
                         Rectangle()
-                            .fill(currentTab == "profile" ? Color.white : Color.clear)
+                            .fill(hubTab?.wrappedValue == .profile ? Color.white : Color.clear)
                             .frame(height: 3)
                             .animation(.easeInOut(duration: 0.2), value: currentTab)
                     }
@@ -206,28 +155,29 @@ struct ProfilePage: View {
                     .contentShape(Rectangle())
                     .onTapGesture {
                         currentTab = "profile"
+                        hubTab?.wrappedValue = .profile
                     }
                     
                     Spacer()
                     
-                    // Business Profile Tab - Navigate to Business Profile
-                    NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true)) {
-                        VStack(spacing: 8) {
-                            Text("Business Profile")
-                                .font(.system(size: 15, weight: currentTab == "business" ? .semibold : .regular))
-                                .foregroundColor(.white)
-                            
-                            Rectangle()
-                                .fill(currentTab == "business" ? Color.white : Color.clear)
-                                .frame(height: 3)
-                                .animation(.easeInOut(duration: 0.2), value: currentTab)
-                        }
-                        .frame(width: 130)
-                        .contentShape(Rectangle())
+                    // Business Profile Tab - Switch to Business Profile
+                    
+                    VStack(spacing: 8) {
+                        Text("Business Profile")
+                            .font(.system(size: 15, weight: hubTab?.wrappedValue == .business ? .semibold : .regular))
+                            .foregroundColor(.white)
+                        
+                        Rectangle()
+                            .fill(hubTab?.wrappedValue == .business ? Color.white : Color.clear)
+                            .frame(height: 3)
+                            .animation(.easeInOut(duration: 0.2), value: currentTab)
                     }
-                    .simultaneousGesture(TapGesture().onEnded {
+                    .frame(width: 130)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
                         currentTab = "business"
-                    })
+                        hubTab?.wrappedValue = .business
+                    }
                     
                     Spacer()
                 }
@@ -420,18 +370,35 @@ struct ProfilePage: View {
                 .dismissKeyboardOnScroll()
             }
         }
-        .onAppear {
-            // Start animations
+//        .onAppear {
+//            // Start animations
+//            withAnimation(.easeOut(duration: 0.8)) {
+//                cardOffset = 0
+//                cardOpacity = 1
+//            }
+//            
+//            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+//                isLoggedIn = UserDefaults.standard.bool(forKey: "isLoggedIn")
+//                fetchProfile()
+//                fetchNetwork()
+//            }
+//        }
+        .task(id: userId) { // Runs whenever userId changes
+            // (1) animation
             withAnimation(.easeOut(duration: 0.8)) {
                 cardOffset = 0
                 cardOpacity = 1
             }
-            
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                isLoggedIn = UserDefaults.standard.bool(forKey: "isLoggedIn")
-                fetchProfile()
-                fetchNetwork()
+
+            // (2) don’t even try if userId isn’t set yet
+            guard userId != 0 else {
+                print("⚠️ ProfilePage: userId is 0, not fetching profile yet.")
+                return
             }
+
+            // (3) load data
+            fetchProfile()
+            fetchNetwork()
         }
         .withNotifications()
         .withSubscriptionPaywall()
@@ -1005,6 +972,7 @@ func calculateAge(from birthday: String) -> String {
 
 struct ProfilePage_Previews: PreviewProvider {
     static var previews: some View {
-        ProfilePage()
+        @State var tab = ProfileHubTab.profile
+        ProfilePage(hubTab: $tab)
     }
 }

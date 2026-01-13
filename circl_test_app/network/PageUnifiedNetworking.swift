@@ -184,7 +184,7 @@ struct PageUnifiedNetworking: View {
                 }
                 
                 // Left side - Enhanced Profile with shadow
-                NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
+                NavigationLink(destination: ProfileHubPage(initialTab: .profile).navigationBarBackButtonHidden(true)) {
                     ZStack {
                         if !userProfileImageURL.isEmpty {
                             AsyncImage(url: URL(string: userProfileImageURL)) { image in
@@ -872,7 +872,7 @@ struct PageUnifiedNetworking: View {
                         NavigationLink(destination: PageUnifiedNetworking().navigationBarBackButtonHidden(true)) {
                             MenuItem(icon: "person.2.fill", title: "Connect and Network")
                         }
-                        NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true)) {
+                        NavigationLink(destination: ProfileHubPage(initialTab: .business).navigationBarBackButtonHidden(true)) {
                             MenuItem(icon: "person.crop.square.fill", title: "Your Business Profile")
                         }
                         NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {

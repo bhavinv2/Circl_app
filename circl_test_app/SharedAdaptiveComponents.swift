@@ -108,7 +108,7 @@ struct SharedAdaptiveHeader: View {
         VStack(spacing: 0) {
             HStack {
                 // Left side: Profile picture
-                NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
+                NavigationLink(destination: ProfileHubPage(initialTab: .profile).navigationBarBackButtonHidden(true)) {
                     AsyncImage(url: URL(string: userProfileImageURL)) { phase in
                         switch phase {
                         case .success(let image):
@@ -409,14 +409,16 @@ struct AdaptiveContentWrapper<Content: View>: View {
                         }
                         
                         // Bottom Navigation Overlay for iPhone
-                        VStack {
-                            Spacer()
-                            SharedBottomNavigation(
-                                configuration: configuration,
-                                unreadMessageCount: unreadMessageCount
-                            )
+                        if configuration.showsBottomNavigation {
+                            VStack {
+                                Spacer()
+                                SharedBottomNavigation(
+                                    configuration: configuration,
+                                    unreadMessageCount: unreadMessageCount
+                                )
+                            }
+                            .zIndex(999)
                         }
-                        .zIndex(999)
                     }
                 }
             }

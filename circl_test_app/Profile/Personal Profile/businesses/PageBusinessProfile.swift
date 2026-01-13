@@ -34,7 +34,11 @@ struct BusinessProfile: Codable {
 
 // MARK: - Main View
 struct PageBusinessProfile: View {
+    @Environment(\.dismiss) private var dismiss
+    
     // MARK: - State Variables
+    
+    var hubTab: Binding<ProfileHubTab>? = nil
 
     @State private var showBusinessOwnerMessage = false
     @State private var isEditing = false
@@ -101,7 +105,9 @@ struct PageBusinessProfile: View {
             HStack {
                 // Back button (iPhone only)
                 if UIDevice.current.userInterfaceIdiom != .pad {
-                    NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
+                    Button{
+                        dismiss()
+                    } label: {
                         Image(systemName: "chevron.left")
                             .font(.system(size: 20, weight: .medium))
                             .foregroundColor(.white)
@@ -118,7 +124,7 @@ struct PageBusinessProfile: View {
                     }
                 }
                 
-                Spacer()
+                Spacer(minLength: 120)
                 
                 // "Circl." logo in center
                 Text("Circl.")
@@ -142,7 +148,7 @@ struct PageBusinessProfile: View {
                     }
                     
                     // Settings button (match ProfilePage for uniformity)
-                    NavigationLink(destination: PageSettings().navigationBarBackButtonHidden(true)) {
+                    NavigationLink(destination: OpenableSettings().navigationBarBackButtonHidden(true)) {
                         Image(systemName: "gearshape.fill")
                             .font(.system(size: 24))
                             .foregroundColor(.white)
@@ -170,7 +176,8 @@ struct PageBusinessProfile: View {
                         }
                         withAnimation { isEditing.toggle() }
                     }
-                ]
+                ],
+                showsBottomNavigation: false
             ),
             customHeader: { layoutManager in
                 businessHeaderSection(layoutManager: layoutManager)
@@ -179,37 +186,36 @@ struct PageBusinessProfile: View {
             VStack(spacing: 0) {
                 // Tab Buttons Row - PageForum style tabs
                 HStack(spacing: 0) {
-                    Spacer()
+                    Spacer(minLength: 71)
                     
-                    // Your Profile Tab - Navigate to Profile Page
-                    NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
-                        VStack(spacing: 8) {
-                            Text("Your Profile")
-                                .font(.system(size: 15, weight: currentTab == "profile" ? .semibold : .regular))
-                                .foregroundColor(.white)
-                            
-                            Rectangle()
-                                .fill(currentTab == "profile" ? Color.white : Color.clear)
-                                .frame(height: 3)
-                                .animation(.easeInOut(duration: 0.2), value: currentTab)
-                        }
-                        .frame(width: 100)
-                        .contentShape(Rectangle())
+                    // Your Profile Tab - Switch Tab to Profile Page
+                    VStack(spacing: 8) {
+                        Text("Your Profile")
+                            .font(.system(size: 15, weight: hubTab?.wrappedValue == .profile ? .semibold : .regular))
+                            .foregroundColor(.white)
+                        
+                        Rectangle()
+                            .fill(hubTab?.wrappedValue == .profile ? Color.white : Color.clear)
+                            .frame(height: 3)
+                            .animation(.easeInOut(duration: 0.2), value: currentTab)
                     }
-                    .simultaneousGesture(TapGesture().onEnded {
+                    .frame(width: 100)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
                         currentTab = "profile"
-                    })
+                        hubTab?.wrappedValue = .profile
+                    }
                     
                     Spacer()
                     
                     // Business Profile Tab
                     VStack(spacing: 8) {
                         Text("Business Profile")
-                            .font(.system(size: 15, weight: currentTab == "business" ? .semibold : .regular))
+                            .font(.system(size: 15, weight: hubTab?.wrappedValue == .business ? .semibold : .regular))
                             .foregroundColor(.white)
                         
                         Rectangle()
-                            .fill(currentTab == "business" ? Color.white : Color.clear)
+                            .fill(hubTab?.wrappedValue == .business ? Color.white : Color.clear)
                             .frame(height: 3)
                             .animation(.easeInOut(duration: 0.2), value: currentTab)
                     }
@@ -217,6 +223,7 @@ struct PageBusinessProfile: View {
                     .contentShape(Rectangle())
                     .onTapGesture {
                         currentTab = "business"
+                        hubTab?.wrappedValue = .business
                     }
                     
                     Spacer()
@@ -297,6 +304,7 @@ struct PageBusinessProfile: View {
                 ]
             }
     }
+    
     func fetchCurrentUserProfile() {
         guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else { return }
         guard let url = URL(string: "https://circlapp.online/api/users/profile/\(userId)/") else { return }
@@ -932,6 +940,7 @@ struct PageBusinessProfile: View {
 
 struct PageBusinessProfile_Previews: PreviewProvider {
     static var previews: some View {
-        PageBusinessProfile()
+        @State var tab = ProfileHubTab.business
+        PageBusinessProfile(hubTab: $tab)
     }
 }

@@ -135,7 +135,7 @@ struct PageEntrepreneurResources: View {
                                     .padding(.horizontal, 16)
                                 
                                 // Settings
-                                NavigationLink(destination: PageSettings().navigationBarBackButtonHidden(true)) {
+                                NavigationLink(destination: OpenableSettings().navigationBarBackButtonHidden(true)) {
                                     HStack(spacing: 16) {
                                         Image(systemName: "gear.circle.fill")
                                             .font(.system(size: 20))
@@ -218,7 +218,7 @@ struct PageEntrepreneurResources: View {
         VStack(spacing: 0) {
             HStack {
                 // Left side - Profile with shadow
-                NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
+                NavigationLink(destination: ProfileHubPage(initialTab: .profile).navigationBarBackButtonHidden(true)) {
                     ZStack {
                         if !userProfileImageURL.isEmpty {
                             AsyncImage(url: URL(string: userProfileImageURL)) { image in

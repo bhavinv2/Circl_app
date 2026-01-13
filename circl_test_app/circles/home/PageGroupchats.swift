@@ -1406,7 +1406,7 @@ struct CirclHeader: View {
                                 .foregroundColor(.white)
                         }
 
-                        NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
+                        NavigationLink(destination: ProfileHubPage(initialTab: .profile).navigationBarBackButtonHidden(true)) {
                             Image(systemName: "person.circle.fill")
                                 .resizable()
                                 .frame(width: 40, height: 40)

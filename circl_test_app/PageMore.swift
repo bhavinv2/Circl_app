@@ -37,7 +37,7 @@ struct PageMore: View {
 
                             Spacer()
 
-                            NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true)) {
+                            NavigationLink(destination: ProfileHubPage(initialTab: .business).navigationBarBackButtonHidden(true)) {
                                 AsyncImage(url: URL(string: userProfileImageURL)) { phase in
                                     switch phase {
                                     case .success(let image):
@@ -72,7 +72,7 @@ struct PageMore: View {
 
                             VStack(spacing: 0) {
                                 MenuItemRow(icon: "person.2.fill", title: "Connect and Network", color: Color(hex: "004aad"), destination: AnyView(PageMyNetwork().navigationBarBackButtonHidden(true)))
-                                MenuItemRow(icon: "person.crop.square.fill", title: "Your Business Profile", color: Color(hex: "004aad"), destination: AnyView(PageBusinessProfile().navigationBarBackButtonHidden(true)))
+                                MenuItemRow(icon: "person.crop.square.fill", title: "Your Business Profile", color: Color(hex: "004aad"), destination: AnyView(ProfileHubPage(initialTab: .business).navigationBarBackButtonHidden(true)))
                                 MenuItemRow(icon: "briefcase.fill", title: "Professional Services", color: Color(hex: "004aad"), destination: AnyView(PageEntrepreneurResources().navigationBarBackButtonHidden(true)))
                                 MenuItemRow(icon: "person.3.fill", title: "Find Entrepreneurs", color: Color(hex: "004aad"), destination: AnyView(PageEntrepreneurMatching().navigationBarBackButtonHidden(true)))
                                 MenuItemRow(icon: "graduationcap.fill", title: "Find Mentors", color: Color(hex: "004aad"), destination: AnyView(PageMentorMatching().navigationBarBackButtonHidden(true)))
