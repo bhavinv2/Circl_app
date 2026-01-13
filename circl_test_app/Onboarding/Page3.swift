@@ -8,7 +8,10 @@ struct Page3: View {
     @State private var lastName: String = ""
     @State private var email: String = ""
     @State private var phoneNumber: String = ""
+    @State private var password: String = ""
+    @State private var confirmPassword: String = ""
     @State private var isEmailValid: Bool = true
+    @State private var isPasswordValid: Bool = true
     
     // State for submission handling
     @State private var isSubmitting: Bool = false
@@ -187,7 +190,10 @@ struct Page3: View {
                         lastName: $lastName,
                         email: $email,
                         phoneNumber: $phoneNumber,
-                        isEmailValid: $isEmailValid
+                        password: $password,
+                        confirmPassword: $confirmPassword,
+                        isEmailValid: $isEmailValid,
+                        isPasswordValid: $isPasswordValid
                     )
                     
                     Spacer(minLength: 15)
@@ -217,6 +223,9 @@ struct Page3: View {
                     Spacer(minLength: 30)
                 }
                 .padding(.horizontal, 30)
+                .onTapGesture {
+                    hideKeyboard()
+                }
                 .alert(isPresented: $showAlert) {
                     Alert(
                         title: Text("Registration Error"),
@@ -241,6 +250,9 @@ struct Page3: View {
                isEmailValid &&
                !email.isEmpty &&
                !phoneNumber.isEmpty &&
+               !password.isEmpty &&
+               !confirmPassword.isEmpty &&
+               isPasswordValid &&
                selectedUsageInterest != nil &&
                selectedIndustryInterest != nil
     }
@@ -258,6 +270,7 @@ struct Page3: View {
             "last_name": lastName,
             "email": email,
             "phone_number": phoneNumber,
+            "password": password,
             "main_usage": selectedUsageInterest ?? "",
             "industry_interest": selectedIndustryInterest ?? ""
         ]
@@ -309,11 +322,24 @@ struct Page3: View {
                             print("❌ Failed to extract user_id from response.")
                         }
 
+                        // ⭐⭐⭐ ADD THESE LINES HERE ⭐⭐⭐
+                        UserDefaults.standard.set(email, forKey: "signup_email")
+                        UserDefaults.standard.set(password, forKey: "signup_password")
+                        UserDefaults.standard.synchronize()
+                        print("🔐 Saved signup email + password for silent login")
+                        // ⭐⭐⭐ END INSERTION ⭐⭐⭐
+
+                        // Store onboarding selections for tutorial system
+                        UserDefaults.standard.set(selectedUsageInterest ?? "", forKey: "selected_usage_interest")
+                        UserDefaults.standard.set(selectedIndustryInterest ?? "", forKey: "selected_industry_interest")
+                        UserDefaults.standard.synchronize()
+                        print("📌 Stored onboarding selections for tutorial system")
+
                         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                             navigateToPage4 = true
                         }
-
-                    } else if httpResponse.statusCode == 400 {
+                    }
+ else if httpResponse.statusCode == 400 {
                         if let data = data,
                            let errorDict = try? JSONSerialization.jsonObject(with: data) as? [String: [String]],
                            let emailErrors = errorDict["email"] {
@@ -362,7 +388,13 @@ struct PersonalInformationSection: View {
     @Binding var lastName: String
     @Binding var email: String
     @Binding var phoneNumber: String
+    @Binding var password: String
+    @Binding var confirmPassword: String
     @Binding var isEmailValid: Bool
+    @Binding var isPasswordValid: Bool
+    @State private var showPassword = false
+    @State private var showConfirmPassword = false
+
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -379,14 +411,6 @@ struct PersonalInformationSection: View {
                 .background(Color(.systemGray5))
                 .cornerRadius(8)
                 .autocapitalization(.words)
-                .toolbar {
-                    ToolbarItemGroup(placement: .keyboard) {
-                        Spacer()
-                        Button("Done") {
-                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                        }
-                    }
-                }
                 
                 TextField("Last Name", text: Binding(
                     get: { lastName },
@@ -396,14 +420,6 @@ struct PersonalInformationSection: View {
                 .background(Color(.systemGray5))
                 .cornerRadius(8)
                 .autocapitalization(.words)
-                .toolbar {
-                    ToolbarItemGroup(placement: .keyboard) {
-                        Spacer()
-                        Button("Done") {
-                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                        }
-                    }
-                }
 
                 VStack(alignment: .leading, spacing: 2) {
                     TextField("Email", text: Binding(
@@ -418,14 +434,6 @@ struct PersonalInformationSection: View {
                     .cornerRadius(8)
                     .keyboardType(.emailAddress)
                     .autocapitalization(.none)
-                    .toolbar {
-                        ToolbarItemGroup(placement: .keyboard) {
-                            Spacer()
-                            Button("Done") {
-                                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                            }
-                        }
-                    }
                     
                     if !isEmailValid && !email.isEmpty {
                         Text("Please enter a valid email address")
@@ -444,17 +452,94 @@ struct PersonalInformationSection: View {
                 .background(Color(.systemGray5))
                 .cornerRadius(8)
                 .keyboardType(.phonePad)
-                .toolbar {
-                    ToolbarItemGroup(placement: .keyboard) {
-                        Spacer()
-                        Button("Done") {
-                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack {
+                        if showPassword {
+                            TextField("Password", text: Binding(
+                                get: { password },
+                                set: { newValue in
+                                    password = newValue
+                                    isPasswordValid = passwordsMatch() && isValidPassword(newValue)
+                                }
+                            ))
+                            .textContentType(.oneTimeCode)
+                            .autocorrectionDisabled(true)
+                            .textInputAutocapitalization(.never)
+                        } else {
+                            SecureField("Password", text: Binding(
+                                get: { password },
+                                set: { newValue in
+                                    password = newValue
+                                    isPasswordValid = passwordsMatch() && isValidPassword(newValue)
+                                }
+                            ))
+                            .textContentType(.oneTimeCode)
+                            .autocorrectionDisabled(true)
+                            .textInputAutocapitalization(.never)
                         }
+                        
+                        Button(action: { showPassword.toggle() }) {
+                            Image(systemName: showPassword ? "eye.slash.fill" : "eye.fill")
+                                .foregroundColor(.gray)
+                        }
+                    }
+                    .padding(12)
+                    .background(Color(.systemGray5))
+                    .cornerRadius(8)
+                    
+                    if !password.isEmpty && !isValidPassword(password) {
+                        Text("Password must be at least 8 characters long")
+                            .font(.caption2)
+                            .foregroundColor(.red)
+                    }
+                }
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack {
+                        if showConfirmPassword {
+                            TextField("Confirm Password", text: Binding(
+                                get: { confirmPassword },
+                                set: { newValue in
+                                    confirmPassword = newValue
+                                    isPasswordValid = passwordsMatch() && isValidPassword(password)
+                                }
+                            ))
+                            .textContentType(.oneTimeCode)
+                            .autocorrectionDisabled(true)
+                            .textInputAutocapitalization(.never)
+                        } else {
+                            SecureField("Confirm Password", text: Binding(
+                                get: { confirmPassword },
+                                set: { newValue in
+                                    confirmPassword = newValue
+                                    isPasswordValid = passwordsMatch() && isValidPassword(password)
+                                }
+                            ))
+                            .textContentType(.oneTimeCode)
+                            .autocorrectionDisabled(true)
+                            .textInputAutocapitalization(.never)
+                        }
+                        
+                        Button(action: { showConfirmPassword.toggle() }) {
+                            Image(systemName: showConfirmPassword ? "eye.slash.fill" : "eye.fill")
+                                .foregroundColor(.gray)
+                        }
+                    }
+                    .padding(12)
+                    .background(Color(.systemGray5))
+                    .cornerRadius(8)
+                    
+                    if !confirmPassword.isEmpty && !passwordsMatch() {
+                        Text("Passwords do not match")
+                            .font(.caption2)
+                            .foregroundColor(.red)
                     }
                 }
             }
         }
     }
+
     
     private func formatPhoneNumber(_ newValue: String) -> String {
         let filtered = newValue.filter { $0.isNumber }
@@ -481,6 +566,14 @@ struct PersonalInformationSection: View {
         let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
         let emailPredicate = NSPredicate(format: "SELF MATCHES %@", emailRegex)
         return emailPredicate.evaluate(with: email)
+    }
+    
+    private func isValidPassword(_ password: String) -> Bool {
+        return password.count >= 8
+    }
+    
+    private func passwordsMatch() -> Bool {
+        return password == confirmPassword
     }
 }
 
@@ -510,11 +603,7 @@ struct ExperienceSetupSection: View {
                     selectedOption: $selectedIndustryInterest
                 )
                 
-                Text("*You Will Get Your Password Upon Approval")
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(.white)
-                    .multilineTextAlignment(.center)
-                    .padding(.top, 5)
+            
             }
         }
     }

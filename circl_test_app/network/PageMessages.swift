@@ -2,6 +2,9 @@ import SwiftUI
 import Foundation
 
 struct PageMessages: View {
+    @Environment(\.dismiss) private var dismiss
+    
+    @EnvironmentObject var profilePreview: ProfilePreviewCoordinator
     
     @State private var messages: [Message] = [] // Messages array
     @State private var newMessageText = "" // For message input
@@ -18,16 +21,71 @@ struct PageMessages: View {
 
     @State private var timer: Timer?
     @State private var selectedProfile: FullProfile? = nil
-    @State private var userProfileImageURL: String? = nil
-    @State private var showMoreMenu = false
-    @State private var rotationAngle: Double = 0
+    @State private var userProfileImageURL: String = ""
     @State private var unreadMessageCount: Int = 0
     @State private var userFirstName: String = ""
 
     @State private var myNetwork: [NetworkUser] = [] // ✅ Correct type
     
     var body: some View {
-        NavigationView {
+        AdaptiveContentWrapper(
+            configuration: AdaptivePageConfiguration(
+                title: "Messages",
+                navigationItems: AdaptivePageConfiguration.defaultNavigation(currentPageTitle: "Messages", unreadMessageCount: unreadMessageCount),
+                showsBottomNavigation: false
+            ),
+            customHeader: { layoutManager in
+                // Custom header for PageMessages
+                VStack(spacing: 0) {
+                    HStack {
+                        // Left side - Profile
+                        Button(action: {
+                            dismiss()
+                        }) {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 20, weight: .medium))
+                                .foregroundColor(.white)
+                                .padding(8)
+                        }
+                        
+                        Spacer()
+                        
+                        // Center - Simple Logo
+                        Text("Messages")
+                            .font(.system(size: 28, weight: .bold))
+                            .foregroundColor(.white)
+                        
+                        Spacer()
+                        
+                        Spacer().frame(width: 31)
+                        
+                        // Right side - Home
+//                        NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
+//                            Image(systemName: "house.fill")
+//                                .font(.system(size: 24, weight: .medium))
+//                                .foregroundColor(.white)
+//                                .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+//                        }
+                    }
+                    .padding(.horizontal, 18)
+                    .padding(.bottom, 18)
+                    .padding(.top, 10)
+                }
+                .padding(.top, 50) // Add safe area padding for status bar and notch
+                .background(
+                    LinearGradient(
+                        gradient: Gradient(colors: [
+                            Color(hex: "004aad"),
+                            Color(hex: "004aad").opacity(0.95)
+                        ]),
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+                .ignoresSafeArea(edges: .top)
+            }
+        ) {
+            // Content section
             ZStack {
                 // Enhanced background gradient
                 let backgroundColors = [
@@ -44,296 +102,43 @@ struct PageMessages: View {
                 .ignoresSafeArea()
                 
                 VStack(spacing: 0) {
-                    headerSection
                     searchBarSection
                     scrollableSection
                 }
                 
-                // Bottom navigation as overlay
-                VStack {
-                    Spacer()
-                    bottomNavigationBar
-                }
-                .ignoresSafeArea(edges: .bottom)
-                .zIndex(1)
-                
-                // More Menu Popup
-                if showMoreMenu {
-                    VStack {
-                        Spacer()
-                        
-                        VStack(alignment: .leading, spacing: 0) {
-                            Text("More Options")
-                                .font(.headline)
-                                .fontWeight(.bold)
-                                .padding(.horizontal, 20)
-                                .padding(.top, 20)
-                                .padding(.bottom, 10)
-                                .foregroundColor(.primary)
-                            
-                            Divider()
-                                .padding(.horizontal, 16)
-                            
-                            VStack(spacing: 0) {
-                                // Messages (current page)
-                                HStack(spacing: 16) {
-                                    Image(systemName: "envelope.fill")
-                                        .font(.system(size: 20))
-                                        .foregroundColor(Color(hex: "004aad"))
-                                        .frame(width: 24)
-                                    
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text("Messages")
-                                            .font(.system(size: 16, weight: .medium))
-                                            .foregroundColor(.primary)
-                                        Text("Current page")
-                                            .font(.system(size: 12))
-                                            .foregroundColor(.secondary)
-                                    }
-                                    
-                                    Spacer()
-                                    
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .font(.system(size: 16))
-                                        .foregroundColor(.green)
-                                }
-                                .padding(.horizontal, 20)
-                                .padding(.vertical, 16)
-                                
-                                Divider()
-                                    .padding(.horizontal, 16)
-                                
-                                // Network
-                                NavigationLink(destination: PageUnifiedNetworking().navigationBarBackButtonHidden(true)) {
-                                    HStack(spacing: 16) {
-                                        Image(systemName: "person.2.fill")
-                                            .font(.system(size: 20))
-                                            .foregroundColor(Color(hex: "004aad"))
-                                            .frame(width: 24)
-                                        
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text("Network")
-                                                .font(.system(size: 16, weight: .medium))
-                                                .foregroundColor(.primary)
-                                            Text("Connect with entrepreneurs")
-                                                .font(.system(size: 12))
-                                                .foregroundColor(.secondary)
-                                        }
-                                        
-                                        Spacer()
-                                        
-                                        Image(systemName: "chevron.right")
-                                            .font(.system(size: 12, weight: .medium))
-                                            .foregroundColor(.secondary)
-                                    }
-                                    .padding(.horizontal, 20)
-                                    .padding(.vertical, 16)
-                                }
-                                .transaction { transaction in
-                                    transaction.disablesAnimations = true
-                                }
-                                
-                                Divider()
-                                    .padding(.horizontal, 16)
-                                
-                                // Professional Services
-                                NavigationLink(destination: PageEntrepreneurResources().navigationBarBackButtonHidden(true)) {
-                                    HStack(spacing: 16) {
-                                        Image(systemName: "briefcase.fill")
-                                            .font(.system(size: 20))
-                                            .foregroundColor(Color(hex: "004aad"))
-                                            .frame(width: 24)
-                                        
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text("Professional Services")
-                                                .font(.system(size: 16, weight: .medium))
-                                                .foregroundColor(.primary)
-                                            Text("Find business experts")
-                                                .font(.system(size: 12))
-                                                .foregroundColor(.secondary)
-                                        }
-                                        
-                                        Spacer()
-                                        
-                                        Image(systemName: "chevron.right")
-                                            .font(.system(size: 12, weight: .medium))
-                                            .foregroundColor(.secondary)
-                                    }
-                                    .padding(.horizontal, 20)
-                                    .padding(.vertical, 16)
-                                }
-                                .transaction { transaction in
-                                    transaction.disablesAnimations = true
-                                }
-                                
-                                Divider()
-                                    .padding(.horizontal, 16)
-                                
-                                // Settings
-                                NavigationLink(destination: PageSettings().navigationBarBackButtonHidden(true)) {
-                                    HStack(spacing: 16) {
-                                        Image(systemName: "gear.circle.fill")
-                                            .font(.system(size: 20))
-                                            .foregroundColor(Color(hex: "004aad"))
-                                            .frame(width: 24)
-                                        
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text("Settings")
-                                                .font(.system(size: 16, weight: .medium))
-                                                .foregroundColor(.primary)
-                                            Text("Manage preferences")
-                                                .font(.system(size: 12))
-                                                .foregroundColor(.secondary)
-                                        }
-                                        
-                                        Spacer()
-                                        
-                                        Image(systemName: "chevron.right")
-                                            .font(.system(size: 12, weight: .medium))
-                                            .foregroundColor(.secondary)
-                                    }
-                                    .padding(.horizontal, 20)
-                                    .padding(.vertical, 16)
-                                }
-                                .transaction { transaction in
-                                    transaction.disablesAnimations = true
-                                }
-                            }
-                            
-                            // Close button
-                            Button(action: {
-                                withAnimation(.easeInOut(duration: 0.3)) {
-                                    showMoreMenu = false
-                                }
-                            }) {
-                                Text("Close")
-                                    .font(.system(size: 16, weight: .medium))
-                                    .foregroundColor(Color(hex: "004aad"))
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 16)
-                            }
-                            .background(Color(UIColor.systemGray6))
-                        }
-                        .background(Color(UIColor.systemBackground))
-                        .cornerRadius(16)
-                        .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: -5)
-                        .padding(.horizontal, 16)
-                        .padding(.bottom, 100) // Leave space for bottom navigation
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
-                    }
-                    .zIndex(2)
-                }
-                
-                // Tap-out-to-dismiss layer
-                if showMoreMenu {
+                // Tap-out-to-dismiss layer for chat
+                if showChatPopup {
                     Color.black.opacity(0.001)
                         .ignoresSafeArea()
                         .onTapGesture {
                             withAnimation(.easeInOut(duration: 0.3)) {
-                                showMoreMenu = false
+                                showChatPopup = false
                             }
                         }
                         .zIndex(1)
                 }
             }
-            .ignoresSafeArea(.all, edges: [.top, .bottom])
-            .navigationBarBackButtonHidden(true)
-            .onAppear {
-                self.checkUserAuthentication()
-                fetchNetworkUsers()
-                loadUserProfileImage()
-                loadUserData()
-           
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                    fetchMessages()
-                }
+        }
+        .onAppear {
+            self.checkUserAuthentication()
+            fetchCurrentUserProfile()
+            fetchNetworkUsers()
+       
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                fetchMessages()
+            }
+            self.timer?.invalidate()
+            self.timer = Timer.scheduledTimer(withTimeInterval: 45, repeats: true) { _ in
+                fetchMessages()
+            }
+        }
+        .onDisappear {
+            DispatchQueue.main.async {
                 self.timer?.invalidate()
-                self.timer = Timer.scheduledTimer(withTimeInterval: 45, repeats: true) { _ in
-                    fetchMessages()
-                }
-            }
-            .onDisappear {
-                DispatchQueue.main.async {
-                    self.timer?.invalidate()
-                    self.timer = nil
-                }
+                self.timer = nil
             }
         }
-        .withNotifications() // ✅ Enable notification overlay on PageMessages
     }
-    
-    // MARK: - Header Section (matching other pages)
-    var headerSection: some View {
-        VStack(spacing: 0) {
-            HStack {
-                // Left side - Profile with shadow
-                NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
-                    ZStack {
-                        AsyncImage(url: URL(string: userProfileImageURL ?? "")) { phase in
-                            switch phase {
-                            case .success(let image):
-                                image
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 36, height: 36)
-                                    .clipShape(Circle())
-                            default:
-                                Image(systemName: "person.circle.fill")
-                                    .font(.system(size: 36))
-                                    .foregroundColor(.white)
-                            }
-                        }
-                        
-                        // Online indicator
-                        Circle()
-                            .fill(Color.green)
-                            .frame(width: 10, height: 10)
-                            .overlay(
-                                Circle()
-                                    .stroke(Color.white, lineWidth: 2)
-                            )
-                            .offset(x: 12, y: -12)
-                    }
-                    .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
-                }
-                
-                Spacer()
-                
-                // Center - Simple Logo
-                Text("Circl.")
-                    .font(.system(size: 28, weight: .bold))
-                    .foregroundColor(.white)
-                
-                Spacer()
-                
-                Spacer().frame(width: 8)
-                
-                // Right side - Home
-                NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
-                    Image(systemName: "house.fill")
-                        .font(.system(size: 24, weight: .medium))
-                        .foregroundColor(.white)
-                        .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
-                }
-            }
-            .padding(.horizontal, 18)
-            .padding(.bottom, 18)
-            .padding(.top, 10)
-        }
-        .padding(.top, 50) // Add safe area padding for status bar and notch
-        .background(
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    Color(hex: "004aad"),
-                    Color(hex: "004aad").opacity(0.95)
-                ]),
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        )
-    }
-    
-    
     
     // MARK: - Enhanced Search Bar Section
     var searchBarSection: some View {
@@ -448,7 +253,7 @@ struct PageMessages: View {
                                         .foregroundColor(.primary)
                                         .lineLimit(1)
                                     
-                                    Text("@\(user.username)")
+                                    Text(user.company.isEmpty ? "Network Connection" : user.company)
                                         .font(.system(size: 14))
                                         .foregroundColor(.secondary)
                                         .lineLimit(1)
@@ -479,7 +284,7 @@ struct PageMessages: View {
                 .transition(.asymmetric(insertion: .scale.combined(with: .opacity), removal: .opacity))
             }
         }
-        .padding(.top, 20)
+        .padding(.top, UIDevice.current.userInterfaceIdiom == .pad ? 8 : -45)
         .padding(.bottom, 8)
     }
 
@@ -606,25 +411,25 @@ struct PageMessages: View {
                             }
                             
                             // Discover People Button
-                            NavigationLink(destination: PageUnifiedNetworking().navigationBarBackButtonHidden(true)) {
-                                HStack(spacing: 12) {
-                                    Image(systemName: "person.2.fill")
-                                        .font(.system(size: 16, weight: .medium))
-                                    Text("Discover People")
-                                        .font(.system(size: 16, weight: .medium))
-                                }
-                                .foregroundColor(Color(hex: "004aad"))
-                                .padding(.horizontal, 24)
-                                .padding(.vertical, 14)
-                    .background(
-                                    RoundedRectangle(cornerRadius: 14)
-                                        .fill(.ultraThinMaterial)
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 14)
-                                                .stroke(Color(hex: "004aad").opacity(0.3), lineWidth: 1)
-                                        )
-                                )
-                            }
+//                            NavigationLink(destination: PageUnifiedNetworking().navigationBarBackButtonHidden(true)) {
+//                                HStack(spacing: 12) {
+//                                    Image(systemName: "person.2.fill")
+//                                        .font(.system(size: 16, weight: .medium))
+//                                    Text("Discover People")
+//                                        .font(.system(size: 16, weight: .medium))
+//                                }
+//                                .foregroundColor(Color(hex: "004aad"))
+//                                .padding(.horizontal, 24)
+//                                .padding(.vertical, 14)
+//                    .background(
+//                                    RoundedRectangle(cornerRadius: 14)
+//                                        .fill(.ultraThinMaterial)
+//                                        .overlay(
+//                                            RoundedRectangle(cornerRadius: 14)
+//                                                .stroke(Color(hex: "004aad").opacity(0.3), lineWidth: 1)
+//                                        )
+//                                )
+//                            }
                         }
                         
                         Spacer()
@@ -667,13 +472,7 @@ struct PageMessages: View {
                                 // Premium Profile Avatar with Glow Effects
                                 Button(action: {
                                     if let userIdInt = Int(user.id) {
-                                        fetchUserProfile(userId: userIdInt) { profile in
-                                            if let profile = profile,
-                                               let window = UIApplication.shared.windows.first {
-                                                let profileView = DynamicProfilePreview(profileData: profile, isInNetwork: true)
-                                                window.rootViewController?.present(UIHostingController(rootView: profileView), animated: true)
-                                            }
-                                        }
+                                        profilePreview.present(userId: userIdInt)
                                     }
                                 }) {
                                     ZStack {
@@ -917,122 +716,62 @@ struct PageMessages: View {
         }
     }
     
-    // MARK: - Bottom Navigation Bar
-    private var bottomNavigationBar: some View {
-        HStack(spacing: 0) {
-            // Forum / Home
-            NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {
-                VStack(spacing: 4) {
-                    Image(systemName: "house")
-                        .font(.system(size: 22, weight: .medium))
-                        .foregroundColor(Color(UIColor.label).opacity(0.6))
-                    Text("Home")
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundColor(Color(UIColor.label).opacity(0.6))
-                }
-                .frame(maxWidth: .infinity)
-            }
-            .transaction { transaction in
-                transaction.disablesAnimations = true
-            }
-            
-            // Network
-            NavigationLink(destination: PageUnifiedNetworking().navigationBarBackButtonHidden(true)) {
-                VStack(spacing: 4) {
-                    Image(systemName: "person.2")
-                        .font(.system(size: 22, weight: .medium))
-                        .foregroundColor(Color(UIColor.label).opacity(0.6))
-                    Text("Network")
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundColor(Color(UIColor.label).opacity(0.6))
-                }
-                .frame(maxWidth: .infinity)
-            }
-            .transaction { transaction in
-                transaction.disablesAnimations = true
-            }
-            
-            // Circles
-            NavigationLink(destination: PageCircles().navigationBarBackButtonHidden(true)) {
-                VStack(spacing: 4) {
-                    Image(systemName: "circle.grid.2x2")
-                        .font(.system(size: 22, weight: .medium))
-                        .foregroundColor(Color(UIColor.label).opacity(0.6))
-                    Text("Circles")
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundColor(Color(UIColor.label).opacity(0.6))
-                }
-                .frame(maxWidth: .infinity)
-            }
-            .transaction { transaction in
-                transaction.disablesAnimations = true
-            }
-            
-            // Business Profile
-            NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true)) {
-                VStack(spacing: 4) {
-                    Image(systemName: "building.2")
-                        .font(.system(size: 22, weight: .medium))
-                        .foregroundColor(Color(UIColor.label).opacity(0.6))
-                    Text("Business")
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundColor(Color(UIColor.label).opacity(0.6))
-                }
-                .frame(maxWidth: .infinity)
-            }
-            .transaction { transaction in
-                transaction.disablesAnimations = true
-            }
-            
-            // More Menu
-            Button(action: {
-                withAnimation(.easeInOut(duration: 0.3)) {
-                    showMoreMenu.toggle()
-                }
-            }) {
-                VStack(spacing: 4) {
-                    Image(systemName: "ellipsis")
-                        .font(.system(size: 22, weight: .medium))
-                        .foregroundColor(Color(UIColor.label).opacity(0.6))
-                    Text("More")
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundColor(Color(UIColor.label).opacity(0.6))
-                }
-                .frame(maxWidth: .infinity)
-            }
+    // MARK: - Helper Functions
+    
+    func fetchCurrentUserProfile() {
+        guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int else {
+            print("❌ No user_id in UserDefaults")
+            return
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 20)
-        .padding(.bottom, 8)
-        .background(
-            Rectangle()
-                .fill(Color(UIColor.systemBackground))
-                .shadow(color: .black.opacity(0.1), radius: 1, x: 0, y: -1)
-                .ignoresSafeArea(edges: .bottom)
-        )
-        .overlay(
-            Rectangle()
-                .frame(height: 0.5)
-                .foregroundColor(Color(UIColor.separator))
-                .padding(.horizontal, 16),
-            alignment: .top
-        )
+
+        let urlString = "https://circlapp.online/api/users/profile/\(userId)/"
+        print("🌐 Fetching current user profile from:", urlString)
+
+        guard let url = URL(string: urlString) else {
+            print("❌ Invalid URL")
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+            print("🔑 Authorization header set with token")
+        }
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("❌ Request failed:", error)
+                return
+            }
+
+            if let data = data {
+                print("📦 Received current user data:", String(data: data, encoding: .utf8) ?? "No string")
+
+                if let decoded = try? JSONDecoder().decode(FullProfile.self, from: data) {
+                    DispatchQueue.main.async {
+                        print("✅ Decoded current user:", decoded.full_name)
+                        
+                        // Update profile image URL
+                        if let profileImage = decoded.profile_image, !profileImage.isEmpty {
+                            self.userProfileImageURL = profileImage
+                            print("✅ Profile image loaded:", profileImage)
+                        } else {
+                            self.userProfileImageURL = ""
+                            print("❌ No profile image found for current user")
+                        }
+                        
+                        // Update user name info
+                        self.userFirstName = decoded.first_name
+                    }
+                } else {
+                    print("❌ Failed to decode current user profile")
+                }
+            }
+        }.resume()
     }
-    
-    // MARK: - Helper Functions
-    private func loadUserData() {
-        let fullName = UserDefaults.standard.string(forKey: "user_fullname") ?? ""
-        userFirstName = fullName.components(separatedBy: " ").first ?? "User"
-        userProfileImageURL = UserDefaults.standard.string(forKey: "user_profile_image_url") ?? ""
-    }
-    
-    private func loadUserProfileImage() {
-        // This function loads the user profile image URL from UserDefaults
-        // It's already handled in loadUserData(), but keeping this for compatibility
-        userProfileImageURL = UserDefaults.standard.string(forKey: "user_profile_image_url") ?? ""
-    }
-    
-    // MARK: - Helper Functions
     
     private func checkUserAuthentication() {
         guard let userId = UserDefaults.standard.value(forKey: "user_id") as? Int,

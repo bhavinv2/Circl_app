@@ -36,7 +36,7 @@ struct ProfileHeaderView: View {
                     }
                 }
 
-                NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
+                NavigationLink(destination: ProfileHubPage(initialTab: .profile).navigationBarBackButtonHidden(true)) {
                     if !userProfileImageURL.isEmpty {
                         AsyncImage(url: URL(string: userProfileImageURL)) { phase in
                             switch phase {

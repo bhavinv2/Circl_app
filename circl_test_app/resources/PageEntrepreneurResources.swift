@@ -135,7 +135,7 @@ struct PageEntrepreneurResources: View {
                                     .padding(.horizontal, 16)
                                 
                                 // Settings
-                                NavigationLink(destination: PageSettings().navigationBarBackButtonHidden(true)) {
+                                NavigationLink(destination: OpenableSettings().navigationBarBackButtonHidden(true)) {
                                     HStack(spacing: 16) {
                                         Image(systemName: "gear.circle.fill")
                                             .font(.system(size: 20))
@@ -208,6 +208,7 @@ struct PageEntrepreneurResources: View {
                 loadUserData()              // fallback values
                 fetchCurrentUserProfile()   // ✅ live fetch ensures profile pic loads
             }
+            .withTutorialOverlay() // ✅ Enable tutorial overlay on PageEntrepreneurResources
 
         }
     }
@@ -217,7 +218,7 @@ struct PageEntrepreneurResources: View {
         VStack(spacing: 0) {
             HStack {
                 // Left side - Profile with shadow
-                NavigationLink(destination: ProfilePage().navigationBarBackButtonHidden(true)) {
+                NavigationLink(destination: ProfileHubPage(initialTab: .profile).navigationBarBackButtonHidden(true)) {
                     ZStack {
                         if !userProfileImageURL.isEmpty {
                             AsyncImage(url: URL(string: userProfileImageURL)) { image in
@@ -405,13 +406,13 @@ struct PageEntrepreneurResources: View {
                 transaction.disablesAnimations = true
             }
             
-            // Business Profile
-            NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true)) {
+            // Growth Hub
+            NavigationLink(destination: PageSkillSellingPlaceholder().navigationBarBackButtonHidden(true)) {
                 VStack(spacing: 4) {
-                    Image(systemName: "building.2")
+                    Image(systemName: "dollarsign.circle")
                         .font(.system(size: 22, weight: .medium))
                         .foregroundColor(Color(UIColor.label).opacity(0.6))
-                    Text("Business")
+                    Text("Growth Hub")
                         .font(.system(size: 10, weight: .medium))
                         .foregroundColor(Color(UIColor.label).opacity(0.6))
                 }

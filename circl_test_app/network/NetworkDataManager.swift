@@ -19,6 +19,14 @@ class NetworkDataManager: ObservableObject {
         return entrepreneurs.count + mentors.count
     }
     
+    var userNetworkIds: Set<Int> { 
+        Set(userNetworkRaw.compactMap { dict in
+            (dict["id"] as? Int)
+            ?? (dict["user_id"] as? Int)
+            ?? (dict["friend_id"] as? Int)
+        })
+    }
+    
     private var isNetworkLoading = false
     private var isFriendRequestsLoading = false
     
@@ -227,48 +235,11 @@ else if let dict = json as? [String: Any] {
             let id = (dict["id"] as? Int) ?? (dict["user_id"] as? Int) ?? -1
             guard id != -1, let email = dict["email"] as? String else { continue }
 
-            // Enhanced name construction with better fallbacks
-            let firstName = (dict["first_name"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
-            let lastName = (dict["last_name"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+            // Use the same simple approach as mentors and entrepreneurs
+            let firstName = dict["first_name"] as? String ?? ""
+            let lastName = dict["last_name"] as? String ?? ""
+            let name = "\(firstName) \(lastName)".trimmingCharacters(in: .whitespacesAndNewlines)
             let username = (dict["username"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
-            
-            // Construct proper name with multiple fallback strategies
-            let name: String = {
-                // Strategy 1: Use first + last name if both exist
-                if !firstName.isEmpty && !lastName.isEmpty {
-                    return "\(firstName) \(lastName)"
-                }
-                // Strategy 2: Use just first name if only first exists
-                else if !firstName.isEmpty {
-                    return firstName
-                }
-                // Strategy 3: Use just last name if only last exists
-                else if !lastName.isEmpty {
-                    return lastName
-                }
-                // Strategy 4: Use username if it doesn't look like an email
-                else if !username.isEmpty && !username.contains("@") {
-                    return username.capitalized
-                }
-                // Strategy 5: Extract name from email (before @)
-                else if !email.isEmpty {
-                    let emailName = email.components(separatedBy: "@").first ?? ""
-                    // Clean up email name: replace dots/underscores with spaces, capitalize
-                    let cleanName = emailName
-                        .replacingOccurrences(of: ".", with: " ")
-                        .replacingOccurrences(of: "_", with: " ")
-                        .replacingOccurrences(of: "-", with: " ")
-                        .components(separatedBy: " ")
-                        .map { $0.capitalized }
-                        .joined(separator: " ")
-                    
-                    return cleanName.isEmpty ? "User" : cleanName
-                }
-                // Final fallback
-                else {
-                    return "User"
-                }
-            }()
 
             let profile = InviteProfileData(
                 user_id: id,   // ✅ real backend id

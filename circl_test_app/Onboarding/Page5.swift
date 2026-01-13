@@ -4,6 +4,11 @@ import Foundation
 import UIKit
 struct Page5: View {
     @State private var birthday: String = ""
+    @State private var selectedBirthdate: Date = {
+        let calendar = Calendar.current
+        return calendar.date(byAdding: .year, value: -25, to: Date()) ?? Date()
+    }()
+    @State private var showDatePicker: Bool = false
     @State private var isUnderage: Bool = false
     @State private var location: String = ""
     @State private var gender: String? = nil
@@ -16,6 +21,8 @@ struct Page5: View {
     @State private var locationSuggestions: [String] = []
     @State private var showSuggestions: Bool = false
     @State private var showIncompleteFormAlert: Bool = false
+    @State private var showAvailabilityInfo: Bool = false
+    @State private var showPersonalityTypeInfo: Bool = false
     @State private var navigateToPage13 = false
     @State private var isSubmitting: Bool = false
 
@@ -28,6 +35,15 @@ struct Page5: View {
         "Flexible hours",
         "Currently employed - exploring options"
     ]
+    
+    // Date range for birth date (13 to 100 years old)
+    var dateRange: ClosedRange<Date> {
+        let calendar = Calendar.current
+        let currentDate = Date()
+        let minDate = calendar.date(byAdding: .year, value: -100, to: currentDate) ?? Date()
+        let maxDate = calendar.date(byAdding: .year, value: -13, to: currentDate) ?? Date()
+        return minDate...maxDate
+    }
     
     let usStates = ["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA",
                     "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD",
@@ -118,26 +134,69 @@ struct Page5: View {
                     .padding(.top, 20)
                     
                     VStack(spacing: 15) {
-                        // Birthday Field
-                        TextField("Birthday (MM/DD/YYYY)", text: $birthday)
-                            .onChange(of: birthday) { newValue in
-                                formatBirthday(newValue)
-                                validateAge()
-                            }
-                            .textFieldStyle(RoundedTextFieldStyle())
-                            .frame(maxWidth: 300)
-                            .keyboardType(.numberPad)
-                            .alert("You must be 18 years or older to sign up.", isPresented: $isUnderage) {
-                                Button("OK", role: .cancel) { }
-                            }
-                            .toolbar {
-                                ToolbarItemGroup(placement: .keyboard) {
+                        // Birthday Field with Modern Date Picker
+                        VStack(alignment: .leading, spacing: 8) {
+                            Button(action: {
+                                showDatePicker = true
+                            }) {
+                                HStack {
+                                    Image(systemName: "calendar")
+                                        .foregroundColor(Color(hex: "004aad"))
+                                        .font(.system(size: 18))
+                                    
+                                    Text(birthday.isEmpty ? "Select your Birthday" : birthday)
+                                        .foregroundColor(birthday.isEmpty ? Color(hex: "004aad").opacity(0.6) : Color(hex: "004aad"))
+                                        .font(.system(size: 18))
+                                    
                                     Spacer()
+                                    
+                                    Image(systemName: "chevron.down")
+                                        .foregroundColor(Color(hex: "004aad"))
+                                        .font(.system(size: 14))
+                                }
+                                .padding(15)
+                                .background(Color(hex: "d9d9d9"))
+                                .cornerRadius(10)
+                                .frame(maxWidth: 300)
+                            }
+                            .sheet(isPresented: $showDatePicker) {
+                                VStack(spacing: 20) {
+                                    Text("Select Your Birthday")
+                                        .font(.title2)
+                                        .fontWeight(.semibold)
+                                        .padding(.top, 20)
+
+                                    DatePicker(
+                                        "Birthday",
+                                        selection: $selectedBirthdate,
+                                        in: dateRange,
+                                        displayedComponents: .date
+                                    )
+                                    .datePickerStyle(GraphicalDatePickerStyle())
+                                    .padding(.horizontal, 20)
+
+                                    Spacer()
+
                                     Button("Done") {
-                                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                                        updateBirthdayFromDate()
+                                        validateAge()
+                                        showDatePicker = false
                                     }
+                                    .font(.system(size: 18, weight: .semibold))
+                                    .foregroundColor(.white)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 15)
+                                    .background(Color(hex: "004aad"))
+                                    .cornerRadius(10)
+                                    .padding(.horizontal, 20)
+                                    .padding(.bottom, 30)
                                 }
                             }
+
+                        }
+                        .alert("You must be 18 years or older to sign up.", isPresented: $isUnderage) {
+                            Button("OK", role: .cancel) { }
+                        }
                         
                         // Location Field - Updated to handle spaces in city names
                         VStack(alignment: .leading) {
@@ -148,14 +207,6 @@ struct Page5: View {
                                 .textFieldStyle(RoundedTextFieldStyle())
                                 .frame(maxWidth: 300)
                                 .autocapitalization(.words)
-                                .toolbar {
-                                    ToolbarItemGroup(placement: .keyboard) {
-                                        Spacer()
-                                        Button("Done") {
-                                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                                        }
-                                    }
-                                }
                             
                             if !locationValidationMessage.isEmpty {
                                 Text(locationValidationMessage)
@@ -195,32 +246,58 @@ struct Page5: View {
                         )
                         .frame(maxWidth: 300, maxHeight: 50)
                         
-                        DropdownField5(
-                            placeholder: "Availability",
-                            options: availabilityOptions,
-                            selectedOption: $availability
-                        )
-                        .frame(maxWidth: 300, maxHeight: 50)
-                        
-                        TextField("Personality Type (XXXX-Y)", text: $personalityType)
-                            .autocapitalization(.allCharacters)
-                            .onChange(of: personalityType) { newValue in
-                                personalityType = newValue.filter { !$0.isNumber }
-                                validatePersonalityType()
+                        HStack(spacing: 8) {
+                            DropdownField5(
+                                placeholder: "Availability",
+                                options: availabilityOptions,
+                                selectedOption: $availability
+                            )
+                            .frame(maxWidth: 268, maxHeight: 50) // Adjusted to account for button width + spacing
+                            
+                            Button(action: {
+                                showAvailabilityInfo = true
+                            }) {
+                                Image(systemName: "info.circle")
+                                    .foregroundColor(.white)
+                                    .font(.system(size: 18))
                             }
-                            .textFieldStyle(RoundedTextFieldStyle())
-                            .frame(maxWidth: 300)
-                            .alert("Invalid Personality Type format. Use XXXX-Y.", isPresented: $showInvalidPersonalityAlert) {
+                            .alert("Availability", isPresented: $showAvailabilityInfo) {
                                 Button("OK", role: .cancel) { }
+                            } message: {
+                                Text("This is your amount of time to work on a project or a new venture with others!")
                             }
-                            .toolbar {
-                                ToolbarItemGroup(placement: .keyboard) {
-                                    Spacer()
-                                    Button("Done") {
-                                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                                    }
+                            .frame(width: 24)
+                        }
+                        .frame(maxWidth: 300)
+                        
+                        HStack(spacing: 8) {
+                            TextField("Personality Type (XXXX-Y)", text: $personalityType)
+                                .autocapitalization(.allCharacters)
+                                .onChange(of: personalityType) { newValue in
+                                    personalityType = newValue.filter { !$0.isNumber }
+                                    validatePersonalityType()
                                 }
+                                .textFieldStyle(RoundedTextFieldStyle())
+                                .frame(maxWidth: 268) // Adjusted to account for button width + spacing
+                                .alert("Invalid Personality Type format. Use XXXX-Y.", isPresented: $showInvalidPersonalityAlert) {
+                                    Button("OK", role: .cancel) { }
+                                }
+                            
+                            Button(action: {
+                                showPersonalityTypeInfo = true
+                            }) {
+                                Image(systemName: "info.circle")
+                                    .foregroundColor(.white)
+                                    .font(.system(size: 18))
                             }
+                            .alert("Personality Type", isPresented: $showPersonalityTypeInfo) {
+                                Button("OK", role: .cancel) { }
+                            } message: {
+                                Text("Knowing your personality type enables other members of the community know how to work with you best!")
+                            }
+                            .frame(width: 24)
+                        }
+                        .frame(maxWidth: 300)
                         
                         Link("Take the 16 personalities test", destination: URL(string: "https://www.16personalities.com/")!)
                             .font(.system(size: 14, weight: .regular))
@@ -278,6 +355,9 @@ struct Page5: View {
                     Spacer()
                 }
                 .navigationBarHidden(true)
+                .onTapGesture {
+                    hideKeyboard()
+                }
             }
             .background(
                 NavigationLink(
@@ -298,63 +378,27 @@ struct Page5: View {
                //!personalityType.isEmpty
     }
     
-    private func formatBirthday(_ newValue: String) {
-        let filtered = newValue.filter { $0.isNumber }
-        let limitedInput = String(filtered.prefix(8))
-        
-        var formatted = ""
-        for (index, char) in limitedInput.enumerated() {
-            if index == 2 || index == 4 {
-                formatted.append("/")
-            }
-            formatted.append(char)
-        }
-        
-        birthday = formatted
-    }
+
     
     private func validateAge() {
-        let numbersOnly = birthday.filter { $0.isNumber }
-        
-        guard numbersOnly.count == 8 else {
+        guard !birthday.isEmpty else {
             isUnderage = false
             return
         }
         
-        let monthString = String(numbersOnly.prefix(2))
-        let dayString = String(numbersOnly.dropFirst(2).prefix(2))
-        let yearString = String(numbersOnly.dropFirst(4).prefix(4))
+        let calendar = Calendar.current
+        let currentDate = Date()
+        let ageComponents = calendar.dateComponents([.year], from: selectedBirthdate, to: currentDate)
         
-        if let month = Int(monthString), month > 12 {
-            birthday = String(birthday.dropLast())
-            return
+        if let age = ageComponents.year {
+            isUnderage = age < 18
         }
-        
-        if let day = Int(dayString), day > 31 {
-            birthday = String(birthday.dropLast())
-            return
-        }
-        
-        if let month = Int(monthString),
-           let day = Int(dayString),
-           let year = Int(yearString) {
-            
-            let calendar = Calendar.current
-            let currentDate = Date()
-            
-            var dateComponents = DateComponents()
-            dateComponents.year = year
-            dateComponents.month = month
-            dateComponents.day = day
-            
-            if let birthdayDate = calendar.date(from: dateComponents) {
-                let ageComponents = calendar.dateComponents([.year], from: birthdayDate, to: currentDate)
-                
-                if let age = ageComponents.year {
-                    isUnderage = age < 18
-                }
-            }
-        }
+    }
+    
+    private func updateBirthdayFromDate() {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MM/dd/yyyy"
+        birthday = formatter.string(from: selectedBirthdate)
     }
     
     private func validateCityState() {
@@ -566,6 +610,12 @@ struct Page5: View {
 
                 if let httpResponse = response as? HTTPURLResponse {
                     print("📡 Location POST Status: \(httpResponse.statusCode)")
+                    if httpResponse.statusCode == 200 {
+                        // Store location for tutorial system
+                        UserDefaults.standard.set(location.trimmingCharacters(in: .whitespaces), forKey: "user_location")
+                        UserDefaults.standard.synchronize()
+                        print("📌 Stored user location for tutorial system: \(location)")
+                    }
                     completion(httpResponse.statusCode == 200)
                 }
 

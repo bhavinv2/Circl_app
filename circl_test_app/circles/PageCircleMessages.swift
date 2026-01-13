@@ -29,6 +29,7 @@ struct PageCircleMessages: View {
     @State private var selectedImage: UIImage?
     @State private var selectedVideoURL: URL?
     @State private var showingMediaPicker = false
+    @State private var showMediaMenu = false
     
     @State private var showingFullImage = false
     @State private var fullImageURL: String?
@@ -179,7 +180,7 @@ struct PageCircleMessages: View {
                 VStack(alignment: .center, spacing: 4) {
                     HStack(spacing: 8) {
                         Text(circleName)
-                            .font(.system(size: 20, weight: .bold, design: .rounded))
+                            .font(.system(size: 20, weight: .bold))
                             .foregroundStyle(LinearGradient(
                                 colors: [Color.white, Color.white.opacity(0.95)],
                                 startPoint: .topLeading,
@@ -215,8 +216,7 @@ struct PageCircleMessages: View {
                                     .font(.system(size: 12))
 
                                 Text(selectedCategory?.name ?? "Select")
-
-                                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                                    .font(.system(size: 13, weight: .semibold))
                                     .foregroundColor(Color(hex: "004aad"))
                                     .lineLimit(1)
 
@@ -482,13 +482,29 @@ struct PageCircleMessages: View {
             
             // Text input and buttons
             HStack(spacing: 8) {
-                // + button to open media picker
+                // + button (opens media menu)
                 Button(action: {
-                    showingMediaPicker = true
+                    showMediaMenu = true
                 }) {
                     Image(systemName: "plus.circle.fill")
                         .font(.system(size: 22, weight: .bold))
                         .foregroundColor(Color(hex: "004aad"))
+                }
+                .actionSheet(isPresented: $showMediaMenu) {
+                    ActionSheet(
+                        title: Text("Choose Media Source"),
+                        buttons: [
+                            .default(Text("Camera")) {
+                                // Open camera - you'll need to modify MediaPicker to support camera
+                                showingMediaPicker = true
+                            },
+                            .default(Text("Photo Library")) {
+                                // Open photo library
+                                showingMediaPicker = true
+                            },
+                            .cancel()
+                        ]
+                    )
                 }
 
                 // Message text field
@@ -499,14 +515,6 @@ struct PageCircleMessages: View {
                     .background(Color(.systemGray6))
                     .cornerRadius(20)
                     .frame(minHeight: 44)
-                    .toolbar {
-                        ToolbarItemGroup(placement: .keyboard) {
-                            Spacer()
-                            Button("Done") {
-                                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                            }
-                        }
-                    }
 
                 // Send button
                 Button(action: {
@@ -611,7 +619,7 @@ struct PageCircleMessages: View {
             NavigationLink(destination: PageEntrepreneurMatching().navigationBarBackButtonHidden(true)) {
                 MenuItem(icon: "person.2.fill", title: "Connect and Network")
             }
-            NavigationLink(destination: PageBusinessProfile().navigationBarBackButtonHidden(true)) {
+            NavigationLink(destination: ProfileHubPage(initialTab: .business).navigationBarBackButtonHidden(true)) {
                 MenuItem(icon: "person.crop.square.fill", title: "Your Business Profile")
             }
             NavigationLink(destination: PageForum().navigationBarBackButtonHidden(true)) {

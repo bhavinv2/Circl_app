@@ -1,0 +1,473 @@
+import SwiftUI
+
+// MARK: - Subscription Paywall Overlay
+struct SubscriptionPaywallOverlay: ViewModifier {
+    @ObservedObject var subscriptionManager = SubscriptionManager.shared
+    
+    func body(content: Content) -> some View {
+        content
+            .fullScreenCover(isPresented: $subscriptionManager.isShowingPaywall) {
+                Group {
+                    if let paywallContent = subscriptionManager.currentContent {
+                        PaywallFullScreenView(content: paywallContent)
+                            .onAppear {
+                                print("🎯 OVERLAY: PaywallFullScreenView appeared")
+                            }
+                    } else {
+                        Color.clear
+                            .onAppear {
+                                print("🎯 OVERLAY: ERROR - No paywall content available")
+                            }
+                    }
+                }
+                .onAppear {
+                    print("🎯 OVERLAY: fullScreenCover is presenting")
+                }
+            }
+            .onChange(of: subscriptionManager.isShowingPaywall) { newValue in
+                print("🎯 OVERLAY: isShowingPaywall changed to \(newValue)")
+            }
+    }
+}
+
+// MARK: - Full Screen Paywall View
+struct PaywallFullScreenView: View {
+    let content: SubscriptionContent
+    @ObservedObject var subscriptionManager = SubscriptionManager.shared
+    
+    var body: some View {
+        ZStack {
+            // Always show background image immediately (no animation)
+            PaywallBackgroundView(content: content)
+            
+            // Content overlay appears after delay with animation
+            if subscriptionManager.subscriptionState == .showingContent {
+                PaywallContentView(content: content)
+                    .transition(.opacity.combined(with: .scale(scale: 0.95)))
+            }
+        }
+        .animation(.easeOut(duration: 0.4), value: subscriptionManager.subscriptionState)
+    }
+}
+
+// MARK: - Paywall Background View
+struct PaywallBackgroundView: View {
+    let content: SubscriptionContent
+    
+    private func getRandomBackgroundImage() -> String {
+        // Unified random selection from all paywall backgrounds
+        let allPaywallBackgrounds = [
+            "CommunityBuilderPaywall", "CommunityBuilderPaywall2",
+            "EntrepreneurPaywall", "EntrepreneurPaywall2",
+            "StudentEntrepreneurPaywall", "StudentEntrepreneurPaywall2",
+            "StudentPaywall", "StudentPaywall2", "StudentPaywall3",
+            "MentorPaywall", "MentorPaywall2", "MentorPaywall3",
+            "InvestorPaywall", "InvestorPaywall2", "InvestorPaywall3"
+        ]
+        
+        return allPaywallBackgrounds.randomElement() ?? "EntrepreneurPaywall"
+    }
+    
+    var body: some View {
+        // Full screen background image - appears instantly for 0.6s impact
+        Image(getRandomBackgroundImage())
+            .resizable()
+            .aspectRatio(contentMode: .fill)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .clipped()
+            .ignoresSafeArea()
+    }
+}
+
+// MARK: - Paywall Content View
+struct PaywallContentView: View {
+    let content: SubscriptionContent
+    @ObservedObject var subscriptionManager = SubscriptionManager.shared
+    @State private var showContent = false
+    @State private var showConfetti = false
+    @State private var confettiOpacity: Double = 0.0
+    
+    var body: some View {
+        ScrollView {
+            ZStack {
+                // Confetti Explosion
+                if showConfetti {
+                    SubscriptionConfettiExplosionView()
+                        .opacity(confettiOpacity)
+                        .onAppear {
+                            withAnimation(.easeIn(duration: 0.5)) {
+                                confettiOpacity = 1.0
+                            }
+                            
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                                withAnimation(.easeOut(duration: 1.0)) {
+                                    confettiOpacity = 0.0
+                                }
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                                    showConfetti = false
+                                }
+                            }
+                        }
+                }
+                
+                VStack(spacing: 0) {
+                // Close Button (stays on background image)
+                HStack {
+                    Spacer()
+                    Button(action: {
+                        subscriptionManager.dismissPaywall()
+                    }) {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundColor(.white)
+                            .frame(width: 32, height: 32)
+                            .background(Color.black.opacity(0.3))
+                            .clipShape(Circle())
+                    }
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 20)
+                
+                Spacer(minLength: 50)
+                
+                // White Content Container (includes title + content)
+                VStack(spacing: 30) {
+                    // Title Section (now in white background)
+                    VStack(spacing: 12) {
+                        Text(content.title)
+                            .font(.system(size: 32, weight: .bold))
+                            .foregroundColor(.primary)
+                            .multilineTextAlignment(.center)
+                        
+                        Text(content.subtitle)
+                            .font(.system(size: 18))
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .padding(.horizontal, 30)
+                    
+                    // Subscription Plans (Horizontal Scroll)
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 15) {
+                            ForEach(content.plans) { plan in
+                                SubscriptionPlanCard(
+                                    plan: plan,
+                                    isSelected: subscriptionManager.selectedPlan?.id == plan.id,
+                                    onSelect: {
+                                        subscriptionManager.selectedPlan = plan
+                                    }
+                                )
+                                .frame(width: 280) // Fixed width for consistent card sizes
+                            }
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 15) // Add vertical padding to prevent border clipping
+                    }
+                    .clipShape(Rectangle()) // Use Rectangle to allow overflow
+                    
+                    // Subscribe Button
+                    Button(action: {
+                        // Haptic feedback for button press
+                        let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                        impactFeedback.impactOccurred()
+                        
+                        // Trigger confetti animation
+                        showConfetti = true
+                        
+                        // Delay subscription completion to show confetti
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                            subscriptionManager.completeSubscription()
+                        }
+                    }) {
+                        HStack {
+                            Text("Start Your Journey")
+                                .font(.system(size: 18, weight: .bold))
+                            Image(systemName: "arrow.right")
+                                .font(.system(size: 16, weight: .bold))
+                        }
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 18)
+                        .background(
+                            LinearGradient(
+                                gradient: Gradient(colors: [
+                                    Color(hex: "004aad"),
+                                    Color(hex: "0066ff")
+                                ]),
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .cornerRadius(25)
+                        .shadow(color: Color(hex: "004aad").opacity(0.3), radius: 8, x: 0, y: 4)
+                    }
+                    .disabled(subscriptionManager.selectedPlan == nil)
+                    .opacity(subscriptionManager.selectedPlan == nil ? 0.6 : 1.0)
+                    .padding(.horizontal, 30)
+                    
+                    // Terms & Privacy
+                    HStack(spacing: 20) {
+                        Button("Terms of Service") {
+                            // Handle terms
+                        }
+                        .foregroundColor(.secondary)
+                        .font(.system(size: 12))
+                        
+                        Button("Privacy Policy") {
+                            // Handle privacy
+                        }
+                        .foregroundColor(.secondary)
+                        .font(.system(size: 12))
+                    }
+                    .padding(.bottom, 30)
+                }
+                .padding(.top, 40)
+                .padding(.bottom, 30)
+                .padding(.horizontal, 20)
+                .background(Color.white.opacity(0.92))
+                .cornerRadius(30)
+                .padding(.horizontal, 20)
+            }
+            }
+        }
+        .onAppear {
+            withAnimation(.easeOut(duration: 0.5).delay(0.1)) {
+                showContent = true
+            }
+        }
+        .scaleEffect(showContent ? 1.0 : 0.9)
+        .opacity(showContent ? 1.0 : 0.0)
+    }
+}
+
+// MARK: - Subscription Plan Card
+struct SubscriptionPlanCard: View {
+    let plan: SubscriptionPlan
+    let isSelected: Bool
+    let onSelect: () -> Void
+    
+    var body: some View {
+        VStack(spacing: 16) {
+            // Header with pricing
+            VStack(spacing: 8) {
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(plan.title)
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(Color(hex: "004aad"))
+                        
+                        HStack(alignment: .bottom, spacing: 4) {
+                            Text(plan.price)
+                                .font(.system(size: 28, weight: .bold))
+                                .foregroundColor(Color(hex: "004aad"))
+                            // Show period only when provided (e.g., Enterprise shows "Pricing Varies")
+                            if !plan.period.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                                Text("/\(plan.period)")
+                                    .font(.system(size: 16))
+                                    .foregroundColor(Color(hex: "0066ff"))
+                            }
+                        }
+                        
+                        if let originalPrice = plan.originalPrice,
+                           let discount = plan.discount {
+                            HStack(spacing: 8) {
+                                Text(originalPrice)
+                                    .font(.system(size: 14))
+                                    .foregroundColor(.secondary)
+                                    .strikethrough()
+                                
+                                Text(discount)
+                                    .font(.system(size: 12, weight: .bold))
+                                    .foregroundColor(.green)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 4)
+                                    .background(Color.green.opacity(0.2))
+                                    .cornerRadius(4)
+                            }
+                        }
+                    }
+                    
+                    Spacer()
+                    
+                    if plan.isPopular {
+                        Text("POPULAR")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color.orange)
+                            .cornerRadius(4)
+                    }
+                }
+                
+                // Features - Scrollable within the card
+                ScrollView(.vertical, showsIndicators: true) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        ForEach(plan.features, id: \.self) { feature in
+                            HStack(alignment: .top, spacing: 8) {
+                                Image(systemName: "checkmark")
+                                    .font(.system(size: 12, weight: .bold))
+                                    .foregroundColor(.green)
+                                    .padding(.top, 2) // Align with text baseline
+                                
+                                Text(feature)
+                                    .font(.system(size: 14))
+                                    .foregroundColor(Color(hex: "004aad").opacity(0.8))
+                                    .multilineTextAlignment(.leading)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                
+                                Spacer()
+                            }
+                        }
+                    }
+                    .padding(.bottom, 8) // Extra bottom padding for scroll comfort
+                }
+                .frame(maxHeight: 200) // Constrain scroll area height
+                .clipped() // Ensure content doesn't overflow
+            }
+        }
+        .padding(20)
+        .background(
+            LinearGradient(
+                gradient: Gradient(colors: [
+                    Color(hex: "004aad").opacity(0.25),
+                    Color(hex: "0066ff").opacity(0.15)
+                ]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        )
+        .cornerRadius(16)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(
+                    isSelected ? 
+                    LinearGradient(
+                        gradient: Gradient(colors: [
+                            Color.yellow.opacity(0.9),
+                            Color.orange.opacity(0.8),
+                            Color.yellow.opacity(0.7)
+                        ]),
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ) :
+                    LinearGradient(
+                        gradient: Gradient(colors: [
+                            Color(hex: "004aad").opacity(0.3),
+                            Color(hex: "0066ff").opacity(0.2)
+                        ]),
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: isSelected ? 3 : 1
+                )
+        )
+        .shadow(
+            color: isSelected ? Color.yellow.opacity(0.3) : Color(hex: "004aad").opacity(0.1),
+            radius: isSelected ? 6 : 4,
+            x: 0,
+            y: isSelected ? 3 : 2
+        )
+        .scaleEffect(isSelected ? 1.02 : 1.0)
+        .animation(.easeInOut(duration: 0.2), value: isSelected)
+        .onTapGesture {
+            // Haptic feedback for plan selection
+            let selectionFeedback = UISelectionFeedbackGenerator()
+            selectionFeedback.selectionChanged()
+            
+            onSelect()
+        }
+    }
+}
+
+// MARK: - View Extension for Easy Usage
+extension View {
+    func withSubscriptionPaywall() -> some View {
+        self.modifier(SubscriptionPaywallOverlay())
+    }
+}
+
+// MARK: - Subscription Confetti Animation
+struct SubscriptionConfettiExplosionView: View {
+    @State private var particles: [SubscriptionParticle] = []
+    
+    let colors: [Color] = [
+        .green, .pink, .purple, .yellow,
+        Color(red: 0.4, green: 0.8, blue: 1.0), // Light blue
+        Color(hex: "004aad"), // Brand blue
+        Color(hex: "ffde59"), // Brand yellow
+        .orange
+    ]
+    
+    var body: some View {
+        ZStack {
+            ForEach(particles.indices, id: \.self) { index in
+                Circle()
+                    .fill(colors[index % colors.count])
+                    .frame(width: particles[index].size, height: particles[index].size)
+                    .offset(x: particles[index].x, y: particles[index].y)
+                    .opacity(particles[index].opacity)
+            }
+        }
+        .onAppear {
+            createExplosion()
+        }
+    }
+    
+    func createExplosion() {
+        particles = []
+        
+        let screenWidth = UIScreen.main.bounds.width
+        let screenHeight = UIScreen.main.bounds.height
+        
+        // Create particles that explode from left and right sides
+        for i in 0..<120 {
+            let size = CGFloat.random(in: 4...10)
+            let duration = Double.random(in: 2.0...4.5)
+            let delay = Double.random(in: 0...0.4)
+            
+            // Determine if particle comes from left or right side
+            let fromLeft = i % 2 == 0
+            let startX: CGFloat = fromLeft ? -screenWidth/2 + 20 : screenWidth/2 - 20
+            
+            // Random explosion trajectory
+            let targetX = CGFloat.random(in: -screenWidth/3...screenWidth/3)
+            let targetY = CGFloat.random(in: -screenHeight/4...screenHeight/2)
+            
+            particles.append(SubscriptionParticle(
+                x: startX, y: -screenHeight/4,
+                size: size,
+                opacity: 0
+            ))
+            
+            let lastIndex = particles.count - 1
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                withAnimation(.easeOut(duration: duration * 0.4)) {
+                    if lastIndex < particles.count {
+                        particles[lastIndex].x = targetX
+                        particles[lastIndex].y = targetY
+                        particles[lastIndex].opacity = 1
+                    }
+                }
+                
+                // Fall down effect
+                DispatchQueue.main.asyncAfter(deadline: .now() + duration * 0.4) {
+                    withAnimation(.easeIn(duration: duration * 0.6)) {
+                        if lastIndex < particles.count {
+                            particles[lastIndex].y += screenHeight
+                            particles[lastIndex].opacity = 0
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+struct SubscriptionParticle {
+    var x: CGFloat
+    var y: CGFloat
+    var size: CGFloat
+    var opacity: Double
+}

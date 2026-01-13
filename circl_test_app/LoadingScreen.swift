@@ -4,7 +4,7 @@ struct LoadingScreen: View {
     @State private var progressValue: Double = 0
     @State private var logoScale: CGFloat = 0.8
     @State private var logoOpacity: Double = 0
-    @State private var selectedLoadingScreen: String = ""
+    @State private var selectedLoadingScreen: String = "Test_Loading_Screen_1" // Default to ensure image shows
     
     // Array of available loading screens
     private let loadingScreens = [
@@ -19,6 +19,10 @@ struct LoadingScreen: View {
     
     var body: some View {
         ZStack {
+            // Fallback background color in case image fails to load
+            Color(.systemGray4)
+                .ignoresSafeArea(.all)
+            
             // Fullscreen background loading image (randomly selected)
             Image(selectedLoadingScreen)
                 .resizable()
@@ -26,6 +30,9 @@ struct LoadingScreen: View {
                 .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
                 .clipped()
                 .ignoresSafeArea(.all)
+                .onAppear {
+                    print("🖼️ LoadingScreen: Attempting to load image: \(selectedLoadingScreen)")
+                }
             
             // Dark overlay for better logo visibility
             Color.black.opacity(0.3)
@@ -79,7 +86,9 @@ struct LoadingScreen: View {
         }
         .onAppear {
             // Randomly select a loading screen
-            selectedLoadingScreen = loadingScreens.randomElement() ?? "Test_Loading_Screen_1"
+            let newScreen = loadingScreens.randomElement() ?? "Test_Loading_Screen_1"
+            selectedLoadingScreen = newScreen
+            print("🖼️ LoadingScreen: Selected background image: \(newScreen)")
             
             // Animate logo appearance
             withAnimation(.easeOut(duration: 0.8)) {
@@ -95,54 +104,8 @@ struct LoadingScreen: View {
     }
 }
 
-// MARK: - App Launch Coordinator
-struct AppLaunchView: View {
-    @State private var showLoadingScreen = true
-    @State private var isUserLoggedIn = false
-    
-    var body: some View {
-        Group {
-            if showLoadingScreen {
-                LoadingScreen()
-            } else if isUserLoggedIn {
-                // User is logged in, go directly to main app
-                PageForum()
-            } else {
-                // User not logged in, show login screen
-                Page1()
-            }
-        }
-        .onAppear {
-            // Check authentication state
-            checkAuthenticationState()
-            
-            // Show loading screen for exactly 3 seconds
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
-                showLoadingScreen = false
-            }
-        }
-    }
-    
-    private func checkAuthenticationState() {
-        // Check if user has a valid auth token
-        if let authToken = UserDefaults.standard.string(forKey: "auth_token"), 
-           !authToken.isEmpty {
-            // Additional check for user_id to ensure complete login state
-            let userId = UserDefaults.standard.value(forKey: "user_id") as? Int ?? 0
-            
-            if userId > 0 {
-                print("✅ User is authenticated - redirecting to main app")
-                isUserLoggedIn = true
-            } else {
-                print("❌ Auth token exists but no user_id - showing login")
-                isUserLoggedIn = false
-            }
-        } else {
-            print("❌ No auth token found - showing login")
-            isUserLoggedIn = false
-        }
-    }
-}
+// MARK: - App Launch Coordinator (moved to TutorialNavigation.swift)
+// This struct is now defined in TutorialNavigation.swift with tutorial integration
 
 struct LoadingScreen_Previews: PreviewProvider {
     static var previews: some View {
