@@ -21,6 +21,15 @@ struct LeaderboardEntry: Identifiable, Codable {
     var id: Int { user_id }
 }
 
+struct TasksResponse: Codable {
+    let tasks: [TaskItem]
+}
+
+struct ProjectsResponse: Codable {
+    let projects: [Project]
+}
+
+
 // MARK: - Dashboard View
 struct DashboardView: View {
     let circle: CircleData
@@ -208,24 +217,29 @@ struct DashboardView: View {
                     // Content based on view mode
                     if viewMode == .kanban {
                         KanbanBoardView(
-                            tasks: allTasks,
+                            circleId: circle.id,
                             standaloneTasks: $standaloneTasks,
                             projects: $projects,
                             selectedTask: $selectedTask,
                             showTaskDetails: $showTaskDetails
                         )
+
                     } else {
                         ProjectGridView(
+                            circleId: circle.id,
                             projects: $projects,
                             selectedProject: $selectedProject,
                             showProjectDetails: $showProjectDetails,
                             selectedTask: $selectedTask,
                             showTaskDetails: $showTaskDetails
                         )
+
+
                     }
                 }
                 .sheet(isPresented: $showCreateTaskPopup) {
                     CreateTaskView(
+                        circleId: circle.id,
                         isPresented: $showCreateTaskPopup,
                         standaloneTasks: $standaloneTasks,
                         projects: $projects,
@@ -239,8 +253,16 @@ struct DashboardView: View {
                         selectedProject: $selectedProjectForTask
                     )
                 }
+                .onChange(of: showCreateTaskPopup) { isOpen in
+                    if !isOpen {
+                        fetchKanbanTasks()
+                    }
+                }
+
+
                 .sheet(isPresented: $showCreateProjectPopup) {
                     CreateProjectView(
+                        circleId: circle.id,
                         isPresented: $showCreateProjectPopup,
                         projects: $projects,
                         name: $newProjectName,
@@ -333,7 +355,10 @@ struct DashboardView: View {
         .onAppear {
             fetchDashboardData()
             fetchLeaderboard()
+            fetchKanbanProjects()
+            fetchKanbanTasks()
         }
+
     }
     
     // MARK: - API Functions
@@ -408,6 +433,117 @@ struct DashboardView: View {
         }.resume()
     }
     
+    func fetchKanbanProjects() {
+        guard let url = URL(string: "\(baseURL)circles/kanban/\(circle.id)/projects/") else {
+
+            print("❌ Invalid URL for kanban projects")
+            return
+        }
+
+        var req = URLRequest(url: url)
+        req.httpMethod = "GET"
+
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            req.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+
+        URLSession.shared.dataTask(with: req) { data, response, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    print("❌ Projects network error:", error.localizedDescription)
+                    return
+                }
+
+                guard let data = data else {
+                    print("❌ Projects: no data")
+                    return
+                }
+
+                if let http = response as? HTTPURLResponse {
+                    print("✅ GET projects status:", http.statusCode)
+                }
+
+                if let raw = String(data: data, encoding: .utf8) {
+                    print("⬇️ Projects RAW:\n\(raw)")
+                }
+
+                do {
+                    let decoder = JSONDecoder()
+                    decoder.dateDecodingStrategy = .iso8601
+                    let decoded = try decoder.decode(ProjectsResponse.self, from: data)
+                    self.projects = decoded.projects
+                    print("✅ Loaded projects:", decoded.projects.count)
+
+                } catch {
+                    print("❌ Projects decode failed:", error)
+                }
+            }
+        }.resume()
+    }
+
+    func fetchKanbanTasks() {
+        guard let url = URL(string: "\(baseURL)circles/kanban/\(circle.id)/tasks/") else {
+
+            print("❌ Invalid URL for kanban tasks")
+            return
+        }
+
+        var req = URLRequest(url: url)
+        req.httpMethod = "GET"
+
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            req.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+
+        URLSession.shared.dataTask(with: req) { data, response, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    print("❌ Tasks network error:", error.localizedDescription)
+                    return
+                }
+
+                guard let data = data else {
+                    print("❌ Tasks: no data")
+                    return
+                }
+
+                if let http = response as? HTTPURLResponse {
+                    print("✅ GET tasks status:", http.statusCode)
+                }
+
+                if let raw = String(data: data, encoding: .utf8) {
+                    print("⬇️ Tasks RAW:\n\(raw)")
+                }
+
+                do {
+                    let decoder = JSONDecoder()
+                    decoder.dateDecodingStrategy = .iso8601
+                    let decoded = try decoder.decode(TasksResponse.self, from: data)
+                    let tasks = decoded.tasks
+
+
+                    // Split into standalone vs project tasks
+                    self.standaloneTasks = tasks.filter { $0.projectId == nil }
+
+                    var updatedProjects = self.projects
+                    for i in updatedProjects.indices {
+                        let pid = updatedProjects[i].id
+                        updatedProjects[i].tasks = tasks.filter { $0.projectId == pid }
+                    }
+                    self.projects = updatedProjects
+
+                    print("✅ Loaded tasks:", tasks.count, "standalone:", self.standaloneTasks.count)
+
+                } catch {
+                    print("❌ Tasks decode failed:", error)
+                }
+            }
+        }.resume()
+    }
+
+    
     // Sample data for testing
     func loadSampleSummary() {
         summary = DashboardSummary(
@@ -425,23 +561,26 @@ struct DashboardView: View {
         
         // Create sample project and task for testing
         let sampleProject = Project(
+            id: 1,
             name: "Sample Project",
             description: "This is a sample project for testing",
             color: .blue,
             startDate: Date(),
             endDate: Calendar.current.date(byAdding: .month, value: 1, to: Date()) ?? Date()
         )
-        
+
         let sampleTask = TaskItem(
+            id: 1,
+            projectId: sampleProject.id,
             title: "Sample Task",
             description: "This is a sample task",
             status: .inProgress,
-            projectId: sampleProject.id,
             assignees: ["John Doe", "Jane Smith"],
             startDate: Date(),
             endDate: Calendar.current.date(byAdding: .day, value: 7, to: Date()) ?? Date(),
             priority: .high
         )
+
         
         // Add sample data
         projects = [sampleProject]

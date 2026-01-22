@@ -10,6 +10,7 @@ import SwiftUI
 
 // MARK: - Create Task View
 struct CreateTaskView: View {
+    let circleId: Int
     @Binding var isPresented: Bool
     @Binding var standaloneTasks: [TaskItem]
     @Binding var projects: [Project]
@@ -87,35 +88,54 @@ struct CreateTaskView: View {
     }
     
     private func createTask() {
-        let assigneeList = assignees.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
-        
-        let newTask = TaskItem(
-            title: title,
-            description: description,
-            status: status,
-            projectId: selectedProject?.id,
-            assignees: assigneeList,
-            startDate: startDate,
-            endDate: endDate,
-            priority: priority
-        )
-        
-        if let project = selectedProject {
-            // Add task to project
-            if let projectIndex = projects.firstIndex(where: { $0.id == project.id }) {
-                // Create a copy of the project to trigger SwiftUI update
-                var updatedProject = projects[projectIndex]
-                updatedProject.tasks.append(newTask)
-                projects[projectIndex] = updatedProject
+        Task {
+            do {
+                let assigneeList = assignees
+                    .split(separator: ",")
+                    .map { $0.trimmingCharacters(in: .whitespaces) }
+
+                let url = URL(string: "\(baseURL)circles/kanban/\(circleId)/tasks/")!
+
+
+
+                let body: [String: Any] = [
+                    "title": title,
+                    "description": description,
+                    "status": status.rawValue,
+                    "projectId": selectedProject?.id as Any,
+                    "assignees": assigneeList,
+                    "startDate": iso(startDate),
+                    "endDate": iso(endDate),
+                    "priority": priority.rawValue
+                ]
+
+                let created: TaskItem = try await postJSON(url, body: body)
+
+                await MainActor.run {
+                    if let pid = created.projectId,
+                       let projectIndex = projects.firstIndex(where: { $0.id == pid }) {
+
+                        var updatedProject = projects[projectIndex]
+                        updatedProject.tasks.append(created)
+                        projects[projectIndex] = updatedProject
+
+                        // ✅ force SwiftUI refresh for nested update
+                        projects = Array(projects)
+
+                    } else {
+                        standaloneTasks.append(created)
+                    }
+
+
+                    resetForm()
+                    isPresented = false
+                }
+            } catch {
+                print("Create task failed:", error)
             }
-        } else {
-            // Add as standalone task
-            standaloneTasks.append(newTask)
         }
-        
-        resetForm()
-        isPresented = false
     }
+
     
     private func resetForm() {
         title = ""
@@ -131,6 +151,7 @@ struct CreateTaskView: View {
 
 // MARK: - Create Project View
 struct CreateProjectView: View {
+    let circleId: Int
     @Binding var isPresented: Bool
     @Binding var projects: [Project]
     @Binding var name: String
@@ -182,18 +203,33 @@ struct CreateProjectView: View {
     }
     
     private func createProject() {
-        let newProject = Project(
-            name: name,
-            description: description,
-            color: color,
-            startDate: startDate,
-            endDate: endDate
-        )
-        
-        projects.append(newProject)
-        resetForm()
-        isPresented = false
+        Task {
+            do {
+                let url = URL(string: "\(baseURL)circles/kanban/\(circleId)/projects/")!
+
+
+
+                let body: [String: Any] = [
+                    "name": name,
+                    "description": description,
+                    "color": color.rawValue,
+                    "startDate": iso(startDate),
+                    "endDate": iso(endDate)
+                ]
+
+                let created: Project = try await postJSON(url, body: body)
+
+                await MainActor.run {
+                    projects.append(created)
+                    resetForm()
+                    isPresented = false
+                }
+            } catch {
+                print("Create project failed:", error)
+            }
+        }
     }
+
     
     private func resetForm() {
         name = ""
@@ -353,4 +389,39 @@ struct TaskDetailView: View {
         
         isPresented = false
     }
+    
+    
+
+    
+
 }
+private func iso(_ date: Date) -> String {
+    ISO8601DateFormatter().string(from: date)
+}
+private func postJSON<T: Decodable>(_ url: URL, body: [String: Any]) async throws -> T {
+    var req = URLRequest(url: url)
+    req.httpMethod = "POST"
+    req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    if let token = UserDefaults.standard.string(forKey: "auth_token") {
+        req.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+    }
+
+
+    req.httpBody = try JSONSerialization.data(withJSONObject: body, options: [])
+
+    let (data, response) = try await URLSession.shared.data(for: req)
+
+    if let http = response as? HTTPURLResponse {
+        print("✅ POST \(url.absoluteString) -> status:", http.statusCode)
+    }
+
+    // Print raw body if it isn't JSON (or if server returned an error page)
+    if let raw = String(data: data, encoding: .utf8) {
+        print("⬇️ RAW RESPONSE:\n\(raw)")
+    }
+
+    let decoder = JSONDecoder()
+    decoder.dateDecodingStrategy = .iso8601
+    return try decoder.decode(T.self, from: data)
+}
+

@@ -10,11 +10,14 @@ import SwiftUI
 
 // MARK: - Project Grid View
 struct ProjectGridView: View {
+    let circleId: Int
     @Binding var projects: [Project]
     @Binding var selectedProject: Project?
     @Binding var showProjectDetails: Bool
     @Binding var selectedTask: TaskItem?
     @Binding var showTaskDetails: Bool
+
+
     
     var body: some View {
         ScrollView {
@@ -22,10 +25,18 @@ struct ProjectGridView: View {
                 GridItem(.adaptive(minimum: 300, maximum: 400))
             ], spacing: 16) {
                 ForEach(projects) { project in
-                    ProjectCardView(project: project) {
-                        selectedProject = project
-                        showProjectDetails = true
-                    }
+                    ProjectCardView(
+                        circleId: circleId,
+                        project: project,
+                        onTap: {
+                            selectedProject = project
+                            showProjectDetails = true
+                        },
+                        onDelete: {
+                            projects.removeAll { $0.id == project.id }
+                        }
+                    )
+
                 }
             }
             .padding(.horizontal, 20)
@@ -35,8 +46,13 @@ struct ProjectGridView: View {
 
 // MARK: - Project Card View
 struct ProjectCardView: View {
+    let circleId: Int
     let project: Project
     let onTap: () -> Void
+    let onDelete: () -> Void
+    @State private var showDeleteConfirmation = false
+
+
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -51,13 +67,22 @@ struct ProjectCardView: View {
                     .foregroundColor(.primary)
                 
                 Spacer()
-                
-                if project.isCompleted {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.green)
-                        .font(.system(size: 16))
+
+                Menu {
+                    Button(role: .destructive) {
+                        showDeleteConfirmation = true
+                    } label: {
+                        Label("Delete Project", systemImage: "trash")
+                    }
+
+
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                        .font(.system(size: 18))
+                        .foregroundColor(.secondary)
                 }
             }
+
             
             // Description
             Text(project.description)
@@ -124,7 +149,35 @@ struct ProjectCardView: View {
         .onTapGesture {
             onTap()
         }
+        .alert("Delete Project?", isPresented: $showDeleteConfirmation) {
+            Button("Delete", role: .destructive) {
+                // 1) Remove from UI
+                onDelete()
+
+                // 2) Delete from backend
+                Task {
+                    var request = URLRequest(
+                        url: URL(string:
+                            "\(baseURL)circles/kanban/\(circleId)/projects/\(project.id)/delete/"
+                        )!
+                    )
+                    request.httpMethod = "DELETE"
+
+                    if let token = UserDefaults.standard.string(forKey: "auth_token") {
+                        request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+                    }
+
+                    _ = try? await URLSession.shared.data(for: request)
+                }
+            }
+
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("Deleting this project will permanently delete all tasks associated with it. This action cannot be undone.")
+        }
+
     }
+
 }
 
 // MARK: - Project Detail View
@@ -481,15 +534,17 @@ struct CreateTaskViewForProject: View {
         let assigneeList = assignees.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
         
         let newTask = TaskItem(
+            id: Int(Date().timeIntervalSince1970),   // temporary local id
+            projectId: project.id,
             title: title,
             description: description,
             status: status,
-            projectId: project.id,
             assignees: assigneeList,
             startDate: startDate,
             endDate: endDate,
             priority: priority
         )
+
         
         // Create a copy of the project to trigger SwiftUI update
         var updatedProject = project
