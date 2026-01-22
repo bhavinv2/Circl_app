@@ -12,8 +12,10 @@ struct CirclApp: App {
     var body: some Scene {
         WindowGroup {
             RootSwitcher()
+                .id(appState.isLoggedIn)   // 🔥 force rebuild on login/logout
                 .environmentObject(appState)
                 .environmentObject(profilePreview)
+
                 .onAppear {
                     MessageNotificationService.shared.startBackgroundMessageChecking()
                 }
