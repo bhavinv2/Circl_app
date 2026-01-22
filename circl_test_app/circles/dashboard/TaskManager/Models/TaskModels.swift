@@ -31,7 +31,8 @@ enum TaskStatus: String, CaseIterable, Identifiable, Codable {
 
 // MARK: - Project Model
 struct Project: Identifiable, Codable, Hashable {
-    let id = UUID()
+    var id: Int
+
     var name: String
     var description: String
     var color: ProjectColor
@@ -79,11 +80,13 @@ struct Project: Identifiable, Codable, Hashable {
 
 // MARK: - Task Item Model
 struct TaskItem: Identifiable, Codable, Hashable {
-    let id = UUID()
+    var id: Int
+    var projectId: Int?
+
     var title: String
     var description: String
     var status: TaskStatus
-    var projectId: UUID? // Optional - for standalone tasks
+
     var assignees: [String]
     var startDate: Date
     var endDate: Date

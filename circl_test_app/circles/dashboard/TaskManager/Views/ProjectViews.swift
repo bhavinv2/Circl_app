@@ -481,15 +481,17 @@ struct CreateTaskViewForProject: View {
         let assigneeList = assignees.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
         
         let newTask = TaskItem(
+            id: Int(Date().timeIntervalSince1970),   // temporary local id
+            projectId: project.id,
             title: title,
             description: description,
             status: status,
-            projectId: project.id,
             assignees: assigneeList,
             startDate: startDate,
             endDate: endDate,
             priority: priority
         )
+
         
         // Create a copy of the project to trigger SwiftUI update
         var updatedProject = project
