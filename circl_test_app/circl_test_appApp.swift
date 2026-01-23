@@ -107,7 +107,7 @@ func joinCircleFromDeepLink(_ circleId: Int) async {
 // MARK: - RESOLVE TOKEN
 // -------------------------------------------------------------
 
-func resolveInviteTokenAndJoin(token: String) async {
+func resolveInviteTokenAndJoin(token: String) async { // TODO: Create pop-up to notify that the invite has failed or succeeded
     print("🔎 Resolving invite token:", token)
 
     guard let url = URL(string: "https://circlapp.online/circles/resolve_invite/\(token)/") else {
