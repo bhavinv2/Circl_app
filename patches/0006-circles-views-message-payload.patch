@@ -1,0 +1,38 @@
+*** Begin Patch
+*** Update File: circl-backend/circles/views.py
+@@
+-        for uid in recipient_ids:
+-            recipient = UserInfo.objects.get(id=uid)
+-            tokens = DeviceToken.objects.filter(user=recipient, is_production=True)
+-
+-            for token in tokens:
+-                send_push_notification(
+-                    token.token,
+-                    title=f"New message in {channel.name}",
+-                    body=f"{user.first_name}: {msg.content or '📎 Attachment'}"
+-                )
++        for uid in recipient_ids:
++            recipient = UserInfo.objects.get(id=uid)
++            tokens = DeviceToken.objects.filter(user=recipient, is_production=True, is_active=True)
++
++            for token in tokens:
++                custom = {
++                    "type": "message",
++                    "payload": {
++                        "message_id": msg.id,
++                        "channel_id": channel.id,
++                        "circle_id": channel.circle_id,
++                        "sender_id": user.id,
++                        "sender_name": user.first_name,
++                        "excerpt": (msg.content or '')[:200]
++                    }
++                }
++
++                send_push_notification(
++                    token.token,
++                    title=f"New message in {channel.name}",
++                    body=f"{user.first_name}: {msg.content or '📎 Attachment'}",
++                    custom=custom,
++                    use_prod=token.is_production
++                )
+*** End Patch

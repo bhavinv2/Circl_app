@@ -1,0 +1,111 @@
+*** Begin Patch
+*** Update File: circl-backend/notifications/admin.py
+@@
+-from django.contrib import admin, messages
+-from .models import Notification, DeviceToken
+-import subprocess
+-import json
+-import os
+-
+-CERT_PATH = "/home/vullibhavin33_gmail_com/apns/apns-cert.pem"
+-
+-
+-@admin.register(Notification)
+-class NotificationAdmin(admin.ModelAdmin):
+-    list_display = ("title", "message", "sent", "created_at")
+-    actions = ["send_notification"]
+-
+-    def send_notification(self, request, queryset):
+-        print("🔥 Django admin action triggered!")
+-
+-        for notif in queryset:
+-            if notif.sent:
+-                continue
+-
+-            tokens = DeviceToken.objects.filter(is_production=True)
+-            print(f"📱 Found {tokens.count()} device tokens")
+-            if not tokens.exists():
+-                self.message_user(request, "No device tokens registered.", level=messages.WARNING)
+-                continue
+-
+-            payload = {
+-                "aps": {
+-                    "alert": {
+-                        "title": "Circl Team",
+-                        "body": notif.message
+-                    },
+-                    "sound": "default"
+-                }
+-            }
+-
+-            payload_str = json.dumps(payload)
+-
+-            for token_obj in tokens:
+-                curl_cmd = [
+-                    "curl", "-v", "--http2",
+-                    "--cert", CERT_PATH,
+-                    "-H", "apns-topic: com.fragne.circl",
+-                    "-H", "Content-Type: application/json",
+-                    "-d", payload_str,
+-                    f"https://api.push.apple.com/3/device/{token_obj.token}"
+-                ]
+-
+-                print("📤 Final payload JSON:")
+-                print(json.dumps(payload, indent=2))
+-
+-                result = subprocess.run(curl_cmd, capture_output=True, text=True)
+-
+-                print("📤 CURL RETURN CODE:", result.returncode)
+-                print("📤 STDOUT:", result.stdout)
+-                print("📤 STDERR:", result.stderr)
+-
+-                self.message_user(request, f"CURL stderr: {result.stderr}", level=messages.WARNING)
+-
+-            notif.sent = True
+-            notif.save()
+-
+-        self.message_user(request, "Notifications sent!", level=messages.SUCCESS)
++from django.contrib import admin, messages
++from .models import Notification, DeviceToken
++import json
++
++from .sender import send_apns_push
++
++
++@admin.register(Notification)
++class NotificationAdmin(admin.ModelAdmin):
++    list_display = ("title", "message", "sent", "created_at")
++    actions = ["send_notification"]
++
++    def send_notification(self, request, queryset):
++        print("🔥 Django admin action triggered!")
++
++        for notif in queryset:
++            if notif.sent:
++                continue
++
++            tokens = DeviceToken.objects.filter(is_production=True, is_active=True)
++            print(f"📱 Found {tokens.count()} device tokens")
++            if not tokens.exists():
++                self.message_user(request, "No device tokens registered.", level=messages.WARNING)
++                continue
++
++            aps = {
++                "aps": {
++                    "alert": {
++                        "title": "Circl Team",
++                        "body": notif.message
++                    },
++                    "sound": "default"
++                }
++            }
++
++            for token_obj in tokens:
++                result = send_apns_push(token_obj.token, aps, use_prod=token_obj.is_production)
++                self.message_user(request, f"Push result: {result.get('stderr', '')}", level=messages.WARNING)
++
++            notif.sent = True
++            notif.save()
++
++        self.message_user(request, "Notifications sent!", level=messages.SUCCESS)
+*** End Patch
