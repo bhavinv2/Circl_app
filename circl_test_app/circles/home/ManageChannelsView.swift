@@ -174,6 +174,11 @@ struct ManageChannelsView: View {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
         request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
 
         URLSession.shared.dataTask(with: request) { data, response, error in
@@ -291,6 +296,11 @@ struct ManageChannelsView: View {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
         request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
 
         URLSession.shared.dataTask(with: request) { data, response, error in
@@ -698,9 +708,9 @@ struct ManageChannelsView: View {
         .background(
             RoundedRectangle(cornerRadius: 16)
                 .fill(Color.white)
-                .shadow(color: Color.black.opacity(isDragging && draggedCategory?.id == category.id ? 0.2 : 0.08), 
-                       radius: isDragging && draggedCategory?.id == category.id ? 12 : 6, 
-                       x: 0, 
+                .shadow(color: Color.black.opacity(isDragging && draggedCategory?.id == category.id ? 0.2 : 0.08),
+                       radius: isDragging && draggedCategory?.id == category.id ? 12 : 6,
+                       x: 0,
                        y: isDragging && draggedCategory?.id == category.id ? 8 : 2)
         )
         .scaleEffect(isDragging && draggedCategory?.id == category.id ? 1.05 : 1.0)
@@ -775,9 +785,9 @@ struct ManageChannelsView: View {
         print("📍 Drag details: draggedIndex=\(draggedIndex), dropOffset=\(dropOffset), newIndex=\(newIndex)")
         
         // Only proceed if the position actually changed
-        guard newIndex != draggedIndex else { 
+        guard newIndex != draggedIndex else {
             print("📍 No position change needed")
-            return 
+            return
         }
         
         print("📍 Moving category '\(draggedCategory.name)' from index \(draggedIndex) to \(newIndex)")
@@ -812,8 +822,8 @@ struct ManageChannelsView: View {
     
     // MARK: - Backend API Functions
     private func createChannelOnServer(channelName: String, categoryId: Int? = nil, completion: @escaping (Bool, Channel?) -> Void)
-{
-    guard let url = URL(string: "\(baseURL)circles/create_channel/") else {
+    {
+        guard let url = URL(string: "\(baseURL)circles/create_channel/") else {
 
             completion(false, nil as Channel?)
             return
@@ -833,6 +843,11 @@ struct ManageChannelsView: View {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
         request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
         
         URLSession.shared.dataTask(with: request) { data, response, error in
@@ -842,7 +857,7 @@ struct ManageChannelsView: View {
                 return
             }
             
-            if let httpResponse = response as? HTTPURLResponse, 
+            if let httpResponse = response as? HTTPURLResponse,
                httpResponse.statusCode == 200 || httpResponse.statusCode == 201 {
                 // Try to decode the response to get the new channel ID
                 // Try to decode the full channel response first
@@ -879,6 +894,11 @@ struct ManageChannelsView: View {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
         request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
 
         URLSession.shared.dataTask(with: request) { data, response, error in
@@ -916,6 +936,11 @@ struct ManageChannelsView: View {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
         request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
 
         URLSession.shared.dataTask(with: request) { data, response, error in
@@ -958,6 +983,11 @@ struct ManageChannelsView: View {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
         request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
         
         URLSession.shared.dataTask(with: request) { data, response, error in
@@ -1026,7 +1056,11 @@ struct ManageChannelsView: View {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
+
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
         do {
             request.httpBody = try JSONSerialization.data(withJSONObject: payload)
         } catch {

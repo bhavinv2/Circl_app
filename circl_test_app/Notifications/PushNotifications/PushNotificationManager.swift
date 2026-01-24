@@ -76,7 +76,39 @@ class PushNotificationManager: NSObject, UIApplicationDelegate, UNUserNotificati
                                 withCompletionHandler completionHandler:
                                     @escaping (UNNotificationPresentationOptions) -> Void) {
 
+        // If backend sends a custom payload, also show our in-app banner routing.
+        if let userInfo = notification.request.content.userInfo as? [String: Any] {
+            let type = (userInfo["type"] as? String)
+                ?? ((userInfo["data"] as? [String: Any])?["type"] as? String)
+
+            if let type = type {
+                let basePayload = (userInfo["data"] as? [String: Any]) ?? userInfo
+                let payload = (basePayload["payload"] as? [String: Any]) ?? basePayload
+                NotificationManager.shared.handlePushPayload(type: type, payload: payload)
+            }
+        }
+
         completionHandler([.banner, .sound])
+    }
+
+    // User tapped notification (app opened from background/terminated)
+    func userNotificationCenter(_ center: UNUserNotificationCenter,
+                                didReceive response: UNNotificationResponse,
+                                withCompletionHandler completionHandler: @escaping () -> Void) {
+
+        let userInfo = response.notification.request.content.userInfo
+        if let dict = userInfo as? [String: Any] {
+            let type = (dict["type"] as? String)
+                ?? ((dict["data"] as? [String: Any])?["type"] as? String)
+
+            if let type = type {
+                let basePayload = (dict["data"] as? [String: Any]) ?? dict
+                let payload = (basePayload["payload"] as? [String: Any]) ?? basePayload
+                NotificationManager.shared.handlePushPayload(type: type, payload: payload)
+            }
+        }
+
+        completionHandler()
     }
 }
 
@@ -90,12 +122,22 @@ func sendDeviceTokenToBackend(token: String) {
     let payload: [String: Any] = [
         "token": token,
         "user_id": userId,
-        "is_production": true
+        "is_production": {
+            #if DEBUG
+            return false
+            #else
+            return true
+            #endif
+        }()
     ]
 
     var request = URLRequest(url: url)
     request.httpMethod = "POST"
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+    if let authToken = UserDefaults.standard.string(forKey: "auth_token"), !authToken.isEmpty {
+        request.setValue("Token \(authToken)", forHTTPHeaderField: "Authorization")
+    }
 
     do {
         request.httpBody = try JSONSerialization.data(withJSONObject: payload, options: [])
