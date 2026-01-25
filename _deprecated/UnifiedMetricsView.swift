@@ -2,26 +2,30 @@ import SwiftUI
 
 struct UnifiedMetricsView: View {
     @ObservedObject private var networkManager = NetworkDataManager.shared
+
+    private var totalPotentialMatches: Int {
+        networkManager.entrepreneurs.count + networkManager.mentors.count
+    }
     
     var body: some View {
         VStack(spacing: 10) {
             HStack(spacing: 15) {
                 metricCard(
-                    icon: "person.3.fill", 
-                    title: "Your\nNetwork", 
-                    value: "\(networkManager.userNetworkEmails.count)", 
+                    icon: "person.3.fill",
+                    title: "Your\nNetwork",
+                    value: "\(networkManager.userNetworkEmails.count)",
                     color: .blue
                 )
                 metricCard(
-                    icon: "envelope.fill", 
-                    title: "Pending\nInvites", 
-                    value: "\(networkManager.friendRequests.count)", 
+                    icon: "envelope.fill",
+                    title: "Pending\nInvites",
+                    value: "\(networkManager.friendRequests.count)",
                     color: .orange
                 )
                 metricCard(
-                    icon: "star.fill", 
-                    title: "Potential\nMatches", 
-                    value: "\(networkManager.totalPotentialMatches)", 
+                    icon: "star.fill",
+                    title: "Potential\nMatches",
+                    value: "\(totalPotentialMatches)",
                     color: .purple
                 )
             }

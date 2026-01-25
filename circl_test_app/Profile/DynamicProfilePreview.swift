@@ -3,49 +3,61 @@ import Foundation
 
 struct DynamicProfilePreview: View {
     var profileData: FullProfile
-    let isInNetwork: Bool
-    
+    private let initialIsInNetwork: Bool // Deprecated but kept just in case it's needed later as an initial value
+
     @State private var showRemoveFriendConfirmation = false
     @State private var showBlockConfirmation = false
     @State private var showBlockAndReportConfirmation = false
-    
+
     @Environment(\.dismiss) var dismiss
-    
-    
+
     let loggedInUserId = UserDefaults.standard.integer(forKey: "user_id")
-    
+
+    // --- New state for connect button lifecycle ---
+    @ObservedObject private var networkManager = NetworkDataManager.shared
+    @State private var isInNetwork: Bool
+    @State private var requestSent = false
+    @State private var accepted = false
+
+    // Custom initializer to copy constructor param into @State
+    init(profileData: FullProfile, isInNetwork: Bool) {
+        self.profileData = profileData
+        self.initialIsInNetwork = isInNetwork
+        self._isInNetwork = State(initialValue: isInNetwork)
+    }
+
     var body: some View {
         return ZStack(alignment: .topTrailing) {
             // Background matching ProfilePage.swift
             LinearGradient(
-                colors: [Color(.systemGray6).opacity(0.3), Color(.systemGray5).opacity(0.5)], 
-                startPoint: .top, 
+                colors: [Color(.systemGray6).opacity(0.3), Color(.systemGray5).opacity(0.5)],
+                startPoint: .top,
                 endPoint: .bottom
             )
             .ignoresSafeArea()
             
             VStack(spacing: 0) {
                 ScrollView {
-                    // Elegant close button
-                    HStack {
-                        Spacer()
-                        Button(action: {
-                            dismiss()
-                        }) {
-                            ZStack {
-                                Circle()
-                                    .fill(Color(.systemGray4))
-                                    .frame(width: 40, height: 40)
-                                    .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
-                                
-                                Image(systemName: "xmark")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.primary)
-                            }
-                        }
-                        .padding(.top, 10)
-                        .padding(.trailing, 20)
-                    }
+//                    // Elegant close button
+//                    HStack {
+//                        Spacer()
+//                        Button(action: {
+//                            dismiss()
+//                        }) {
+//                            ZStack {
+//                                Circle()
+//                                    .fill(Color(.systemGray4))
+//                                    .frame(width: 40, height: 40)
+//                                    .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+//                                
+//                                Image(systemName: "xmark")
+//                                    .font(.system(size: 16, weight: .semibold))
+//                                    .foregroundColor(.primary)
+//                            }
+//                        }
+//                        .padding(.top, 10)
+//                        .padding(.trailing, 20)
+//                    }
                     
                     VStack(spacing: 30) {
                         // MARK: - Header Card with ProfilePage gradient
@@ -325,6 +337,20 @@ struct DynamicProfilePreview: View {
                                     }
                                 }
                                 
+                                // Optional connect button (only shows if not in network)
+                                OptionalConnectButton(
+                                    isInNetwork: $isInNetwork,
+                                    requestSent: $requestSent,
+                                    accepted: $accepted
+                                ) {
+                                    // Action when tapped: send friend request using the established NetworkDataManager helper
+                                    let email = profileData.email.trimmingCharacters(in: .whitespacesAndNewlines)
+                                    guard !email.isEmpty else { return }
+                                    requestSent = true
+                                    NetworkDataManager.shared.addToNetwork(email: email)
+                                }
+                                .padding(.top, 6)
+                                
                             }
                             .padding(.vertical, 30)
                             .padding(.horizontal, 25)
@@ -518,6 +544,26 @@ struct DynamicProfilePreview: View {
             }
             .edgesIgnoringSafeArea(.all)
         }
+        // Observe network updates so we can react if the connection is accepted elsewhere
+        .onChange(of: networkManager.userNetworkIds) { ids in
+            if ids.contains(profileData.user_id) && requestSent && !accepted {
+                // animate accepted
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                    accepted = true
+                }
+                // After short delay, mark as in-network and remove button after the animation
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                    withAnimation(.easeInOut(duration: 0.4)) {
+                        isInNetwork = true
+                    }
+                    // reset requestSent/accepted to default if you want
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                        requestSent = false
+                        accepted = false
+                    }
+                }
+            }
+        }
     }
     
     func calculateAge(from birthday: String) -> String {
@@ -639,6 +685,26 @@ struct DynamicProfilePreview: View {
     func reportUser() {
         print("🚨 reportUser() called")
     }
+    
+    // MARK: - Fallback connect request (if email missing)
+    func sendConnectRequestDirect() {
+        guard let url = URL(string: "\(baseURL)users/send_friend_request/") else { return }
+        guard let senderId = UserDefaults.standard.value(forKey: "user_id") as? Int else { return }
+
+        let body: [String: Any] = [
+            "user_id": senderId,
+            "receiver_email": profileData.email
+        ]
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+        URLSession.shared.dataTask(with: request).resume()
+    }
 }
 
 // Helper component matching ProfilePage's ProfileField style
@@ -661,11 +727,110 @@ struct ProfileFieldDisplay: View {
     }
 }
 
+// MARK: - OptionalConnectButton implementation
+struct OptionalConnectButton: View {
+    @Binding var isInNetwork: Bool
+    @Binding var requestSent: Bool
+    @Binding var accepted: Bool
+    var action: () -> Void
+    
+    var body: some View {
+        // only show when not in network
+        if !isInNetwork {
+            Button(action: {
+                guard !requestSent && !accepted else { return }
+                action()
+            }) {
+                HStack {
+                    if accepted {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 16, weight: .semibold))
+                    }
+                    Text(accepted ? "Connection Accepted" : (requestSent ? "Request Sent" : "Ask to Connect"))
+                        .font(.system(size: 15, weight: .semibold))
+                }
+                .padding(.vertical, 10)
+                .padding(.horizontal, 16)
+                .frame(minWidth: 150)
+                .background(buttonBackground)
+                .foregroundColor(textColor)
+                .cornerRadius(12)
+                .shadow(color: accepted ? Color.green.opacity(0.35) : Color.black.opacity(0.12), radius: 8, x: 0, y: 4)
+                .opacity((requestSent && !accepted) ? 0.9 : 1.0)
+            }
+            .disabled(requestSent || accepted)
+            .transition(.opacity.combined(with: .scale))
+        }
+    }
+    
+    private var buttonBackground: Color {
+        if accepted { return Color.green }
+        if requestSent { return Color(.systemGray) }
+        // theme blue that matches header
+        return Color.customHex("0066ff")
+    }
+    
+    private var textColor: Color {
+        if accepted { return Color.white }
+        if requestSent { return Color(.white) }
+        // theme blue that matches header
+        return Color.white//customHex("0066ff")
+    }
+}
+
+// MARK: - Preview harness to demonstrate lifecycle
+fileprivate struct ConnectButtonPreview: View {
+    @State private var isInNetwork = false
+    @State private var requestSent = false
+    @State private var accepted = false
+    
+    var body: some View {
+        VStack(spacing: 20) {
+            Text("Connect Button Preview")
+                .font(.headline)
+            OptionalConnectButton(isInNetwork: $isInNetwork, requestSent: $requestSent, accepted: $accepted) {
+                // Simulate sending request
+                requestSent = true
+                // Simulate acceptance after 5 seconds
+                DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                        accepted = true
+                    }
+                    // After short animation, hide the button
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                        withAnimation(.easeInOut(duration: 0.4)) {
+                            isInNetwork = true
+                        }
+                        // reset states to show final state ephemeral (preview only)
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                            requestSent = false
+                            accepted = false
+                        }
+                    }
+                }
+            }
+            
+            Button("Reset Preview") {
+                isInNetwork = false
+                requestSent = false
+                accepted = false
+            }
+            .padding(.top, 20)
+        }
+        .padding()
+        .background(RoundedRectangle(cornerRadius: 12).fill(Color(.systemBackground)).shadow(radius: 5))
+        .padding()
+    }
+}
+
 extension FullProfile {
     static let testProfile = FullProfile(user_id: 1, profile_image: nil, first_name: "John", last_name: "Doe", email: "john.doe@test.com", main_usage: nil, industry_interest: "Body Replacement", title: "Replacement Name", bio: "John Doe is a 47-year old caucasian male, body found in forest with gunshot wound, apparent cause of death gunshot wound", birthday: "unknown", education_level: "ged", institution_attended: "School for Performing Arts", certificates: ["Death Certificate"], years_of_experience: 0, personality_type: "ISFJ", locations: ["New York City Morgue"], achievements: ["Best corpse award of 2025"], skillsets: ["unknown"], availability: "Probably never, given that he's dead", clubs: ["Dead Bodies Associated"], hobbies: ["Body Bag Racing"], connections_count: 0, circs: 0, entrepreneurial_history: "Dead on arrival")
 }
 
 #Preview {
-    @Environment(\.dismiss) var dismiss
-    DynamicProfilePreview(profileData: FullProfile.testProfile, isInNetwork: true, dismiss: _dismiss)
+    VStack {
+        DynamicProfilePreview(profileData: FullProfile.testProfile, isInNetwork: false)
+            .frame(height: 700)
+        ConnectButtonPreview()
+    }
 }
