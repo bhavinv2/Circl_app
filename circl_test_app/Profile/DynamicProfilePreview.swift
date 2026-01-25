@@ -542,7 +542,6 @@ struct DynamicProfilePreview: View {
                     .padding()
                 }
             }
-            .edgesIgnoringSafeArea(.all)
         }
         // Observe network updates so we can react if the connection is accepted elsewhere
         .onChange(of: networkManager.userNetworkIds) { ids in
