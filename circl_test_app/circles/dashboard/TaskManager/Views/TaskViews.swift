@@ -10,6 +10,7 @@ import SwiftUI
 
 // MARK: - Create Task View
 struct CreateTaskView: View {
+    let circleId: Int
     @Binding var isPresented: Bool
     @Binding var standaloneTasks: [TaskItem]
     @Binding var projects: [Project]
@@ -93,7 +94,8 @@ struct CreateTaskView: View {
                     .split(separator: ",")
                     .map { $0.trimmingCharacters(in: .whitespaces) }
 
-                let url = URL(string: "\(baseURL)circles/kanban/tasks/")!
+                let url = URL(string: "\(baseURL)circles/kanban/\(circleId)/tasks/")!
+
 
 
                 let body: [String: Any] = [
@@ -112,12 +114,18 @@ struct CreateTaskView: View {
                 await MainActor.run {
                     if let pid = created.projectId,
                        let projectIndex = projects.firstIndex(where: { $0.id == pid }) {
+
                         var updatedProject = projects[projectIndex]
                         updatedProject.tasks.append(created)
                         projects[projectIndex] = updatedProject
+
+                        // ✅ force SwiftUI refresh for nested update
+                        projects = Array(projects)
+
                     } else {
                         standaloneTasks.append(created)
                     }
+
 
                     resetForm()
                     isPresented = false
@@ -143,6 +151,7 @@ struct CreateTaskView: View {
 
 // MARK: - Create Project View
 struct CreateProjectView: View {
+    let circleId: Int
     @Binding var isPresented: Bool
     @Binding var projects: [Project]
     @Binding var name: String
@@ -196,7 +205,8 @@ struct CreateProjectView: View {
     private func createProject() {
         Task {
             do {
-                let url = URL(string: "\(baseURL)circles/kanban/projects/")!
+                let url = URL(string: "\(baseURL)circles/kanban/\(circleId)/projects/")!
+
 
 
                 let body: [String: Any] = [
@@ -392,6 +402,11 @@ private func postJSON<T: Decodable>(_ url: URL, body: [String: Any]) async throw
     var req = URLRequest(url: url)
     req.httpMethod = "POST"
     req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    if let token = UserDefaults.standard.string(forKey: "auth_token") {
+        req.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+    }
+
+
     req.httpBody = try JSONSerialization.data(withJSONObject: body, options: [])
 
     let (data, response) = try await URLSession.shared.data(for: req)

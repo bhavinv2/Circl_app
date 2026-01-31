@@ -217,24 +217,29 @@ struct DashboardView: View {
                     // Content based on view mode
                     if viewMode == .kanban {
                         KanbanBoardView(
-                            tasks: allTasks,
+                            circleId: circle.id,
                             standaloneTasks: $standaloneTasks,
                             projects: $projects,
                             selectedTask: $selectedTask,
                             showTaskDetails: $showTaskDetails
                         )
+
                     } else {
                         ProjectGridView(
+                            circleId: circle.id,
                             projects: $projects,
                             selectedProject: $selectedProject,
                             showProjectDetails: $showProjectDetails,
                             selectedTask: $selectedTask,
                             showTaskDetails: $showTaskDetails
                         )
+
+
                     }
                 }
                 .sheet(isPresented: $showCreateTaskPopup) {
                     CreateTaskView(
+                        circleId: circle.id,
                         isPresented: $showCreateTaskPopup,
                         standaloneTasks: $standaloneTasks,
                         projects: $projects,
@@ -248,8 +253,16 @@ struct DashboardView: View {
                         selectedProject: $selectedProjectForTask
                     )
                 }
+                .onChange(of: showCreateTaskPopup) { isOpen in
+                    if !isOpen {
+                        fetchKanbanTasks()
+                    }
+                }
+
+
                 .sheet(isPresented: $showCreateProjectPopup) {
                     CreateProjectView(
+                        circleId: circle.id,
                         isPresented: $showCreateProjectPopup,
                         projects: $projects,
                         name: $newProjectName,
@@ -421,13 +434,19 @@ struct DashboardView: View {
     }
     
     func fetchKanbanProjects() {
-        guard let url = URL(string: "\(baseURL)circles/kanban/projects/") else {
+        guard let url = URL(string: "\(baseURL)circles/kanban/\(circle.id)/projects/") else {
+
             print("❌ Invalid URL for kanban projects")
             return
         }
 
         var req = URLRequest(url: url)
         req.httpMethod = "GET"
+
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            req.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
 
         URLSession.shared.dataTask(with: req) { data, response, error in
             DispatchQueue.main.async {
@@ -464,13 +483,19 @@ struct DashboardView: View {
     }
 
     func fetchKanbanTasks() {
-        guard let url = URL(string: "\(baseURL)circles/kanban/tasks/") else {
+        guard let url = URL(string: "\(baseURL)circles/kanban/\(circle.id)/tasks/") else {
+
             print("❌ Invalid URL for kanban tasks")
             return
         }
 
         var req = URLRequest(url: url)
         req.httpMethod = "GET"
+
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            req.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
 
         URLSession.shared.dataTask(with: req) { data, response, error in
             DispatchQueue.main.async {

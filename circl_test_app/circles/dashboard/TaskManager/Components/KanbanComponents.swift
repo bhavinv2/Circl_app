@@ -10,26 +10,32 @@ import SwiftUI
 
 // MARK: - Kanban Board View
 struct KanbanBoardView: View {
-    let tasks: [TaskItem]
+    @State private var refreshToken = UUID()
+    let circleId: Int
     @Binding var standaloneTasks: [TaskItem]
+
     @Binding var projects: [Project]
     @Binding var selectedTask: TaskItem?
     @Binding var showTaskDetails: Bool
+
     
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(alignment: .top, spacing: 16) {
                 ForEach(TaskStatus.allCases) { status in
                     KanbanColumnView(
+                        refreshToken: $refreshToken,
+                        circleId: circleId,
                         status: status,
-                        tasks: tasks.filter { $0.status == status },
                         standaloneTasks: $standaloneTasks,
                         projects: $projects,
                         selectedTask: $selectedTask,
                         showTaskDetails: $showTaskDetails
                     )
+
                     .frame(width: 280)
                 }
+
             }
             .padding(.horizontal, 20)
         }
@@ -38,12 +44,20 @@ struct KanbanBoardView: View {
 
 // MARK: - Kanban Column View
 struct KanbanColumnView: View {
+    @Binding var refreshToken: UUID
+    let circleId: Int
+
     let status: TaskStatus
-    let tasks: [TaskItem]
     @Binding var standaloneTasks: [TaskItem]
     @Binding var projects: [Project]
     @Binding var selectedTask: TaskItem?
     @Binding var showTaskDetails: Bool
+
+    private var tasks: [TaskItem] {
+        let all = standaloneTasks + projects.flatMap { $0.tasks }
+        return all.filter { $0.status == status }
+    }
+
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -79,18 +93,46 @@ struct KanbanColumnView: View {
                             showTaskDetails = true
                         },
                         onChangeStatus: { newStatus in
+                            updateTaskStatus(taskId: task.id, newStatus: newStatus)
+                            refreshToken = UUID()
                             persistTaskStatus(taskId: task.id, newStatus: newStatus)
+                        },
+                        onDelete: {
+                            // 🔥 1. Remove from UI
+                            standaloneTasks.removeAll { $0.id == task.id }
+                            for i in projects.indices {
+                                projects[i].tasks.removeAll { $0.id == task.id }
+                            }
+                            refreshToken = UUID()
+
+                            // 🔥 2. Call backend
+                            Task {
+                                var request = URLRequest(
+                                    url: URL(string:
+                                                "\(baseURL)circles/kanban/\(circleId)/tasks/\(task.id)/delete/"
+
+                                    )!
+                                )
+                                request.httpMethod = "DELETE"
+
+                                if let token = UserDefaults.standard.string(forKey: "auth_token") {
+                                    request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+                                }
+
+                                _ = try? await URLSession.shared.data(for: request)
+                            }
                         }
                     )
 
                     .onDrag {
                         NSItemProvider(object: String(task.id) as NSString)
-
                     }
                 }
             }
+            .id(refreshToken)
             
             Spacer()
+
         }
         .padding(12)
         .background(Color.gray.opacity(0.05))
@@ -110,6 +152,8 @@ struct KanbanColumnView: View {
                     
                     DispatchQueue.main.async {
                         updateTaskStatus(taskId: taskId, newStatus: status)
+                        refreshToken = UUID()
+
                     }
                 }
             }
@@ -117,30 +161,38 @@ struct KanbanColumnView: View {
         return true
     }
     
-    private func updateTaskStatus(taskId: Int, newStatus: TaskStatus)
- {
-        // Check standalone tasks
+    private func updateTaskStatus(taskId: Int, newStatus: TaskStatus) {
+        // Standalone tasks (force array reassignment so SwiftUI refreshes)
         if let index = standaloneTasks.firstIndex(where: { $0.id == taskId }) {
-            standaloneTasks[index].status = newStatus
+            var copy = standaloneTasks
+            copy[index].status = newStatus
+            standaloneTasks = copy
+          
             return
         }
-        
-        // Check project tasks
+
+        // Project tasks (already does copy, but we’ll force full projects reassignment too)
         for projectIndex in projects.indices {
             if let taskIndex = projects[projectIndex].tasks.firstIndex(where: { $0.id == taskId }) {
-                // Create a copy of the project to trigger SwiftUI update
-                var updatedProject = projects[projectIndex]
+                var projectsCopy = projects
+                var updatedProject = projectsCopy[projectIndex]
                 updatedProject.tasks[taskIndex].status = newStatus
-                projects[projectIndex] = updatedProject
+                projectsCopy[projectIndex] = updatedProject
+                projects = projectsCopy
+          
                 return
             }
         }
     }
+
     
     private func persistTaskStatus(taskId: Int, newStatus: TaskStatus) {
         Task {
             do {
-                let url = URL(string: "\(baseURL)circles/kanban/tasks/\(taskId)/status/")!
+                let url = URL(
+                    string: "\(baseURL)circles/kanban/\(circleId)/tasks/\(taskId)/status/"
+                )!
+
                 
                 let body: [String: Any] = [
                     "status": newStatus.rawValue
@@ -151,19 +203,25 @@ struct KanbanColumnView: View {
                 await MainActor.run {
                     // standalone
                     if let index = standaloneTasks.firstIndex(where: { $0.id == taskId }) {
-                        standaloneTasks[index] = updated
+                        var copy = standaloneTasks
+                        copy[index] = updated
+                        standaloneTasks = copy
                         return
                     }
+
 
                     // project task
                     for projectIndex in projects.indices {
                         if let taskIndex = projects[projectIndex].tasks.firstIndex(where: { $0.id == taskId }) {
-                            var updatedProject = projects[projectIndex]
+                            var projectsCopy = projects
+                            var updatedProject = projectsCopy[projectIndex]
                             updatedProject.tasks[taskIndex] = updated
-                            projects[projectIndex] = updatedProject
+                            projectsCopy[projectIndex] = updatedProject
+                            projects = projectsCopy
                             return
                         }
                     }
+
                 }
             } catch {
                 print("❌ Failed to update task status:", error)
@@ -180,6 +238,7 @@ struct TaskCardView: View {
     let projects: [Project]
     let onTap: () -> Void
     let onChangeStatus: (TaskStatus) -> Void
+    let onDelete: () -> Void
 
     private var associatedProject: Project? {
         guard let projectId = task.projectId else { return nil }
@@ -209,11 +268,21 @@ struct TaskCardView: View {
                             Label(status.rawValue, systemImage: iconForStatus(status))
                         }
                     }
+
+                    Divider()
+
+                    Button(role: .destructive) {
+                        onDelete()
+                    } label: {
+                        Label("Delete Task", systemImage: "trash")
+                    }
+
                 } label: {
                     Image(systemName: "ellipsis.circle")
                         .font(.system(size: 18))
                         .foregroundColor(.secondary)
                 }
+
             }
 
             if !task.description.isEmpty {
@@ -260,6 +329,10 @@ func patchJSON<T: Decodable>(_ url: URL, body: [String: Any]) async throws -> T 
     var request = URLRequest(url: url)
     request.httpMethod = "PATCH"
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+    if let token = UserDefaults.standard.string(forKey: "auth_token") {
+        request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+    }
 
     request.httpBody = try JSONSerialization.data(withJSONObject: body)
 
