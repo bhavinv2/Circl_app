@@ -68,17 +68,36 @@ class PushNotificationManager: NSObject, UIApplicationDelegate, UNUserNotificati
 func sendDeviceTokenToBackend(token: String) {
     guard let url = URL(string: "\(baseURL)notifications/register-token/") else { return }
 
-    let userId = UserDefaults.standard.integer(forKey: "user_id")
+    // Auth token saved after login
+    let authToken = UserDefaults.standard.string(forKey: "auth_token") ?? ""
+
+    let deviceId = UIDevice.current.identifierForVendor?.uuidString ?? UUID().uuidString
+    let platform = "ios"
+    let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown"
+    let locale = Locale.current.identifier
+
+    #if DEBUG
+    let isProduction = false
+    #else
+    let isProduction = true
+    #endif
 
     let payload: [String: Any] = [
         "token": token,
-        "user_id": userId,
-        "is_production": true
+        "device_id": deviceId,
+        "platform": platform,
+        "app_version": appVersion,
+        "locale": locale,
+        "is_production": isProduction
     ]
 
     var request = URLRequest(url: url)
     request.httpMethod = "POST"
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+    if !authToken.isEmpty {
+        request.setValue("Token \(authToken)", forHTTPHeaderField: "Authorization")
+    }
 
     do {
         request.httpBody = try JSONSerialization.data(withJSONObject: payload, options: [])
@@ -91,6 +110,9 @@ func sendDeviceTokenToBackend(token: String) {
         if let error = error {
             print("❌ Failed to send token: \(error)")
         } else {
+            if let httpResp = response as? HTTPURLResponse {
+                print("📡 register-token response code:", httpResp.statusCode)
+            }
             print("✅ Token sent to backend")
         }
     }.resume()

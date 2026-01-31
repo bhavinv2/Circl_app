@@ -136,7 +136,7 @@ struct CirclPopupCard: View {
 
                 // 🔗 Create Invite Link button
                 Button(action: {
-                    Task { 
+                    Task {
                         await createInviteLink(circleId: circle.id)
                         await MainActor.run {
                             showInviteCopiedToast = true
@@ -245,6 +245,10 @@ func createInviteLink(circleId: Int) async {
     var request = URLRequest(url: url)
     request.httpMethod = "POST"
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+    if let token = UserDefaults.standard.string(forKey: "auth_token") {
+        request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+    }
 
     let payload = ["user_id": userId]
 

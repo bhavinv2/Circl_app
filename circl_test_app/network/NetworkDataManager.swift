@@ -14,12 +14,9 @@ class NetworkDataManager: ObservableObject {
     @Published var sentRequests: [String] = []  // store emails you sent requests to
     @Published var userNetworkRaw: [[String: Any]] = []   // ✅ new
 
-    // Computed property for total potential matches across all pages
-    var totalPotentialMatches: Int {
-        return entrepreneurs.count + mentors.count
-    }
-    
-    var userNetworkIds: Set<Int> { 
+    /// Stable, equatable representation of the logged-in user's network membership.
+    /// Use this for SwiftUI `onChange` observers instead of `userNetworkRaw` (which is not Equatable).
+    var userNetworkIds: Set<Int> {
         Set(userNetworkRaw.compactMap { dict in
             (dict["id"] as? Int)
             ?? (dict["user_id"] as? Int)
@@ -359,6 +356,9 @@ else if let dict = json as? [String: Any] {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
 
         URLSession.shared.dataTask(with: request) { [weak self] data, response, error in

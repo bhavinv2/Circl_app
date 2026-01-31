@@ -201,6 +201,10 @@ func deleteAnnouncement(
     request.httpMethod = "DELETE"
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
+    if let token = UserDefaults.standard.string(forKey: "auth_token") {
+        request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+    }
+
     let body: [String: Any] = ["user_id": userId]
     request.httpBody = try? JSONSerialization.data(withJSONObject: body)
 

@@ -1,11 +1,12 @@
 import SwiftUI
 import Foundation
+import UIKit
 
 struct ProfilePage: View {
     @Environment(\.dismiss) private var dismiss
     
     @AppStorage("user_id") private var userId: Int = 0
-    
+
     @State private var showError: Bool = false
     @State private var isLoggedIn: Bool = UserDefaults.standard.bool(forKey: "isLoggedIn")
     @State private var isMentor: Bool = UserDefaults.standard.bool(forKey: "isMentor")
@@ -376,7 +377,7 @@ struct ProfilePage: View {
 //                cardOffset = 0
 //                cardOpacity = 1
 //            }
-//            
+//
 //            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
 //                isLoggedIn = UserDefaults.standard.bool(forKey: "isLoggedIn")
 //                fetchProfile()
@@ -414,6 +415,7 @@ struct ProfileHeaderCard: View {
     @Binding var isImagePickerPresented: Bool
     let uploadProfileImage: (UIImage) -> Void
     @State private var profileImageScale: CGFloat = 1.0
+    @State private var showCopiedToast: Bool = false
     
     var body: some View {
         // Main profile section with solid blue background - single container
@@ -520,14 +522,35 @@ struct ProfileHeaderCard: View {
                         
                         if let lastName = profileData?.last_name,
                            let userId = UserDefaults.standard.value(forKey: "user_id") as? Int {
-                            Text("@\(lastName)\(userId)")
-                                .font(.callout)
-                                .fontWeight(.medium)
-                                .foregroundColor(.white.opacity(0.9))
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 6)
-                                .background(Color.white.opacity(0.2))
-                                .cornerRadius(12)
+                            let username = "@\(lastName)\(userId)"
+
+                            Button(action: {
+                                UIPasteboard.general.string = username
+                                withAnimation { showCopiedToast = true }
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                                    withAnimation { showCopiedToast = false }
+                                }
+                            }) {
+                                Text(!showCopiedToast ? username : "Copied")
+                                    .font(.callout)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(.white.opacity(0.9))
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 6)
+                                    .background(Color.white.opacity(0.2))
+                                    .cornerRadius(12)
+                            }
+                            .buttonStyle(PlainButtonStyle())
+
+//                            if showCopiedToast {
+//                                Text("Copied")
+//                                    .font(.caption2)
+//                                    .foregroundColor(.white)
+//                                    .padding(6)
+//                                    .background(Color.black.opacity(0.6))
+//                                    .cornerRadius(8)
+//                                    .transition(.opacity)
+//                            }
                         }
                     }
                     

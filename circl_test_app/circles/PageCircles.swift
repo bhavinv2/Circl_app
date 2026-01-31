@@ -505,7 +505,7 @@ struct PageCircles: View {
                     VStack(spacing: 0) {
                         // Results dropdown
                         let allCircles = exploreCircles + myCircles
-                        let filtered = showMyCircles 
+                        let filtered = showMyCircles
                             ? myCircles.filter { $0.name.lowercased().contains(searchText.lowercased()) }
                             : allCircles.filter { $0.name.lowercased().contains(searchText.lowercased()) }
                         
@@ -1027,6 +1027,11 @@ struct PageCircles: View {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
         request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
         
         URLSession.shared.dataTask(with: request) { data, response, error in
@@ -1059,6 +1064,11 @@ struct PageCircles: View {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
         request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
         
         URLSession.shared.dataTask(with: request) { data, _, error in
@@ -1087,6 +1097,11 @@ struct PageCircles: View {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
         request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
 
         URLSession.shared.dataTask(with: request) { data, response, error in
@@ -1125,6 +1140,11 @@ struct PageCircles: View {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
         request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
         
         URLSession.shared.dataTask(with: request) { data, _, _ in

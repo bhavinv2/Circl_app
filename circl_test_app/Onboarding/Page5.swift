@@ -598,6 +598,11 @@ struct Page5: View {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
         request.httpBody = jsonData
 
         URLSession.shared.dataTask(with: request) { data, response, error in

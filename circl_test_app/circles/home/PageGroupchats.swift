@@ -777,6 +777,11 @@ struct PageGroupchats: View {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
 
         let task: URLSessionDataTask = URLSession.shared.dataTask(with: request) { data, response, error in
@@ -804,6 +809,11 @@ struct PageGroupchats: View {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
         request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
 
         let task: URLSessionDataTask = URLSession.shared.dataTask(with: request) { data, response, error in
@@ -824,6 +834,11 @@ struct PageGroupchats: View {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
         request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
 
         let task: URLSessionDataTask = URLSession.shared.dataTask(with: request) { data, _, _ in
@@ -895,6 +910,11 @@ struct PageGroupchats: View {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        if let token = UserDefaults.standard.string(forKey: "auth_token") {
+            request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+        }
+
         request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
 
         URLSession.shared.dataTask(with: request) { data, response, error in
@@ -1039,6 +1059,11 @@ struct PageGroupchats: View {
             var request = URLRequest(url: url)
             request.httpMethod = "POST"
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+            if let token = UserDefaults.standard.string(forKey: "auth_token") {
+                request.setValue("Token \(token)", forHTTPHeaderField: "Authorization")
+            }
+
             request.httpBody = try? JSONSerialization.data(withJSONObject: body)
 
             URLSession.shared.dataTask(with: request) { _, _, _ in

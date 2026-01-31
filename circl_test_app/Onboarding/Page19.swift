@@ -280,7 +280,7 @@ struct Page19: View {
                 UserDefaults.standard.set(true, forKey: "isLoggedIn")
                 appState.isLoggedIn = true
 
-                // Send pending push token if necessary
+                // Send pending push token (only after auth_token is stored)
                 if let savedToken = UserDefaults.standard.string(forKey: "pending_push_token") {
                     sendDeviceTokenToBackend(token: savedToken)
                     UserDefaults.standard.removeObject(forKey: "pending_push_token")
@@ -359,7 +359,7 @@ struct Page19: View {
             print("❌ ERROR: No user_id saved during onboarding!")
         }
         
-        // If push token was saved before onboarding, send it now
+        // If push token was saved before onboarding, send it now (auth_token already stored)
         if let savedToken = UserDefaults.standard.string(forKey: "pending_push_token") {
             print("📤 Sending saved push token after onboarding: \(savedToken)")
             sendDeviceTokenToBackend(token: savedToken)

@@ -99,6 +99,72 @@ class NotificationManager: ObservableObject {
         showNotification(notification)
     }
     
+    // MARK: - Handle Push Payloads
+    /// Accepts a push payload (parsed from APNs userInfo) and displays an in-app notification mapping.
+    func handlePushPayload(type: String, payload: [String: Any]) {
+        DispatchQueue.main.async {
+            switch type {
+            case "message":
+                let messageId = payload["message_id"] as? Int
+                let channelId = payload["channel_id"] as? Int
+                let circleId = payload["circle_id"] as? Int
+                let senderName = payload["sender_name"] as? String ?? "Someone"
+                let excerpt = payload["excerpt"] as? String ?? ""
+
+                // Dedupe by message id
+                if let mid = messageId, !self.shouldShowNotificationForMessage(messageId: String(mid)) {
+                    return
+                }
+
+                self.showMessageNotification(senderName: senderName,
+                                             message: excerpt,
+                                             profileImageURL: nil,
+                                             messageId: messageId,
+                                             channelId: channelId,
+                                             circleId: circleId)
+
+            case "connection_request":
+                let senderName = payload["sender_name"] as? String ?? "Someone"
+                let title = "New Connection Request"
+                let subtitle = "\(senderName) wants to connect"
+                self.showConnectionRequest(fromUserName: senderName, title: title, subtitle: subtitle)
+
+            case "connection_accepted":
+                let accepterName = payload["accepter_name"] as? String ?? "Someone"
+                self.showSystemNotification(title: "Connection Accepted", message: "\(accepterName) accepted your request")
+
+            case "announcement":
+                let title = payload["title"] as? String ?? "Announcement"
+                let excerpt = payload["excerpt"] as? String ?? ""
+                self.showSystemNotification(title: title, message: excerpt)
+
+            case "event_reminder":
+                let title = payload["title"] as? String ?? "Event Reminder"
+                let start = payload["start_time"] as? String ?? ""
+                self.showSystemNotification(title: title, message: "Starts at \(start)")
+
+            case "events_tomorrow_summary":
+                if let events = payload["events"] as? [[String: Any]] {
+                    let count = events.count
+                    let titles = events.prefix(3).compactMap { e -> String? in
+                        if let t = e["title"] as? String, let time = e["time_local"] as? String {
+                            return "\(t) at \(time)"
+                        }
+                        return nil
+                    }.joined(separator: ", ")
+                    let title = "\(count) Events Tomorrow"
+                    self.showSystemNotification(title: title, message: titles)
+                } else {
+                    self.showSystemNotification(title: "Events Tomorrow", message: "You have events tomorrow.")
+                }
+
+            default:
+                // For unknown types, do nothing (or log)
+                break
+            }
+        }
+    }
+    
     // MARK: - General Notification Method
     func showNotification(type: NotificationType, title: String, subtitle: String? = nil, 
                          senderName: String? = nil, profileImageURL: String? = nil,

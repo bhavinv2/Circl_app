@@ -772,7 +772,8 @@ struct PageCircleMessages: View {
         request.httpMethod = "POST"
         
         // Try as form data instead of JSON
-        let bodyString = "user_id=\(userId)&channel_id=\(currentChannel.id)&content=\(newMessage.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")"
+        let encodedContent = newMessage.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        let bodyString = "user_id=\(userId)&channel_id=\(currentChannel.id)&content=\(encodedContent)"
         request.httpBody = bodyString.data(using: .utf8)
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
         
@@ -1184,4 +1185,3 @@ extension Data {
         }
     }
 }
-
